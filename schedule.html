@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한조고 동문 네트워크 모임 · 주요 일정</title>
+<style>
+:root{
+  --purple:#6E5FCB;
+  --purple-dark:#4E43A0;
+  --purple-light:#EEEDFB;
+  --ivory:#FAF8F4;
+  --ink:#1E1C1A;
+  --sub:#6B6862;
+  --mute:#9C988F;
+  --line:#E7E3D9;
+  --card:#fff;
+  --green:#4B9463;
+  --orange:#B8873A;
+  --red:#B05A42;
+  --radius:16px
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--ivory);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  line-height:1.5
+}
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:30px 18px 72px
+}
+
+.eyebrow{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:var(--purple-dark);
+  margin:0 0 7px
+}
+
+.head{margin-bottom:18px}
+
+.head h1{
+  font-size:25px;
+  letter-spacing:-.03em;
+  margin:0 0 6px
+}
+
+.head p{
+  margin:0;
+  color:var(--sub);
+  font-size:13px
+}
+
+.hero{
+  background:linear-gradient(135deg,var(--purple),var(--purple-dark));
+  color:#fff;
+  border-radius:20px;
+  padding:22px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:22px;
+  flex-wrap:wrap
+}
+
+.hero .date{
+  font-size:22px;
+  font-weight:800
+}
+
+.hero .place{
+  font-size:13px;
+  opacity:.88;
+  margin-top:4px
+}
+
+.hero .dday{
+  font-size:36px;
+  font-weight:900
+}
+
+.section{margin-top:28px}
+
+.sec-title{
+  font-size:17px;
+  font-weight:800;
+  margin-bottom:12px
+}
+
+.timeline{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:4px 18px
+}
+
+.item{
+  display:grid;
+  grid-template-columns:112px 18px 1fr;
+  gap:12px;
+  padding:17px 0;
+  border-bottom:1px solid var(--line)
+}
+
+.item:last-child{border-bottom:none}
+
+.datebox{
+  font-size:12px;
+  color:var(--sub);
+  font-weight:700
+}
+
+.datebox strong{
+  display:block;
+  color:var(--purple-dark);
+  font-size:14px;
+  margin-bottom:1px
+}
+
+.dotcol{position:relative}
+
+.dot{
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background:var(--purple);
+  margin-top:5px;
+  position:relative;
+  z-index:2
+}
+
+.dotcol:after{
+  content:"";
+  position:absolute;
+  width:1px;
+  background:var(--line);
+  top:18px;
+  bottom:-22px;
+  left:5px
+}
+
+.item:last-child .dotcol:after{display:none}
+
+.content h3{
+  font-size:14px;
+  margin:0 0 4px
+}
+
+.content p{
+  font-size:12.5px;
+  color:var(--sub);
+  margin:0
+}
+
+.tag{
+  display:inline-block;
+  font-size:10.5px;
+  font-weight:800;
+  padding:2px 7px;
+  border-radius:999px;
+  background:var(--purple-light);
+  color:var(--purple-dark);
+  margin-left:5px;
+  vertical-align:1px
+}
+
+.tag.event{
+  background:#F8EAE5;
+  color:var(--red)
+}
+
+.months{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px
+}
+
+.month{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:13px
+}
+
+.month-title{
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:9px
+}
+
+.cal{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:3px
+}
+
+.dow{
+  text-align:center;
+  font-size:9px;
+  color:var(--mute);
+  font-weight:700
+}
+
+.day{
+  min-height:31px;
+  border-radius:7px;
+  text-align:center;
+  padding-top:7px;
+  font-size:10px;
+  color:var(--sub);
+  position:relative
+}
+
+.day.dim{opacity:.25}
+
+.day.mark{
+  background:var(--purple-light);
+  color:var(--purple-dark);
+  font-weight:800
+}
+
+.day.event{
+  background:var(--purple);
+  color:#fff;
+  font-weight:900
+}
+
+.legend{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  color:var(--sub);
+  font-size:11px;
+  margin-top:10px
+}
+
+.legend span:before{
+  content:"";
+  display:inline-block;
+  width:9px;
+  height:9px;
+  border-radius:3px;
+  background:var(--purple-light);
+  margin-right:5px;
+  vertical-align:-1px
+}
+
+.legend span.event:before{
+  background:var(--purple)
+}
+
+.note{
+  margin-top:20px;
+  font-size:11.5px;
+  color:var(--mute);
+  text-align:center
+}
+
+@media(max-width:700px){
+  .months{grid-template-columns:1fr}
+  .item{grid-template-columns:88px 16px 1fr;gap:8px}
+  .hero .dday{font-size:30px}
+  .head h1{font-size:22px}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <p class="eyebrow">한국조리고 동문 네트워크 모임</p>
+    <h1>주요 일정 안내</h1>
+    <p>참가 신청부터 행사일까지 필요한 일정만 정리했습니다.</p>
+  </div>
+
+  <div class="hero">
+    <div>
+      <div class="date">2026년 10월 18일(일)</div>
+      <div class="place">한조고 동문 네트워크 모임</div>
+    </div>
+    <div class="dday" id="dday">D-</div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">한눈에 보는 일정</div>
+
+    <div class="timeline">
+
+      <div class="item">
+        <div class="datebox">
+          <strong>8/24 ~ 8/25</strong>
+          월~화
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>참가 신청 사전 안내</h3>
+          <p>카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>9/2 ~ 9/6</strong>
+          수~일
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>1차 참가 신청 <span class="tag">신청</span></h3>
+          <p>일반 참가자 대상 1차 신청 기간입니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>9/7 ~ 9/10</strong>
+          월~목
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>1차 신청자 정리 및 참가 확정</h3>
+          <p>참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감은 9월 10일(목) 23:59입니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>9/14 ~ 9/20</strong>
+          월~일
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>2차 참가 신청 <span class="tag">추가 모집</span></h3>
+          <p>1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>9/20</strong>
+          일
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>기업 협찬·후원 접수 마감</h3>
+          <p>협찬 및 후원 참여 접수가 마감됩니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>9/21 ~ 9/25</strong>
+          월~금
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>최종 참가자 확정</h3>
+          <p>미입금 및 대기자 정리 후 최종 참가자가 확정됩니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>10/5 ~ 10/11</strong>
+          월~일
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>참가자 최종 안내</h3>
+          <p>행사 전 필요한 최종 안내를 전달합니다.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="datebox">
+          <strong>10/18</strong>
+          일
+        </div>
+        <div class="dotcol"><div class="dot"></div></div>
+        <div class="content">
+          <h3>
+            한조고 네트워크 모임 개최
+            <span class="tag event">행사일</span>
+          </h3>
+          <p>2026년 한조고 동문 네트워크 모임이 진행됩니다.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">캘린더</div>
+    <div class="months" id="months"></div>
+
+    <div class="legend">
+      <span>주요 일정</span>
+      <span class="event">행사일</span>
+    </div>
+  </div>
+
+  <div class="note">
+    일정은 행사 준비 상황에 따라 일부 조정될 수 있습니다.
+  </div>
+
+</div>
+
+<script>
+const eventDate = new Date(2026,9,18);
+
+const today = new Date();
+today.setHours(0,0,0,0);
+
+const d = Math.round((eventDate-today)/86400000);
+
+document.getElementById('dday').textContent =
+  d === 0 ? 'D-DAY' :
+  d > 0 ? 'D-'+d :
+  'D+'+Math.abs(d);
+
+const ranges = [
+  ['2026-08-24','2026-08-25'],
+  ['2026-09-02','2026-09-06'],
+  ['2026-09-07','2026-09-10'],
+  ['2026-09-14','2026-09-20'],
+  ['2026-09-21','2026-09-25'],
+  ['2026-10-05','2026-10-11']
+];
+
+function isMark(s){
+  return ranges.some(([a,b]) => s>=a && s<=b)
+    || s === '2026-09-20';
+}
+
+function fmt(y,m,d){
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function makeMonth(y,m){
+
+  const names = ['일','월','화','수','목','금','토'];
+
+  const box = document.createElement('div');
+  box.className = 'month';
+
+  box.innerHTML = `
+    <div class="month-title">${m+1}월</div>
+    <div class="cal">
+      ${names.map(x => `<div class="dow">${x}</div>`).join('')}
+    </div>
+  `;
+
+  const cal = box.querySelector('.cal');
+
+  const first = new Date(y,m,1).getDay();
+  const last = new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<first;i++){
+    const e = document.createElement('div');
+    e.className = 'day dim';
+    cal.appendChild(e);
+  }
+
+  for(let day=1;day<=last;day++){
+
+    const s = fmt(y,m,day);
+    const e = document.createElement('div');
+
+    e.className =
+      'day' +
+      (s === '2026-10-18'
+        ? ' event'
+        : isMark(s)
+        ? ' mark'
+        : '');
+
+    e.textContent = day;
+
+    cal.appendChild(e);
+  }
+
+  return box;
+}
+
+const holder = document.getElementById('months');
+
+[
+  [2026,7],
+  [2026,8],
+  [2026,9]
+].forEach(([y,m]) => {
+  holder.appendChild(makeMonth(y,m));
+});
+</script>
+
+</body>
+</html>

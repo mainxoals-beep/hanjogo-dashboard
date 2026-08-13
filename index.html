@@ -368,6 +368,84 @@
   #saveStatus.nostorage{color:var(--warn);}
   #saveStatus.localsaved .dot{background:var(--purple);}
   #saveStatus.localsaved{color:var(--purple-dark);}
+
+  /* ---------- external page management ---------- */
+  .public-edit-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+  .public-edit-card{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    background:#fdfcfa;
+  }
+  .public-edit-card.full{grid-column:1/-1;}
+  .public-edit-card h4{
+    margin:0 0 9px;
+    font-size:12px;
+    color:var(--purple-dark);
+  }
+  .public-field{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    margin-bottom:8px;
+  }
+  .public-field:last-child{margin-bottom:0;}
+  .public-field label{
+    font-size:10.5px;
+    color:var(--ink-mute);
+    font-weight:600;
+  }
+  .public-field input,
+  .public-field textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:7px 9px;
+    font-size:12px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .public-field textarea{min-height:64px;resize:vertical;}
+  .public-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .public-save-btn{
+    border:none;
+    background:var(--purple);
+    color:#fff;
+    border-radius:9px;
+    padding:8px 12px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .public-open-btn{
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--purple-dark);
+    border-radius:9px;
+    padding:8px 12px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .faq-edit-row{
+    border-top:1px solid var(--line);
+    padding-top:8px;
+    margin-top:8px;
+  }
+  @media (max-width:640px){
+    .public-edit-grid{grid-template-columns:1fr;}
+    .public-edit-card.full{grid-column:auto;}
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -611,6 +689,60 @@
         </div>
       </div>
 
+
+      <div class="settings-group">
+        <div class="settings-title">외부 페이지 관리</div>
+        <div class="form-sync-note">
+          외부 일정 페이지에 표시되는 행사 시간, 장소, 문의처, 공식 링크, FAQ를 여기서 수정합니다.
+          저장하면 공동 저장소에 반영되며 외부 페이지가 해당 값을 불러오도록 연결할 수 있습니다.
+        </div>
+
+        <div class="public-edit-grid">
+          <div class="public-edit-card">
+            <h4>행사 기본 정보</h4>
+            <div class="public-field"><label>행사명</label><input id="pubEventName" type="text" class="lockable"></div>
+            <div class="public-field"><label>행사일</label><input id="pubEventDate" type="date" class="lockable"></div>
+            <div class="public-field"><label>입장 가능 시간</label><input id="pubEntryTime" type="time" class="lockable"></div>
+            <div class="public-field"><label>본행사 시작</label><input id="pubStartTime" type="time" class="lockable"></div>
+            <div class="public-field"><label>참가비</label><input id="pubParticipantFee" type="text" class="lockable"></div>
+          </div>
+
+          <div class="public-edit-card">
+            <h4>행사 장소</h4>
+            <div class="public-field"><label>장소명</label><input id="pubVenueName" type="text" class="lockable"></div>
+            <div class="public-field"><label>주소</label><input id="pubVenueAddress" type="text" class="lockable"></div>
+            <div class="public-field"><label>지도 링크</label><input id="pubVenueMapUrl" type="text" class="lockable"></div>
+            <div class="public-field"><label>장소 인스타그램</label><input id="pubVenueInstagram" type="text" class="lockable"></div>
+          </div>
+
+          <div class="public-edit-card">
+            <h4>행사 문의</h4>
+            <div class="public-field"><label>담당자</label><input id="pubContactName" type="text" class="lockable"></div>
+            <div class="public-field"><label>전화번호</label><input id="pubContactPhone" type="text" class="lockable"></div>
+            <div class="public-field"><label>이메일</label><input id="pubContactEmail" type="text" class="lockable"></div>
+          </div>
+
+          <div class="public-edit-card">
+            <h4>공식 링크</h4>
+            <div class="public-field"><label>한조고 아카이브 인스타그램</label><input id="pubInstagramUrl" type="text" class="lockable"></div>
+            <div class="public-field"><label>카카오톡 채널 이름</label><input id="pubKakaoName" type="text" class="lockable"></div>
+            <div class="public-field"><label>카카오톡 채널 링크</label><input id="pubKakaoUrl" type="text" class="lockable"></div>
+            <div class="public-field"><label>졸업생 DB 구글폼</label><input id="pubDbFormUrl" type="text" class="lockable"></div>
+            <div class="public-field"><label>참가신청 구글폼</label><input id="pubApplyFormUrl" type="text" class="lockable"></div>
+          </div>
+
+          <div class="public-edit-card full">
+            <h4>FAQ</h4>
+            <div id="publicFaqEditor"></div>
+          </div>
+        </div>
+
+        <div class="public-actions">
+          <button id="savePublicInfo" class="public-save-btn lockable">외부 페이지 정보 저장</button>
+          <button id="openPublicPage" class="public-open-btn">외부 페이지 열기</button>
+        </div>
+      </div>
+
       <div class="settings-group">
         <div class="settings-title">공유 설정</div>
         <div style="font-size:12px;color:var(--ink-mute);line-height:1.6;">
@@ -724,6 +856,34 @@ const DEFAULT_LINKS = [
   {label:"졸업생 DB 등록 (구글폼)", value:"https://link24.kr/DPWKmSL", type:"form"},
 ];
 
+
+const DEFAULT_PUBLIC_INFO = {
+  eventName:"한조고 동문 네트워크 모임",
+  eventDate:"2026-10-18",
+  entryTime:"18:30",
+  startTime:"19:00",
+  participantFee:"100,000원 (십만원)",
+  venueName:"카페 와일드덕",
+  venueAddress:"서울 중구 동호로15길 43 미래빌딩 지하 1층",
+  venueMapUrl:"https://www.google.com/maps/search/?api=1&query=%EC%B9%B4%ED%8E%98%20%EC%99%80%EC%9D%BC%EB%93%9C%EB%8D%95%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2043",
+  venueInstagram:"https://www.instagram.com/cafewildduck/",
+  contactName:"김태민 · 2기",
+  contactPhone:"010-4202-4091",
+  contactEmail:"mainxoals@gmail.com",
+  instagramUrl:"https://www.instagram.com/kcas_archived?utm_source=qr",
+  kakaoName:"한조고 아카이브",
+  kakaoUrl:"",
+  dbFormUrl:"https://link24.kr/DPWKmSL",
+  applyFormUrl:"",
+  faq:[
+    {q:"누가 참여할 수 있나요?", a:"한국조리고등학교 졸업생을 대상으로 진행하는 동문 네트워크 모임입니다."},
+    {q:"참가비는 얼마인가요?", a:"참가비는 1인 100,000원(십만원)입니다. 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."},
+    {q:"신청하면 바로 참가가 확정되나요?", a:"아닙니다. 참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며, 입금 확인 후 최종 참가가 확정됩니다."},
+    {q:"주차가 가능한가요?", a:"행사장 주차 가능 대수가 매우 제한적입니다. 행사장 안내 기준 최대 2대 정도만 가능해 가급적 대중교통 이용을 권장합니다."}
+  ]
+};
+
+
 // ---------- state ----------
 let state = {
   shareMode: false,
@@ -740,6 +900,7 @@ let state = {
   links: [],
   formSync: {csvUrl:"", lastCount:null, dayStartCount:null, dayStartDate:"", lastSyncTime:""},
   dayProgram: [],
+  publicInfo: {...DEFAULT_PUBLIC_INFO},
   sectionCollapse: {},
 };
 
@@ -903,7 +1064,8 @@ async function initializeRemoteIfNeeded(){
   sharedDataCache = {
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
-    committee: state.committee, links: state.links, formSync: state.formSync, dayProgram: state.dayProgram
+    committee: state.committee, links: state.links, formSync: state.formSync, dayProgram: state.dayProgram,
+    publicInfo: state.publicInfo
   };
   await saveRemoteState();
 }
@@ -976,6 +1138,8 @@ async function loadAll(){
   state.formSync = loadedFormSync || {csvUrl:"", lastCount:null, dayStartCount:null, dayStartDate:"", lastSyncTime:""};
 
   state.dayProgram = await dGet("dayProgram", DEFAULT_DAY_PROGRAM.map(x => ({id:uid(), ...x})));
+
+  state.publicInfo = await dGet("publicInfo", {...DEFAULT_PUBLIC_INFO});
 
   state.sectionCollapse = await storageGet("sectionCollapse", {}, false); // UI pref: this browser only
   state.shareMode = true; // shared dashboard is always on
@@ -1057,7 +1221,7 @@ document.getElementById("editModeBtn").addEventListener("click", () => {
 
 function applyRemoteDataToState(remote){
   if(!remote || typeof remote !== "object") return;
-  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram"];
+  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo"];
   keys.forEach(k => { if(Object.prototype.hasOwnProperty.call(remote,k)) state[k] = remote[k]; });
   if(Array.isArray(state.phases)) state.phases.forEach(p => { if(!p.priority) p.priority = IMPORTANT_IDS.includes(p.id) ? "important" : "normal"; });
   if(Array.isArray(state.sponsors)) state.sponsors.forEach(s => {
@@ -2091,6 +2255,96 @@ document.querySelectorAll(".collapse-btn").forEach(btn => {
   });
 });
 
+
+// ---------- external page management ----------
+function renderPublicInfoEditor(){
+  const p = state.publicInfo || {...DEFAULT_PUBLIC_INFO};
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if(el) el.value = value || "";
+  };
+
+  set("pubEventName", p.eventName);
+  set("pubEventDate", p.eventDate);
+  set("pubEntryTime", p.entryTime);
+  set("pubStartTime", p.startTime);
+  set("pubParticipantFee", p.participantFee);
+  set("pubVenueName", p.venueName);
+  set("pubVenueAddress", p.venueAddress);
+  set("pubVenueMapUrl", p.venueMapUrl);
+  set("pubVenueInstagram", p.venueInstagram);
+  set("pubContactName", p.contactName);
+  set("pubContactPhone", p.contactPhone);
+  set("pubContactEmail", p.contactEmail);
+  set("pubInstagramUrl", p.instagramUrl);
+  set("pubKakaoName", p.kakaoName);
+  set("pubKakaoUrl", p.kakaoUrl);
+  set("pubDbFormUrl", p.dbFormUrl);
+  set("pubApplyFormUrl", p.applyFormUrl);
+
+  const faqWrap = document.getElementById("publicFaqEditor");
+  if(!faqWrap) return;
+
+  faqWrap.innerHTML = "";
+  (p.faq || []).forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "faq-edit-row";
+    row.innerHTML = `
+      <div class="public-field">
+        <label>질문 ${idx+1}</label>
+        <input type="text" class="lockable pub-faq-q" data-idx="${idx}" value="${escapeHtml(item.q || "")}">
+      </div>
+      <div class="public-field">
+        <label>답변 ${idx+1}</label>
+        <textarea class="lockable pub-faq-a" data-idx="${idx}">${escapeHtml(item.a || "")}</textarea>
+      </div>`;
+    faqWrap.appendChild(row);
+  });
+}
+
+function collectPublicInfoFromEditor(){
+  const val = id => (document.getElementById(id)?.value || "").trim();
+  const faq = [];
+  document.querySelectorAll(".pub-faq-q").forEach(qEl => {
+    const idx = Number(qEl.dataset.idx);
+    const aEl = document.querySelector(`.pub-faq-a[data-idx="${idx}"]`);
+    faq.push({q:qEl.value.trim(), a:(aEl?.value || "").trim()});
+  });
+
+  return {
+    eventName:val("pubEventName"),
+    eventDate:val("pubEventDate"),
+    entryTime:val("pubEntryTime"),
+    startTime:val("pubStartTime"),
+    participantFee:val("pubParticipantFee"),
+    venueName:val("pubVenueName"),
+    venueAddress:val("pubVenueAddress"),
+    venueMapUrl:val("pubVenueMapUrl"),
+    venueInstagram:val("pubVenueInstagram"),
+    contactName:val("pubContactName"),
+    contactPhone:val("pubContactPhone"),
+    contactEmail:val("pubContactEmail"),
+    instagramUrl:val("pubInstagramUrl"),
+    kakaoName:val("pubKakaoName"),
+    kakaoUrl:val("pubKakaoUrl"),
+    dbFormUrl:val("pubDbFormUrl"),
+    applyFormUrl:val("pubApplyFormUrl"),
+    faq
+  };
+}
+
+document.getElementById("savePublicInfo")?.addEventListener("click", async () => {
+  if(state.shareMode && !state.editMode) return;
+  state.publicInfo = collectPublicInfoFromEditor();
+  await dSet("publicInfo", state.publicInfo);
+  renderPublicInfoEditor();
+});
+
+document.getElementById("openPublicPage")?.addEventListener("click", () => {
+  window.open("./schedule.html", "_blank");
+});
+
+
 // ---------- render all / init ----------
 function renderAll(){
   renderDday();
@@ -2106,6 +2360,7 @@ function renderAll(){
   renderLinks();
   renderFormSyncInputs();
   renderDayProgram();
+  renderPublicInfoEditor();
   applyEditLock();
 }
 

@@ -68,6 +68,14 @@ button{cursor:pointer}
   color:var(--event-dark);font-size:12px;font-weight:800;line-height:1.7
 }
 .info-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+
+.parking-box{
+  margin-top:12px;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB
+}
+.parking-label{margin-bottom:5px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.04em}
+.parking-title{font-size:13.5px;font-weight:800}
+.parking-meta{margin-top:3px;color:var(--sub);font-size:12px;line-height:1.65}
+.parking-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
 .link-btn{
   display:inline-flex;align-items:center;justify-content:center;padding:8px 11px;
   border:1px solid var(--line);border-radius:9px;background:#FDFCFB;color:var(--purple-dark);
@@ -237,6 +245,17 @@ button{cursor:pointer}
         <button class="link-btn" id="copyAddressBtn">주소 복사</button>
         <a class="link-btn" id="venueInstagramBtn" target="_blank" rel="noopener">카페 인스타그램</a>
       </div>
+
+      <div class="parking-box">
+        <div class="parking-label">주차 안내</div>
+        <div class="parking-title" id="parkingName"></div>
+        <div class="parking-meta" id="parkingAddress"></div>
+        <div class="parking-meta" id="parkingNote"></div>
+        <div class="parking-actions">
+          <a class="link-btn primary" id="parkingMapBtn" target="_blank" rel="noopener">주차장 지도에서 보기</a>
+          <button class="link-btn" id="copyParkingBtn">주차장 주소 복사</button>
+        </div>
+      </div>
     </div>
 
     <div class="info-card">
@@ -324,6 +343,10 @@ const DEFAULT_PUBLIC_INFO = {
   venueAddress:"서울 중구 동호로15길 43 미래빌딩 지하 1층",
   venueMapUrl:"https://www.google.com/maps/search/?api=1&query=%EC%B9%B4%ED%8E%98%20%EC%99%80%EC%9D%BC%EB%93%9C%EB%8D%95%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2043",
   venueInstagram:"https://www.instagram.com/cafewildduck/",
+  parkingName:"다산동 공영주차장",
+  parkingAddress:"서울 중구 동호로15길 60",
+  parkingMapUrl:"https://www.google.com/maps/search/?api=1&query=%EB%8B%A4%EC%82%B0%EB%8F%99%20%EA%B3%B5%EC%98%81%EC%A3%BC%EC%B0%A8%EC%9E%A5%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2060",
+  parkingNote:"행사장 자체 주차는 불가합니다. 다산동 공영주차장은 행사장 도보 약 2~3분 거리이며, 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다.",
   contactName:"김태민 · 2기",
   contactPhone:"010-4202-4091",
   contactEmail:"mainxoals@gmail.com",
@@ -426,6 +449,14 @@ function renderHeaderAndInfo(){
   const venueIg=document.getElementById("venueInstagramBtn");
   venueIg.href=p.venueInstagram || "#";
   venueIg.style.display=p.venueInstagram ? "inline-flex" : "none";
+
+  document.getElementById("parkingName").textContent=p.parkingName || "";
+  document.getElementById("parkingAddress").textContent=p.parkingAddress || "";
+  document.getElementById("parkingNote").textContent=p.parkingNote || "";
+
+  const parkingMapBtn=document.getElementById("parkingMapBtn");
+  parkingMapBtn.href=p.parkingMapUrl || "#";
+  parkingMapBtn.style.display=p.parkingMapUrl ? "inline-flex" : "none";
 
   document.getElementById("contactName").textContent=p.contactName || "";
   document.getElementById("contactInfo").innerHTML=
@@ -701,6 +732,7 @@ document.getElementById("shareBtn").addEventListener("click",sharePage);
 document.getElementById("bottomShareBtn").addEventListener("click",sharePage);
 document.getElementById("copyPageBtn").addEventListener("click",()=>copyText(window.location.href,"페이지 링크를 복사했습니다."));
 document.getElementById("copyAddressBtn").addEventListener("click",()=>copyText(publicInfo.venueAddress || "","행사장 주소를 복사했습니다."));
+document.getElementById("copyParkingBtn").addEventListener("click",()=>copyText(publicInfo.parkingAddress || "","주차장 주소를 복사했습니다."));
 
 loadPublicInfo();
 subscribeRealtime();

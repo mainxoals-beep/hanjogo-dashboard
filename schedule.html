@@ -3,3165 +3,707 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>한조고 동문 네트워크 모임 · 주요 일정</title>
-
-<meta
-  name="description"
-  content="2026 한조고 동문 네트워크 모임 주요 일정, 참가 신청 및 행사 안내"
-/>
+<meta name="description" content="2026 한조고 동문 네트워크 모임 주요 일정, 참가 신청 및 행사 안내">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-
 :root{
-  --purple:#6E5FCB;
-  --purple-dark:#4E43A0;
-  --purple-light:#EEEDFB;
-
-  --ivory:#FAF8F4;
-  --white:#FFFFFF;
-
-  --ink:#1E1C1A;
-  --sub:#6B6862;
-  --mute:#9C988F;
-  --line:#E7E3D9;
-
-  --event:#C85A42;
-  --event-dark:#9F3F2B;
-  --event-light:#F8E8E2;
-
-  --ok:#4B9463;
-  --ok-light:#E9F3EC;
-
-  --radius:16px;
+  --purple:#6E5FCB; --purple-dark:#4E43A0; --purple-light:#EEEDFB;
+  --ivory:#FAF8F4; --ink:#1E1C1A; --sub:#6B6862; --mute:#9C988F;
+  --line:#E7E3D9; --white:#fff;
+  --event:#C85A42; --event-dark:#9F3F2B; --event-light:#F8E8E2;
+  --ok:#4B9463; --ok-light:#E9F3EC; --radius:16px;
 }
-
-*{
-  box-sizing:border-box;
-}
-
-html{
-  scroll-behavior:smooth;
-}
-
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
-  margin:0;
-  background:var(--ivory);
-  color:var(--ink);
-
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Apple SD Gothic Neo",
-    "Malgun Gothic",
-    "Noto Sans KR",
-    sans-serif;
-
-  line-height:1.5;
+  margin:0;background:var(--ivory);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  line-height:1.5
 }
-
-button,
-a{
-  font:inherit;
-}
-
-button{
-  cursor:pointer;
-}
-
-.wrap{
-  max-width:920px;
-  margin:0 auto;
-  padding:30px 18px 72px;
-}
-
-
-/* HEADER */
-
-.eyebrow{
-  margin:0 0 7px;
-
-  color:var(--purple-dark);
-
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.08em;
-}
-
-.head{
-  margin-bottom:18px;
-}
-
-.head h1{
-  margin:0 0 6px;
-
-  font-size:25px;
-  letter-spacing:-.03em;
-}
-
-.head p{
-  margin:0;
-
-  color:var(--sub);
-  font-size:13px;
-}
-
-
-/* HERO */
+button,a{font:inherit}
+button{cursor:pointer}
+.wrap{max-width:920px;margin:0 auto;padding:30px 18px 72px}
+.eyebrow{margin:0 0 7px;color:var(--purple-dark);font-size:12px;font-weight:800;letter-spacing:.08em}
+.head{margin-bottom:18px}
+.head h1{margin:0 0 6px;font-size:25px;letter-spacing:-.03em}
+.head p{margin:0;color:var(--sub);font-size:13px}
 
 .hero{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  gap:18px;
-
-  padding:22px 24px;
-  margin-bottom:14px;
-
-  border-radius:20px;
-
-  color:#fff;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--purple),
-      var(--purple-dark)
-    );
-
-  flex-wrap:wrap;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding:22px 24px;margin-bottom:14px;border-radius:20px;color:#fff;
+  background:linear-gradient(135deg,var(--purple),var(--purple-dark))
 }
+.hero-date{font-size:22px;font-weight:800}
+.hero-place{margin-top:4px;font-size:13px;opacity:.88}
+.hero-dday{font-size:36px;font-weight:900}
 
-.hero-date{
-  font-size:22px;
-  font-weight:800;
-}
-
-.hero-place{
-  margin-top:4px;
-
-  font-size:13px;
-  opacity:.88;
-}
-
-.hero-dday{
-  font-size:36px;
-  font-weight:900;
-}
-
-
-/* SHARE */
-
-.top-actions{
-  display:flex;
-
-  gap:8px;
-  flex-wrap:wrap;
-
-  margin-bottom:18px;
-}
-
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .top-action{
-  flex:1;
-
-  min-width:150px;
-
-  padding:10px 12px;
-
-  border:1px solid var(--line);
-  border-radius:11px;
-
-  background:#fff;
-  color:var(--purple-dark);
-
-  font-size:12px;
-  font-weight:800;
-
-  text-decoration:none;
-  text-align:center;
+  flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;
+  background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center
 }
+.top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
 
-.top-action.primary{
-  background:var(--purple);
-  border-color:var(--purple);
+.status-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-bottom:18px}
+.status-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.status-kicker{margin-bottom:6px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.05em}
+.status-main{font-size:18px;font-weight:900}
+.status-sub{margin-top:4px;color:var(--sub);font-size:12.5px}
+.status-pill{display:inline-block;margin-top:10px;padding:5px 9px;border-radius:999px;font-size:10.5px;font-weight:900}
+.status-pill.before{background:var(--purple-light);color:var(--purple-dark)}
+.status-pill.open{background:var(--ok-light);color:var(--ok)}
+.status-pill.closed{background:#F1EFE8;color:var(--sub)}
+.status-pill.event{background:var(--event-light);color:var(--event-dark)}
 
-  color:#fff;
-}
-
-
-/* STATUS */
-
-.status-grid{
-  display:grid;
-
-  grid-template-columns:1.1fr .9fr;
-
-  gap:12px;
-
-  margin-bottom:18px;
-}
-
-.status-card{
-  padding:17px 18px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-}
-
-.status-kicker{
-  margin-bottom:6px;
-
-  color:var(--purple-dark);
-
-  font-size:10.5px;
-  font-weight:800;
-  letter-spacing:.05em;
-}
-
-.status-main{
-  font-size:18px;
-  font-weight:900;
-  letter-spacing:-.02em;
-}
-
-.status-sub{
-  margin-top:4px;
-
-  color:var(--sub);
-
-  font-size:12.5px;
-}
-
-.status-pill{
-  display:inline-block;
-
-  margin-top:10px;
-  padding:5px 9px;
-
-  border-radius:999px;
-
-  font-size:10.5px;
-  font-weight:900;
-}
-
-.status-pill.before{
-  background:var(--purple-light);
-  color:var(--purple-dark);
-}
-
-.status-pill.open{
-  background:var(--ok-light);
-  color:var(--ok);
-}
-
-.status-pill.closed{
-  background:#F1EFE8;
-  color:var(--sub);
-}
-
-.status-pill.event{
-  background:var(--event-light);
-  color:var(--event-dark);
-}
-
-
-/* EVENT INFORMATION */
-
-.info-grid{
-  display:grid;
-
-  grid-template-columns:1.15fr .85fr;
-
-  gap:12px;
-
-  margin-bottom:18px;
-}
-
-.info-card{
-  padding:17px 18px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-}
-
-.info-label{
-  margin-bottom:7px;
-
-  color:var(--purple-dark);
-
-  font-size:10.5px;
-  font-weight:800;
-  letter-spacing:.04em;
-}
-
-.info-title{
-  margin-bottom:4px;
-
-  font-size:17px;
-  font-weight:800;
-}
-
-.info-text{
-  color:var(--sub);
-
-  font-size:12.5px;
-  line-height:1.7;
-}
-
-.info-text strong{
-  color:var(--ink);
-}
-
+.info-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:18px}
+.info-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.info-label{margin-bottom:7px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.04em}
+.info-title{margin-bottom:4px;font-size:17px;font-weight:800}
+.info-text{color:var(--sub);font-size:12.5px;line-height:1.7}
+.info-text strong{color:var(--ink)}
 .event-time{
-  margin-top:10px;
-  padding:10px 12px;
-
-  border-radius:11px;
-
-  background:var(--event-light);
-  color:var(--event-dark);
-
-  font-size:12px;
-  font-weight:800;
-  line-height:1.7;
+  margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--event-light);
+  color:var(--event-dark);font-size:12px;font-weight:800;line-height:1.7
 }
-
-.info-actions{
-  display:flex;
-
-  gap:7px;
-  flex-wrap:wrap;
-
-  margin-top:12px;
-}
-
+.info-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .link-btn{
-  display:inline-flex;
-
-  align-items:center;
-  justify-content:center;
-
-  padding:8px 11px;
-
-  border:1px solid var(--line);
-  border-radius:9px;
-
-  background:#FDFCFB;
-  color:var(--purple-dark);
-
-  text-decoration:none;
-
-  font-size:11.5px;
-  font-weight:800;
+  display:inline-flex;align-items:center;justify-content:center;padding:8px 11px;
+  border:1px solid var(--line);border-radius:9px;background:#FDFCFB;color:var(--purple-dark);
+  text-decoration:none;font-size:11.5px;font-weight:800
 }
+.link-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
 
-.link-btn.primary{
-  border-color:var(--purple);
-
-  background:var(--purple);
-  color:#fff;
-}
-
-
-/* OFFICIAL LINKS */
-
-.resource-card{
-  padding:16px 18px;
-  margin-bottom:18px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-}
-
-.resource-title{
-  margin-bottom:10px;
-
-  font-size:15px;
-  font-weight:800;
-}
-
-.resource-list{
-  display:grid;
-
-  grid-template-columns:repeat(2,1fr);
-
-  gap:8px;
-}
-
+.resource-card{padding:16px 18px;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.resource-title{margin-bottom:10px;font-size:15px;font-weight:800}
+.resource-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .resource-item{
-  display:flex;
-
-  flex-direction:column;
-  justify-content:center;
-
-  min-height:69px;
-
-  padding:11px 12px;
-
-  border:1px solid var(--line);
-  border-radius:11px;
-
-  background:#FDFCFB;
-  color:var(--ink);
-
-  text-decoration:none;
+  display:flex;flex-direction:column;justify-content:center;min-height:69px;padding:11px 12px;
+  border:1px solid var(--line);border-radius:11px;background:#FDFCFB;color:var(--ink);text-decoration:none
 }
-
-.resource-item:hover{
-  border-color:var(--purple);
-  background:var(--purple-light);
-}
-
-.r-k{
-  margin-bottom:3px;
-
-  color:var(--mute);
-
-  font-size:10.5px;
-}
-
-.r-v{
-  color:var(--purple-dark);
-
-  font-size:12.5px;
-  font-weight:800;
-}
-
-.resource-item.disabled{
-  cursor:default;
-  opacity:.74;
-}
-
-.resource-item.disabled:hover{
-  border-color:var(--line);
-  background:#FDFCFB;
-}
-
-.resource-item.disabled .r-v{
-  color:var(--sub);
-}
-
-.ready-badge{
-  display:inline-block;
-
-  margin-left:5px;
-  padding:1px 6px;
-
-  border-radius:999px;
-
-  background:#F1EFE8;
-  color:var(--sub);
-
-  font-size:9.5px;
-  font-weight:800;
-}
-
-
-/* NEXT */
+.resource-item:hover{border-color:var(--purple);background:var(--purple-light)}
+.r-k{margin-bottom:3px;color:var(--mute);font-size:10.5px}
+.r-v{color:var(--purple-dark);font-size:12.5px;font-weight:800}
+.resource-item.disabled{cursor:default;opacity:.74}
+.resource-item.disabled:hover{border-color:var(--line);background:#FDFCFB}
+.resource-item.disabled .r-v{color:var(--sub)}
+.ready-badge{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;background:#F1EFE8;color:var(--sub);font-size:9.5px;font-weight:800}
 
 .next-card{
-  display:flex;
-
-  justify-content:space-between;
-  align-items:center;
-
-  gap:16px;
-
-  padding:16px 18px;
-  margin-bottom:24px;
-
-  border:1px solid #D6CFF4;
-  border-radius:var(--radius);
-
-  background:
-    linear-gradient(
-      90deg,
-      #FBFAFF,
-      #fff
-    );
-
-  flex-wrap:wrap;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:16px 18px;margin-bottom:24px;border:1px solid #D6CFF4;border-radius:var(--radius);
+  background:linear-gradient(90deg,#FBFAFF,#fff)
 }
-
-.next-kicker{
-  margin-bottom:3px;
-
-  color:var(--purple-dark);
-
-  font-size:11px;
-  font-weight:800;
-}
-
-.next-title{
-  font-size:16px;
-  font-weight:800;
-}
-
-.next-meta{
-  margin-top:3px;
-
-  color:var(--sub);
-
-  font-size:12.5px;
-}
-
-.next-date{
-  padding:8px 12px;
-
-  border-radius:10px;
-
-  background:var(--purple-light);
-  color:var(--purple-dark);
-
-  font-size:12px;
-  font-weight:800;
-  white-space:nowrap;
-}
-
-
-/* SECTIONS */
-
-.section{
-  margin-top:28px;
-}
-
-.sec-title{
-  margin-bottom:12px;
-
-  font-size:17px;
-  font-weight:800;
-}
-
-
-/* TIMELINE */
-
-.timeline{
-  padding:4px 18px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-}
-
-.item{
-  display:grid;
-
-  grid-template-columns:112px 18px 1fr;
-
-  gap:12px;
-
-  padding:17px 0;
-
-  border-bottom:1px solid var(--line);
-}
-
-.item:last-child{
-  border-bottom:none;
-}
-
-.datebox{
-  color:var(--sub);
-
-  font-size:12px;
-  font-weight:700;
-}
-
-.datebox strong{
-  display:block;
-
-  margin-bottom:1px;
-
-  color:var(--purple-dark);
-
-  font-size:14px;
-}
-
-.dotcol{
-  position:relative;
-}
-
-.dot{
-  position:relative;
-  z-index:2;
-
-  width:11px;
-  height:11px;
-
-  margin-top:5px;
-
-  border-radius:50%;
-
-  background:var(--purple);
-}
-
-.dotcol:after{
-  content:"";
-
-  position:absolute;
-
-  top:18px;
-  bottom:-22px;
-  left:5px;
-
-  width:1px;
-
-  background:var(--line);
-}
-
-.item:last-child .dotcol:after{
-  display:none;
-}
-
-.content h3{
-  margin:0 0 4px;
-
-  font-size:14px;
-}
-
-.content p{
-  margin:0;
-
-  color:var(--sub);
-
-  font-size:12.5px;
-}
-
-.tag{
-  display:inline-block;
-
-  margin-left:5px;
-  padding:2px 7px;
-
-  border-radius:999px;
-
-  background:var(--purple-light);
-  color:var(--purple-dark);
-
-  font-size:10.5px;
-  font-weight:800;
-}
-
-.item.event-row{
-  margin:0 -18px;
-  padding-left:18px;
-  padding-right:18px;
-
-  background:
-    linear-gradient(
-      90deg,
-      var(--event-light),
-      transparent
-    );
-}
-
-.item.event-row .datebox strong{
-  color:var(--event-dark);
-}
-
-.item.event-row .dot{
-  background:var(--event);
-
-  box-shadow:
-    0 0 0 4px var(--event-light);
-}
-
-.tag.event{
-  background:var(--event);
-  color:#fff;
-}
-
-
-/* CALENDAR */
-
-.months{
-  display:grid;
-
-  grid-template-columns:repeat(3,1fr);
-
-  gap:12px;
-}
-
-.month{
-  padding:13px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:14px;
-}
-
-.month-title{
-  margin-bottom:9px;
-
-  font-size:13px;
-  font-weight:800;
-}
-
-.cal{
-  display:grid;
-
-  grid-template-columns:repeat(7,1fr);
-
-  gap:3px;
-}
-
-.dow{
-  color:var(--mute);
-
-  text-align:center;
-
-  font-size:9px;
-  font-weight:700;
-}
-
+.next-kicker{margin-bottom:3px;color:var(--purple-dark);font-size:11px;font-weight:800}
+.next-title{font-size:16px;font-weight:800}
+.next-meta{margin-top:3px;color:var(--sub);font-size:12.5px}
+.next-date{padding:8px 12px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:800;white-space:nowrap}
+
+.section{margin-top:28px}
+.sec-title{margin-bottom:12px;font-size:17px;font-weight:800}
+.timeline{padding:4px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.item{display:grid;grid-template-columns:112px 18px 1fr;gap:12px;padding:17px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:none}
+.datebox{color:var(--sub);font-size:12px;font-weight:700}
+.datebox strong{display:block;margin-bottom:1px;color:var(--purple-dark);font-size:14px}
+.dotcol{position:relative}
+.dot{position:relative;z-index:2;width:11px;height:11px;margin-top:5px;border-radius:50%;background:var(--purple)}
+.dotcol:after{content:"";position:absolute;top:18px;bottom:-22px;left:5px;width:1px;background:var(--line)}
+.item:last-child .dotcol:after{display:none}
+.content h3{margin:0 0 4px;font-size:14px}
+.content p{margin:0;color:var(--sub);font-size:12.5px}
+.tag{display:inline-block;margin-left:5px;padding:2px 7px;border-radius:999px;background:var(--purple-light);color:var(--purple-dark);font-size:10.5px;font-weight:800}
+.item.event-row{margin:0 -18px;padding-left:18px;padding-right:18px;background:linear-gradient(90deg,var(--event-light),transparent)}
+.item.event-row .datebox strong{color:var(--event-dark)}
+.item.event-row .dot{background:var(--event);box-shadow:0 0 0 4px var(--event-light)}
+.tag.event{background:var(--event);color:#fff}
+
+.months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.month{padding:13px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.month-title{margin-bottom:9px;font-size:13px;font-weight:800}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.dow{color:var(--mute);text-align:center;font-size:9px;font-weight:700}
 .day{
-  position:relative;
-
-  min-height:31px;
-
-  padding-top:7px;
-
-  border:1px solid transparent;
-  border-radius:7px;
-
-  background:transparent;
-  color:var(--sub);
-
-  text-align:center;
-
-  font-size:10px;
+  position:relative;min-height:31px;padding-top:7px;border:1px solid transparent;border-radius:7px;
+  background:transparent;color:var(--sub);text-align:center;font-size:10px
 }
-
-.day.mark{
-  cursor:pointer;
-
-  background:var(--purple-light);
-  color:var(--purple-dark);
-
-  font-weight:800;
-}
-
+.day.mark{cursor:pointer;background:var(--purple-light);color:var(--purple-dark);font-weight:800}
 .day.event{
-  cursor:pointer;
-
-  background:var(--event);
-  color:#fff;
-
-  font-weight:900;
-
-  box-shadow:
-    0 0 0 2px var(--event-light),
-    0 3px 8px rgba(159,63,43,.18);
+  cursor:pointer;background:var(--event);color:#fff;font-weight:900;
+  box-shadow:0 0 0 2px var(--event-light),0 3px 8px rgba(159,63,43,.18)
 }
+.day.mark::after,.day.event::after{content:"";position:absolute;bottom:3px;left:50%;width:4px;height:4px;border-radius:50%;transform:translateX(-50%)}
+.day.mark::after{background:var(--purple)}
+.day.event::after{background:#fff}
+.calendar-detail{min-height:96px;margin-top:12px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.calendar-detail.event-detail{border-color:#E5B5A8;background:var(--event-light)}
+.detail-empty{color:var(--mute);font-size:12.5px}
+.detail-date{margin-bottom:4px;color:var(--purple-dark);font-size:11px;font-weight:800}
+.detail-title{margin-bottom:5px;font-size:15px;font-weight:800}
+.detail-desc{color:var(--sub);font-size:12.5px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:var(--sub);font-size:11px}
+.legend span:before{content:"";display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:3px;background:var(--purple-light)}
+.legend .event:before{background:var(--event)}
 
-.day.mark::after,
-.day.event::after{
-  content:"";
-
-  position:absolute;
-
-  bottom:3px;
-  left:50%;
-
-  width:4px;
-  height:4px;
-
-  border-radius:50%;
-
-  transform:translateX(-50%);
-}
-
-.day.mark::after{
-  background:var(--purple);
-}
-
-.day.event::after{
-  background:#fff;
-}
-
-.calendar-detail{
-  min-height:96px;
-
-  margin-top:12px;
-  padding:16px 18px;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:14px;
-}
-
-.calendar-detail.event-detail{
-  border-color:#E5B5A8;
-
-  background:var(--event-light);
-}
-
-.detail-empty{
-  color:var(--mute);
-
-  font-size:12.5px;
-}
-
-.detail-date{
-  margin-bottom:4px;
-
-  color:var(--purple-dark);
-
-  font-size:11px;
-  font-weight:800;
-}
-
-.detail-title{
-  margin-bottom:5px;
-
-  font-size:15px;
-  font-weight:800;
-}
-
-.detail-desc{
-  color:var(--sub);
-
-  font-size:12.5px;
-}
-
-.legend{
-  display:flex;
-
-  gap:12px;
-  flex-wrap:wrap;
-
-  margin-top:10px;
-
-  color:var(--sub);
-
-  font-size:11px;
-}
-
-.legend span:before{
-  content:"";
-
-  display:inline-block;
-
-  width:9px;
-  height:9px;
-
-  margin-right:5px;
-
-  border-radius:3px;
-
-  background:var(--purple-light);
-}
-
-.legend .event:before{
-  background:var(--event);
-}
-
-
-/* FAQ */
-
-.faq{
-  overflow:hidden;
-
-  background:#fff;
-
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-}
-
-.faq-item{
-  border-bottom:1px solid var(--line);
-}
-
-.faq-item:last-child{
-  border-bottom:none;
-}
-
+.faq{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-item:last-child{border-bottom:none}
 .faq-q{
-  display:flex;
-
-  align-items:center;
-  justify-content:space-between;
-
-  gap:12px;
-
-  width:100%;
-
-  padding:15px 17px;
-
-  border:none;
-
-  background:#fff;
-  color:var(--ink);
-
-  text-align:left;
-
-  font-size:13px;
-  font-weight:800;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:15px 17px;
+  border:none;background:#fff;color:var(--ink);text-align:left;font-size:13px;font-weight:800
 }
-
-.faq-icon{
-  color:var(--purple-dark);
-
-  font-size:16px;
-}
-
-.faq-a{
-  display:none;
-
-  padding:
-    0 17px 15px;
-
-  color:var(--sub);
-
-  font-size:12.5px;
-  line-height:1.7;
-}
-
-.faq-item.open .faq-a{
-  display:block;
-}
-
-.faq-item.open .faq-icon{
-  transform:rotate(45deg);
-}
-
-
-/* CONTACT CTA */
+.faq-icon{color:var(--purple-dark);font-size:16px}
+.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
 
 .contact-cta{
-  display:flex;
-
-  justify-content:space-between;
-  align-items:center;
-
-  gap:14px;
-
-  padding:17px 18px;
-
-  border:1px solid #DCD7F5;
-  border-radius:var(--radius);
-
-  background:
-    linear-gradient(
-      135deg,
-      #fff,
-      var(--purple-light)
-    );
-
-  flex-wrap:wrap;
+  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:17px 18px;border:1px solid #DCD7F5;border-radius:var(--radius);
+  background:linear-gradient(135deg,#fff,var(--purple-light))
 }
-
-.contact-title{
-  font-size:15px;
-  font-weight:900;
-}
-
-.contact-sub{
-  margin-top:3px;
-
-  color:var(--sub);
-
-  font-size:12.5px;
-}
-
-.contact-actions{
-  display:flex;
-
-  gap:7px;
-  flex-wrap:wrap;
-}
-
-
-/* TOAST */
+.contact-title{font-size:15px;font-weight:900}
+.contact-sub{margin-top:3px;color:var(--sub);font-size:12.5px}
+.contact-actions{display:flex;gap:7px;flex-wrap:wrap}
 
 .toast{
-  position:fixed;
-
-  left:50%;
-  bottom:22px;
-
-  z-index:1000;
-
-  padding:9px 13px;
-
-  border-radius:10px;
-
-  background:#1E1C1A;
-  color:#fff;
-
-  font-size:12px;
-  font-weight:700;
-
-  opacity:0;
-  pointer-events:none;
-
-  transform:translateX(-50%);
-
-  transition:.2s;
+  position:fixed;left:50%;bottom:22px;z-index:1000;padding:9px 13px;border-radius:10px;
+  background:#1E1C1A;color:#fff;font-size:12px;font-weight:700;opacity:0;pointer-events:none;
+  transform:translateX(-50%);transition:.2s
 }
-
-.toast.show{
-  opacity:1;
-}
-
-.note{
-  margin-top:20px;
-
-  color:var(--mute);
-
-  text-align:center;
-
-  font-size:11.5px;
-}
-
-
-/* MOBILE */
+.toast.show{opacity:1}
+.note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}
 
 @media(max-width:700px){
-
-  .status-grid,
-  .info-grid{
-    grid-template-columns:1fr;
-  }
-
-  .resource-list{
-    grid-template-columns:1fr;
-  }
-
-  .months{
-    grid-template-columns:1fr;
-  }
-
-  .item{
-    grid-template-columns:
-      88px
-      16px
-      1fr;
-
-    gap:8px;
-  }
-
-  .hero-dday{
-    font-size:30px;
-  }
-
-  .head h1{
-    font-size:22px;
-  }
-
-  .top-action{
-    min-width:calc(50% - 4px);
-  }
-
+  .status-grid,.info-grid{grid-template-columns:1fr}
+  .resource-list{grid-template-columns:1fr}
+  .months{grid-template-columns:1fr}
+  .item{grid-template-columns:88px 16px 1fr;gap:8px}
+  .hero-dday{font-size:30px}
+  .head h1{font-size:22px}
+  .top-action{min-width:calc(50% - 4px)}
 }
-
 </style>
 </head>
 
-
 <body>
-
 <div class="wrap">
 
-
-<div class="head">
-
-  <p class="eyebrow">
-    한국조리고 동문 네트워크 모임
-  </p>
-
-  <h1>
-    주요 일정 안내
-  </h1>
-
-  <p>
-    참가 신청부터 행사일까지 필요한 내용을 한곳에 정리했습니다.
-  </p>
-
-</div>
-
-
-
-<div class="hero">
-
-  <div>
-
-    <div class="hero-date">
-      2026년 10월 18일(일)
-    </div>
-
-    <div class="hero-place">
-      한조고 동문 네트워크 모임 · 카페 와일드덕
-    </div>
-
+  <div class="head">
+    <p class="eyebrow">한국조리고 동문 네트워크 모임</p>
+    <h1>주요 일정 안내</h1>
+    <p>참가 신청부터 행사일까지 필요한 내용을 한곳에 정리했습니다.</p>
   </div>
 
-  <div
-    class="hero-dday"
-    id="eventDday">
-    D-
-  </div>
-
-</div>
-
-
-
-<div class="top-actions">
-
-  <button
-    class="top-action primary"
-    id="shareBtn">
-    공유하기
-  </button>
-
-  <button
-    class="top-action"
-    id="copyPageBtn">
-    이 페이지 링크 복사
-  </button>
-
-  <a
-    class="top-action"
-    href="#eventInfo">
-    행사 정보 보기
-  </a>
-
-</div>
-
-
-
-<div class="status-grid">
-
-  <div class="status-card">
-
-    <div class="status-kicker">
-      참가 신청
-    </div>
-
-    <div
-      class="status-main"
-      id="applyStatusTitle">
-    </div>
-
-    <div
-      class="status-sub"
-      id="applyStatusSub">
-    </div>
-
-    <span
-      class="status-pill before"
-      id="applyStatusPill">
-      오픈 전
-    </span>
-
-  </div>
-
-
-
-  <div class="status-card">
-
-    <div class="status-kicker">
-      참가 신청까지
-    </div>
-
-    <div
-      class="status-main"
-      id="applyDday">
-      D-
-    </div>
-
-    <div class="status-sub">
-      1차 참가 신청 오픈 · 2026년 9월 2일
-    </div>
-
-  </div>
-
-</div>
-
-
-
-<div
-  class="info-grid"
-  id="eventInfo">
-
-
-  <div class="info-card">
-
-    <div class="info-label">
-      행사 장소
-    </div>
-
-    <div class="info-title">
-      카페 와일드덕
-    </div>
-
-    <div class="info-text">
-      서울 중구 동호로15길 43 미래빌딩 지하 1층
-    </div>
-
-    <div class="event-time">
-      입장 가능 · 18:30 이후<br>
-      본행사 시작 · 19:00
-    </div>
-
-    <div class="info-actions">
-
-      <a
-        class="link-btn primary"
-        href="https://www.google.com/maps/search/?api=1&query=%EC%B9%B4%ED%8E%98%20%EC%99%80%EC%9D%BC%EB%93%9C%EB%8D%95%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2043"
-        target="_blank">
-
-        지도에서 보기
-
-      </a>
-
-
-      <button
-        class="link-btn"
-        id="copyAddressBtn">
-
-        주소 복사
-
-      </button>
-
-
-      <a
-        class="link-btn"
-        href="https://www.instagram.com/cafewildduck/"
-        target="_blank">
-
-        카페 인스타그램
-
-      </a>
-
-    </div>
-
-  </div>
-
-
-
-  <div class="info-card">
-
-    <div class="info-label">
-      행사 문의
-    </div>
-
-    <div class="info-title">
-      김태민 · 2기
-    </div>
-
-    <div class="info-text">
-
-      <strong>전화</strong>
-      010-4202-4091
-
-      <br>
-
-      <strong>이메일</strong>
-      mainxoals@gmail.com
-
-    </div>
-
-
-    <div class="info-actions">
-
-      <a
-        class="link-btn primary"
-        href="tel:01042024091">
-
-        전화하기
-
-      </a>
-
-
-      <a
-        class="link-btn"
-        href="mailto:mainxoals@gmail.com">
-
-        이메일 보내기
-
-      </a>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-
-<div class="resource-card">
-
-  <div class="resource-title">
-    한조고 아카이브 · 공식 링크
-  </div>
-
-
-  <div class="resource-list">
-
-
-    <a
-      class="resource-item"
-      href="https://www.instagram.com/kcas_archived?utm_source=qr"
-      target="_blank">
-
-      <div class="r-k">
-        Instagram
-      </div>
-
-      <div class="r-v">
-        @kcas_archived
-      </div>
-
-    </a>
-
-
-
-    <div class="resource-item disabled">
-
-      <div class="r-k">
-        KakaoTalk Channel
-      </div>
-
-      <div class="r-v">
-        한조고 아카이브
-      </div>
-
-    </div>
-
-
-
-    <a
-      class="resource-item"
-      href="https://link24.kr/DPWKmSL"
-      target="_blank">
-
-      <div class="r-k">
-        졸업생 DB 등록
-      </div>
-
-      <div class="r-v">
-        구글폼 바로가기
-      </div>
-
-    </a>
-
-
-
-    <div
-      class="resource-item disabled"
-      id="applyLinkCard">
-
-      <div class="r-k">
-        2026 행사 참가 신청
-      </div>
-
-      <div class="r-v">
-
-        9월 2일 오픈 예정
-
-        <span class="ready-badge">
-          준비 중
-        </span>
-
-      </div>
-
-    </div>
-
-
-  </div>
-
-</div>
-
-
-
-<div class="next-card">
-
-  <div>
-
-    <div class="next-kicker">
-      NEXT
-    </div>
-
-    <div
-      class="next-title"
-      id="nextTitle">
-    </div>
-
-    <div
-      class="next-meta"
-      id="nextMeta">
-    </div>
-
-  </div>
-
-  <div
-    class="next-date"
-    id="nextDate">
-  </div>
-
-</div>
-
-
-
-<div class="section">
-
-  <div class="sec-title">
-    한눈에 보는 일정
-  </div>
-
-  <div class="timeline">
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          8/24 ~ 8/25
-        </strong>
-
-        월~화
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-          참가 신청 사전 안내
-        </h3>
-
-        <p>
-          카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          9/2 ~ 9/6
-        </strong>
-
-        수~일
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-
-          1차 참가 신청
-
-          <span class="tag">
-            신청
-          </span>
-
-        </h3>
-
-        <p>
-          일반 참가자 대상 1차 신청 기간입니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          9/7 ~ 9/10
-        </strong>
-
-        월~목
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-          1차 신청자 정리 및 참가 확정
-        </h3>
-
-        <p>
-          참가 확정 안내 및 입금 확인이 진행됩니다.
-          입금 마감은 9월 10일(목) 23:59입니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          9/14 ~ 9/20
-        </strong>
-
-        월~일
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-
-          2차 참가 신청
-
-          <span class="tag">
-            추가 모집
-          </span>
-
-        </h3>
-
-        <p>
-          1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          9/20
-        </strong>
-
-        일
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-          기업 협찬·후원 접수 마감
-        </h3>
-
-        <p>
-          협찬 및 후원 참여 접수가 마감됩니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          9/21 ~ 9/25
-        </strong>
-
-        월~금
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-          최종 참가자 확정
-        </h3>
-
-        <p>
-          미입금 및 대기자 정리 후 최종 참가자가 확정됩니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item">
-
-      <div class="datebox">
-
-        <strong>
-          10/5 ~ 10/11
-        </strong>
-
-        월~일
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-          참가자 최종 안내
-        </h3>
-
-        <p>
-          행사 전 필요한 최종 안내를 전달합니다.
-        </p>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="item event-row">
-
-      <div class="datebox">
-
-        <strong>
-          10/18
-        </strong>
-
-        일
-
-      </div>
-
-      <div class="dotcol">
-        <div class="dot"></div>
-      </div>
-
-      <div class="content">
-
-        <h3>
-
-          한조고 네트워크 모임 개최
-
-          <span class="tag event">
-            행사일
-          </span>
-
-        </h3>
-
-        <p>
-          입장 18:30 이후 · 본행사 19:00 시작
-        </p>
-
-      </div>
-
-    </div>
-
-
-  </div>
-
-</div>
-
-
-
-<div class="section">
-
-  <div class="sec-title">
-    캘린더
-  </div>
-
-  <div
-    class="months"
-    id="months">
-  </div>
-
-
-  <div
-    class="calendar-detail"
-    id="calendarDetail">
-
-    <div class="detail-empty">
-
-      색이 표시된 날짜를 누르면
-      해당 일정의 상세 내용을 확인할 수 있습니다.
-
-    </div>
-
-  </div>
-
-
-  <div class="legend">
-
-    <span>
-      주요 일정
-    </span>
-
-    <span class="event">
-      행사일
-    </span>
-
-  </div>
-
-</div>
-
-
-
-<div class="section">
-
-  <div class="sec-title">
-    자주 묻는 질문
-  </div>
-
-
-  <div class="faq">
-
-
-    <div class="faq-item">
-
-      <button class="faq-q">
-
-        <span>
-          누가 참여할 수 있나요?
-        </span>
-
-        <span class="faq-icon">
-          +
-        </span>
-
-      </button>
-
-      <div class="faq-a">
-
-        한국조리고등학교 졸업생을 대상으로 진행하는
-        동문 네트워크 모임입니다.
-
-      </div>
-
-    </div>
-
-
-
-    <div class="faq-item">
-
-      <button class="faq-q">
-
-        <span>
-          참가비는 얼마인가요?
-        </span>
-
-        <span class="faq-icon">
-          +
-        </span>
-
-      </button>
-
-      <div class="faq-a">
-
-        참가비는 1인 100,000원(십만원)입니다.
-        대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다.
-
-      </div>
-
-    </div>
-
-
-
-    <div class="faq-item">
-
-      <button class="faq-q">
-
-        <span>
-          신청하면 바로 참가가 확정되나요?
-        </span>
-
-        <span class="faq-icon">
-          +
-        </span>
-
-      </button>
-
-      <div class="faq-a">
-
-        아닙니다.
-        참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며,
-        입금 확인 후 최종 참가가 확정됩니다.
-
-      </div>
-
-    </div>
-
-
-
-    <div class="faq-item">
-
-      <button class="faq-q">
-
-        <span>
-          주차가 가능한가요?
-        </span>
-
-        <span class="faq-icon">
-          +
-        </span>
-
-      </button>
-
-      <div class="faq-a">
-
-        행사장 주차 가능 대수가 매우 제한적입니다.
-        행사장 안내 기준 최대 2대 정도만 가능해
-        가급적 대중교통 이용을 권장합니다.
-
-      </div>
-
-    </div>
-
-
-  </div>
-
-</div>
-
-
-
-<div class="section">
-
-  <div class="contact-cta">
-
+  <div class="hero">
     <div>
-
-      <div class="contact-title">
-        행사 관련 문의
-      </div>
-
-      <div class="contact-sub">
-        추가 문의사항은 김태민(2기)에게 연락해주세요.
-      </div>
-
+      <div class="hero-date" id="heroDate"></div>
+      <div class="hero-place" id="heroPlace"></div>
     </div>
-
-
-    <div class="contact-actions">
-
-      <a
-        class="link-btn primary"
-        href="tel:01042024091">
-
-        전화하기
-
-      </a>
-
-
-      <a
-        class="link-btn"
-        href="mailto:mainxoals@gmail.com">
-
-        이메일
-
-      </a>
-
-
-      <button
-        class="link-btn"
-        id="bottomShareBtn">
-
-        페이지 공유
-
-      </button>
-
-    </div>
-
+    <div class="hero-dday" id="eventDday">D-</div>
   </div>
 
+  <div class="top-actions">
+    <button class="top-action primary" id="shareBtn">공유하기</button>
+    <button class="top-action" id="copyPageBtn">이 페이지 링크 복사</button>
+    <a class="top-action" href="#eventInfo">행사 정보 보기</a>
+  </div>
+
+  <div class="status-grid">
+    <div class="status-card">
+      <div class="status-kicker">참가 신청</div>
+      <div class="status-main" id="applyStatusTitle"></div>
+      <div class="status-sub" id="applyStatusSub"></div>
+      <span class="status-pill before" id="applyStatusPill">오픈 전</span>
+    </div>
+
+    <div class="status-card">
+      <div class="status-kicker">참가 신청까지</div>
+      <div class="status-main" id="applyDday">D-</div>
+      <div class="status-sub">1차 참가 신청 오픈 · 2026년 9월 2일</div>
+    </div>
+  </div>
+
+  <div class="info-grid" id="eventInfo">
+    <div class="info-card">
+      <div class="info-label">행사 장소</div>
+      <div class="info-title" id="venueName"></div>
+      <div class="info-text" id="venueAddress"></div>
+      <div class="event-time" id="eventTimeBox"></div>
+
+      <div class="info-actions">
+        <a class="link-btn primary" id="mapBtn" target="_blank" rel="noopener">지도에서 보기</a>
+        <button class="link-btn" id="copyAddressBtn">주소 복사</button>
+        <a class="link-btn" id="venueInstagramBtn" target="_blank" rel="noopener">카페 인스타그램</a>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">행사 문의</div>
+      <div class="info-title" id="contactName"></div>
+      <div class="info-text" id="contactInfo"></div>
+
+      <div class="info-actions">
+        <a class="link-btn primary" id="contactTelBtn">전화하기</a>
+        <a class="link-btn" id="contactMailBtn">이메일 보내기</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="resource-card">
+    <div class="resource-title">한조고 아카이브 · 공식 링크</div>
+    <div class="resource-list" id="resourceList"></div>
+  </div>
+
+  <div class="next-card">
+    <div>
+      <div class="next-kicker">NEXT</div>
+      <div class="next-title" id="nextTitle"></div>
+      <div class="next-meta" id="nextMeta"></div>
+    </div>
+    <div class="next-date" id="nextDate"></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">한눈에 보는 일정</div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">캘린더</div>
+    <div class="months" id="months"></div>
+
+    <div class="calendar-detail" id="calendarDetail">
+      <div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>
+    </div>
+
+    <div class="legend">
+      <span>주요 일정</span>
+      <span class="event">행사일</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">자주 묻는 질문</div>
+    <div class="faq" id="faqList"></div>
+  </div>
+
+  <div class="section">
+    <div class="contact-cta">
+      <div>
+        <div class="contact-title">행사 관련 문의</div>
+        <div class="contact-sub" id="bottomContactText"></div>
+      </div>
+
+      <div class="contact-actions">
+        <a class="link-btn primary" id="bottomTelBtn">전화하기</a>
+        <a class="link-btn" id="bottomMailBtn">이메일</a>
+        <button class="link-btn" id="bottomShareBtn">페이지 공유</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
 </div>
 
-
-
-<div class="note">
-
-  일정 및 안내 내용은
-  행사 준비 상황에 따라 일부 조정될 수 있습니다.
-
-</div>
-
-
-</div>
-
-
-<div
-  class="toast"
-  id="toast">
-
-  복사되었습니다.
-
-</div>
-
-
+<div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
+const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
+const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/*
-참가 신청 구글폼이 준비되면
-아래 따옴표 안에 URL을 입력하세요.
+const DEFAULT_PUBLIC_INFO = {
+  eventName:"한조고 동문 네트워크 모임",
+  eventDate:"2026-10-18",
+  entryTime:"18:30",
+  startTime:"19:00",
+  participantFee:"100,000원 (십만원)",
+  venueName:"카페 와일드덕",
+  venueAddress:"서울 중구 동호로15길 43 미래빌딩 지하 1층",
+  venueMapUrl:"https://www.google.com/maps/search/?api=1&query=%EC%B9%B4%ED%8E%98%20%EC%99%80%EC%9D%BC%EB%93%9C%EB%8D%95%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2043",
+  venueInstagram:"https://www.instagram.com/cafewildduck/",
+  contactName:"김태민 · 2기",
+  contactPhone:"010-4202-4091",
+  contactEmail:"mainxoals@gmail.com",
+  instagramUrl:"https://www.instagram.com/kcas_archived?utm_source=qr",
+  kakaoName:"한조고 아카이브",
+  kakaoUrl:"",
+  dbFormUrl:"https://link24.kr/DPWKmSL",
+  applyFormUrl:"",
+  faq:[
+    {q:"누가 참여할 수 있나요?",a:"한국조리고등학교 졸업생을 대상으로 진행하는 동문 네트워크 모임입니다."},
+    {q:"참가비는 얼마인가요?",a:"참가비는 1인 100,000원(십만원)입니다. 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."},
+    {q:"신청하면 바로 참가가 확정되나요?",a:"아닙니다. 참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며, 입금 확인 후 최종 참가가 확정됩니다."},
+    {q:"주차가 가능한가요?",a:"행사장 주차 가능 대수가 매우 제한적입니다. 행사장 안내 기준 최대 2대 정도만 가능해 가급적 대중교통 이용을 권장합니다."}
+  ]
+};
 
-예)
+let publicInfo = {...DEFAULT_PUBLIC_INFO};
 
-const PARTICIPANT_FORM_URL =
-"https://forms.gle/xxxxxxxx";
+const APPLY_OPEN = new Date("2026-09-02T00:00:00");
+const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
+const APPLY_SECOND_OPEN = new Date("2026-09-14T00:00:00");
+const APPLY_SECOND_CLOSE = new Date("2026-09-20T23:59:59");
 
-*/
-
-const PARTICIPANT_FORM_URL = "";
-
-
-
-const EVENT_DATE =
-  new Date(
-    "2026-10-18T00:00:00"
-  );
-
-
-const APPLY_OPEN =
-  new Date(
-    "2026-09-02T00:00:00"
-  );
-
-
-const APPLY_FIRST_CLOSE =
-  new Date(
-    "2026-09-06T23:59:59"
-  );
-
-
-const APPLY_SECOND_OPEN =
-  new Date(
-    "2026-09-14T00:00:00"
-  );
-
-
-const APPLY_SECOND_CLOSE =
-  new Date(
-    "2026-09-20T23:59:59"
-  );
-
-
-const VENUE_ADDRESS =
-  "서울 중구 동호로15길 43 미래빌딩 지하 1층";
-
-
-
-const scheduleItems = [
-
-  {
-    start:"2026-08-24",
-    end:"2026-08-25",
-
-    title:
-      "참가 신청 사전 안내",
-
-    desc:
-      "카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다."
-  },
-
-
-  {
-    start:"2026-09-02",
-    end:"2026-09-06",
-
-    title:
-      "1차 참가 신청",
-
-    desc:
-      "일반 참가자 대상 1차 신청 기간입니다."
-  },
-
-
-  {
-    start:"2026-09-07",
-    end:"2026-09-10",
-
-    title:
-      "1차 신청자 정리 및 참가 확정",
-
-    desc:
-      "참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감은 9월 10일(목) 23:59입니다."
-  },
-
-
-  {
-    start:"2026-09-14",
-    end:"2026-09-20",
-
-    title:
-      "2차 참가 신청",
-
-    desc:
-      "1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다."
-  },
-
-
-  {
-    start:"2026-09-20",
-    end:"2026-09-20",
-
-    title:
-      "기업 협찬·후원 접수 마감",
-
-    desc:
-      "협찬 및 후원 참여 접수가 마감됩니다."
-  },
-
-
-  {
-    start:"2026-09-21",
-    end:"2026-09-25",
-
-    title:
-      "최종 참가자 확정",
-
-    desc:
-      "미입금 및 대기자 정리 후 최종 참가자가 확정됩니다."
-  },
-
-
-  {
-    start:"2026-10-05",
-    end:"2026-10-11",
-
-    title:
-      "참가자 최종 안내",
-
-    desc:
-      "행사 전 필요한 최종 안내를 전달합니다."
-  },
-
-
-  {
-    start:"2026-10-18",
-    end:"2026-10-18",
-
-    title:
-      "한조고 네트워크 모임 개최",
-
-    desc:
-      "입장 18:30 이후 · 본행사 19:00 시작",
-
-    event:true
-  }
-
+const BASE_SCHEDULE = [
+  {start:"2026-08-24",end:"2026-08-25",title:"참가 신청 사전 안내",desc:"카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다."},
+  {start:"2026-09-02",end:"2026-09-06",title:"1차 참가 신청",desc:"일반 참가자 대상 1차 신청 기간입니다.",tag:"신청"},
+  {start:"2026-09-07",end:"2026-09-10",title:"1차 신청자 정리 및 참가 확정",desc:"참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감은 9월 10일(목) 23:59입니다."},
+  {start:"2026-09-14",end:"2026-09-20",title:"2차 참가 신청",desc:"1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다.",tag:"추가 모집"},
+  {start:"2026-09-20",end:"2026-09-20",title:"기업 협찬·후원 접수 마감",desc:"협찬 및 후원 참여 접수가 마감됩니다."},
+  {start:"2026-09-21",end:"2026-09-25",title:"최종 참가자 확정",desc:"미입금 및 대기자 정리 후 최종 참가자가 확정됩니다."},
+  {start:"2026-10-05",end:"2026-10-11",title:"참가자 최종 안내",desc:"행사 전 필요한 최종 안내를 전달합니다."}
 ];
 
+function esc(v){
+  return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
 
+function phoneHref(v){
+  return "tel:" + String(v || "").replace(/[^\d+]/g,"");
+}
 
 function today0(){
-
-  const d =
-    new Date();
-
-  d.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
+  const d=new Date();
+  d.setHours(0,0,0,0);
   return d;
-
 }
 
-
-
-function daysBetween(
-  a,
-  b
-){
-
-  const x =
-    new Date(a);
-
-  const y =
-    new Date(b);
-
-
-  x.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
-  y.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
-  return Math.round(
-    (y-x)
-    /
-    86400000
-  );
-
+function daysBetween(a,b){
+  const x=new Date(a),y=new Date(b);
+  x.setHours(0,0,0,0);
+  y.setHours(0,0,0,0);
+  return Math.round((y-x)/86400000);
 }
 
-
-
-function setDdays(){
-
-  const today =
-    today0();
-
-
-  const eventDiff =
-    daysBetween(
-      today,
-      EVENT_DATE
-    );
-
-
-  document
-    .getElementById(
-      "eventDday"
-    )
-    .textContent =
-
-      eventDiff === 0
-
-      ? "D-DAY"
-
-      : eventDiff > 0
-
-      ? "D-" + eventDiff
-
-      : "D+" + Math.abs(eventDiff);
-
-
-
-  const applyDiff =
-    daysBetween(
-      today,
-      APPLY_OPEN
-    );
-
-
-  document
-    .getElementById(
-      "applyDday"
-    )
-    .textContent =
-
-      applyDiff === 0
-
-      ? "D-DAY"
-
-      : applyDiff > 0
-
-      ? "D-" + applyDiff
-
-      : "오픈됨";
-
+function toDate(s){
+  return new Date(s+"T00:00:00");
 }
 
-
-
-function renderApplyStatus(){
-
-  const now =
-    new Date();
-
-
-  const title =
-    document.getElementById(
-      "applyStatusTitle"
-    );
-
-
-  const sub =
-    document.getElementById(
-      "applyStatusSub"
-    );
-
-
-  const pill =
-    document.getElementById(
-      "applyStatusPill"
-    );
-
-
-  pill.className =
-    "status-pill";
-
-
-  if(
-    now < APPLY_OPEN
-  ){
-
-    const d =
-      daysBetween(
-        today0(),
-        APPLY_OPEN
-      );
-
-
-    title.textContent =
-      "9월 2일 1차 참가 신청 오픈";
-
-
-    sub.textContent =
-      d > 0
-
-      ? `참가 신청까지 ${d}일 남았습니다.`
-
-      : "참가 신청이 곧 시작됩니다.";
-
-
-    pill.textContent =
-      "오픈 전";
-
-
-    pill.classList.add(
-      "before"
-    );
-
-  }
-
-
-  else if(
-    now <= APPLY_FIRST_CLOSE
-  ){
-
-    title.textContent =
-      "1차 참가 신청 진행 중";
-
-
-    sub.textContent =
-      "1차 신청 기간은 9월 6일까지입니다.";
-
-
-    pill.textContent =
-      "신청 중";
-
-
-    pill.classList.add(
-      "open"
-    );
-
-  }
-
-
-  else if(
-    now < APPLY_SECOND_OPEN
-  ){
-
-    title.textContent =
-      "1차 참가 신청 마감";
-
-
-    sub.textContent =
-      "1차 신청자 확인 및 참가 확정 절차가 진행됩니다.";
-
-
-    pill.textContent =
-      "1차 마감";
-
-
-    pill.classList.add(
-      "closed"
-    );
-
-  }
-
-
-  else if(
-    now <= APPLY_SECOND_CLOSE
-  ){
-
-    title.textContent =
-      "2차 참가 신청 진행 중";
-
-
-    sub.textContent =
-      "잔여 인원을 대상으로 추가 신청을 받고 있습니다.";
-
-
-    pill.textContent =
-      "추가 모집 중";
-
-
-    pill.classList.add(
-      "open"
-    );
-
-  }
-
-
-  else if(
-    now < EVENT_DATE
-  ){
-
-    title.textContent =
-      "참가 신청 마감";
-
-
-    sub.textContent =
-      "최종 참가자 확정 및 행사 준비가 진행 중입니다.";
-
-
-    pill.textContent =
-      "마감";
-
-
-    pill.classList.add(
-      "closed"
-    );
-
-  }
-
-
-  else{
-
-    title.textContent =
-      "행사일";
-
-
-    sub.textContent =
-      "오늘 한조고 동문 네트워크 모임이 진행됩니다.";
-
-
-    pill.textContent =
-      "행사 진행";
-
-
-    pill.classList.add(
-      "event"
-    );
-
-  }
-
+function fmtKR(s){
+  const d=toDate(s);
+  return `${d.getMonth()+1}월 ${d.getDate()}일`;
 }
 
-
-
-function activateParticipantForm(){
-
-  if(
-    !PARTICIPANT_FORM_URL
-  ){
-
-    return;
-
-  }
-
-
-  const oldCard =
-    document.getElementById(
-      "applyLinkCard"
-    );
-
-
-  if(
-    !oldCard
-  ){
-
-    return;
-
-  }
-
-
-  const a =
-    document.createElement(
-      "a"
-    );
-
-
-  a.className =
-    "resource-item";
-
-
-  a.href =
-    PARTICIPANT_FORM_URL;
-
-
-  a.target =
-    "_blank";
-
-
-  a.innerHTML = `
-
-    <div class="r-k">
-      2026 행사 참가 신청
-    </div>
-
-    <div class="r-v">
-      참가 신청하기
-    </div>
-
-  `;
-
-
-  oldCard.replaceWith(
-    a
-  );
-
+function fmtRange(item){
+  return item.start===item.end ? fmtKR(item.start) : `${fmtKR(item.start)} ~ ${fmtKR(item.end)}`;
 }
 
-
-
-function toDate(
-  str
-){
-
-  return new Date(
-    str +
-    "T00:00:00"
-  );
-
+function formatEventDate(iso){
+  const d=toDate(iso || "2026-10-18");
+  const wd=["일","월","화","수","목","금","토"];
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일(${wd[d.getDay()]})`;
 }
 
-
-
-function fmtKR(
-  str
-){
-
-  const d =
-    toDate(str);
-
-
-  return (
-    `${d.getMonth()+1}월 ${d.getDate()}일`
-  );
-
-}
-
-
-
-function fmtRange(
-  item
-){
-
-  if(
-    item.start === item.end
-  ){
-
-    return fmtKR(
-      item.start
-    );
-
-  }
-
-
-  return (
-    `${fmtKR(item.start)} ~ ${fmtKR(item.end)}`
-  );
-
-}
-
-
-
-function renderNext(){
-
-  const today =
-    today0();
-
-
-  const nowStr =
-
-    `${today.getFullYear()}-`
-    +
-    `${String(today.getMonth()+1).padStart(2,"0")}-`
-    +
-    `${String(today.getDate()).padStart(2,"0")}`;
-
-
-  let next =
-    scheduleItems.find(
-      item =>
-        item.end >= nowStr
-    );
-
-
-  if(
-    !next
-  ){
-
-    next =
-      scheduleItems[
-        scheduleItems.length-1
-      ];
-
-  }
-
-
-  document
-    .getElementById(
-      "nextTitle"
-    )
-    .textContent =
-      next.title;
-
-
-  document
-    .getElementById(
-      "nextMeta"
-    )
-    .textContent =
-      next.desc;
-
-
-  document
-    .getElementById(
-      "nextDate"
-    )
-    .textContent =
-      fmtRange(next);
-
-}
-
-
-
-function findSchedulesForDate(
-  str
-){
-
-  return scheduleItems.filter(
-    item =>
-      str >= item.start
-      &&
-      str <= item.end
-  );
-
-}
-
-
-
-function isEventDate(
-  str
-){
-
-  return (
-    str ===
-    "2026-10-18"
-  );
-
-}
-
-
-
-function fmtDate(
-  year,
-  month,
-  day
-){
-
-  return (
-
-    `${year}-`
-    +
-    `${String(month+1).padStart(2,"0")}-`
-    +
-    `${String(day).padStart(2,"0")}`
-
-  );
-
-}
-
-
-
-function showDetail(
-  dateStr
-){
-
-  const items =
-    findSchedulesForDate(
-      dateStr
-    );
-
-
-  const box =
-    document.getElementById(
-      "calendarDetail"
-    );
-
-
-  const event =
-    items.some(
-      item =>
-        item.event
-    );
-
-
-  box.className =
-    "calendar-detail"
-    +
-    (
-      event
-      ? " event-detail"
-      : ""
-    );
-
-
-  box.innerHTML =
-
-    items.map(
-
-      item => `
-
-        <div
-          style="
-            ${items.length > 1
-            ? "margin-bottom:12px;"
-            : ""}
-          ">
-
-          <div class="detail-date">
-            ${fmtRange(item)}
-          </div>
-
-          <div class="detail-title">
-
-            ${item.title}
-
-            ${
-              item.event
-              ? " · 행사일"
-              : ""
-            }
-
-          </div>
-
-          <div class="detail-desc">
-            ${item.desc}
-          </div>
-
-        </div>
-
-      `
-
-    ).join("");
-
-}
-
-
-
-function makeMonth(
-  year,
-  month
-){
-
-  const names =
-    [
-      "일",
-      "월",
-      "화",
-      "수",
-      "목",
-      "금",
-      "토"
-    ];
-
-
-  const box =
-    document.createElement(
-      "div"
-    );
-
-
-  box.className =
-    "month";
-
-
-  box.innerHTML = `
-
-    <div class="month-title">
-      ${month+1}월
-    </div>
-
-    <div class="cal">
-
-      ${
-
-        names.map(
-          name =>
-            `<div class="dow">${name}</div>`
-        )
-        .join("")
-
-      }
-
-    </div>
-
-  `;
-
-
-  const cal =
-    box.querySelector(
-      ".cal"
-    );
-
-
-  const first =
-    new Date(
-      year,
-      month,
-      1
-    )
-    .getDay();
-
-
-  const last =
-    new Date(
-      year,
-      month+1,
-      0
-    )
-    .getDate();
-
-
-
-  for(
-    let i=0;
-    i<first;
-    i++
-  ){
-
-    const blank =
-      document.createElement(
-        "div"
-      );
-
-
-    blank.className =
-      "day";
-
-
-    cal.appendChild(
-      blank
-    );
-
-  }
-
-
-
-  for(
-    let day=1;
-    day<=last;
-    day++
-  ){
-
-    const dateStr =
-      fmtDate(
-        year,
-        month,
-        day
-      );
-
-
-    const items =
-      findSchedulesForDate(
-        dateStr
-      );
-
-
-    const button =
-      document.createElement(
-        "button"
-      );
-
-
-    button.type =
-      "button";
-
-
-    button.className =
-
-      "day"
-      +
-      (
-
-        isEventDate(dateStr)
-
-        ? " event"
-
-        : items.length
-
-        ? " mark"
-
-        : ""
-
-      );
-
-
-    button.textContent =
-      day;
-
-
-    if(
-      items.length
-    ){
-
-      button
-        .addEventListener(
-          "click",
-          () =>
-            showDetail(
-              dateStr
-            )
-        );
-
+function getSchedule(){
+  return [
+    ...BASE_SCHEDULE.map(x=>({...x})),
+    {
+      start:publicInfo.eventDate || "2026-10-18",
+      end:publicInfo.eventDate || "2026-10-18",
+      title:publicInfo.eventName || "한조고 동문 네트워크 모임",
+      desc:`입장 ${publicInfo.entryTime || ""} 이후 · 본행사 ${publicInfo.startTime || ""} 시작`,
+      event:true
     }
+  ];
+}
 
+function renderHeaderAndInfo(){
+  const p=publicInfo;
+  document.getElementById("heroDate").textContent=formatEventDate(p.eventDate);
+  document.getElementById("heroPlace").textContent=`${p.eventName || ""} · ${p.venueName || ""}`;
 
-    else{
+  document.getElementById("venueName").textContent=p.venueName || "";
+  document.getElementById("venueAddress").textContent=p.venueAddress || "";
+  document.getElementById("eventTimeBox").innerHTML=
+    `입장 가능 · ${esc(p.entryTime || "")} 이후<br>본행사 시작 · ${esc(p.startTime || "")}`;
 
-      button.disabled =
-        true;
+  const mapBtn=document.getElementById("mapBtn");
+  mapBtn.href=p.venueMapUrl || "#";
 
-    }
+  const venueIg=document.getElementById("venueInstagramBtn");
+  venueIg.href=p.venueInstagram || "#";
+  venueIg.style.display=p.venueInstagram ? "inline-flex" : "none";
 
+  document.getElementById("contactName").textContent=p.contactName || "";
+  document.getElementById("contactInfo").innerHTML=
+    `<strong>전화</strong> ${esc(p.contactPhone || "")}<br><strong>이메일</strong> ${esc(p.contactEmail || "")}`;
 
-    cal.appendChild(
-      button
-    );
+  document.getElementById("contactTelBtn").href=phoneHref(p.contactPhone);
+  document.getElementById("contactMailBtn").href="mailto:"+(p.contactEmail || "");
+  document.getElementById("bottomTelBtn").href=phoneHref(p.contactPhone);
+  document.getElementById("bottomMailBtn").href="mailto:"+(p.contactEmail || "");
+  document.getElementById("bottomContactText").textContent=`추가 문의사항은 ${p.contactName || "담당자"}에게 연락해주세요.`;
 
+  const resources=[];
+  if(p.instagramUrl){
+    resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">@kcas_archived</div></a>`);
   }
 
+  if(p.kakaoUrl){
+    resources.push(`<a class="resource-item" href="${esc(p.kakaoUrl)}" target="_blank" rel="noopener"><div class="r-k">KakaoTalk Channel</div><div class="r-v">${esc(p.kakaoName || "한조고 아카이브")}</div></a>`);
+  }else{
+    resources.push(`<div class="resource-item disabled"><div class="r-k">KakaoTalk Channel</div><div class="r-v">${esc(p.kakaoName || "한조고 아카이브")}</div></div>`);
+  }
+
+  if(p.dbFormUrl){
+    resources.push(`<a class="resource-item" href="${esc(p.dbFormUrl)}" target="_blank" rel="noopener"><div class="r-k">졸업생 DB 등록</div><div class="r-v">구글폼 바로가기</div></a>`);
+  }
+
+  if(p.applyFormUrl){
+    resources.push(`<a class="resource-item" href="${esc(p.applyFormUrl)}" target="_blank" rel="noopener"><div class="r-k">2026 행사 참가 신청</div><div class="r-v">참가 신청하기</div></a>`);
+  }else{
+    resources.push(`<div class="resource-item disabled"><div class="r-k">2026 행사 참가 신청</div><div class="r-v">9월 2일 오픈 예정 <span class="ready-badge">준비 중</span></div></div>`);
+  }
+
+  document.getElementById("resourceList").innerHTML=resources.join("");
+
+  const faq=(p.faq || []).filter(x=>x.q || x.a);
+  document.getElementById("faqList").innerHTML=faq.map(item=>`
+    <div class="faq-item">
+      <button class="faq-q"><span>${esc(item.q)}</span><span class="faq-icon">+</span></button>
+      <div class="faq-a">${esc(item.a)}</div>
+    </div>
+  `).join("");
+
+  document.querySelectorAll(".faq-q").forEach(btn=>{
+    btn.addEventListener("click",()=>btn.closest(".faq-item").classList.toggle("open"));
+  });
+}
+
+function renderDdaysAndStatus(){
+  const today=today0();
+  const eventDate=toDate(publicInfo.eventDate || "2026-10-18");
+  const eventDiff=daysBetween(today,eventDate);
+
+  document.getElementById("eventDday").textContent=
+    eventDiff===0 ? "D-DAY" : eventDiff>0 ? "D-"+eventDiff : "D+"+Math.abs(eventDiff);
+
+  const applyDiff=daysBetween(today,APPLY_OPEN);
+  document.getElementById("applyDday").textContent=
+    applyDiff===0 ? "D-DAY" : applyDiff>0 ? "D-"+applyDiff : "오픈됨";
+
+  const now=new Date();
+  const title=document.getElementById("applyStatusTitle");
+  const sub=document.getElementById("applyStatusSub");
+  const pill=document.getElementById("applyStatusPill");
+  pill.className="status-pill";
+
+  if(now<APPLY_OPEN){
+    const d=daysBetween(today,APPLY_OPEN);
+    title.textContent="9월 2일 1차 참가 신청 오픈";
+    sub.textContent=d>0 ? `참가 신청까지 ${d}일 남았습니다.` : "참가 신청이 곧 시작됩니다.";
+    pill.textContent="오픈 전";
+    pill.classList.add("before");
+  }else if(now<=APPLY_FIRST_CLOSE){
+    title.textContent="1차 참가 신청 진행 중";
+    sub.textContent="1차 신청 기간은 9월 6일까지입니다.";
+    pill.textContent="신청 중";
+    pill.classList.add("open");
+  }else if(now<APPLY_SECOND_OPEN){
+    title.textContent="1차 참가 신청 마감";
+    sub.textContent="1차 신청자 확인 및 참가 확정 절차가 진행됩니다.";
+    pill.textContent="1차 마감";
+    pill.classList.add("closed");
+  }else if(now<=APPLY_SECOND_CLOSE){
+    title.textContent="2차 참가 신청 진행 중";
+    sub.textContent="잔여 인원을 대상으로 추가 신청을 받고 있습니다.";
+    pill.textContent="추가 모집 중";
+    pill.classList.add("open");
+  }else if(now<eventDate){
+    title.textContent="참가 신청 마감";
+    sub.textContent="최종 참가자 확정 및 행사 준비가 진행 중입니다.";
+    pill.textContent="마감";
+    pill.classList.add("closed");
+  }else{
+    title.textContent="행사일";
+    sub.textContent="오늘 한조고 동문 네트워크 모임이 진행됩니다.";
+    pill.textContent="행사 진행";
+    pill.classList.add("event");
+  }
+}
+
+function renderNextAndTimeline(){
+  const schedule=getSchedule();
+  const today=today0();
+  const nowStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  const next=schedule.find(item=>item.end>=nowStr) || schedule[schedule.length-1];
+
+  document.getElementById("nextTitle").textContent=next.title;
+  document.getElementById("nextMeta").textContent=next.desc;
+  document.getElementById("nextDate").textContent=fmtRange(next);
+
+  document.getElementById("timeline").innerHTML=schedule.map(item=>`
+    <div class="item ${item.event ? "event-row" : ""}">
+      <div class="datebox"><strong>${esc(fmtRange(item).replaceAll("월 ","/").replaceAll("일",""))}</strong></div>
+      <div class="dotcol"><div class="dot"></div></div>
+      <div class="content">
+        <h3>${esc(item.title)}${item.tag ? `<span class="tag">${esc(item.tag)}</span>` : ""}${item.event ? `<span class="tag event">행사일</span>` : ""}</h3>
+        <p>${esc(item.desc)}</p>
+      </div>
+    </div>
+  `).join("");
+}
+
+function findSchedulesForDate(str){
+  return getSchedule().filter(item=>str>=item.start && str<=item.end);
+}
+
+function fmtDate(y,m,d){
+  return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+
+function showDetail(dateStr){
+  const items=findSchedulesForDate(dateStr);
+  const box=document.getElementById("calendarDetail");
+  const isEvent=items.some(x=>x.event);
+  box.className="calendar-detail"+(isEvent ? " event-detail" : "");
+  box.innerHTML=items.map(item=>`
+    <div style="${items.length>1 ? "margin-bottom:12px;" : ""}">
+      <div class="detail-date">${esc(fmtRange(item))}</div>
+      <div class="detail-title">${esc(item.title)}${item.event ? " · 행사일" : ""}</div>
+      <div class="detail-desc">${esc(item.desc)}</div>
+    </div>
+  `).join("");
+}
+
+function makeMonth(y,m){
+  const names=["일","월","화","수","목","금","토"];
+  const box=document.createElement("div");
+  box.className="month";
+  box.innerHTML=`<div class="month-title">${m+1}월</div><div class="cal">${names.map(n=>`<div class="dow">${n}</div>`).join("")}</div>`;
+
+  const cal=box.querySelector(".cal");
+  const first=new Date(y,m,1).getDay();
+  const last=new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<first;i++){
+    const blank=document.createElement("div");
+    blank.className="day";
+    cal.appendChild(blank);
+  }
+
+  const eventDate=publicInfo.eventDate || "2026-10-18";
+
+  for(let day=1;day<=last;day++){
+    const dateStr=fmtDate(y,m,day);
+    const items=findSchedulesForDate(dateStr);
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="day"+(dateStr===eventDate ? " event" : items.length ? " mark" : "");
+    btn.textContent=day;
+
+    if(items.length){
+      btn.addEventListener("click",()=>showDetail(dateStr));
+    }else{
+      btn.disabled=true;
+    }
+    cal.appendChild(btn);
+  }
 
   return box;
-
 }
 
-
-
-function showToast(
-  text
-){
-
-  const toast =
-    document.getElementById(
-      "toast"
-    );
-
-
-  toast.textContent =
-    text;
-
-
-  toast.classList.add(
-    "show"
-  );
-
-
-  setTimeout(
-    () => {
-
-      toast
-        .classList
-        .remove(
-          "show"
-        );
-
-    },
-    1600
-  );
-
+function renderCalendar(){
+  const holder=document.getElementById("months");
+  holder.innerHTML="";
+  [[2026,7],[2026,8],[2026,9]].forEach(([y,m])=>holder.appendChild(makeMonth(y,m)));
+  document.getElementById("calendarDetail").className="calendar-detail";
+  document.getElementById("calendarDetail").innerHTML='<div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>';
 }
 
+function renderAll(){
+  renderHeaderAndInfo();
+  renderDdaysAndStatus();
+  renderNextAndTimeline();
+  renderCalendar();
+}
 
-
-async function copyText(
-  text,
-  message
-){
-
+async function loadPublicInfo(){
   try{
+    const {data,error}=await sb.from("dashboard_state").select("data").eq("id","main").maybeSingle();
+    if(error) throw error;
 
-    await navigator
-      .clipboard
-      .writeText(
-        text
-      );
-
-
-    showToast(
-      message
-    );
-
+    const saved=data?.data?.publicInfo;
+    if(saved && typeof saved==="object"){
+      publicInfo={
+        ...DEFAULT_PUBLIC_INFO,
+        ...saved,
+        faq:Array.isArray(saved.faq) ? saved.faq : DEFAULT_PUBLIC_INFO.faq
+      };
+    }
+  }catch(e){
+    console.warn("공개 정보를 불러오지 못해 기본값으로 표시합니다.",e);
   }
 
-
-  catch(error){
-
-    const textarea =
-      document.createElement(
-        "textarea"
-      );
-
-
-    textarea.value =
-      text;
-
-
-    document.body
-      .appendChild(
-        textarea
-      );
-
-
-    textarea.select();
-
-
-    document.execCommand(
-      "copy"
-    );
-
-
-    textarea.remove();
-
-
-    showToast(
-      message
-    );
-
-  }
-
+  renderAll();
 }
 
+function subscribeRealtime(){
+  sb.channel("hanjogo-public-page")
+    .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
+      const saved=payload.new?.data?.publicInfo;
+      if(!saved || typeof saved!=="object") return;
 
+      publicInfo={
+        ...DEFAULT_PUBLIC_INFO,
+        ...saved,
+        faq:Array.isArray(saved.faq) ? saved.faq : DEFAULT_PUBLIC_INFO.faq
+      };
+      renderAll();
+    })
+    .subscribe();
+}
+
+function showToast(text){
+  const toast=document.getElementById("toast");
+  toast.textContent=text;
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),1600);
+}
+
+async function copyText(text,message){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta=document.createElement("textarea");
+    ta.value=text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+  showToast(message);
+}
 
 async function sharePage(){
-
-  const shareData = {
-
-    title:
-      "한조고 동문 네트워크 모임",
-
-    text:
-      "2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
-
-    url:
-      window.location.href
-
+  const data={
+    title:"한조고 동문 네트워크 모임",
+    text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
+    url:window.location.href
   };
 
-
-  if(
-    navigator.share
-  ){
-
+  if(navigator.share){
     try{
-
-      await navigator.share(
-        shareData
-      );
-
+      await navigator.share(data);
       return;
-
+    }catch(e){
+      if(e.name==="AbortError") return;
     }
-
-    catch(error){
-
-      if(
-        error.name ===
-        "AbortError"
-      ){
-
-        return;
-
-      }
-
-    }
-
   }
 
-
-  await copyText(
-
-    window.location.href,
-
-    "페이지 링크를 복사했습니다."
-
-  );
-
+  copyText(window.location.href,"페이지 링크를 복사했습니다.");
 }
 
+document.getElementById("shareBtn").addEventListener("click",sharePage);
+document.getElementById("bottomShareBtn").addEventListener("click",sharePage);
+document.getElementById("copyPageBtn").addEventListener("click",()=>copyText(window.location.href,"페이지 링크를 복사했습니다."));
+document.getElementById("copyAddressBtn").addEventListener("click",()=>copyText(publicInfo.venueAddress || "","행사장 주소를 복사했습니다."));
 
-
-document
-  .getElementById(
-    "copyAddressBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      copyText(
-
-        VENUE_ADDRESS,
-
-        "행사장 주소를 복사했습니다."
-
-      );
-
-    }
-  );
-
-
-
-document
-  .getElementById(
-    "copyPageBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      copyText(
-
-        window.location.href,
-
-        "페이지 링크를 복사했습니다."
-
-      );
-
-    }
-  );
-
-
-
-document
-  .getElementById(
-    "shareBtn"
-  )
-  .addEventListener(
-    "click",
-    sharePage
-  );
-
-
-
-document
-  .getElementById(
-    "bottomShareBtn"
-  )
-  .addEventListener(
-    "click",
-    sharePage
-  );
-
-
-
-document
-  .querySelectorAll(
-    ".faq-q"
-  )
-  .forEach(
-
-    button => {
-
-      button
-        .addEventListener(
-          "click",
-          () => {
-
-            button
-              .closest(
-                ".faq-item"
-              )
-              .classList
-              .toggle(
-                "open"
-              );
-
-          }
-        );
-
-    }
-
-  );
-
-
-
-setDdays();
-
-renderApplyStatus();
-
-activateParticipantForm();
-
-renderNext();
-
-
-
-const monthsHolder =
-  document.getElementById(
-    "months"
-  );
-
-
-[
-  [2026,7],
-  [2026,8],
-  [2026,9]
-
-]
-.forEach(
-
-  ([year,month]) => {
-
-    monthsHolder
-      .appendChild(
-        makeMonth(
-          year,
-          month
-        )
-      );
-
-  }
-
-);
-
+loadPublicInfo();
+subscribeRealtime();
 </script>
-
-
 </body>
 </html>

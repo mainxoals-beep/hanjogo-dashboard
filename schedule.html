@@ -373,7 +373,7 @@ const DEFAULT_PUBLIC_INFO = {
     {q:"누가 참여할 수 있나요?",a:"한국조리고등학교 졸업생을 대상으로 진행하는 동문 네트워크 모임입니다."},
     {q:"참가비는 얼마인가요?",a:"참가비는 1인 100,000원(십만원)입니다. 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."},
     {q:"신청하면 바로 참가가 확정되나요?",a:"아닙니다. 참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며, 입금 확인 후 최종 참가가 확정됩니다."},
-    {q:"주차가 가능한가요?",a:"행사장 주차 가능 대수가 매우 제한적입니다. 행사장 안내 기준 최대 2대 정도만 가능해 가급적 대중교통 이용을 권장합니다."}
+    {q:"주차가 가능한가요?",a:"행사장 자체 주차는 어렵습니다. 인근 다산동 공영주차장을 이용할 수 있으나 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다."}
   ]
 };
 
@@ -429,6 +429,20 @@ function fmtRange(item){
   return item.start===item.end ? fmtKR(item.start) : `${fmtKR(item.start)} ~ ${fmtKR(item.end)}`;
 }
 
+
+function mergePublicInfo(saved){
+  const s=(saved && typeof saved==="object") ? saved : {};
+  return {
+    ...DEFAULT_PUBLIC_INFO,
+    ...s,
+    parkingName:String(s.parkingName||"").trim() || DEFAULT_PUBLIC_INFO.parkingName,
+    parkingAddress:String(s.parkingAddress||"").trim() || DEFAULT_PUBLIC_INFO.parkingAddress,
+    parkingMapUrl:String(s.parkingMapUrl||"").trim() || DEFAULT_PUBLIC_INFO.parkingMapUrl,
+    parkingNote:String(s.parkingNote||"").trim() || DEFAULT_PUBLIC_INFO.parkingNote,
+    faq:Array.isArray(s.faq) ? s.faq : DEFAULT_PUBLIC_INFO.faq
+  };
+}
+
 function formatEventDate(iso){
   const d=toDate(iso || "2026-10-18");
   const wd=["일","월","화","수","목","금","토"];
@@ -465,13 +479,13 @@ function renderHeaderAndInfo(){
   venueIg.href=p.venueInstagram || "#";
   venueIg.style.display=p.venueInstagram ? "inline-flex" : "none";
 
-  document.getElementById("parkingName").textContent=p.parkingName || "";
-  document.getElementById("parkingAddress").textContent=p.parkingAddress || "";
-  document.getElementById("parkingNote").textContent=p.parkingNote || "";
+  document.getElementById("parkingName").textContent=p.parkingName || DEFAULT_PUBLIC_INFO.parkingName;
+  document.getElementById("parkingAddress").textContent=p.parkingAddress || DEFAULT_PUBLIC_INFO.parkingAddress;
+  document.getElementById("parkingNote").textContent=p.parkingNote || DEFAULT_PUBLIC_INFO.parkingNote;
 
   const parkingMapBtn=document.getElementById("parkingMapBtn");
-  parkingMapBtn.href=p.parkingMapUrl || "#";
-  parkingMapBtn.style.display=p.parkingMapUrl ? "inline-flex" : "none";
+  parkingMapBtn.href=p.parkingMapUrl || DEFAULT_PUBLIC_INFO.parkingMapUrl;
+  parkingMapBtn.style.display="inline-flex";
 
   document.getElementById("contactName").textContent=p.contactName || "";
   document.getElementById("contactInfo").innerHTML=
@@ -689,11 +703,7 @@ async function loadPublicInfo(){
     const saved=data?.data?.publicInfo;
     alumniStats=data?.data?.formSync?.alumniStats || null;
     if(saved && typeof saved==="object"){
-      publicInfo={
-        ...DEFAULT_PUBLIC_INFO,
-        ...saved,
-        faq:Array.isArray(saved.faq) ? saved.faq : DEFAULT_PUBLIC_INFO.faq
-      };
+      publicInfo=mergePublicInfo(saved);
     }
   }catch(e){
     console.warn("공개 정보를 불러오지 못해 기본값으로 표시합니다.",e);
@@ -709,11 +719,7 @@ function subscribeRealtime(){
       alumniStats=payload.new?.data?.formSync?.alumniStats || null;
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 
-      publicInfo={
-        ...DEFAULT_PUBLIC_INFO,
-        ...saved,
-        faq:Array.isArray(saved.faq) ? saved.faq : DEFAULT_PUBLIC_INFO.faq
-      };
+      publicInfo=mergePublicInfo(saved);
       renderAll();
     })
     .subscribe();

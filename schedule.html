@@ -192,6 +192,14 @@ button{cursor:pointer}
   .head h1{font-size:22px}
   .top-action{min-width:calc(50% - 4px)}
 }
+
+.alumni-card{padding:16px 18px;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.alumni-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:11px}.alumni-title{font-size:15px;font-weight:800}.alumni-updated{font-size:10.5px;color:var(--mute)}
+.alumni-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.alumni-stat{padding:10px 11px;border-radius:11px;background:#FDFCFB;border:1px solid var(--line)}
+.alumni-stat .k{font-size:10px;color:var(--mute);margin-bottom:3px}.alumni-stat .v{font-size:16px;font-weight:900}.alumni-gen-title{font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:7px}
+.alumni-gen-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.alumni-gen-item{display:flex;justify-content:space-between;gap:5px;padding:6px 7px;border:1px solid var(--line);border-radius:8px;font-size:10.5px}.alumni-gen-item b{color:var(--purple-dark)}
+.alumni-privacy{margin-top:9px;color:var(--mute);font-size:10.5px}.alumni-empty{color:var(--mute);font-size:12px}@media(max-width:700px){.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}}
+
 </style>
 </head>
 
@@ -273,6 +281,12 @@ button{cursor:pointer}
   <div class="resource-card">
     <div class="resource-title">한조고 아카이브 · 공식 링크</div>
     <div class="resource-list" id="resourceList"></div>
+  </div>
+
+
+  <div class="alumni-card">
+    <div class="alumni-head"><div class="alumni-title">졸업생 DB 현황</div><div class="alumni-updated" id="alumniUpdated"></div></div>
+    <div id="alumniStatsBody"><div class="alumni-empty">집계 정보를 불러오는 중입니다.</div></div>
   </div>
 
   <div class="next-card">
@@ -364,6 +378,7 @@ const DEFAULT_PUBLIC_INFO = {
 };
 
 let publicInfo = {...DEFAULT_PUBLIC_INFO};
+let alumniStats = null;
 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
@@ -645,11 +660,25 @@ function renderCalendar(){
   document.getElementById("calendarDetail").innerHTML='<div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>';
 }
 
+
+function renderAlumniStats(){
+  const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">아직 집계된 졸업생 DB 정보가 없습니다.</div>';if(updated)updated.textContent="";return;}
+  const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
+  const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
+  body.innerHTML=`<div class="alumni-summary">
+    <div class="alumni-stat"><div class="k">총 등록 인원</div><div class="v">${esc(alumniStats.total||0)}명</div></div>
+    <div class="alumni-stat"><div class="k">최근 7일 신규</div><div class="v">${alumniStats.recent7===null?"-":esc(alumniStats.recent7)+"명"}</div></div>
+  </div><div class="alumni-gen-title">기수별 등록 인원</div><div class="alumni-gen-grid">${genHtml}</div><div class="alumni-privacy">개인정보는 표시하지 않고 집계된 정보만 제공합니다.</div>`;
+  if(updated) updated.textContent=alumniStats.updatedAt?`최근 집계 ${alumniStats.updatedAt}`:"";
+}
+
 function renderAll(){
   renderHeaderAndInfo();
   renderDdaysAndStatus();
   renderNextAndTimeline();
   renderCalendar();
+  renderAlumniStats();
 }
 
 async function loadPublicInfo(){
@@ -658,6 +687,7 @@ async function loadPublicInfo(){
     if(error) throw error;
 
     const saved=data?.data?.publicInfo;
+    alumniStats=data?.data?.formSync?.alumniStats || null;
     if(saved && typeof saved==="object"){
       publicInfo={
         ...DEFAULT_PUBLIC_INFO,
@@ -676,7 +706,8 @@ function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
-      if(!saved || typeof saved!=="object") return;
+      alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 
       publicInfo={
         ...DEFAULT_PUBLIC_INFO,

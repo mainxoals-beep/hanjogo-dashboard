@@ -678,6 +678,7 @@ function renderAll(){
 }
 
 async function loadPublicInfo(){
+  renderAll();
   try{
     const {data,error}=await sb.from("dashboard_state").select("data").eq("id","main").maybeSingle();
     if(error) throw error;
@@ -747,11 +748,10 @@ async function sharePage(){
   copyText(window.location.href,"페이지 링크를 복사했습니다.");
 }
 
-document.getElementById("shareBtn").addEventListener("click",sharePage);
-document.getElementById("bottomShareBtn").addEventListener("click",sharePage);
-document.getElementById("copyPageBtn").addEventListener("click",()=>copyText(window.location.href,"페이지 링크를 복사했습니다."));
-document.getElementById("copyAddressBtn").addEventListener("click",()=>copyText(publicInfo.venueAddress || "","행사장 주소를 복사했습니다."));
-document.getElementById("copyParkingBtn").addEventListener("click",()=>copyText(publicInfo.parkingAddress || "","주차장 주소를 복사했습니다."));
+document.getElementById("shareBtn")?.addEventListener("click",sharePage);
+document.getElementById("copyPageBtn")?.addEventListener("click",()=>copyText(window.location.href,"페이지 링크를 복사했습니다."));
+document.getElementById("copyAddressBtn")?.addEventListener("click",()=>copyText(publicInfo.venueAddress || "","행사장 주소를 복사했습니다."));
+document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText(publicInfo.parkingAddress || "","주차장 주소를 복사했습니다."));
 
 loadPublicInfo();
 subscribeRealtime();

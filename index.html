@@ -662,6 +662,39 @@
     .fee-summary{grid-template-columns:1fr 1fr;}
   }
 
+
+  /* ---------- public editor save feedback ---------- */
+  #savePublicInfo{
+    transition:all .18s ease;
+  }
+  #savePublicInfo.public-save-idle{
+    background:#EEEAE4 !important;
+    border-color:#DDD6CE !important;
+    color:#9A9187 !important;
+    box-shadow:none !important;
+    cursor:default;
+  }
+  #savePublicInfo.public-save-dirty{
+    background:var(--purple) !important;
+    border-color:var(--purple) !important;
+    color:#fff !important;
+    box-shadow:0 4px 12px rgba(78,57,95,.18);
+    cursor:pointer;
+  }
+  #savePublicInfo.public-save-saved{
+    background:#E8F4EC !important;
+    border-color:#BFDAC7 !important;
+    color:#2E6B45 !important;
+    box-shadow:none !important;
+  }
+  .public-save-status{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:10.5px;font-weight:700;color:var(--ink-mute);
+    margin-left:6px;
+  }
+  .public-save-status.dirty{color:var(--purple-dark);}
+  .public-save-status.saved{color:#2E6B45;}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1137,7 +1170,7 @@
         </div>
 
         <div class="public-actions">
-          <button id="savePublicInfo" class="public-save-btn lockable">외부 페이지 정보 저장</button>
+          <button id="savePublicInfo" class="public-save-btn lockable">외부 페이지 정보 저장</button><span id="publicSaveStatus" class="public-save-status">변경사항 없음</span>
           <button id="openPublicPage" class="public-open-btn">외부 페이지 열기</button>
         </div>
       </div>
@@ -3441,6 +3474,77 @@ function openProductionImage(src){
 }
 
 
+
+// ---------- public editor save state ----------
+let publicInfoDirty = false;
+function setPublicSaveState(stateName){
+  const btn=document.getElementById("savePublicInfo");
+  const status=document.getElementById("publicSaveStatus");
+  if(!btn) return;
+  btn.classList.remove("public-save-idle","public-save-dirty","public-save-saved");
+
+  if(stateName==="dirty"){
+    publicInfoDirty=true;
+    btn.classList.add("public-save-dirty");
+    btn.textContent="변경사항 저장";
+    if(status){
+      status.textContent="저장 필요";
+      status.className="public-save-status dirty";
+    }
+  }else if(stateName==="saved"){
+    publicInfoDirty=false;
+    btn.classList.add("public-save-saved");
+    btn.textContent="✓ 저장 완료";
+    if(status){
+      status.textContent="저장됨";
+      status.className="public-save-status saved";
+    }
+    setTimeout(()=>{
+      if(!publicInfoDirty){
+        btn.classList.remove("public-save-saved");
+        btn.classList.add("public-save-idle");
+        btn.textContent="변경사항 저장";
+        if(status){
+          status.textContent="변경사항 없음";
+          status.className="public-save-status";
+        }
+      }
+    },1800);
+  }else{
+    publicInfoDirty=false;
+    btn.classList.add("public-save-idle");
+    btn.textContent="변경사항 저장";
+    if(status){
+      status.textContent="변경사항 없음";
+      status.className="public-save-status";
+    }
+  }
+}
+function setupPublicEditorDirtyTracking(){
+  const ids=[
+    "pubEventName","pubEventDate","pubEventTime","pubFee",
+    "pubVenueName","pubVenueAddress","pubVenueMapUrl","pubVenueInstagram",
+    "pubParkingName","pubParkingAddress","pubParkingMapUrl","pubParkingNote",
+    "pubContact","pubApplyUrl","pubInstagramUrl","pubKakaoUrl"
+  ];
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    ["input","change"].forEach(evt=>el.addEventListener(evt,()=>{
+      if(state.editMode) setPublicSaveState("dirty");
+    }));
+  });
+
+  // FAQ / dynamic public editor fields
+  document.getElementById("body-public")?.addEventListener("input",e=>{
+    if(!state.editMode) return;
+    if(e.target.closest("#publicFaqList") || e.target.closest(".public-info-editor")){
+      setPublicSaveState("dirty");
+    }
+  });
+}
+
+
 // ---------- external page management ----------
 function renderPublicInfoEditor(){
   const p = state.publicInfo || {...DEFAULT_PUBLIC_INFO};
@@ -3489,6 +3593,7 @@ function renderPublicInfoEditor(){
       </div>`;
     faqWrap.appendChild(row);
   });
+  setPublicSaveState("idle");
 }
 
 function collectPublicInfoFromEditor(){
@@ -3564,6 +3669,8 @@ async function init(){
   await initializeRemoteIfNeeded();
   renderModeUI();
   setupMainTabs();
+  setupPublicEditorDirtyTracking();
+  setPublicSaveState("idle");
   addExportBars();
   renderAll();
   bindParticipantInputs();

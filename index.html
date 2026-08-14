@@ -3550,6 +3550,7 @@ function setPublicSaveState(stateName){
   const btn=document.getElementById("savePublicInfo");
   const status=document.getElementById("publicSaveStatus");
   if(!btn) return;
+  btn.disabled = (stateName!=="dirty");
   btn.classList.remove("public-save-idle","public-save-dirty","public-save-saved");
 
   if(stateName==="dirty"){
@@ -3590,18 +3591,21 @@ function setPublicSaveState(stateName){
   }
 }
 function setupPublicEditorDirtyTracking(){
-  const section=document.getElementById("body-public");
-  if(!section) return;
+  const isPublicEditorField = el => {
+    if(!el) return false;
+    const id = el.id || "";
+    return id.startsWith("pub") || el.classList?.contains("pub-faq-q") || el.classList?.contains("pub-faq-a");
+  };
 
-  const markDirty=e=>{
+  const markDirty = e => {
     if(!state.editMode) return;
-    if(e.target.matches("input, textarea, select")){
+    if(isPublicEditorField(e.target)){
       setPublicSaveState("dirty");
     }
   };
 
-  section.addEventListener("input",markDirty);
-  section.addEventListener("change",markDirty);
+  document.addEventListener("input", markDirty);
+  document.addEventListener("change", markDirty);
 }
 
 
@@ -3693,9 +3697,8 @@ function collectPublicInfoFromEditor(){
 
 document.getElementById("savePublicInfo")?.addEventListener("click", async () => {
   if(state.shareMode && !state.editMode) return;
-  if(!publicInfoDirty) return;
-
   const btn=document.getElementById("savePublicInfo");
+  if(!publicInfoDirty) return;
   try{
     if(btn){
       btn.disabled=true;

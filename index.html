@@ -695,11 +695,65 @@
   .public-save-status.dirty{color:var(--purple-dark);}
   .public-save-status.saved{color:#2E6B45;}
 
+
+  /* ---------- simple owner-controlled password lock ---------- */
+  body.password-locked{overflow:hidden;background:#F4F1EC;}
+  #internalApp.password-hidden{display:none !important;}
+  .password-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px;background:#F4F1EC;
+  }
+  .password-screen.hidden{display:none;}
+  .password-card{
+    width:min(100%,400px);background:#fff;border:1px solid var(--line);
+    border-radius:18px;padding:26px 24px;box-shadow:0 16px 40px rgba(42,33,47,.08);
+  }
+  .password-eyebrow{font-size:11px;font-weight:800;color:var(--purple);letter-spacing:.06em;margin-bottom:7px;}
+  .password-card h1{margin:0 0 7px;font-size:21px;line-height:1.3;color:var(--ink);}
+  .password-desc{font-size:12px;color:var(--ink-mute);line-height:1.65;margin-bottom:18px;}
+  .password-field label{display:block;font-size:10.5px;font-weight:800;color:var(--ink-sub);margin-bottom:5px;}
+  .password-field input{
+    width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;
+    padding:11px 12px;background:#FDFCFB;font-size:13px;color:var(--ink);
+  }
+  .password-field input:focus{outline:none;border-color:var(--purple);}
+  .password-enter{
+    width:100%;border:none;border-radius:10px;padding:11px 13px;margin-top:10px;
+    background:var(--purple);color:#fff;font-size:13px;font-weight:800;cursor:pointer;
+  }
+  .password-error{min-height:18px;margin-top:9px;font-size:11px;color:var(--danger);line-height:1.5;}
+  .password-note{
+    margin-top:12px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:10.5px;color:var(--ink-mute);line-height:1.55;
+  }
+  .quick-lock-btn{
+    border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 8px;
+    font-size:10.5px;font-weight:700;color:var(--ink-sub);cursor:pointer;margin-top:7px;
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="wrap">
+
+<div class="password-screen" id="passwordScreen">
+  <div class="password-card">
+    <div class="password-eyebrow">한국조리고 동문회</div>
+    <h1>준비위원 전용 대시보드</h1>
+    <div class="password-desc">내부 운영 정보가 포함된 페이지입니다.<br>준비위원 공용 비밀번호를 입력해주세요.</div>
+    <form id="passwordForm">
+      <div class="password-field">
+        <label for="internalPasswordInput">비밀번호</label>
+        <input id="internalPasswordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+      </div>
+      <button class="password-enter" type="submit">대시보드 들어가기</button>
+      <div class="password-error" id="passwordError"></div>
+    </form>
+    <div class="password-note">비밀번호 변경 기능은 준비위원 화면에 제공하지 않습니다. 내부 대시보드 관리자가 직접 변경합니다.</div>
+  </div>
+</div>
+
+<div class="wrap password-hidden" id="internalApp">
 
   <header>
     <div class="header-top">
@@ -708,7 +762,10 @@
         <h1>한조고 동문 네트워크 모임 준비 대시보드</h1>
         <p class="subline">2026년 10월 18일(일)</p>
       </div>
+      <div>
       <div class="mode-wrap"><span class="mode-label" id="shareModeLabel">공동 대시보드</span></div>
+      <button class="quick-lock-btn" id="quickLockBtn" type="button">잠금</button>
+    </div>
     </div>
   </header>
 
@@ -3687,6 +3744,57 @@ document.getElementById("productionImageModalClose")?.addEventListener("click",(
 document.getElementById("productionImageModal")?.addEventListener("click",e=>{
   if(e.target.id==="productionImageModal") e.currentTarget.classList.remove("open");
 });
+
+
+// ---------- simple owner-controlled password gate ----------
+// 비밀번호 원문은 저장하지 않고, 영문 대소문자를 무시한 SHA-256 해시만 비교합니다.
+// 비밀번호 변경은 이 파일을 관리하는 사람만 할 수 있습니다.
+const INTERNAL_DASHBOARD_PASSWORD_HASH = "25740a2ad482263ddb573c8551b05f6b6fc8cde7118ca22fa8f3ba1394691ef2";
+const INTERNAL_UNLOCK_KEY = "hanjogo_internal_unlocked";
+
+async function sha256Text(text){
+  const bytes=new TextEncoder().encode(text);
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function showPasswordScreen(){
+  document.body.classList.add("password-locked");
+  document.getElementById("passwordScreen")?.classList.remove("hidden");
+  document.getElementById("internalApp")?.classList.add("password-hidden");
+  setTimeout(()=>document.getElementById("internalPasswordInput")?.focus(),50);
+}
+function showInternalDashboard(){
+  document.body.classList.remove("password-locked");
+  document.getElementById("passwordScreen")?.classList.add("hidden");
+  document.getElementById("internalApp")?.classList.remove("password-hidden");
+}
+function checkInitialPasswordState(){
+  if(sessionStorage.getItem(INTERNAL_UNLOCK_KEY)==="1") showInternalDashboard();
+  else showPasswordScreen();
+}
+
+document.getElementById("passwordForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const input=document.getElementById("internalPasswordInput");
+  const err=document.getElementById("passwordError");
+  const enteredHash=await sha256Text((input?.value||"").toLowerCase());
+  if(enteredHash===INTERNAL_DASHBOARD_PASSWORD_HASH){
+    sessionStorage.setItem(INTERNAL_UNLOCK_KEY,"1");
+    if(err) err.textContent="";
+    if(input) input.value="";
+    showInternalDashboard();
+  }else{
+    if(err) err.textContent="비밀번호가 맞지 않습니다.";
+    if(input){input.select();input.focus();}
+  }
+});
+
+document.getElementById("quickLockBtn")?.addEventListener("click",()=>{
+  sessionStorage.removeItem(INTERNAL_UNLOCK_KEY);
+  showPasswordScreen();
+});
+
+checkInitialPasswordState();
 
 init();
 

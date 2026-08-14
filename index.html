@@ -634,6 +634,34 @@
     .tx-summary .tx-stat:first-child{grid-column:1/-1;}
   }
 
+
+  /* ---------- participant fee tracking ---------- */
+  .fee-card{
+    margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;
+  }
+  .fee-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px;}
+  .fee-title{font-size:14px;font-weight:800;}
+  .fee-sub{font-size:11px;color:var(--ink-mute);margin-top:3px;line-height:1.55;}
+  .fee-actions{display:flex;gap:7px;flex-wrap:wrap;}
+  .fee-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .fee-stat{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB;}
+  .fee-stat .k{font-size:10px;color:var(--ink-mute);margin-bottom:3px;}
+  .fee-stat .v{font-size:15px;font-weight:800;}
+  .fee-table-wrap{overflow-x:auto;}
+  .fee-table{min-width:980px;}
+  .fee-table td,.fee-table th{font-size:11px;}
+  .fee-table input,.fee-table select{
+    width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 7px;background:#fff;font-size:11px;
+  }
+  .fee-match{font-size:10px;color:var(--ok);font-weight:700;margin-top:3px;line-height:1.35;}
+  .fee-match.warn{color:var(--warn);}
+  .fee-empty{padding:16px;text-align:center;color:var(--ink-mute);font-size:11.5px;}
+  .fee-status-paid{color:var(--ok);font-weight:800;}
+  .fee-status-unpaid{color:var(--ink-mute);}
+  @media(max-width:700px){
+    .fee-summary{grid-template-columns:1fr 1fr;}
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -774,7 +802,47 @@
           <span class="pill muted" id="pillRemain">잔여 모집 가능 0석</span>
         </div>
       </div>
-    </div>
+    
+        <div class="fee-card">
+          <div class="fee-head">
+            <div>
+              <div class="fee-title">참가비 입금 확인</div>
+              <div class="fee-sub">참가자는 실제 이름으로 입금하고, 준비위원이 입금 상태를 확인합니다. 거래내역 CSV를 불러온 경우 이름 자동매칭을 사용할 수 있습니다.</div>
+            </div>
+            <div class="fee-actions">
+              <button class="mini-btn primary lockable" id="matchParticipantPayments">거래내역 이름 자동매칭</button>
+              <button class="mini-btn lockable" id="addParticipantPayment">+ 참가자 추가</button>
+            </div>
+          </div>
+
+          <div class="fee-summary">
+            <div class="fee-stat"><div class="k">관리 인원</div><div class="v" id="feeManagedCount">0명</div></div>
+            <div class="fee-stat"><div class="k">입금 확인</div><div class="v" id="feePaidCount">0명</div></div>
+            <div class="fee-stat"><div class="k">미입금</div><div class="v" id="feeUnpaidCount">0명</div></div>
+            <div class="fee-stat"><div class="k">확인된 입금액</div><div class="v" id="feePaidTotal">0원</div></div>
+          </div>
+
+          <div class="fee-table-wrap">
+            <table class="fee-table">
+              <thead>
+                <tr>
+                  <th style="width:11%">이름</th>
+                  <th style="width:8%">기수</th>
+                  <th style="width:12%">예정 참가비</th>
+                  <th style="width:12%">입금액</th>
+                  <th style="width:11%">입금일</th>
+                  <th style="width:11%">상태</th>
+                  <th style="width:27%">비고 / 매칭</th>
+                  <th style="width:5%"></th>
+                </tr>
+              </thead>
+              <tbody id="participantPaymentBody"></tbody>
+            </table>
+          </div>
+          <div class="fee-empty" id="participantPaymentEmpty">아직 등록된 참가자가 없습니다. 참가 확정 후 이름을 추가해 입금 여부를 관리하세요.</div>
+        </div>
+
+      </div>
   </section>
 
   <!-- ===== 협찬 진행 상황 ===== -->
@@ -1229,6 +1297,9 @@ const DEFAULT_PUBLIC_INFO = {
 
 
 
+
+const DEFAULT_PARTICIPANT_PAYMENTS = [];
+
 const DEFAULT_EVENT_ACCOUNT = {
   bankName:"",
   accountNumber:"",
@@ -1274,6 +1345,7 @@ let state = {
   budget: [],
   eventAccount: {...DEFAULT_EVENT_ACCOUNT},
   transactions: {...DEFAULT_TRANSACTIONS},
+  participantPayments: [...DEFAULT_PARTICIPANT_PAYMENTS],
   sectionCollapse: {},
 };
 
@@ -1438,7 +1510,7 @@ async function initializeRemoteIfNeeded(){
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
     committee: state.committee, links: state.links, formSync: state.formSync, dayProgram: state.dayProgram,
-    publicInfo: state.publicInfo, notices: state.notices, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions
+    publicInfo: state.publicInfo, notices: state.notices, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
   };
   await saveRemoteState();
 }
@@ -1517,6 +1589,7 @@ async function loadAll(){
   state.budget = await dGet("budget", DEFAULT_BUDGET.map(x => ({...x})));
   state.eventAccount = await dGet("eventAccount", {...DEFAULT_EVENT_ACCOUNT});
   state.transactions = await dGet("transactions", {...DEFAULT_TRANSACTIONS});
+  state.participantPayments = await dGet("participantPayments", [...DEFAULT_PARTICIPANT_PAYMENTS]);
 
   state.sectionCollapse = await storageGet("sectionCollapse", {}, false); // UI pref: this browser only
   state.shareMode = true; // shared dashboard is always on
@@ -1572,7 +1645,7 @@ function applyEditLock(){
   const locked = !state.editMode;
   document.body.classList.toggle("view-only", locked);
   document.querySelectorAll(".lockable").forEach(el => { el.disabled = locked; });
-  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff")
+  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #matchParticipantPayments, #addParticipantPayment")
     .forEach(el => { el.disabled = locked; });
 }
 
@@ -1598,7 +1671,7 @@ document.getElementById("editModeBtn").addEventListener("click", () => {
 
 function applyRemoteDataToState(remote){
   if(!remote || typeof remote !== "object") return;
-  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","budget","eventAccount","transactions"];
+  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","budget","eventAccount","transactions","participantPayments"];
   keys.forEach(k => { if(Object.prototype.hasOwnProperty.call(remote,k)) state[k] = remote[k]; });
   if(Array.isArray(state.phases)) state.phases.forEach(p => { if(!p.priority) p.priority = IMPORTANT_IDS.includes(p.id) ? "important" : "normal"; });
   if(Array.isArray(state.sponsors)) state.sponsors.forEach(s => {
@@ -2143,9 +2216,140 @@ function bindParticipantInputs(){
       state.participants[key] = Math.max(0, parseInt(e.target.value) || 0);
       await dSet("participants", state.participants);
       renderParticipants();
+  renderParticipantPayments();
     });
   });
 }
+
+
+// ---------- participant fee tracking ----------
+function normalizePersonName(v){
+  return String(v||"").replace(/\s+/g,"").replace(/[()_\-\[\].]/g,"").toLowerCase();
+}
+function paymentStatusLabel(v){
+  return v==="paid" ? "입금완료" : v==="partial" ? "일부입금" : v==="hold" ? "확인필요" : "미입금";
+}
+function renderParticipantPayments(){
+  const rows=Array.isArray(state.participantPayments) ? state.participantPayments : [];
+  const body=document.getElementById("participantPaymentBody");
+  const empty=document.getElementById("participantPaymentEmpty");
+  if(!body) return;
+  body.innerHTML="";
+  if(empty) empty.style.display=rows.length?"none":"block";
+
+  let paidCount=0, paidTotal=0;
+  rows.forEach(row=>{
+    if(row.status==="paid"){ paidCount++; paidTotal+=Number(row.paidAmount||0); }
+    else if(row.status==="partial"){ paidTotal+=Number(row.paidAmount||0); }
+
+    const tr=document.createElement("tr");
+    const matchText=row.matchInfo
+      ? `<div class="fee-match ${row.matchInfo.includes("복수")?"warn":""}">${escapeHtml(row.matchInfo)}</div>`
+      : "";
+    tr.innerHTML=`
+      <td data-label="이름"><input type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
+      <td data-label="기수"><input type="text" value="${escapeHtml(row.generation||"")}" data-field="generation" placeholder="예: 2기"></td>
+      <td data-label="예정 참가비"><input type="number" min="0" step="1000" value="${Number(row.expectedAmount||100000)}" data-field="expectedAmount"></td>
+      <td data-label="입금액"><input type="number" min="0" step="1000" value="${Number(row.paidAmount||0)}" data-field="paidAmount"></td>
+      <td data-label="입금일"><input type="date" value="${escapeHtml(row.paidDate||"")}" data-field="paidDate"></td>
+      <td data-label="상태">
+        <select data-field="status">
+          ${["unpaid","paid","partial","hold"].map(v=>`<option value="${v}" ${row.status===v?"selected":""}>${paymentStatusLabel(v)}</option>`).join("")}
+        </select>
+      </td>
+      <td data-label="비고">
+        <input type="text" value="${escapeHtml(row.note||"")}" data-field="note" placeholder="입금자명 다를 경우 메모">
+        ${matchText}
+      </td>
+      <td><button class="row-del" title="삭제">✕</button></td>`;
+
+    tr.querySelectorAll("input,select").forEach(el=>{
+      el.addEventListener("change",async e=>{
+        const f=e.target.dataset.field;
+        row[f]=(f==="expectedAmount"||f==="paidAmount") ? Math.max(0,Number(e.target.value)||0) : e.target.value;
+        if(f==="paidAmount"){
+          if(row.paidAmount>=Number(row.expectedAmount||100000)) row.status="paid";
+          else if(row.paidAmount>0) row.status="partial";
+          else row.status="unpaid";
+        }
+        row.matchInfo="";
+        await dSet("participantPayments",state.participantPayments);
+        syncPaidCountFromPayments();
+        renderParticipantPayments();
+      });
+    });
+    tr.querySelector(".row-del").addEventListener("click",async()=>{
+      if(!state.editMode) return;
+      if(!await customConfirm("이 참가자의 입금 확인 항목을 삭제할까요?")) return;
+      state.participantPayments=state.participantPayments.filter(x=>x.id!==row.id);
+      await dSet("participantPayments",state.participantPayments);
+      syncPaidCountFromPayments();
+      renderParticipantPayments();
+    });
+    body.appendChild(tr);
+  });
+
+  const managed=rows.length;
+  const unpaid=rows.filter(r=>r.status!=="paid").length;
+  document.getElementById("feeManagedCount").textContent=`${managed}명`;
+  document.getElementById("feePaidCount").textContent=`${paidCount}명`;
+  document.getElementById("feeUnpaidCount").textContent=`${unpaid}명`;
+  document.getElementById("feePaidTotal").textContent=money(paidTotal);
+}
+async function syncPaidCountFromPayments(){
+  const rows=Array.isArray(state.participantPayments)?state.participantPayments:[];
+  state.participants.paid=rows.filter(r=>r.status==="paid").length;
+  await dSet("participants",state.participants);
+  renderParticipants();
+}
+document.getElementById("addParticipantPayment")?.addEventListener("click",async()=>{
+  if(!state.editMode) return;
+  state.participantPayments.push({
+    id:uid(),name:"",generation:"",expectedAmount:100000,paidAmount:0,paidDate:"",
+    status:"unpaid",note:"",matchInfo:""
+  });
+  await dSet("participantPayments",state.participantPayments);
+  renderParticipantPayments();
+});
+document.getElementById("matchParticipantPayments")?.addEventListener("click",async()=>{
+  if(!state.editMode) return;
+  const txRows=state.transactions?.rows || [];
+  if(!txRows.length){
+    alert("먼저 예산 · 설정 탭에서 계좌 거래내역 CSV를 불러와주세요.");
+    return;
+  }
+  let matched=0, ambiguous=0;
+  for(const row of state.participantPayments){
+    const nm=normalizePersonName(row.name);
+    if(!nm){ row.matchInfo=""; continue; }
+    const candidates=txRows.filter(tx=>{
+      const desc=normalizePersonName(tx.description);
+      return Number(tx.income||0)>0 && desc.includes(nm);
+    });
+    if(candidates.length===1){
+      const tx=candidates[0];
+      row.paidAmount=Number(tx.income||0);
+      const dateRaw=String(tx.date||"");
+      const dm=dateRaw.match(/(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+      if(dm) row.paidDate=`${dm[1]}-${String(dm[2]).padStart(2,"0")}-${String(dm[3]).padStart(2,"0")}`;
+      const expected=Number(row.expectedAmount||100000);
+      row.status=row.paidAmount>=expected ? "paid" : row.paidAmount>0 ? "partial" : "unpaid";
+      row.matchInfo=`자동매칭: ${tx.description||"입금"} · ${money(tx.income||0)}`;
+      matched++;
+    }else if(candidates.length>1){
+      row.status=row.status==="paid" ? row.status : "hold";
+      row.matchInfo=`동일 이름 입금 ${candidates.length}건 — 확인 필요`;
+      ambiguous++;
+    }else{
+      row.matchInfo="매칭되는 입금내역 없음";
+    }
+  }
+  await dSet("participantPayments",state.participantPayments);
+  await syncPaidCountFromPayments();
+  renderParticipantPayments();
+  alert(`자동매칭 완료: ${matched}명${ambiguous?` · 확인 필요 ${ambiguous}명`:""}`);
+});
+
 
 // ---------- waitlist ----------
 function renderWaitlist(){
@@ -2164,31 +2368,6 @@ function renderWaitlist(){
         row[e.target.dataset.field] = e.target.value;
         await dSet("waitlist", state.waitlist);
       });
-    });
-
-    const prodUpload=tr.querySelector(".prod-upload");
-    const prodFile=tr.querySelector(".prod-file");
-    if(prodUpload && prodFile){
-      prodUpload.addEventListener("click",()=>{ if(state.editMode) prodFile.click(); });
-      prodFile.addEventListener("change",async e=>{
-        if(!state.editMode || !e.target.files?.[0]) return;
-        const file=e.target.files[0];
-        try{
-          row.image=await compressImageFile(file,1200,.76);
-          await dSet("production",state.production);
-          renderProduction();
-        }catch(err){
-          console.error(err);
-          alert("이미지를 불러오지 못했습니다.");
-        }
-      });
-    }
-    tr.querySelector("[data-prod-image]")?.addEventListener("click",()=>openProductionImage(row.image));
-    tr.querySelector(".prod-remove")?.addEventListener("click",async()=>{
-      if(!state.editMode) return;
-      row.image="";
-      await dSet("production",state.production);
-      renderProduction();
     });
 
     tr.querySelector(".row-del").addEventListener("click", async () => {

@@ -200,6 +200,9 @@ button{cursor:pointer}
 .alumni-gen-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.alumni-gen-item{display:flex;justify-content:space-between;gap:5px;padding:6px 7px;border:1px solid var(--line);border-radius:8px;font-size:10.5px}.alumni-gen-item b{color:var(--purple-dark)}
 .alumni-privacy{margin-top:9px;color:var(--mute);font-size:10.5px}.alumni-empty{color:var(--mute);font-size:12px}@media(max-width:700px){.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}}
 
+
+.visitor-counter{margin:18px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;text-align:center;font-size:10.5px;color:var(--mute)}
+.visitor-counter b{color:var(--ink);font-size:11.5px}
 </style>
 </head>
 
@@ -322,6 +325,7 @@ button{cursor:pointer}
     <div class="faq" id="faqList"></div>
   </div>
 
+  <div class="visitor-counter">방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b></div>
   <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
 </div>
 
@@ -677,6 +681,26 @@ function renderAll(){
   renderAlumniStats();
 }
 
+
+function getVisitorId(){
+  const key="hanjogo_public_visitor_id";
+  let id="";
+  try{id=localStorage.getItem(key)||"";}catch(e){}
+  if(!id){
+    id=window.crypto?.randomUUID?crypto.randomUUID():"v-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+    try{localStorage.setItem(key,id);}catch(e){}
+  }
+  return id;
+}
+async function recordAndShowVisit(){
+  try{
+    const {data,error}=await sb.rpc("record_page_visit",{p_visitor_id:getVisitorId()});
+    if(error) throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    document.getElementById("todayVisitorCount").textContent=Number(row?.today_visitors??0).toLocaleString()+"명";
+    document.getElementById("totalVisitorCount").textContent=Number(row?.total_visitors??0).toLocaleString()+"명";
+  }catch(e){ console.warn("방문자 집계 실패",e); }
+}
 async function loadPublicInfo(){
   renderAll();
   try{
@@ -755,6 +779,7 @@ document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText
 
 loadPublicInfo();
 subscribeRealtime();
+recordAndShowVisit();
 </script>
 </body>
 </html>

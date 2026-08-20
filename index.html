@@ -3130,6 +3130,7 @@ function setupMainTabs(){
     document.querySelectorAll(".main-tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
     document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active", p.id==="tab-"+name));
     try{ localStorage.setItem("hanjogo_main_tab", name); }catch(e){}
+    if(name==="home") setTimeout(loadVisitorStats,50);
   };
   nav.querySelectorAll(".main-tab").forEach(btn=>btn.addEventListener("click",()=>activate(btn.dataset.tab)));
   activate(current);
@@ -3138,15 +3139,27 @@ function setupMainTabs(){
 
 
 async function loadVisitorStats(){
+  const todayEl=document.getElementById("internalTodayVisitors");
+  const totalEl=document.getElementById("internalTotalVisitors");
+
+  if(todayEl) todayEl.textContent="불러오는 중";
+  if(totalEl) totalEl.textContent="불러오는 중";
+
   try{
     const {data,error}=await sb.rpc("get_page_visit_stats");
     if(error) throw error;
-    const row=Array.isArray(data)?data[0]:data;
-    const today=Number(row?.today_visitors??0);
-    const total=Number(row?.total_visitors??0);
-    document.getElementById("internalTodayVisitors").textContent=today.toLocaleString()+"명";
-    document.getElementById("internalTotalVisitors").textContent=total.toLocaleString()+"명";
-  }catch(e){ console.warn("방문 통계 로드 실패",e); }
+
+    const row=Array.isArray(data) ? data[0] : data;
+    const today=Number(row?.today_visitors ?? 0);
+    const total=Number(row?.total_visitors ?? 0);
+
+    if(todayEl) todayEl.textContent=today.toLocaleString()+"명";
+    if(totalEl) totalEl.textContent=total.toLocaleString()+"명";
+  }catch(e){
+    console.error("내부 방문 통계 로드 실패:",e);
+    if(todayEl) todayEl.textContent="확인 필요";
+    if(totalEl) totalEl.textContent="확인 필요";
+  }
 }
 // ---------- notices ----------
 function noticeStatusOptions(selected){
@@ -3806,7 +3819,7 @@ document.getElementById("savePublicInfo")?.addEventListener("click", async () =>
 });
 
 document.getElementById("openPublicPage")?.addEventListener("click", () => {
-  window.open("./schedule.html", "_blank");
+  window.open("https://mainxoals-beep.github.io/hanjogo-dashboard/schedule.html", "_blank", "noopener");
 });
 
 

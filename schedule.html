@@ -211,8 +211,15 @@ button{cursor:pointer}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
 
-.application-stats{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.application-stats{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:11px;color:var(--mute)}
 .application-stats .stat-chip{font-size:9.8px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;background:#FDFCFB;color:var(--ink)}
+.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}.application-stats-label{font-size:10.5px;color:var(--mute)}
+
+.alumni-public-section{margin-top:16px}
+.alumni-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px}
+.alumni-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:10px}
+.alumni-card-desc{font-size:10.5px;color:var(--mute)}
+.alumni-updated{font-size:9.5px;color:var(--mute);text-align:right}
 </style>
 </head>
 
@@ -297,9 +304,20 @@ button{cursor:pointer}
   </div>
 
 
-  <div class="alumni-card">
-    <div class="alumni-head"><div class="alumni-title">졸업생 DB 현황</div><div class="alumni-updated" id="alumniUpdated"></div></div>
-    <div id="alumniStatsBody"><div class="alumni-empty">집계 정보를 불러오는 중입니다.</div></div>
+  
+  <div class="section alumni-public-section" id="alumniPublicSection">
+    <div class="sec-title">졸업생 DB 현황</div>
+    <div class="alumni-card">
+      <div class="alumni-card-head">
+        <div class="alumni-card-desc">한조고 졸업생 현황 설문 집계</div>
+        <div class="alumni-updated" id="alumniUpdated"></div>
+      </div>
+      <div id="alumniStatsBody">
+        <div class="alumni-empty">집계 정보를 불러오는 중입니다.</div>
+      </div>
+    </div>
+  </div>
+
   </div>
 
   <div class="next-card">
@@ -337,13 +355,10 @@ button{cursor:pointer}
 
   
 
-<div class="application-stats" id="applicationStatsBlock" style="display:none">
-  <div class="application-cta-title">1차 참가신청 현황</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div class="info-card" style="padding:10px"><div class="small-label">총 신청</div><strong id="publicParticipantTotal">-</strong></div>
-    <div class="info-card" style="padding:10px"><div class="small-label">최근 7일 신규</div><strong id="publicParticipantRecent">-</strong></div>
-  </div>
-  <div id="publicParticipantCohorts" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+<div class="application-stats simple" id="applicationStatsBlock" style="display:none">
+  <span class="application-stats-label">현재</span>
+  <strong id="publicParticipantTotal">-</strong>
+  <span class="application-stats-label">신청</span>
 </div>
 
 <div class="application-cta" id="applicationCta" style="display:none">
@@ -711,25 +726,14 @@ function parseKoreaLocalDateTime(v){
 function renderParticipantApplicationStats(){
   const wrap=document.getElementById("applicationStatsBlock");
   const total=document.getElementById("publicParticipantTotal");
-  const recent=document.getElementById("publicParticipantRecent");
-  const cohorts=document.getElementById("publicParticipantCohorts");
   const s=participantApplicationStats;
   if(!wrap) return;
-  if(!s){ wrap.style.display="none"; return; }
+  if(!s){
+    wrap.style.display="none";
+    return;
+  }
   wrap.style.display="block";
   if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
-  if(recent) recent.textContent=Number(s.recent7||0).toLocaleString()+"명";
-  if(cohorts){
-    cohorts.innerHTML="";
-    Object.entries(s.cohorts||{})
-      .sort((a,b)=>parseInt(a[0])-parseInt(b[0]))
-      .forEach(([k,v])=>{
-        const span=document.createElement("span");
-        span.className="stat-chip";
-        span.textContent=`${k} ${v}명`;
-        cohorts.appendChild(span);
-      });
-  }
 }
 
 function renderApplicationCta(){

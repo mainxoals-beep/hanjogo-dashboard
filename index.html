@@ -1122,6 +1122,64 @@
   </section>
 
 
+
+  <!-- ===== 참가신청 자동 오픈 ===== -->
+  <section id="section-application-schedule">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title">참가신청 자동 오픈 설정</div>
+        <div class="sec-note">구글폼 링크를 미리 등록하고 외부 페이지 버튼을 지정한 날짜·시간에 자동으로 활성화합니다.</div>
+      </div>
+      <div class="sec-head-right">
+        <button class="collapse-btn" data-target="body-application-schedule"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+      </div>
+    </div>
+    <div class="sec-body" id="body-application-schedule">
+      <div class="public-editor-card">
+        <div class="public-grid">
+          <div class="public-field" style="grid-column:1/-1">
+            <label>1차 참가신청 구글폼 URL</label>
+            <input type="url" id="appFormUrl" class="lockable" placeholder="https://forms.gle/...">
+          </div>
+          <div class="public-field">
+            <label>오픈 일시</label>
+            <input type="datetime-local" id="appOpenAt" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>마감 일시 <span style="font-weight:400;color:var(--ink-mute)">(선택)</span></label>
+            <input type="datetime-local" id="appCloseAt" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>오픈 전 문구</label>
+            <input type="text" id="appBeforeLabel" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>접수 중 버튼 문구</label>
+            <input type="text" id="appOpenLabel" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>마감 후 문구</label>
+            <input type="text" id="appClosedLabel" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>외부 페이지 노출</label>
+            <select id="appEnabled" class="lockable">
+              <option value="true">사용</option>
+              <option value="false">숨김</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:12px">
+          <button type="button" class="mini-btn primary lockable" id="saveApplicationSchedule">참가신청 설정 저장</button>
+          <span id="applicationScheduleSaveStatus" class="account-save-status"></span>
+        </div>
+        <div class="mini-note" style="margin-top:9px">
+          ※ 외부 페이지 버튼만 자동 제어합니다. 구글폼 자체의 ‘응답 받기’ 설정은 별도로 관리해주세요.
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== 행사 자료실 ===== -->
   <section id="section-shared-files">
     <div class="sec-head">
@@ -1514,6 +1572,15 @@ const DEFAULT_TRANSACTIONS = {
   importedAt:""
 };
 
+const DEFAULT_APPLICATION_SCHEDULE = {
+  enabled:true,
+  formUrl:"",
+  openAt:"2026-09-02T10:00",
+  closeAt:"",
+  beforeLabel:"1차 참가신청 · 9월 2일 오픈 예정",
+  openLabel:"1차 참가신청 하기",
+  closedLabel:"1차 참가신청 마감"
+};
 const DEFAULT_SHARED_FILES = [];
 const DEFAULT_NOTICES = [];
 
@@ -1544,6 +1611,7 @@ let state = {
   dayProgram: [],
   publicInfo: {...DEFAULT_PUBLIC_INFO},
   notices: [],
+  applicationSchedule: {...DEFAULT_APPLICATION_SCHEDULE},
   sharedFiles: [...DEFAULT_SHARED_FILES],
   budget: [],
   eventAccount: {...DEFAULT_EVENT_ACCOUNT},
@@ -1713,7 +1781,7 @@ async function initializeRemoteIfNeeded(){
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
     committee: state.committee, links: state.links, formSync: state.formSync, dayProgram: state.dayProgram,
-    publicInfo: state.publicInfo, notices: state.notices, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
+    publicInfo: state.publicInfo, notices: state.notices, applicationSchedule: state.applicationSchedule, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
   };
   await saveRemoteState();
 }
@@ -1800,6 +1868,7 @@ async function loadAll(){
     };
   }
   state.notices = await dGet("notices", DEFAULT_NOTICES.map(x => ({...x})));
+  state.applicationSchedule = await dGet("applicationSchedule", {...DEFAULT_APPLICATION_SCHEDULE});
   state.sharedFiles = await dGet("sharedFiles", [...DEFAULT_SHARED_FILES]);
   state.budget = await dGet("budget", DEFAULT_BUDGET.map(x => ({...x})));
   state.eventAccount = await dGet("eventAccount", {...DEFAULT_EVENT_ACCOUNT});
@@ -1886,7 +1955,7 @@ document.getElementById("editModeBtn").addEventListener("click", () => {
 
 function applyRemoteDataToState(remote){
   if(!remote || typeof remote !== "object") return;
-  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","sharedFiles","budget","eventAccount","transactions","participantPayments"];
+  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","applicationSchedule","sharedFiles","budget","eventAccount","transactions","participantPayments"];
   keys.forEach(k => { if(Object.prototype.hasOwnProperty.call(remote,k)) state[k] = remote[k]; });
   if(Array.isArray(state.phases)) state.phases.forEach(p => { if(!p.priority) p.priority = IMPORTANT_IDS.includes(p.id) ? "important" : "normal"; });
   if(Array.isArray(state.sponsors)) state.sponsors.forEach(s => {
@@ -3181,6 +3250,7 @@ function setupMainTabs(){
   moveSectionByBody("body-sponsors", notice);
   moveSectionByBody("body-production", notice);
 
+  move("#section-application-schedule", budget);
   move("#section-budget", budget);
   moveSectionByBody("body-settings", budget);
 
@@ -3249,6 +3319,56 @@ async function loadVisitorStats(){
     if(totalEl) totalEl.textContent="확인 필요";
   }
 }
+
+
+// ---------- participant application schedule ----------
+function renderApplicationSchedule(){
+  const a={...DEFAULT_APPLICATION_SCHEDULE,...(state.applicationSchedule||{})};
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.value=val??""; };
+  set("appFormUrl",a.formUrl);
+  set("appOpenAt",a.openAt);
+  set("appCloseAt",a.closeAt);
+  set("appBeforeLabel",a.beforeLabel);
+  set("appOpenLabel",a.openLabel);
+  set("appClosedLabel",a.closedLabel);
+  set("appEnabled",String(a.enabled!==false));
+}
+function collectApplicationSchedule(){
+  return {
+    enabled:document.getElementById("appEnabled")?.value!=="false",
+    formUrl:(document.getElementById("appFormUrl")?.value||"").trim(),
+    openAt:document.getElementById("appOpenAt")?.value||"",
+    closeAt:document.getElementById("appCloseAt")?.value||"",
+    beforeLabel:(document.getElementById("appBeforeLabel")?.value||"").trim()||DEFAULT_APPLICATION_SCHEDULE.beforeLabel,
+    openLabel:(document.getElementById("appOpenLabel")?.value||"").trim()||DEFAULT_APPLICATION_SCHEDULE.openLabel,
+    closedLabel:(document.getElementById("appClosedLabel")?.value||"").trim()||DEFAULT_APPLICATION_SCHEDULE.closedLabel
+  };
+}
+document.getElementById("saveApplicationSchedule")?.addEventListener("click",async()=>{
+  const btn=document.getElementById("saveApplicationSchedule");
+  const status=document.getElementById("applicationScheduleSaveStatus");
+  if(!state.editMode){
+    if(status){ status.textContent="먼저 편집하기를 눌러주세요."; status.className="account-save-status err"; }
+    return;
+  }
+  try{
+    if(btn){ btn.disabled=true; btn.textContent="저장 중..."; }
+    state.applicationSchedule=collectApplicationSchedule();
+    await dSet("applicationSchedule",state.applicationSchedule);
+    renderApplicationSchedule();
+    if(btn) btn.textContent="✓ 저장 완료";
+    if(status){ status.textContent="외부 페이지에 자동 반영됩니다."; status.className="account-save-status ok"; }
+    setTimeout(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="참가신청 설정 저장"; }
+      if(status){ status.textContent=""; status.className="account-save-status"; }
+    },1800);
+  }catch(e){
+    console.error("참가신청 설정 저장 실패",e);
+    if(btn){ btn.disabled=false; btn.textContent="다시 저장"; }
+    if(status){ status.textContent="저장 실패"; status.className="account-save-status err"; }
+  }
+});
+
 
 // ---------- shared event files ----------
 function formatFileSize(bytes){
@@ -4126,6 +4246,7 @@ function renderAll(){
   renderFormSyncInputs();
   renderDayProgram();
   renderPublicInfoEditor();
+  renderApplicationSchedule();
   renderNotices();
   renderSharedFiles();
   renderBudget();

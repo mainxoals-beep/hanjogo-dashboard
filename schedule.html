@@ -211,15 +211,12 @@ button{cursor:pointer}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
 
-.application-stats{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:11px;color:var(--mute)}
+.application-stats{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .application-stats .stat-chip{font-size:9.8px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;background:#FDFCFB;color:var(--ink)}
-.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}.application-stats-label{font-size:10.5px;color:var(--mute)}
 
-.alumni-public-section{margin-top:16px}
-.alumni-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px}
-.alumni-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:10px}
-.alumni-card-desc{font-size:10.5px;color:var(--mute)}
-.alumni-updated{font-size:9.5px;color:var(--mute);text-align:right}
+.application-stats.simple{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center}
+.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}
+.application-stats-label{font-size:10.5px;color:var(--mute)}
 </style>
 </head>
 
@@ -304,20 +301,9 @@ button{cursor:pointer}
   </div>
 
 
-  
-  <div class="section alumni-public-section" id="alumniPublicSection">
-    <div class="sec-title">졸업생 DB 현황</div>
-    <div class="alumni-card">
-      <div class="alumni-card-head">
-        <div class="alumni-card-desc">한조고 졸업생 현황 설문 집계</div>
-        <div class="alumni-updated" id="alumniUpdated"></div>
-      </div>
-      <div id="alumniStatsBody">
-        <div class="alumni-empty">집계 정보를 불러오는 중입니다.</div>
-      </div>
-    </div>
-  </div>
-
+  <div class="alumni-card">
+    <div class="alumni-head"><div class="alumni-title">졸업생 DB 현황</div><div class="alumni-updated" id="alumniUpdated"></div></div>
+    <div id="alumniStatsBody"><div class="alumni-empty">집계 정보를 불러오는 중입니다.</div></div>
   </div>
 
   <div class="next-card">
@@ -705,6 +691,84 @@ function renderCalendar(){
 }
 
 
+
+function parsePublicCsv(text){
+  const rows=[]; let row=[], field="", quoted=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(quoted){
+      if(c==='"' && text[i+1]==='"'){ field+='"'; i++; }
+      else if(c==='"') quoted=false;
+      else field+=c;
+    }else{
+      if(c==='"') quoted=true;
+      else if(c===','){ row.push(field); field=""; }
+      else if(c==='\n'){ row.push(field.replace(/\r$/,"")); rows.push(row); row=[]; field=""; }
+      else field+=c;
+    }
+  }
+  if(field.length || row.length){ row.push(field.replace(/\r$/,"")); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c||"").trim()!==""));
+}
+function normalizePublicHeader(v){
+  return String(v||"").trim().toLowerCase().replace(/\s+/g,"");
+}
+function parsePublicDate(v){
+  const s=String(v||"").trim();
+  if(!s) return null;
+  const d=new Date(s);
+  if(!isNaN(d)) return d;
+  const m=s.match(/(\d{4})[./-]\s*(\d{1,2})[./-]\s*(\d{1,2})/);
+  return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null;
+}
+function buildPublicAlumniStats(text){
+  const rows=parsePublicCsv(text);
+  if(rows.length<2) return null;
+  const headers=rows[0].map(normalizePublicHeader);
+  const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
+  const genIdx=headers.findIndex(h=>h.includes("기수") || h.includes("졸업기수"));
+  const timeIdx=headers.findIndex(h=>h.includes("타임스탬프") || h.includes("timestamp") || h.includes("제출시간") || h.includes("응답시간"));
+  const byGeneration={};
+  let recent7=0;
+  const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
+
+  dataRows.forEach(r=>{
+    if(genIdx>=0){
+      const m=String(r[genIdx]||"").match(/(\d{1,2})\s*기?/);
+      if(m){
+        const n=Number(m[1]);
+        if(n>0 && n<100) byGeneration[n]=(byGeneration[n]||0)+1;
+      }
+    }
+    if(timeIdx>=0){
+      const d=parsePublicDate(r[timeIdx]);
+      if(d && d>=since) recent7++;
+    }
+  });
+
+  return {
+    total:dataRows.length,
+    recent7:timeIdx>=0 ? recent7 : null,
+    byGeneration,
+    updatedAt:"방금 집계"
+  };
+}
+async function ensureAlumniStats(){
+  if(alumniStats || !alumniCsvUrl) return;
+  try{
+    const res=await fetch(alumniCsvUrl,{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text=await res.text();
+    const built=buildPublicAlumniStats(text);
+    if(built){
+      alumniStats=built;
+      renderAlumniStats();
+    }
+  }catch(e){
+    console.warn("졸업생 DB 보조 집계 실패",e);
+  }
+}
+
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
   if(!alumniStats){body.innerHTML='<div class="alumni-empty">아직 집계된 졸업생 DB 정보가 없습니다.</div>';if(updated)updated.textContent="";return;}
@@ -728,10 +792,7 @@ function renderParticipantApplicationStats(){
   const total=document.getElementById("publicParticipantTotal");
   const s=participantApplicationStats;
   if(!wrap) return;
-  if(!s){
-    wrap.style.display="none";
-    return;
-  }
+  if(!s){ wrap.style.display="none"; return; }
   wrap.style.display="block";
   if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
 }
@@ -844,6 +905,7 @@ async function loadPublicInfo(){
 
     const saved=data?.data?.publicInfo;
     alumniStats=data?.data?.formSync?.alumniStats || null;
+    alumniCsvUrl=data?.data?.formSync?.csvUrl || "";
     participantApplicationStats=data?.data?.participantFormSync?.stats || null;
     applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(data?.data?.applicationSchedule||{})};
     if(saved && typeof saved==="object"){
@@ -854,6 +916,7 @@ async function loadPublicInfo(){
   }
 
   renderAll();
+  ensureAlumniStats();
 }
 
 function subscribeRealtime(){
@@ -861,12 +924,14 @@ function subscribeRealtime(){
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
       alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      alumniCsvUrl=payload.new?.data?.formSync?.csvUrl || "";
       participantApplicationStats=payload.new?.data?.participantFormSync?.stats || null;
       applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(payload.new?.data?.applicationSchedule||{})};
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 
       publicInfo=mergePublicInfo(saved);
       renderAll();
+      ensureAlumniStats();
     })
     .subscribe();
 }

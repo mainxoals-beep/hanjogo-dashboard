@@ -692,6 +692,33 @@ function renderCalendar(){
 
 
 
+
+function normalizePublicGoogleSheetCsvUrl(raw){
+  const input=String(raw||"").trim();
+  if(!input) return "";
+  try{
+    const u=new URL(input);
+    if(/output=csv/i.test(u.search) || /tqx=out:csv/i.test(u.search)) return input;
+    const pubMatch=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(pubhtml|pub)$/);
+    if(pubMatch){
+      const gid=u.searchParams.get("gid") || "0";
+      return `${u.origin}/spreadsheets/d/e/${pubMatch[1]}/pub?output=csv&gid=${encodeURIComponent(gid)}`;
+    }
+    const sheetMatch=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+    if(sheetMatch){
+      let gid=u.searchParams.get("gid") || "";
+      if(!gid && u.hash){
+        const hm=u.hash.match(/gid=(\d+)/);
+        if(hm) gid=hm[1];
+      }
+      const qs=new URLSearchParams({tqx:"out:csv"});
+      if(gid) qs.set("gid",gid);
+      return `${u.origin}/spreadsheets/d/${sheetMatch[1]}/gviz/tq?${qs.toString()}`;
+    }
+  }catch(e){}
+  return input;
+}
+
 function parsePublicCsv(text){
   const rows=[]; let row=[], field="", quoted=false;
   for(let i=0;i<text.length;i++){
@@ -754,24 +781,35 @@ function buildPublicAlumniStats(text){
   };
 }
 async function ensureAlumniStats(){
-  if(alumniStats || !alumniCsvUrl) return;
+  if(alumniStats && Number(alumniStats.total||0)>0){
+    renderAlumniStats();
+    return;
+  }
+  if(!alumniCsvUrl){
+    renderAlumniStats();
+    return;
+  }
   try{
-    const res=await fetch(alumniCsvUrl,{cache:"no-store"});
+    const url=normalizePublicGoogleSheetCsvUrl(alumniCsvUrl);
+    const res=await fetch(url,{cache:"no-store"});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const text=await res.text();
+    const low=String(text||"").trim().slice(0,200).toLowerCase();
+    if(low.startsWith("<!doctype html") || low.startsWith("<html")) throw new Error("not csv");
+
     const built=buildPublicAlumniStats(text);
-    if(built){
+    if(built && Number(built.total||0)>0){
       alumniStats=built;
-      renderAlumniStats();
     }
   }catch(e){
-    console.warn("졸업생 DB 보조 집계 실패",e);
+    console.warn("졸업생 DB 직접 집계 실패",e);
   }
+  renderAlumniStats();
 }
 
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">아직 집계된 졸업생 DB 정보가 없습니다.</div>';if(updated)updated.textContent="";return;}
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중이거나 연동을 확인하고 있습니다.</div>';if(updated)updated.textContent="";return;}
   const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
   const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
   body.innerHTML=`<div class="alumni-summary">

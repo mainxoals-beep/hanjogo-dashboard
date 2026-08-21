@@ -210,6 +210,10 @@ button{cursor:pointer}
 .application-btn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
+
+.application-stats{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:11px;color:var(--mute)}
+.application-stats .stat-chip{font-size:9.8px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;background:#FDFCFB;color:var(--ink)}
+.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}.application-stats-label{font-size:10.5px;color:var(--mute)}
 </style>
 </head>
 
@@ -333,6 +337,13 @@ button{cursor:pointer}
   </div>
 
   
+
+<div class="application-stats simple" id="applicationStatsBlock" style="display:none">
+  <span class="application-stats-label">현재</span>
+  <strong id="publicParticipantTotal">-</strong>
+  <span class="application-stats-label">신청</span>
+</div>
+
 <div class="application-cta" id="applicationCta" style="display:none">
   <div class="application-cta-title">1차 참가신청</div>
   <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
@@ -694,6 +705,20 @@ function parseKoreaLocalDateTime(v){
   if(!v) return null;
   return new Date(v + ":00+09:00");
 }
+
+function renderParticipantApplicationStats(){
+  const wrap=document.getElementById("applicationStatsBlock");
+  const total=document.getElementById("publicParticipantTotal");
+  const s=participantApplicationStats;
+  if(!wrap) return;
+  if(!s){
+    wrap.style.display="none";
+    return;
+  }
+  wrap.style.display="block";
+  if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
+}
+
 function renderApplicationCta(){
   const wrap=document.getElementById("applicationCta");
   const btn=document.getElementById("applicationBtn");
@@ -740,6 +765,7 @@ function renderAll(){
   renderNextAndTimeline();
   renderCalendar();
   renderAlumniStats();
+  renderParticipantApplicationStats();
   renderApplicationCta();
 }
 
@@ -801,6 +827,7 @@ async function loadPublicInfo(){
 
     const saved=data?.data?.publicInfo;
     alumniStats=data?.data?.formSync?.alumniStats || null;
+    participantApplicationStats=data?.data?.participantFormSync?.stats || null;
     applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(data?.data?.applicationSchedule||{})};
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
@@ -817,6 +844,7 @@ function subscribeRealtime(){
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
       alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      participantApplicationStats=payload.new?.data?.participantFormSync?.stats || null;
       applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(payload.new?.data?.applicationSchedule||{})};
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 

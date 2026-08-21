@@ -808,6 +808,8 @@
   .file-repo-empty{padding:18px;text-align:center;color:var(--ink-mute);font-size:11px}
   @media(max-width:700px){.file-repo-grid{grid-template-columns:1fr}}
 
+
+.form-sync-success{margin-top:8px;padding:8px 10px;border-radius:8px;background:#F2F8F3;color:#2E6B45;font-size:10.5px;font-weight:800}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -2975,6 +2977,45 @@ document.getElementById("addLink").addEventListener("click", async () => {
 });
 
 // ---------- google sheet CSV sync (aggregate counts only, no PII preview) ----------
+
+function normalizeGoogleSheetCsvUrl(raw){
+  const input=String(raw||"").trim();
+  if(!input) return "";
+  try{
+    const u=new URL(input);
+
+    // Already a CSV URL
+    if(/output=csv/i.test(u.search) || /tqx=out:csv/i.test(u.search)) return input;
+
+    // Published-to-web Google Sheets URL:
+    // .../spreadsheets/d/e/{publishedId}/pubhtml?gid=...  -> pub?output=csv&gid=...
+    const pubMatch=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(pubhtml|pub)$/);
+    if(pubMatch){
+      const gid=u.searchParams.get("gid") || "0";
+      return `${u.origin}/spreadsheets/d/e/${pubMatch[1]}/pub?output=csv&gid=${encodeURIComponent(gid)}`;
+    }
+
+    // Normal Google Sheets editing/share URL:
+    // .../spreadsheets/d/{sheetId}/edit#gid=... -> gviz/tq?tqx=out:csv&gid=...
+    const sheetMatch=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+    if(sheetMatch){
+      let gid=u.searchParams.get("gid") || "";
+      if(!gid && u.hash){
+        const hm=u.hash.match(/gid=(\d+)/);
+        if(hm) gid=hm[1];
+      }
+      const qs=new URLSearchParams({tqx:"out:csv"});
+      if(gid) qs.set("gid",gid);
+      return `${u.origin}/spreadsheets/d/${sheetMatch[1]}/gviz/tq?${qs.toString()}`;
+    }
+  }catch(e){}
+  return input;
+}
+function looksLikeHtmlResponse(text){
+  const s=String(text||"").trim().slice(0,300).toLowerCase();
+  return s.startsWith("<!doctype html") || s.startsWith("<html") || s.includes("<body");
+}
+
 function parseCsv(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -3067,40 +3108,77 @@ function renderFormSyncStats(){
     </div>`;
 }
 async function fetchFormCsv(){
-  const url = (state.formSync.csvUrl || "").trim();
-  if(!url){ renderFormSyncStats(); return; }
-  const resultEl = document.getElementById("formSyncResult");
-  resultEl.innerHTML = `<div class="form-sync-stats"><div class="form-sync-stat"><div class="k">연동 상태</div><div class="v" style="font-size:13px;">불러오는 중...</div></div></div>`;
+  const rawUrl=(state.formSync.csvUrl || "").trim();
+  if(!rawUrl){ renderFormSyncStats(); renderAlumniDbSummary(); return; }
+
+  const url=normalizeGoogleSheetCsvUrl(rawUrl);
+  const resultEl=document.getElementById("formSyncResult");
+  if(resultEl){
+    resultEl.innerHTML=`<div class="form-sync-stats"><div class="form-sync-stat"><div class="k">연동 상태</div><div class="v" style="font-size:13px;">불러오는 중...</div></div></div>`;
+  }
+
   try{
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    const rows = parseCsv(text);
-    if(!rows.length) throw new Error("빈 응답");
-    const headers = rows[0] || [];
-    const dataRows = rows.slice(1).filter(r => r.some(c => c && c.trim()));
-    const count = dataRows.length;
-    state.formSync.alumniStats = buildAlumniStats(headers, dataRows);
-    const day = todayStr();
-    if(state.formSync.dayStartDate !== day){
-      state.formSync.dayStartDate = day;
-      state.formSync.dayStartCount = state.formSync.lastCount !== null && state.formSync.lastCount !== undefined ? state.formSync.lastCount : count;
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+
+    const text=await res.text();
+    if(looksLikeHtmlResponse(text)){
+      throw new Error("CSV가 아니라 웹페이지가 반환되었습니다. 구글시트 게시 설정을 확인해주세요.");
     }
-    state.formSync.lastCount = count;
-    state.formSync.lastSyncTime = new Date().toLocaleString("ko-KR");
-    await dSet("formSync", state.formSync);
+
+    const rows=parseCsv(text);
+    if(rows.length<2) throw new Error("응답 데이터가 없거나 CSV 형식을 확인할 수 없습니다.");
+
+    const headers=rows[0] || [];
+    const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
+    if(!dataRows.length) throw new Error("응답 행이 없습니다.");
+
+    const stats=buildAlumniStats(headers,dataRows);
+    if(!stats || !stats.total) throw new Error("졸업생 DB 집계값을 만들지 못했습니다.");
+
+    const day=todayStr();
+    if(state.formSync.dayStartDate!==day){
+      state.formSync.dayStartDate=day;
+      state.formSync.dayStartCount=
+        state.formSync.lastCount!==null && state.formSync.lastCount!==undefined
+          ? state.formSync.lastCount
+          : dataRows.length;
+    }
+
+    state.formSync.csvUrl=rawUrl;
+    state.formSync.normalizedCsvUrl=url;
+    state.formSync.alumniStats=stats;
+    state.formSync.lastCount=dataRows.length;
+    state.formSync.lastSyncTime=new Date().toLocaleString("ko-KR");
+    state.formSync.lastError="";
+
+    await dSet("formSync",state.formSync);
+
     renderFormSyncStats();
     renderAlumniDbSummary();
+
+    if(resultEl){
+      resultEl.insertAdjacentHTML("beforeend",
+        `<div class="form-sync-success">✓ 졸업생 DB 집계 완료 · 총 ${escapeHtml(stats.total)}명</div>`);
+    }
   }catch(err){
-    resultEl.innerHTML = `<div class="form-sync-error">CSV를 불러오지 못했어요. 링크가 '웹에 게시(CSV)' 상태인지, 주소가 정확한지 확인해주세요.<br>(${escapeHtml(String(err.message || err))})</div>`;
+    state.formSync.lastError=String(err.message||err);
+    try{ await dSet("formSync",state.formSync); }catch(e){}
+    if(resultEl){
+      resultEl.innerHTML=
+        `<div class="form-sync-error">졸업생 DB CSV를 불러오지 못했습니다.<br>${escapeHtml(String(err.message||err))}</div>`;
+    }
+    renderAlumniDbSummary();
   }
 }
-document.getElementById("formSyncSave").addEventListener("click", async () => {
-  state.formSync.csvUrl = document.getElementById("formCsvUrl").value.trim();
-  await dSet("formSync", state.formSync);
+document.getElementById("formSyncSave")?.addEventListener("click",async()=>{
+  if(!state.editMode) return;
+  const raw=(document.getElementById("formCsvUrl")?.value||"").trim();
+  state.formSync={...(state.formSync||{}),csvUrl:raw};
+  await dSet("formSync",state.formSync);
   fetchFormCsv();
 });
-document.getElementById("formSyncRefresh").addEventListener("click", fetchFormCsv);
+document.getElementById("formSyncRefresh")?.addEventListener("click",fetchFormCsv);
 
 // ---------- D-day ----------
 function renderDday(){

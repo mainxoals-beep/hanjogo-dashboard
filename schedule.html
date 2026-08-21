@@ -379,6 +379,7 @@ const DEFAULT_PUBLIC_INFO = {
 
 let publicInfo = {...DEFAULT_PUBLIC_INFO};
 let alumniStats = null;
+let alumniCsvUrl = "";
 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
@@ -672,9 +673,127 @@ function renderCalendar(){
 }
 
 
+
+function normalizePublicGoogleSheetCsvUrl(raw){
+  const input=String(raw||"").trim();
+  if(!input) return "";
+  try{
+    const u=new URL(input);
+    if(/output=csv/i.test(u.search) || /tqx=out:csv/i.test(u.search)) return input;
+    const pubMatch=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(pubhtml|pub)$/);
+    if(pubMatch){
+      const gid=u.searchParams.get("gid") || "0";
+      return `${u.origin}/spreadsheets/d/e/${pubMatch[1]}/pub?output=csv&gid=${encodeURIComponent(gid)}`;
+    }
+    const sheetMatch=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+    if(sheetMatch){
+      let gid=u.searchParams.get("gid") || "";
+      if(!gid && u.hash){
+        const hm=u.hash.match(/gid=(\d+)/);
+        if(hm) gid=hm[1];
+      }
+      const qs=new URLSearchParams({tqx:"out:csv"});
+      if(gid) qs.set("gid",gid);
+      return `${u.origin}/spreadsheets/d/${sheetMatch[1]}/gviz/tq?${qs.toString()}`;
+    }
+  }catch(e){}
+  return input;
+}
+
+function parsePublicCsv(text){
+  const rows=[]; let row=[], field="", quoted=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(quoted){
+      if(c==='"' && text[i+1]==='"'){ field+='"'; i++; }
+      else if(c==='"') quoted=false;
+      else field+=c;
+    }else{
+      if(c==='"') quoted=true;
+      else if(c===','){ row.push(field); field=""; }
+      else if(c==='\n'){ row.push(field.replace(/\r$/,"") ); rows.push(row); row=[]; field=""; }
+      else field+=c;
+    }
+  }
+  if(field.length || row.length){ row.push(field.replace(/\r$/,"") ); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c||"").trim()!==""));
+}
+
+function normalizePublicHeader(v){
+  return String(v||"").trim().toLowerCase().replace(/\s+/g,"");
+}
+
+function parsePublicDate(v){
+  const s=String(v||"").trim();
+  if(!s) return null;
+  const d=new Date(s);
+  if(!isNaN(d)) return d;
+  const m=s.match(/(\d{4})[./-]\s*(\d{1,2})[./-]\s*(\d{1,2})/);
+  return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null;
+}
+
+function buildPublicAlumniStats(text){
+  const rows=parsePublicCsv(text);
+  if(rows.length<2) return null;
+  const headers=rows[0].map(normalizePublicHeader);
+  const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
+  const genIdx=headers.findIndex(h=>h.includes("기수") || h.includes("졸업기수"));
+  const timeIdx=headers.findIndex(h=>h.includes("타임스탬프") || h.includes("timestamp") || h.includes("제출시간") || h.includes("응답시간") || h.includes("작성시간"));
+  const byGeneration={};
+  let recent7=0;
+  const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
+
+  dataRows.forEach(r=>{
+    if(genIdx>=0){
+      const m=String(r[genIdx]||"").trim().match(/(\d{1,2})\s*기?/);
+      if(m){
+        const n=Number(m[1]);
+        if(n>0 && n<100) byGeneration[n]=(byGeneration[n]||0)+1;
+      }
+    }
+    if(timeIdx>=0){
+      const d=parsePublicDate(r[timeIdx]);
+      if(d && d>=since) recent7++;
+    }
+  });
+
+  return {
+    total:dataRows.length,
+    recent7:timeIdx>=0 ? recent7 : null,
+    byGeneration,
+    updatedAt:new Date().toLocaleString("ko-KR")
+  };
+}
+
+async function ensureAlumniStats(){
+  // Supabase에 정상 집계값이 있으면 그것을 우선 사용한다.
+  if(alumniStats && Number(alumniStats.total||0)>0){
+    renderAlumniStats();
+    return;
+  }
+  // 집계값이 없더라도 내부 대시보드에 저장된 CSV 주소가 있으면 외부 페이지가 직접 재집계한다.
+  if(!alumniCsvUrl){
+    renderAlumniStats();
+    return;
+  }
+  try{
+    const url=normalizePublicGoogleSheetCsvUrl(alumniCsvUrl);
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text=await res.text();
+    const low=String(text||"").trim().slice(0,200).toLowerCase();
+    if(low.startsWith("<!doctype html") || low.startsWith("<html")) throw new Error("CSV 대신 HTML 응답");
+    const built=buildPublicAlumniStats(text);
+    if(built && Number(built.total||0)>=0) alumniStats=built;
+  }catch(e){
+    console.warn("졸업생 DB 직접 집계 실패",e);
+  }
+  renderAlumniStats();
+}
+
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">아직 집계된 졸업생 DB 정보가 없습니다.</div>';if(updated)updated.textContent="";return;}
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중입니다. 잠시 후에도 표시되지 않으면 내부 대시보드의 DB 연동 주소를 확인해주세요.</div>';if(updated)updated.textContent="";return;}
   const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
   const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
   body.innerHTML=`<div class="alumni-summary">
@@ -760,7 +879,8 @@ async function loadPublicInfo(){
     if(error) throw error;
 
     const saved=data?.data?.publicInfo;
-    alumniStats=data?.data?.formSync?.alumniStats || null;
+    alumniStats=data?.data?.publicAlumniStats || data?.data?.formSync?.alumniStats || null;
+    alumniCsvUrl=data?.data?.formSync?.csvUrl || "";
     participantApplyStats=data?.data?.participantApplySync?.stats || null;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
@@ -770,18 +890,21 @@ async function loadPublicInfo(){
   }
 
   renderAll();
+  ensureAlumniStats();
 }
 
 function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
-      alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      alumniStats=payload.new?.data?.publicAlumniStats || payload.new?.data?.formSync?.alumniStats || null;
+      alumniCsvUrl=payload.new?.data?.formSync?.csvUrl || "";
       participantApplyStats=payload.new?.data?.participantApplySync?.stats || null;
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 
       publicInfo=mergePublicInfo(saved);
       renderAll();
+      ensureAlumniStats();
     })
     .subscribe();
 }

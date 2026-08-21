@@ -1,3 +1,6 @@
+
+
+Schedule · HTML
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -6,7 +9,7 @@
 <title>한조고 동문 네트워크 모임 · 주요 일정</title>
 <meta name="description" content="2026 한조고 동문 네트워크 모임 주요 일정, 참가 신청 및 행사 안내">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+ 
 <style>
 :root{
   --purple:#6E5FCB; --purple-dark:#4E43A0; --purple-light:#EEEDFB;
@@ -29,7 +32,7 @@ button{cursor:pointer}
 .head{margin-bottom:18px}
 .head h1{margin:0 0 6px;font-size:25px;letter-spacing:-.03em}
 .head p{margin:0;color:var(--sub);font-size:13px}
-
+ 
 .hero{
   display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
   padding:22px 24px;margin-bottom:14px;border-radius:20px;color:#fff;
@@ -38,14 +41,14 @@ button{cursor:pointer}
 .hero-date{font-size:22px;font-weight:800}
 .hero-place{margin-top:4px;font-size:13px;opacity:.88}
 .hero-dday{font-size:36px;font-weight:900}
-
+ 
 .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .top-action{
   flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;
   background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center
 }
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
-
+ 
 .status-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-bottom:18px}
 .status-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .status-kicker{margin-bottom:6px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.05em}
@@ -56,7 +59,7 @@ button{cursor:pointer}
 .status-pill.open{background:var(--ok-light);color:var(--ok)}
 .status-pill.closed{background:#F1EFE8;color:var(--sub)}
 .status-pill.event{background:var(--event-light);color:var(--event-dark)}
-
+ 
 .info-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:18px}
 .info-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .info-label{margin-bottom:7px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.04em}
@@ -68,7 +71,7 @@ button{cursor:pointer}
   color:var(--event-dark);font-size:12px;font-weight:800;line-height:1.7
 }
 .info-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-
+ 
 .parking-box{
   margin-top:12px;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB
 }
@@ -82,7 +85,7 @@ button{cursor:pointer}
   text-decoration:none;font-size:11.5px;font-weight:800
 }
 .link-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
-
+ 
 .resource-card{padding:16px 18px;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .resource-title{margin-bottom:10px;font-size:15px;font-weight:800}
 .resource-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
@@ -97,7 +100,7 @@ button{cursor:pointer}
 .resource-item.disabled:hover{border-color:var(--line);background:#FDFCFB}
 .resource-item.disabled .r-v{color:var(--sub)}
 .ready-badge{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;background:#F1EFE8;color:var(--sub);font-size:9.5px;font-weight:800}
-
+ 
 .next-card{
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
   padding:16px 18px;margin-bottom:24px;border:1px solid #D6CFF4;border-radius:var(--radius);
@@ -107,7 +110,7 @@ button{cursor:pointer}
 .next-title{font-size:16px;font-weight:800}
 .next-meta{margin-top:3px;color:var(--sub);font-size:12.5px}
 .next-date{padding:8px 12px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:800;white-space:nowrap}
-
+ 
 .section{margin-top:28px}
 .sec-title{margin-bottom:12px;font-size:17px;font-weight:800}
 .timeline{padding:4px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
@@ -126,7 +129,7 @@ button{cursor:pointer}
 .item.event-row .datebox strong{color:var(--event-dark)}
 .item.event-row .dot{background:var(--event);box-shadow:0 0 0 4px var(--event-light)}
 .tag.event{background:var(--event);color:#fff}
-
+ 
 .months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .month{padding:13px;background:#fff;border:1px solid var(--line);border-radius:14px}
 .month-title{margin-bottom:9px;font-size:13px;font-weight:800}
@@ -153,7 +156,7 @@ button{cursor:pointer}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:var(--sub);font-size:11px}
 .legend span:before{content:"";display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:3px;background:var(--purple-light)}
 .legend .event:before{background:var(--event)}
-
+ 
 .faq{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .faq-item{border-bottom:1px solid var(--line)}
 .faq-item:last-child{border-bottom:none}
@@ -165,7 +168,7 @@ button{cursor:pointer}
 .faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}
 .faq-item.open .faq-a{display:block}
 .faq-item.open .faq-icon{transform:rotate(45deg)}
-
+ 
 .contact-cta{
   display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
   padding:17px 18px;border:1px solid #DCD7F5;border-radius:var(--radius);
@@ -174,7 +177,7 @@ button{cursor:pointer}
 .contact-title{font-size:15px;font-weight:900}
 .contact-sub{margin-top:3px;color:var(--sub);font-size:12.5px}
 .contact-actions{display:flex;gap:7px;flex-wrap:wrap}
-
+ 
 .toast{
   position:fixed;left:50%;bottom:22px;z-index:1000;padding:9px 13px;border-radius:10px;
   background:#1E1C1A;color:#fff;font-size:12px;font-weight:700;opacity:0;pointer-events:none;
@@ -182,7 +185,7 @@ button{cursor:pointer}
 }
 .toast.show{opacity:1}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}
-
+ 
 @media(max-width:700px){
   .status-grid,.info-grid{grid-template-columns:1fr}
   .resource-list{grid-template-columns:1fr}
@@ -192,33 +195,33 @@ button{cursor:pointer}
   .head h1{font-size:22px}
   .top-action{min-width:calc(50% - 4px)}
 }
-
+ 
 .alumni-card{padding:16px 18px;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .alumni-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:11px}.alumni-title{font-size:15px;font-weight:800}.alumni-updated{font-size:10.5px;color:var(--mute)}
 .alumni-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.alumni-stat{padding:10px 11px;border-radius:11px;background:#FDFCFB;border:1px solid var(--line)}
 .alumni-stat .k{font-size:10px;color:var(--mute);margin-bottom:3px}.alumni-stat .v{font-size:16px;font-weight:900}.alumni-gen-title{font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:7px}
 .alumni-gen-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.alumni-gen-item{display:flex;justify-content:space-between;gap:5px;padding:6px 7px;border:1px solid var(--line);border-radius:8px;font-size:10.5px}.alumni-gen-item b{color:var(--purple-dark)}
 .alumni-privacy{margin-top:9px;color:var(--mute);font-size:10.5px}.alumni-empty{color:var(--mute);font-size:12px}@media(max-width:700px){.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}}
-
-
+ 
+ 
 .visitor-counter{margin:18px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;text-align:center;font-size:10.5px;color:var(--mute)}
 .visitor-counter b{color:var(--ink);font-size:11.5px}
 .visitor-counter .counter-error{color:#999}
-
+ 
 .application-stats-simple{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:10.5px;color:var(--mute)}
 .application-stats-simple strong{font-size:15px;color:var(--ink);margin:0 3px}
 </style>
 </head>
-
+ 
 <body>
 <div class="wrap">
-
+ 
   <div class="head">
     <p class="eyebrow">한국조리고 동문 네트워크 모임</p>
     <h1>주요 일정 안내</h1>
     <p>참가 신청부터 행사일까지 필요한 내용을 한곳에 정리했습니다.</p>
   </div>
-
+ 
   <div class="hero">
     <div>
       <div class="hero-date" id="heroDate"></div>
@@ -226,13 +229,13 @@ button{cursor:pointer}
     </div>
     <div class="hero-dday" id="eventDday">D-</div>
   </div>
-
+ 
   <div class="top-actions">
     <button class="top-action primary" id="shareBtn">공유하기</button>
     <button class="top-action" id="copyPageBtn">이 페이지 링크 복사</button>
     <a class="top-action" href="#eventInfo">행사 정보 보기</a>
   </div>
-
+ 
   <div class="status-grid">
     <div class="status-card">
       <div class="status-kicker">참가 신청</div>
@@ -240,27 +243,27 @@ button{cursor:pointer}
       <div class="status-sub" id="applyStatusSub"></div>
       <span class="status-pill before" id="applyStatusPill">오픈 전</span>
     </div>
-
+ 
     <div class="status-card">
       <div class="status-kicker">참가 신청까지</div>
       <div class="status-main" id="applyDday">D-</div>
       <div class="status-sub">1차 참가 신청 오픈 · 2026년 9월 2일</div>
     </div>
   </div>
-
+ 
   <div class="info-grid" id="eventInfo">
     <div class="info-card">
       <div class="info-label">행사 장소</div>
       <div class="info-title" id="venueName"></div>
       <div class="info-text" id="venueAddress"></div>
       <div class="event-time" id="eventTimeBox"></div>
-
+ 
       <div class="info-actions">
         <a class="link-btn primary" id="mapBtn" target="_blank" rel="noopener">지도에서 보기</a>
         <button class="link-btn" id="copyAddressBtn">주소 복사</button>
         <a class="link-btn" id="venueInstagramBtn" target="_blank" rel="noopener">카페 인스타그램</a>
       </div>
-
+ 
       <div class="parking-box">
         <div class="parking-label">주차 안내</div>
         <div class="parking-title" id="parkingName"></div>
@@ -272,30 +275,30 @@ button{cursor:pointer}
         </div>
       </div>
     </div>
-
+ 
     <div class="info-card">
       <div class="info-label">행사 문의</div>
       <div class="info-title" id="contactName"></div>
       <div class="info-text" id="contactInfo"></div>
-
+ 
       <div class="info-actions">
         <a class="link-btn primary" id="contactTelBtn">문자하기</a>
         <a class="link-btn" id="contactMailBtn">이메일 보내기</a>
       </div>
     </div>
   </div>
-
+ 
   <div class="resource-card">
     <div class="resource-title">한조고 아카이브 · 공식 링크</div>
     <div class="resource-list" id="resourceList"></div>
   </div>
-
-
+ 
+ 
   <div class="alumni-card">
     <div class="alumni-head"><div class="alumni-title">졸업생 DB 현황</div><div class="alumni-updated" id="alumniUpdated"></div></div>
     <div id="alumniStatsBody"><div class="alumni-empty">집계 정보를 불러오는 중입니다.</div></div>
   </div>
-
+ 
   <div class="next-card">
     <div>
       <div class="next-kicker">NEXT</div>
@@ -304,49 +307,49 @@ button{cursor:pointer}
     </div>
     <div class="next-date" id="nextDate"></div>
   </div>
-
+ 
   <div class="section">
     <div class="sec-title">한눈에 보는 일정</div>
     <div class="timeline" id="timeline"></div>
   </div>
-
+ 
   <div class="section">
     <div class="sec-title">캘린더</div>
     <div class="months" id="months"></div>
-
+ 
     <div class="calendar-detail" id="calendarDetail">
       <div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>
     </div>
-
+ 
     <div class="legend">
       <span>주요 일정</span>
       <span class="event">행사일</span>
     </div>
   </div>
-
+ 
   <div class="section">
     <div class="sec-title">자주 묻는 질문</div>
     <div class="faq" id="faqList"></div>
   </div>
-
+ 
   
 <div class="application-stats-simple" id="participantApplyPublic" style="display:none">
   현재 <strong id="participantApplyPublicCount">-</strong> 신청
 </div>
-
+ 
 <div class="visitor-counter" id="visitorCounter">
     방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
   </div>
   <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
 </div>
-
+ 
 <div class="toast" id="toast">복사되었습니다.</div>
-
+ 
 <script>
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+ 
 const DEFAULT_PUBLIC_INFO = {
   eventName:"한조고 동문 네트워크 모임",
   eventDate:"2026-10-18",
@@ -376,13 +379,13 @@ const DEFAULT_PUBLIC_INFO = {
     {q:"주차가 가능한가요?",a:"행사장 자체 주차는 어렵습니다. 인근 다산동 공영주차장을 이용할 수 있으나 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다."}
   ]
 };
-
+ 
 let publicInfo = {...DEFAULT_PUBLIC_INFO};
 let alumniStats = null;
 const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
 let alumniCsvUrl = ALUMNI_CSV_URL;
 const ALUMNI_CACHE_KEY = "hanjogo_alumni_stats_cache_v1";
-
+ 
 function loadCachedAlumniStats(){
   try{
     const raw=localStorage.getItem(ALUMNI_CACHE_KEY);
@@ -395,18 +398,18 @@ function loadCachedAlumniStats(){
     return null;
   }
 }
-
+ 
 function saveCachedAlumniStats(stats){
   try{
     localStorage.setItem(ALUMNI_CACHE_KEY, JSON.stringify({stats, savedAt:Date.now()}));
   }catch(e){}
 }
-
+ 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
 const APPLY_SECOND_OPEN = new Date("2026-09-14T00:00:00");
 const APPLY_SECOND_CLOSE = new Date("2026-09-20T23:59:59");
-
+ 
 const BASE_SCHEDULE = [
   {start:"2026-08-24",end:"2026-08-25",title:"참가 신청 사전 안내",desc:"카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다."},
   {start:"2026-09-02",end:"2026-09-06",title:"1차 참가 신청",desc:"일반 참가자 대상 1차 신청 기간입니다.",tag:"신청"},
@@ -416,42 +419,42 @@ const BASE_SCHEDULE = [
   {start:"2026-09-21",end:"2026-09-25",title:"최종 참가자 확정",desc:"미입금 및 대기자 정리 후 최종 참가자가 확정됩니다."},
   {start:"2026-10-05",end:"2026-10-11",title:"참가자 최종 안내",desc:"행사 전 필요한 최종 안내를 전달합니다."}
 ];
-
+ 
 function esc(v){
   return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-
+ 
 function phoneHref(v){
   return "tel:" + String(v || "").replace(/[^\d+]/g,"");
 }
-
+ 
 function today0(){
   const d=new Date();
   d.setHours(0,0,0,0);
   return d;
 }
-
+ 
 function daysBetween(a,b){
   const x=new Date(a),y=new Date(b);
   x.setHours(0,0,0,0);
   y.setHours(0,0,0,0);
   return Math.round((y-x)/86400000);
 }
-
+ 
 function toDate(s){
   return new Date(s+"T00:00:00");
 }
-
+ 
 function fmtKR(s){
   const d=toDate(s);
   return `${d.getMonth()+1}월 ${d.getDate()}일`;
 }
-
+ 
 function fmtRange(item){
   return item.start===item.end ? fmtKR(item.start) : `${fmtKR(item.start)} ~ ${fmtKR(item.end)}`;
 }
-
-
+ 
+ 
 function mergePublicInfo(saved){
   const s=(saved && typeof saved==="object") ? saved : {};
   return {
@@ -464,13 +467,13 @@ function mergePublicInfo(saved){
     faq:Array.isArray(s.faq) ? s.faq : DEFAULT_PUBLIC_INFO.faq
   };
 }
-
+ 
 function formatEventDate(iso){
   const d=toDate(iso || "2026-10-18");
   const wd=["일","월","화","수","목","금","토"];
   return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일(${wd[d.getDay()]})`;
 }
-
+ 
 function getSchedule(){
   return [
     ...BASE_SCHEDULE.map(x=>({...x})),
@@ -483,62 +486,62 @@ function getSchedule(){
     }
   ];
 }
-
+ 
 function renderHeaderAndInfo(){
   const p=publicInfo;
   document.getElementById("heroDate").textContent=formatEventDate(p.eventDate);
   document.getElementById("heroPlace").textContent=`${p.eventName || ""} · ${p.venueName || ""}`;
-
+ 
   document.getElementById("venueName").textContent=p.venueName || "";
   document.getElementById("venueAddress").textContent=p.venueAddress || "";
   document.getElementById("eventTimeBox").innerHTML=
     `입장 가능 · ${esc(p.entryTime || "")} 이후<br>본행사 시작 · ${esc(p.startTime || "")}`;
-
+ 
   const mapBtn=document.getElementById("mapBtn");
   mapBtn.href=p.venueMapUrl || "#";
-
+ 
   const venueIg=document.getElementById("venueInstagramBtn");
   venueIg.href=p.venueInstagram || "#";
   venueIg.style.display=p.venueInstagram ? "inline-flex" : "none";
-
+ 
   document.getElementById("parkingName").textContent=p.parkingName || DEFAULT_PUBLIC_INFO.parkingName;
   document.getElementById("parkingAddress").textContent=p.parkingAddress || DEFAULT_PUBLIC_INFO.parkingAddress;
   document.getElementById("parkingNote").textContent=p.parkingNote || DEFAULT_PUBLIC_INFO.parkingNote;
-
+ 
   const parkingMapBtn=document.getElementById("parkingMapBtn");
   parkingMapBtn.href=p.parkingMapUrl || DEFAULT_PUBLIC_INFO.parkingMapUrl;
   parkingMapBtn.style.display="inline-flex";
-
+ 
   document.getElementById("contactName").textContent=p.contactName || "";
   document.getElementById("contactInfo").innerHTML=
     `<strong>전화</strong> ${esc(p.contactPhone || "")}<br><strong>이메일</strong> ${esc(p.contactEmail || "")}`;
-
+ 
   document.getElementById("contactTelBtn").href="sms:"+(p.contactPhone || "").replace(/[^0-9+]/g,"");
   document.getElementById("contactMailBtn").href="mailto:"+(p.contactEmail || "");
-
+ 
   const resources=[];
   if(p.instagramUrl){
     resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">@kcas_archived</div></a>`);
   }
-
+ 
   if(p.kakaoUrl){
     resources.push(`<a class="resource-item" href="${esc(p.kakaoUrl)}" target="_blank" rel="noopener"><div class="r-k">KakaoTalk Channel</div><div class="r-v">${esc(p.kakaoName || "한조고 아카이브")}</div></a>`);
   }else{
     resources.push(`<div class="resource-item disabled"><div class="r-k">KakaoTalk Channel</div><div class="r-v">${esc(p.kakaoName || "한조고 아카이브")}</div></div>`);
   }
-
+ 
   if(p.dbFormUrl){
     resources.push(`<a class="resource-item" href="${esc(p.dbFormUrl)}" target="_blank" rel="noopener"><div class="r-k">졸업생 DB 등록</div><div class="r-v">구글폼 바로가기</div></a>`);
   }
-
+ 
   if(p.applyFormUrl){
     resources.push(`<a class="resource-item" href="${esc(p.applyFormUrl)}" target="_blank" rel="noopener"><div class="r-k">2026 행사 참가 신청</div><div class="r-v">참가 신청하기</div></a>`);
   }else{
     resources.push(`<div class="resource-item disabled"><div class="r-k">2026 행사 참가 신청</div><div class="r-v">9월 2일 오픈 예정 <span class="ready-badge">준비 중</span></div></div>`);
   }
-
+ 
   document.getElementById("resourceList").innerHTML=resources.join("");
-
+ 
   const faq=(p.faq || []).filter(x=>x.q || x.a);
   document.getElementById("faqList").innerHTML=faq.map(item=>`
     <div class="faq-item">
@@ -546,30 +549,30 @@ function renderHeaderAndInfo(){
       <div class="faq-a">${esc(item.a)}</div>
     </div>
   `).join("");
-
+ 
   document.querySelectorAll(".faq-q").forEach(btn=>{
     btn.addEventListener("click",()=>btn.closest(".faq-item").classList.toggle("open"));
   });
 }
-
+ 
 function renderDdaysAndStatus(){
   const today=today0();
   const eventDate=toDate(publicInfo.eventDate || "2026-10-18");
   const eventDiff=daysBetween(today,eventDate);
-
+ 
   document.getElementById("eventDday").textContent=
     eventDiff===0 ? "D-DAY" : eventDiff>0 ? "D-"+eventDiff : "D+"+Math.abs(eventDiff);
-
+ 
   const applyDiff=daysBetween(today,APPLY_OPEN);
   document.getElementById("applyDday").textContent=
     applyDiff===0 ? "D-DAY" : applyDiff>0 ? "D-"+applyDiff : "오픈됨";
-
+ 
   const now=new Date();
   const title=document.getElementById("applyStatusTitle");
   const sub=document.getElementById("applyStatusSub");
   const pill=document.getElementById("applyStatusPill");
   pill.className="status-pill";
-
+ 
   if(now<APPLY_OPEN){
     const d=daysBetween(today,APPLY_OPEN);
     title.textContent="9월 2일 1차 참가 신청 오픈";
@@ -603,17 +606,17 @@ function renderDdaysAndStatus(){
     pill.classList.add("event");
   }
 }
-
+ 
 function renderNextAndTimeline(){
   const schedule=getSchedule();
   const today=today0();
   const nowStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
   const next=schedule.find(item=>item.end>=nowStr) || schedule[schedule.length-1];
-
+ 
   document.getElementById("nextTitle").textContent=next.title;
   document.getElementById("nextMeta").textContent=next.desc;
   document.getElementById("nextDate").textContent=fmtRange(next);
-
+ 
   document.getElementById("timeline").innerHTML=schedule.map(item=>`
     <div class="item ${item.event ? "event-row" : ""}">
       <div class="datebox"><strong>${esc(fmtRange(item).replaceAll("월 ","/").replaceAll("일",""))}</strong></div>
@@ -625,15 +628,15 @@ function renderNextAndTimeline(){
     </div>
   `).join("");
 }
-
+ 
 function findSchedulesForDate(str){
   return getSchedule().filter(item=>str>=item.start && str<=item.end);
 }
-
+ 
 function fmtDate(y,m,d){
   return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 }
-
+ 
 function showDetail(dateStr){
   const items=findSchedulesForDate(dateStr);
   const box=document.getElementById("calendarDetail");
@@ -647,25 +650,25 @@ function showDetail(dateStr){
     </div>
   `).join("");
 }
-
+ 
 function makeMonth(y,m){
   const names=["일","월","화","수","목","금","토"];
   const box=document.createElement("div");
   box.className="month";
   box.innerHTML=`<div class="month-title">${m+1}월</div><div class="cal">${names.map(n=>`<div class="dow">${n}</div>`).join("")}</div>`;
-
+ 
   const cal=box.querySelector(".cal");
   const first=new Date(y,m,1).getDay();
   const last=new Date(y,m+1,0).getDate();
-
+ 
   for(let i=0;i<first;i++){
     const blank=document.createElement("div");
     blank.className="day";
     cal.appendChild(blank);
   }
-
+ 
   const eventDate=publicInfo.eventDate || "2026-10-18";
-
+ 
   for(let day=1;day<=last;day++){
     const dateStr=fmtDate(y,m,day);
     const items=findSchedulesForDate(dateStr);
@@ -673,7 +676,7 @@ function makeMonth(y,m){
     btn.type="button";
     btn.className="day"+(dateStr===eventDate ? " event" : items.length ? " mark" : "");
     btn.textContent=day;
-
+ 
     if(items.length){
       btn.addEventListener("click",()=>showDetail(dateStr));
     }else{
@@ -681,10 +684,10 @@ function makeMonth(y,m){
     }
     cal.appendChild(btn);
   }
-
+ 
   return box;
 }
-
+ 
 function renderCalendar(){
   const holder=document.getElementById("months");
   holder.innerHTML="";
@@ -692,9 +695,9 @@ function renderCalendar(){
   document.getElementById("calendarDetail").className="calendar-detail";
   document.getElementById("calendarDetail").innerHTML='<div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>';
 }
-
-
-
+ 
+ 
+ 
 function normalizePublicGoogleSheetCsvUrl(raw){
   const input=String(raw||"").trim();
   if(!input) return "";
@@ -720,7 +723,7 @@ function normalizePublicGoogleSheetCsvUrl(raw){
   }catch(e){}
   return input;
 }
-
+ 
 function parsePublicCsv(text){
   const rows=[]; let row=[], field="", quoted=false;
   for(let i=0;i<text.length;i++){
@@ -739,11 +742,11 @@ function parsePublicCsv(text){
   if(field.length || row.length){ row.push(field.replace(/\r$/,"") ); rows.push(row); }
   return rows.filter(r=>r.some(c=>String(c||"").trim()!==""));
 }
-
+ 
 function normalizePublicHeader(v){
   return String(v||"").trim().toLowerCase().replace(/\s+/g,"");
 }
-
+ 
 function parsePublicDate(v){
   const s=String(v||"").trim();
   if(!s) return null;
@@ -752,7 +755,7 @@ function parsePublicDate(v){
   const m=s.match(/(\d{4})[./-]\s*(\d{1,2})[./-]\s*(\d{1,2})/);
   return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null;
 }
-
+ 
 function buildPublicAlumniStats(text){
   const rows=parsePublicCsv(text);
   if(rows.length<2) return null;
@@ -763,7 +766,7 @@ function buildPublicAlumniStats(text){
   const byGeneration={};
   let recent7=0;
   const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
-
+ 
   dataRows.forEach(r=>{
     if(genIdx>=0){
       const m=String(r[genIdx]||"").trim().match(/(\d{1,2})\s*기?/);
@@ -777,7 +780,7 @@ function buildPublicAlumniStats(text){
       if(d && d>=since) recent7++;
     }
   });
-
+ 
   return {
     total:dataRows.length,
     recent7:timeIdx>=0 ? recent7 : null,
@@ -785,7 +788,7 @@ function buildPublicAlumniStats(text){
     updatedAt:new Date().toLocaleString("ko-KR")
   };
 }
-
+ 
 async function ensureAlumniStats(){
   // 외부 페이지는 내부 대시보드의 수동 새로고침에 의존하지 않고
   // 저장된 CSV 주소에서 항상 최신 졸업생 DB를 직접 다시 집계한다.
@@ -813,7 +816,7 @@ async function ensureAlumniStats(){
   }
   renderAlumniStats();
 }
-
+ 
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
   if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중입니다. 잠시 후에도 표시되지 않으면 졸업생 DB 원본 연결 상태를 확인해주세요.</div>';if(updated)updated.textContent="";return;}
@@ -825,8 +828,8 @@ function renderAlumniStats(){
   </div><div class="alumni-gen-title">기수별 등록 인원</div><div class="alumni-gen-grid">${genHtml}</div><div class="alumni-privacy">개인정보는 표시하지 않고 집계된 정보만 제공합니다.</div>`;
   if(updated) updated.textContent=alumniStats.updatedAt?`최근 집계 ${alumniStats.updatedAt}`:"";
 }
-
-
+ 
+ 
 function renderParticipantApplyPublic(){
   const wrap=document.getElementById("participantApplyPublic");
   const count=document.getElementById("participantApplyPublicCount");
@@ -835,7 +838,7 @@ function renderParticipantApplyPublic(){
   wrap.style.display="block";
   if(count) count.textContent=Number(participantApplyStats.total||0).toLocaleString()+"명";
 }
-
+ 
 function renderAll(){
   renderHeaderAndInfo();
   renderDdaysAndStatus();
@@ -844,8 +847,8 @@ function renderAll(){
   renderAlumniStats();
   renderParticipantApplyPublic();
 }
-
-
+ 
+ 
 // ---------- simple visitor counter ----------
 function getVisitorId(){
   const key="hanjogo_public_visitor_id";
@@ -862,7 +865,7 @@ function getVisitorId(){
     return "session-"+Date.now()+"-"+Math.random().toString(36).slice(2);
   }
 }
-
+ 
 function showVisitorStats(row){
   const today=Number(row?.today_visitors ?? 0);
   const total=Number(row?.total_visitors ?? 0);
@@ -871,7 +874,7 @@ function showVisitorStats(row){
   if(t) t.textContent=today.toLocaleString()+"명";
   if(a) a.textContent=total.toLocaleString()+"명";
 }
-
+ 
 async function recordAndShowVisit(){
   try{
     const {data,error}=await sb.rpc("record_page_visit",{
@@ -894,7 +897,7 @@ async function recordAndShowVisit(){
     }
   }
 }
-
+ 
 async function loadPublicInfo(){
   // 1) 이전에 정상 조회한 졸업생 DB를 즉시 표시한다.
   // 2) Google CSV 최신 조회는 Supabase 로딩과 병렬로 시작한다.
@@ -902,48 +905,64 @@ async function loadPublicInfo(){
   if(cached) alumniStats=cached;
   renderAll();
   const alumniRefreshPromise=ensureAlumniStats();
-
+ 
   try{
     const {data,error}=await sb.from("dashboard_state").select("data").eq("id","main").maybeSingle();
     if(error) throw error;
-
+ 
     const saved=data?.data?.publicInfo;
     participantApplyStats=data?.data?.participantApplySync?.stats || null;
     alumniCsvUrl=ALUMNI_CSV_URL;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
     }
+    // 이 방문자의 브라우저에 캐시가 없고 CSV 직접 조회도 아직 끝나지 않은 경우,
+    // 준비 대시보드(관리자)가 이미 동기화해 둔 공유 집계값을 대신 보여준다.
+    if(!alumniStats){
+      const sharedAlumniStats=data?.data?.formSync?.alumniStats;
+      if(sharedAlumniStats){
+        alumniStats=sharedAlumniStats;
+        saveCachedAlumniStats(sharedAlumniStats);
+      }
+    }
   }catch(e){
     console.warn("공개 정보를 불러오지 못해 기본값으로 표시합니다.",e);
   }
-
+ 
   // Supabase를 기다리느라 졸업생 DB 표시가 늦어지지 않도록 별도로 갱신한다.
   renderAll();
   await alumniRefreshPromise;
 }
-
+ 
 function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
       alumniCsvUrl=ALUMNI_CSV_URL;
       participantApplyStats=payload.new?.data?.participantApplySync?.stats || null;
+      if(!alumniStats){
+        const sharedAlumniStats=payload.new?.data?.formSync?.alumniStats;
+        if(sharedAlumniStats){
+          alumniStats=sharedAlumniStats;
+          saveCachedAlumniStats(sharedAlumniStats);
+        }
+      }
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
-
+ 
       publicInfo=mergePublicInfo(saved);
       renderAll();
       ensureAlumniStats();
     })
     .subscribe();
 }
-
+ 
 function showToast(text){
   const toast=document.getElementById("toast");
   toast.textContent=text;
   toast.classList.add("show");
   setTimeout(()=>toast.classList.remove("show"),1600);
 }
-
+ 
 async function copyText(text,message){
   try{
     await navigator.clipboard.writeText(text);
@@ -957,14 +976,14 @@ async function copyText(text,message){
   }
   showToast(message);
 }
-
+ 
 async function sharePage(){
   const data={
     title:"한조고 동문 네트워크 모임",
     text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
     url:window.location.href
   };
-
+ 
   if(navigator.share){
     try{
       await navigator.share(data);
@@ -973,24 +992,24 @@ async function sharePage(){
       if(e.name==="AbortError") return;
     }
   }
-
+ 
   copyText(window.location.href,"페이지 링크를 복사했습니다.");
 }
-
+ 
 document.getElementById("shareBtn")?.addEventListener("click",sharePage);
 document.getElementById("copyPageBtn")?.addEventListener("click",()=>copyText(window.location.href,"페이지 링크를 복사했습니다."));
 document.getElementById("copyAddressBtn")?.addEventListener("click",()=>copyText(publicInfo.venueAddress || "","행사장 주소를 복사했습니다."));
 document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText(publicInfo.parkingAddress || "","주차장 주소를 복사했습니다."));
-
+ 
 loadPublicInfo();
 subscribeRealtime();
 recordAndShowVisit();
-
+ 
 // 외부 페이지를 열어둔 상태에서도 졸업생 DB를 주기적으로 최신화한다.
 setInterval(()=>{
   if(document.visibilityState === "visible") ensureAlumniStats();
 }, 60 * 1000);
-
+ 
 // 다른 탭에 있다가 다시 돌아왔을 때도 즉시 최신값을 확인한다.
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState === "visible") ensureAlumniStats();
@@ -998,3 +1017,7 @@ document.addEventListener("visibilitychange",()=>{
 </script>
 </body>
 </html>
+ 
+
+
+

@@ -379,7 +379,8 @@ const DEFAULT_PUBLIC_INFO = {
 
 let publicInfo = {...DEFAULT_PUBLIC_INFO};
 let alumniStats = null;
-let alumniCsvUrl = "";
+const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
+let alumniCsvUrl = ALUMNI_CSV_URL;
 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
@@ -794,7 +795,7 @@ async function ensureAlumniStats(){
 
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중입니다. 잠시 후에도 표시되지 않으면 내부 대시보드의 DB 연동 주소를 확인해주세요.</div>';if(updated)updated.textContent="";return;}
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중입니다. 잠시 후에도 표시되지 않으면 졸업생 DB 원본 연결 상태를 확인해주세요.</div>';if(updated)updated.textContent="";return;}
   const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
   const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
   body.innerHTML=`<div class="alumni-summary">
@@ -881,7 +882,7 @@ async function loadPublicInfo(){
 
     const saved=data?.data?.publicInfo;
     alumniStats=data?.data?.publicAlumniStats || data?.data?.formSync?.alumniStats || null;
-    alumniCsvUrl=data?.data?.formSync?.csvUrl || "";
+    alumniCsvUrl=ALUMNI_CSV_URL;
     participantApplyStats=data?.data?.participantApplySync?.stats || null;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
@@ -899,7 +900,7 @@ function subscribeRealtime(){
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
       alumniStats=payload.new?.data?.publicAlumniStats || payload.new?.data?.formSync?.alumniStats || null;
-      alumniCsvUrl=payload.new?.data?.formSync?.csvUrl || "";
+      alumniCsvUrl=ALUMNI_CSV_URL;
       participantApplyStats=payload.new?.data?.participantApplySync?.stats || null;
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 

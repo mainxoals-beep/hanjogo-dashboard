@@ -809,7 +809,7 @@ async function ensureAlumniStats(){
 
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중이거나 연동을 확인하고 있습니다.</div>';if(updated)updated.textContent="";return;}
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보가 아직 외부 페이지에 동기화되지 않았습니다.</div>';if(updated)updated.textContent="";return;}
   const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
   const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
   body.innerHTML=`<div class="alumni-summary">
@@ -942,7 +942,7 @@ async function loadPublicInfo(){
     if(error) throw error;
 
     const saved=data?.data?.publicInfo;
-    alumniStats=data?.data?.formSync?.alumniStats || null;
+    alumniStats=data?.data?.publicAlumniStats || data?.data?.formSync?.alumniStats || null;
     alumniCsvUrl=data?.data?.formSync?.csvUrl || "";
     participantApplicationStats=data?.data?.participantFormSync?.stats || null;
     applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(data?.data?.applicationSchedule||{})};
@@ -961,7 +961,7 @@ function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
-      alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      alumniStats=payload.new?.data?.publicAlumniStats || payload.new?.data?.formSync?.alumniStats || null;
       alumniCsvUrl=payload.new?.data?.formSync?.csvUrl || "";
       participantApplicationStats=payload.new?.data?.participantFormSync?.stats || null;
       applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(payload.new?.data?.applicationSchedule||{})};

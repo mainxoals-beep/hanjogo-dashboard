@@ -766,27 +766,28 @@ function buildPublicAlumniStats(text){
 }
 
 async function ensureAlumniStats(){
-  // Supabase에 정상 집계값이 있으면 그것을 우선 사용한다.
-  if(alumniStats && Number(alumniStats.total||0)>0){
-    renderAlumniStats();
-    return;
-  }
-  // 집계값이 없더라도 내부 대시보드에 저장된 CSV 주소가 있으면 외부 페이지가 직접 재집계한다.
+  // 외부 페이지는 내부 대시보드의 수동 새로고침에 의존하지 않고
+  // 저장된 CSV 주소에서 항상 최신 졸업생 DB를 직접 다시 집계한다.
+  // 직접 조회가 실패한 경우에만 Supabase에 저장된 기존 집계값을 그대로 사용한다.
   if(!alumniCsvUrl){
     renderAlumniStats();
     return;
   }
   try{
-    const url=normalizePublicGoogleSheetCsvUrl(alumniCsvUrl);
-    const res=await fetch(url,{cache:"no-store"});
+    const rawUrl=normalizePublicGoogleSheetCsvUrl(alumniCsvUrl);
+    const u=new URL(rawUrl, window.location.href);
+    u.searchParams.set("_refresh", String(Date.now()));
+    const res=await fetch(u.toString(),{cache:"no-store"});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const text=await res.text();
     const low=String(text||"").trim().slice(0,200).toLowerCase();
     if(low.startsWith("<!doctype html") || low.startsWith("<html")) throw new Error("CSV 대신 HTML 응답");
     const built=buildPublicAlumniStats(text);
-    if(built && Number(built.total||0)>=0) alumniStats=built;
+    if(built && Number(built.total||0)>=0){
+      alumniStats=built;
+    }
   }catch(e){
-    console.warn("졸업생 DB 직접 집계 실패",e);
+    console.warn("졸업생 DB 직접 집계 실패 - 기존 집계값을 유지합니다.",e);
   }
   renderAlumniStats();
 }
@@ -957,6 +958,16 @@ document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText
 loadPublicInfo();
 subscribeRealtime();
 recordAndShowVisit();
+
+// 외부 페이지를 열어둔 상태에서도 졸업생 DB를 주기적으로 최신화한다.
+setInterval(()=>{
+  if(document.visibilityState === "visible") ensureAlumniStats();
+}, 60 * 1000);
+
+// 다른 탭에 있다가 다시 돌아왔을 때도 즉시 최신값을 확인한다.
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState === "visible") ensureAlumniStats();
+});
 </script>
 </body>
 </html>

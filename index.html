@@ -1892,6 +1892,7 @@ async function loadAll(){
 
   const loadedFormSync = await dGet("formSync", null);
   state.formSync = loadedFormSync || {csvUrl:"", lastCount:null, dayStartCount:null, dayStartDate:"", lastSyncTime:"", alumniStats:null};
+  state.participantFormSync = await dGet("participantFormSync", {csvUrl:"", stats:null});
 
   state.dayProgram = await dGet("dayProgram", DEFAULT_DAY_PROGRAM.map(x => ({id:uid(), ...x})));
 
@@ -3060,7 +3061,7 @@ function renderFormSyncStats(){
   const todayNew = Math.max((fs.lastCount||0) - (fs.dayStartCount||0), 0);
   resultEl.innerHTML = `
     <div class="form-sync-stats">
-      <div class="form-sync-stat"><div class="k">총 신청 건수</div><div class="v">${fs.lastCount}</div></div>
+      <div class="form-sync-stat"><div class="k">총 등록 인원</div><div class="v">${fs.lastCount}</div></div>
       <div class="form-sync-stat"><div class="k">오늘 신규</div><div class="v">${todayNew}</div></div>
       <div class="form-sync-stat"><div class="k">최근 동기화</div><div class="v" style="font-size:12px;">${escapeHtml(fs.lastSyncTime||"-")}</div></div>
     </div>`;
@@ -3364,7 +3365,7 @@ async function loadVisitorStats(){
 
 
 // ---------- participant application CSV sync ----------
-function findHeaderIndex(headers, candidates){
+function participantFindHeaderIndex(headers, candidates){
   const norm=headers.map(h=>String(h||"").trim().toLowerCase().replace(/\s+/g,""));
   for(const c of candidates){
     const cc=String(c).toLowerCase().replace(/\s+/g,"");
@@ -3386,8 +3387,8 @@ function computeParticipantFormStats(text){
   const rows=csvParse(text);
   if(rows.length<2) return {total:0,recent7:0,cohorts:{}};
   const headers=rows[0];
-  const timeIdx=findHeaderIndex(headers,["타임스탬프","timestamp","제출시간","응답시간"]);
-  const cohortIdx=findHeaderIndex(headers,["기수","졸업기수","몇기"]);
+  const timeIdx=participantFindHeaderIndex(headers,["타임스탬프","timestamp","제출시간","응답시간"]);
+  const cohortIdx=participantFindHeaderIndex(headers,["기수","졸업기수","몇기"]);
   const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
   const now=new Date();
   const sevenAgo=new Date(now.getTime()-7*24*60*60*1000);

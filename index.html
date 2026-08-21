@@ -758,6 +758,14 @@
   .visitor-stat-box{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB}
   .visitor-stat-box .k{font-size:10px;color:var(--ink-mute);margin-bottom:3px}
   .visitor-stat-box .v{font-size:18px;font-weight:900;color:var(--purple-dark)}
+
+  .password-input-wrap{position:relative;}
+  .password-input-wrap input{padding-right:58px;}
+  .password-toggle{
+    position:absolute;right:7px;top:50%;transform:translateY(-50%);
+    border:0;background:transparent;color:var(--purple-dark);
+    font-size:11px;font-weight:800;padding:6px 7px;cursor:pointer;
+  }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -771,7 +779,10 @@
     <form id="passwordForm">
       <div class="password-field">
         <label for="internalPasswordInput">비밀번호</label>
-        <input id="internalPasswordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+        <div class="password-input-wrap">
+          <input id="internalPasswordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+          <button type="button" class="password-toggle" id="passwordToggleBtn" aria-label="비밀번호 보기">보기</button>
+        </div>
       </div>
       <button class="password-enter" type="submit">대시보드 들어가기</button>
       <div class="password-error" id="passwordError"></div>
@@ -3873,7 +3884,7 @@ document.getElementById("productionImageModal")?.addEventListener("click",e=>{
 // ---------- simple owner-controlled password gate ----------
 // 비밀번호 원문은 저장하지 않고, 영문 대소문자를 무시한 SHA-256 해시만 비교합니다.
 // 비밀번호 변경은 이 파일을 관리하는 사람만 할 수 있습니다.
-const INTERNAL_DASHBOARD_PASSWORD_HASH = "25740a2ad482263ddb573c8551b05f6b6fc8cde7118ca22fa8f3ba1394691ef2";
+const INTERNAL_DASHBOARD_PASSWORD_HASH = "9989a37538faecc495bbe774b30fb447a1582b8f1bc14ac88dfd84996a7b799a";
 const INTERNAL_UNLOCK_KEY = "hanjogo_internal_unlocked";
 
 async function sha256Text(text){
@@ -3916,6 +3927,18 @@ document.getElementById("passwordForm")?.addEventListener("submit",async e=>{
 document.getElementById("quickLockBtn")?.addEventListener("click",()=>{
   sessionStorage.removeItem(INTERNAL_UNLOCK_KEY);
   showPasswordScreen();
+});
+
+
+document.getElementById("passwordToggleBtn")?.addEventListener("click",()=>{
+  const input=document.getElementById("internalPasswordInput");
+  const btn=document.getElementById("passwordToggleBtn");
+  if(!input || !btn) return;
+  const showing=input.type==="text";
+  input.type=showing ? "password" : "text";
+  btn.textContent=showing ? "보기" : "숨기기";
+  btn.setAttribute("aria-label",showing ? "비밀번호 보기" : "비밀번호 숨기기");
+  input.focus();
 });
 
 checkInitialPasswordState();

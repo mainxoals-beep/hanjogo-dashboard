@@ -1822,7 +1822,7 @@ async function initializeRemoteIfNeeded(){
   sharedDataCache = {
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
-    committee: state.committee, links: state.links, formSync: state.formSync, participantFormSync: state.participantFormSync, dayProgram: state.dayProgram,
+    committee: state.committee, links: state.links, formSync: state.formSync, publicAlumniStats: state.formSync?.alumniStats || null, participantFormSync: state.participantFormSync, dayProgram: state.dayProgram,
     publicInfo: state.publicInfo, notices: state.notices, applicationSchedule: state.applicationSchedule, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
   };
   await saveRemoteState();
@@ -3153,6 +3153,7 @@ async function fetchFormCsv(){
     state.formSync.lastError="";
 
     await dSet("formSync",state.formSync);
+    await dSet("publicAlumniStats",stats);
 
     renderFormSyncStats();
     renderAlumniDbSummary();

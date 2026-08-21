@@ -205,18 +205,8 @@ button{cursor:pointer}
 .visitor-counter b{color:var(--ink);font-size:11.5px}
 .visitor-counter .counter-error{color:#999}
 
-.application-cta{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
-.application-cta-title{font-size:12px;font-weight:800;margin-bottom:7px}
-.application-btn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
-.application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
-.application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
-
-.application-stats{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
-.application-stats .stat-chip{font-size:9.8px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;background:#FDFCFB;color:var(--ink)}
-
-.application-stats.simple{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center}
-.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}
-.application-stats-label{font-size:10.5px;color:var(--mute)}
+.application-stats-simple{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:10.5px;color:var(--mute)}
+.application-stats-simple strong{font-size:15px;color:var(--ink);margin:0 3px}
 </style>
 </head>
 
@@ -340,17 +330,8 @@ button{cursor:pointer}
   </div>
 
   
-
-<div class="application-stats simple" id="applicationStatsBlock" style="display:none">
-  <span class="application-stats-label">현재</span>
-  <strong id="publicParticipantTotal">-</strong>
-  <span class="application-stats-label">신청</span>
-</div>
-
-<div class="application-cta" id="applicationCta" style="display:none">
-  <div class="application-cta-title">1차 참가신청</div>
-  <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
-  <div class="application-cta-sub" id="applicationSub"></div>
+<div class="application-stats-simple" id="participantApplyPublic" style="display:none">
+  현재 <strong id="participantApplyPublicCount">-</strong> 신청
 </div>
 
 <div class="visitor-counter" id="visitorCounter">
@@ -691,125 +672,9 @@ function renderCalendar(){
 }
 
 
-
-
-function normalizePublicGoogleSheetCsvUrl(raw){
-  const input=String(raw||"").trim();
-  if(!input) return "";
-  try{
-    const u=new URL(input);
-    if(/output=csv/i.test(u.search) || /tqx=out:csv/i.test(u.search)) return input;
-    const pubMatch=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(pubhtml|pub)$/);
-    if(pubMatch){
-      const gid=u.searchParams.get("gid") || "0";
-      return `${u.origin}/spreadsheets/d/e/${pubMatch[1]}/pub?output=csv&gid=${encodeURIComponent(gid)}`;
-    }
-    const sheetMatch=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
-    if(sheetMatch){
-      let gid=u.searchParams.get("gid") || "";
-      if(!gid && u.hash){
-        const hm=u.hash.match(/gid=(\d+)/);
-        if(hm) gid=hm[1];
-      }
-      const qs=new URLSearchParams({tqx:"out:csv"});
-      if(gid) qs.set("gid",gid);
-      return `${u.origin}/spreadsheets/d/${sheetMatch[1]}/gviz/tq?${qs.toString()}`;
-    }
-  }catch(e){}
-  return input;
-}
-
-function parsePublicCsv(text){
-  const rows=[]; let row=[], field="", quoted=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(quoted){
-      if(c==='"' && text[i+1]==='"'){ field+='"'; i++; }
-      else if(c==='"') quoted=false;
-      else field+=c;
-    }else{
-      if(c==='"') quoted=true;
-      else if(c===','){ row.push(field); field=""; }
-      else if(c==='\n'){ row.push(field.replace(/\r$/,"")); rows.push(row); row=[]; field=""; }
-      else field+=c;
-    }
-  }
-  if(field.length || row.length){ row.push(field.replace(/\r$/,"")); rows.push(row); }
-  return rows.filter(r=>r.some(c=>String(c||"").trim()!==""));
-}
-function normalizePublicHeader(v){
-  return String(v||"").trim().toLowerCase().replace(/\s+/g,"");
-}
-function parsePublicDate(v){
-  const s=String(v||"").trim();
-  if(!s) return null;
-  const d=new Date(s);
-  if(!isNaN(d)) return d;
-  const m=s.match(/(\d{4})[./-]\s*(\d{1,2})[./-]\s*(\d{1,2})/);
-  return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null;
-}
-function buildPublicAlumniStats(text){
-  const rows=parsePublicCsv(text);
-  if(rows.length<2) return null;
-  const headers=rows[0].map(normalizePublicHeader);
-  const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
-  const genIdx=headers.findIndex(h=>h.includes("기수") || h.includes("졸업기수"));
-  const timeIdx=headers.findIndex(h=>h.includes("타임스탬프") || h.includes("timestamp") || h.includes("제출시간") || h.includes("응답시간"));
-  const byGeneration={};
-  let recent7=0;
-  const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
-
-  dataRows.forEach(r=>{
-    if(genIdx>=0){
-      const m=String(r[genIdx]||"").match(/(\d{1,2})\s*기?/);
-      if(m){
-        const n=Number(m[1]);
-        if(n>0 && n<100) byGeneration[n]=(byGeneration[n]||0)+1;
-      }
-    }
-    if(timeIdx>=0){
-      const d=parsePublicDate(r[timeIdx]);
-      if(d && d>=since) recent7++;
-    }
-  });
-
-  return {
-    total:dataRows.length,
-    recent7:timeIdx>=0 ? recent7 : null,
-    byGeneration,
-    updatedAt:"방금 집계"
-  };
-}
-async function ensureAlumniStats(){
-  if(alumniStats && Number(alumniStats.total||0)>0){
-    renderAlumniStats();
-    return;
-  }
-  if(!alumniCsvUrl){
-    renderAlumniStats();
-    return;
-  }
-  try{
-    const url=normalizePublicGoogleSheetCsvUrl(alumniCsvUrl);
-    const res=await fetch(url,{cache:"no-store"});
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const text=await res.text();
-    const low=String(text||"").trim().slice(0,200).toLowerCase();
-    if(low.startsWith("<!doctype html") || low.startsWith("<html")) throw new Error("not csv");
-
-    const built=buildPublicAlumniStats(text);
-    if(built && Number(built.total||0)>0){
-      alumniStats=built;
-    }
-  }catch(e){
-    console.warn("졸업생 DB 직접 집계 실패",e);
-  }
-  renderAlumniStats();
-}
-
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보가 아직 외부 페이지에 동기화되지 않았습니다.</div>';if(updated)updated.textContent="";return;}
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">아직 집계된 졸업생 DB 정보가 없습니다.</div>';if(updated)updated.textContent="";return;}
   const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
   const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
   body.innerHTML=`<div class="alumni-summary">
@@ -820,59 +685,13 @@ function renderAlumniStats(){
 }
 
 
-function parseKoreaLocalDateTime(v){
-  if(!v) return null;
-  return new Date(v + ":00+09:00");
-}
-
-function renderParticipantApplicationStats(){
-  const wrap=document.getElementById("applicationStatsBlock");
-  const total=document.getElementById("publicParticipantTotal");
-  const s=participantApplicationStats;
+function renderParticipantApplyPublic(){
+  const wrap=document.getElementById("participantApplyPublic");
+  const count=document.getElementById("participantApplyPublicCount");
   if(!wrap) return;
-  if(!s){ wrap.style.display="none"; return; }
+  if(!participantApplyStats){wrap.style.display="none";return;}
   wrap.style.display="block";
-  if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
-}
-
-function renderApplicationCta(){
-  const wrap=document.getElementById("applicationCta");
-  const btn=document.getElementById("applicationBtn");
-  const sub=document.getElementById("applicationSub");
-  if(!wrap || !btn) return;
-  const a={...DEFAULT_APPLICATION_SCHEDULE,...(applicationSchedule||{})};
-  if(a.enabled===false){ wrap.style.display="none"; return; }
-  wrap.style.display="block";
-
-  const now=new Date();
-  const open=parseKoreaLocalDateTime(a.openAt);
-  const close=parseKoreaLocalDateTime(a.closeAt);
-
-  btn.classList.add("disabled");
-  btn.removeAttribute("href");
-  btn.removeAttribute("target");
-
-  if(open && now<open){
-    btn.textContent=a.beforeLabel||DEFAULT_APPLICATION_SCHEDULE.beforeLabel;
-    if(sub) sub.textContent="지정된 오픈 시간에 자동으로 신청 버튼이 활성화됩니다.";
-    return;
-  }
-  if(close && now>=close){
-    btn.textContent=a.closedLabel||DEFAULT_APPLICATION_SCHEDULE.closedLabel;
-    if(sub) sub.textContent="1차 참가신청이 마감되었습니다.";
-    return;
-  }
-  if(a.formUrl){
-    btn.textContent=a.openLabel||DEFAULT_APPLICATION_SCHEDULE.openLabel;
-    btn.classList.remove("disabled");
-    btn.href=a.formUrl;
-    btn.target="_blank";
-    btn.rel="noopener";
-    if(sub) sub.textContent="버튼을 누르면 참가신청 구글폼으로 이동합니다.";
-  }else{
-    btn.textContent="참가신청 링크 준비 중";
-    if(sub) sub.textContent="참가신청 링크가 등록되는 대로 열립니다.";
-  }
+  if(count) count.textContent=Number(participantApplyStats.total||0).toLocaleString()+"명";
 }
 
 function renderAll(){
@@ -881,8 +700,7 @@ function renderAll(){
   renderNextAndTimeline();
   renderCalendar();
   renderAlumniStats();
-  renderParticipantApplicationStats();
-  renderApplicationCta();
+  renderParticipantApplyPublic();
 }
 
 
@@ -942,10 +760,8 @@ async function loadPublicInfo(){
     if(error) throw error;
 
     const saved=data?.data?.publicInfo;
-    alumniStats=data?.data?.publicAlumniStats || data?.data?.formSync?.alumniStats || null;
-    alumniCsvUrl=data?.data?.formSync?.csvUrl || "";
-    participantApplicationStats=data?.data?.participantFormSync?.stats || null;
-    applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(data?.data?.applicationSchedule||{})};
+    alumniStats=data?.data?.formSync?.alumniStats || null;
+    participantApplyStats=data?.data?.participantApplySync?.stats || null;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
     }
@@ -954,22 +770,18 @@ async function loadPublicInfo(){
   }
 
   renderAll();
-  ensureAlumniStats();
 }
 
 function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
-      alumniStats=payload.new?.data?.publicAlumniStats || payload.new?.data?.formSync?.alumniStats || null;
-      alumniCsvUrl=payload.new?.data?.formSync?.csvUrl || "";
-      participantApplicationStats=payload.new?.data?.participantFormSync?.stats || null;
-      applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(payload.new?.data?.applicationSchedule||{})};
+      alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      participantApplyStats=payload.new?.data?.participantApplySync?.stats || null;
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 
       publicInfo=mergePublicInfo(saved);
       renderAll();
-      ensureAlumniStats();
     })
     .subscribe();
 }
@@ -1022,7 +834,6 @@ document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText
 loadPublicInfo();
 subscribeRealtime();
 recordAndShowVisit();
-setInterval(renderApplicationCta,30000);
 </script>
 </body>
 </html>

@@ -381,6 +381,26 @@ let publicInfo = {...DEFAULT_PUBLIC_INFO};
 let alumniStats = null;
 const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
 let alumniCsvUrl = ALUMNI_CSV_URL;
+const ALUMNI_CACHE_KEY = "hanjogo_alumni_stats_cache_v1";
+
+function loadCachedAlumniStats(){
+  try{
+    const raw=localStorage.getItem(ALUMNI_CACHE_KEY);
+    if(!raw) return null;
+    const parsed=JSON.parse(raw);
+    const stats=parsed?.stats;
+    if(!stats || typeof stats!=="object") return null;
+    return stats;
+  }catch(e){
+    return null;
+  }
+}
+
+function saveCachedAlumniStats(stats){
+  try{
+    localStorage.setItem(ALUMNI_CACHE_KEY, JSON.stringify({stats, savedAt:Date.now()}));
+  }catch(e){}
+}
 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
@@ -786,6 +806,7 @@ async function ensureAlumniStats(){
     const built=buildPublicAlumniStats(text);
     if(built && Number(built.total||0)>=0){
       alumniStats=built;
+      saveCachedAlumniStats(built);
     }
   }catch(e){
     console.warn("졸업생 DB 직접 집계 실패 - 기존 집계값을 유지합니다.",e);
@@ -875,15 +896,20 @@ async function recordAndShowVisit(){
 }
 
 async function loadPublicInfo(){
+  // 1) 이전에 정상 조회한 졸업생 DB를 즉시 표시한다.
+  // 2) Google CSV 최신 조회는 Supabase 로딩과 병렬로 시작한다.
+  const cached=loadCachedAlumniStats();
+  if(cached) alumniStats=cached;
   renderAll();
+  const alumniRefreshPromise=ensureAlumniStats();
+
   try{
     const {data,error}=await sb.from("dashboard_state").select("data").eq("id","main").maybeSingle();
     if(error) throw error;
 
     const saved=data?.data?.publicInfo;
-    alumniStats=data?.data?.publicAlumniStats || data?.data?.formSync?.alumniStats || null;
-    alumniCsvUrl=ALUMNI_CSV_URL;
     participantApplyStats=data?.data?.participantApplySync?.stats || null;
+    alumniCsvUrl=ALUMNI_CSV_URL;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
     }
@@ -891,15 +917,15 @@ async function loadPublicInfo(){
     console.warn("공개 정보를 불러오지 못해 기본값으로 표시합니다.",e);
   }
 
+  // Supabase를 기다리느라 졸업생 DB 표시가 늦어지지 않도록 별도로 갱신한다.
   renderAll();
-  ensureAlumniStats();
+  await alumniRefreshPromise;
 }
 
 function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
-      alumniStats=payload.new?.data?.publicAlumniStats || payload.new?.data?.formSync?.alumniStats || null;
       alumniCsvUrl=ALUMNI_CSV_URL;
       participantApplyStats=payload.new?.data?.participantApplySync?.stats || null;
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }

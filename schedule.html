@@ -203,6 +203,13 @@ button{cursor:pointer}
 
 .visitor-counter{margin:18px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;text-align:center;font-size:10.5px;color:var(--mute)}
 .visitor-counter b{color:var(--ink);font-size:11.5px}
+.visitor-counter .counter-error{color:#999}
+
+.application-cta{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.application-cta-title{font-size:12px;font-weight:800;margin-bottom:7px}
+.application-btn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
+.application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
+.application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
 </style>
 </head>
 
@@ -325,7 +332,16 @@ button{cursor:pointer}
     <div class="faq" id="faqList"></div>
   </div>
 
-  <div class="visitor-counter">방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b></div>
+  
+<div class="application-cta" id="applicationCta" style="display:none">
+  <div class="application-cta-title">1차 참가신청</div>
+  <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
+  <div class="application-cta-sub" id="applicationSub"></div>
+</div>
+
+<div class="visitor-counter" id="visitorCounter">
+    방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
+  </div>
   <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
 </div>
 
@@ -673,34 +689,110 @@ function renderAlumniStats(){
   if(updated) updated.textContent=alumniStats.updatedAt?`최근 집계 ${alumniStats.updatedAt}`:"";
 }
 
+
+function parseKoreaLocalDateTime(v){
+  if(!v) return null;
+  return new Date(v + ":00+09:00");
+}
+function renderApplicationCta(){
+  const wrap=document.getElementById("applicationCta");
+  const btn=document.getElementById("applicationBtn");
+  const sub=document.getElementById("applicationSub");
+  if(!wrap || !btn) return;
+  const a={...DEFAULT_APPLICATION_SCHEDULE,...(applicationSchedule||{})};
+  if(a.enabled===false){ wrap.style.display="none"; return; }
+  wrap.style.display="block";
+
+  const now=new Date();
+  const open=parseKoreaLocalDateTime(a.openAt);
+  const close=parseKoreaLocalDateTime(a.closeAt);
+
+  btn.classList.add("disabled");
+  btn.removeAttribute("href");
+  btn.removeAttribute("target");
+
+  if(open && now<open){
+    btn.textContent=a.beforeLabel||DEFAULT_APPLICATION_SCHEDULE.beforeLabel;
+    if(sub) sub.textContent="지정된 오픈 시간에 자동으로 신청 버튼이 활성화됩니다.";
+    return;
+  }
+  if(close && now>=close){
+    btn.textContent=a.closedLabel||DEFAULT_APPLICATION_SCHEDULE.closedLabel;
+    if(sub) sub.textContent="1차 참가신청이 마감되었습니다.";
+    return;
+  }
+  if(a.formUrl){
+    btn.textContent=a.openLabel||DEFAULT_APPLICATION_SCHEDULE.openLabel;
+    btn.classList.remove("disabled");
+    btn.href=a.formUrl;
+    btn.target="_blank";
+    btn.rel="noopener";
+    if(sub) sub.textContent="버튼을 누르면 참가신청 구글폼으로 이동합니다.";
+  }else{
+    btn.textContent="참가신청 링크 준비 중";
+    if(sub) sub.textContent="참가신청 링크가 등록되는 대로 열립니다.";
+  }
+}
+
 function renderAll(){
   renderHeaderAndInfo();
   renderDdaysAndStatus();
   renderNextAndTimeline();
   renderCalendar();
   renderAlumniStats();
+  renderApplicationCta();
 }
 
 
+// ---------- simple visitor counter ----------
 function getVisitorId(){
   const key="hanjogo_public_visitor_id";
-  let id="";
-  try{id=localStorage.getItem(key)||"";}catch(e){}
-  if(!id){
-    id=window.crypto?.randomUUID?crypto.randomUUID():"v-"+Date.now()+"-"+Math.random().toString(36).slice(2);
-    try{localStorage.setItem(key,id);}catch(e){}
+  try{
+    let id=localStorage.getItem(key);
+    if(!id){
+      id=(window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : "v-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+      localStorage.setItem(key,id);
+    }
+    return id;
+  }catch(e){
+    return "session-"+Date.now()+"-"+Math.random().toString(36).slice(2);
   }
-  return id;
 }
+
+function showVisitorStats(row){
+  const today=Number(row?.today_visitors ?? 0);
+  const total=Number(row?.total_visitors ?? 0);
+  const t=document.getElementById("todayVisitorCount");
+  const a=document.getElementById("totalVisitorCount");
+  if(t) t.textContent=today.toLocaleString()+"명";
+  if(a) a.textContent=total.toLocaleString()+"명";
+}
+
 async function recordAndShowVisit(){
   try{
-    const {data,error}=await sb.rpc("record_page_visit",{p_visitor_id:getVisitorId()});
+    const {data,error}=await sb.rpc("record_page_visit",{
+      p_visitor_id:getVisitorId()
+    });
     if(error) throw error;
-    const row=Array.isArray(data)?data[0]:data;
-    document.getElementById("todayVisitorCount").textContent=Number(row?.today_visitors??0).toLocaleString()+"명";
-    document.getElementById("totalVisitorCount").textContent=Number(row?.total_visitors??0).toLocaleString()+"명";
-  }catch(e){ console.warn("방문자 집계 실패",e); }
+    const row=Array.isArray(data) ? data[0] : data;
+    showVisitorStats(row);
+  }catch(e){
+    console.warn("방문자 기록 실패:",e);
+    try{
+      const {data,error}=await sb.rpc("get_page_visit_stats");
+      if(error) throw error;
+      const row=Array.isArray(data) ? data[0] : data;
+      showVisitorStats(row);
+    }catch(e2){
+      console.warn("방문자 통계 조회 실패:",e2);
+      const box=document.getElementById("visitorCounter");
+      if(box) box.innerHTML='<span class="counter-error">방문자 집계 준비 중</span>';
+    }
+  }
 }
+
 async function loadPublicInfo(){
   renderAll();
   try{
@@ -709,6 +801,7 @@ async function loadPublicInfo(){
 
     const saved=data?.data?.publicInfo;
     alumniStats=data?.data?.formSync?.alumniStats || null;
+    applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(data?.data?.applicationSchedule||{})};
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
     }
@@ -724,6 +817,7 @@ function subscribeRealtime(){
     .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},payload=>{
       const saved=payload.new?.data?.publicInfo;
       alumniStats=payload.new?.data?.formSync?.alumniStats || null;
+      applicationSchedule={...DEFAULT_APPLICATION_SCHEDULE,...(payload.new?.data?.applicationSchedule||{})};
       if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
 
       publicInfo=mergePublicInfo(saved);
@@ -780,6 +874,7 @@ document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText
 loadPublicInfo();
 subscribeRealtime();
 recordAndShowVisit();
+setInterval(renderApplicationCta,30000);
 </script>
 </body>
 </html>

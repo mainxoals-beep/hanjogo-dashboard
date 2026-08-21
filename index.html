@@ -766,6 +766,48 @@
     border:0;background:transparent;color:var(--purple-dark);
     font-size:11px;font-weight:800;padding:6px 7px;cursor:pointer;
   }
+
+  .account-save-status{font-size:10.5px;font-weight:700;color:var(--ink-mute);align-self:center}
+  .account-save-status.ok{color:#2E6B45}
+  .account-save-status.err{color:var(--danger)}
+
+  /* ---------- FAQ add/remove ---------- */
+  .faq-editor-actions{display:flex;justify-content:flex-end;margin-top:9px}
+  .faq-row-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
+  .faq-remove-btn{
+    border:1px solid #E5D4D4;background:#FFF7F7;color:#A25353;border-radius:7px;
+    padding:4px 7px;font-size:10px;font-weight:700;cursor:pointer
+  }
+
+  /* ---------- shared event files ---------- */
+  .file-repo-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;
+  }
+  .file-repo-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+  .file-repo-title{font-size:14px;font-weight:800}
+  .file-repo-sub{font-size:10.5px;color:var(--ink-mute);margin-top:3px;line-height:1.55}
+  .file-repo-actions{display:flex;gap:7px;flex-wrap:wrap}
+  .shared-file-input{display:none}
+  .file-repo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .shared-file-card{
+    display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);
+    border-radius:11px;background:#FDFCFB;min-width:0
+  }
+  .shared-file-preview{
+    width:58px;height:58px;flex:none;border-radius:9px;border:1px solid var(--line);
+    background:#F3F0EC;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;font-size:10px;font-weight:800;color:var(--ink-mute);text-align:center;padding:3px;box-sizing:border-box
+  }
+  .shared-file-preview img{width:100%;height:100%;object-fit:cover}
+  .shared-file-main{min-width:0;flex:1}
+  .shared-file-name{font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .shared-file-meta{font-size:9.8px;color:var(--ink-mute);margin-top:3px}
+  .shared-file-note{font-size:10px;color:var(--ink-sub);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .shared-file-buttons{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+  .shared-file-buttons button{font-size:9.8px;padding:5px 7px}
+  .file-repo-empty{padding:18px;text-align:center;color:var(--ink-mute);font-size:11px}
+  @media(max-width:700px){.file-repo-grid{grid-template-columns:1fr}}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1079,6 +1121,37 @@
     </div>
   </section>
 
+
+  <!-- ===== 행사 자료실 ===== -->
+  <section id="section-shared-files">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title">행사 자료실</div>
+        <div class="sec-note">행사 관련 이미지 · PDF · 문서 · 엑셀 등 소용량 파일 공유</div>
+      </div>
+      <div class="sec-head-right">
+        <button class="collapse-btn" data-target="body-shared-files"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+      </div>
+    </div>
+    <div class="sec-body" id="body-shared-files">
+      <div class="file-repo-card">
+        <div class="file-repo-head">
+          <div>
+            <div class="file-repo-title">첨부 파일</div>
+            <div class="file-repo-sub">이미지, PDF, 워드, 엑셀, PPT, 텍스트, ZIP 등을 첨부할 수 있습니다. 파일당 최대 2MB · 전체 10MB 이내 사용을 권장합니다.</div>
+          </div>
+          <div class="file-repo-actions">
+            <button type="button" class="mini-btn primary lockable" id="addSharedFile">+ 파일 첨부</button>
+            <input type="file" id="sharedFileInput" class="shared-file-input"
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.hwp,.hwpx">
+          </div>
+        </div>
+        <div class="file-repo-grid" id="sharedFileList"></div>
+        <div class="file-repo-empty" id="sharedFileEmpty">아직 첨부된 파일이 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== 예산 · 수입/지출 ===== -->
   <section id="section-budget">
     <div class="sec-head">
@@ -1119,7 +1192,7 @@
         </div>
         <div class="account-actions">
           <button class="mini-btn primary" id="copyEventAccount">계좌정보 복사</button>
-          <button class="mini-btn lockable" id="saveEventAccount">계좌정보 저장</button>
+          <button class="mini-btn lockable" id="saveEventAccount">계좌정보 저장</button><span id="eventAccountSaveStatus" class="account-save-status"></span>
         </div>
         <div class="account-note">계좌정보는 내부용 대시보드에만 표시됩니다. 외부 참가자 안내가 필요할 때는 ‘공지 · 공유문구’의 입금 안내문에 필요한 정보만 넣어 사용해주세요.</div>
       </div>
@@ -1260,7 +1333,7 @@
 
           <div class="public-edit-card full">
             <h4>FAQ</h4>
-            <div id="publicFaqEditor"></div>
+            <div id="publicFaqEditor"></div><div class="faq-editor-actions"><button type="button" class="mini-btn lockable" id="addPublicFaq">+ 질문 추가</button></div>
           </div>
         </div>
 
@@ -1441,6 +1514,7 @@ const DEFAULT_TRANSACTIONS = {
   importedAt:""
 };
 
+const DEFAULT_SHARED_FILES = [];
 const DEFAULT_NOTICES = [];
 
 const DEFAULT_BUDGET = [
@@ -1470,6 +1544,7 @@ let state = {
   dayProgram: [],
   publicInfo: {...DEFAULT_PUBLIC_INFO},
   notices: [],
+  sharedFiles: [...DEFAULT_SHARED_FILES],
   budget: [],
   eventAccount: {...DEFAULT_EVENT_ACCOUNT},
   transactions: {...DEFAULT_TRANSACTIONS},
@@ -1638,7 +1713,7 @@ async function initializeRemoteIfNeeded(){
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
     committee: state.committee, links: state.links, formSync: state.formSync, dayProgram: state.dayProgram,
-    publicInfo: state.publicInfo, notices: state.notices, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
+    publicInfo: state.publicInfo, notices: state.notices, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
   };
   await saveRemoteState();
 }
@@ -1725,6 +1800,7 @@ async function loadAll(){
     };
   }
   state.notices = await dGet("notices", DEFAULT_NOTICES.map(x => ({...x})));
+  state.sharedFiles = await dGet("sharedFiles", [...DEFAULT_SHARED_FILES]);
   state.budget = await dGet("budget", DEFAULT_BUDGET.map(x => ({...x})));
   state.eventAccount = await dGet("eventAccount", {...DEFAULT_EVENT_ACCOUNT});
   state.transactions = await dGet("transactions", {...DEFAULT_TRANSACTIONS});
@@ -1810,7 +1886,7 @@ document.getElementById("editModeBtn").addEventListener("click", () => {
 
 function applyRemoteDataToState(remote){
   if(!remote || typeof remote !== "object") return;
-  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","budget","eventAccount","transactions","participantPayments"];
+  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","sharedFiles","budget","eventAccount","transactions","participantPayments"];
   keys.forEach(k => { if(Object.prototype.hasOwnProperty.call(remote,k)) state[k] = remote[k]; });
   if(Array.isArray(state.phases)) state.phases.forEach(p => { if(!p.priority) p.priority = IMPORTANT_IDS.includes(p.id) ? "important" : "normal"; });
   if(Array.isArray(state.sponsors)) state.sponsors.forEach(s => {
@@ -3101,6 +3177,7 @@ function setupMainTabs(){
   moveSectionByBody("body-committee", people);
 
   move("#section-announcements", notice);
+  move("#section-shared-files", notice);
   moveSectionByBody("body-sponsors", notice);
   moveSectionByBody("body-production", notice);
 
@@ -3172,6 +3249,127 @@ async function loadVisitorStats(){
     if(totalEl) totalEl.textContent="확인 필요";
   }
 }
+
+// ---------- shared event files ----------
+function formatFileSize(bytes){
+  const n=Number(bytes||0);
+  if(n<1024) return `${n} B`;
+  if(n<1024*1024) return `${(n/1024).toFixed(1)} KB`;
+  return `${(n/1024/1024).toFixed(1)} MB`;
+}
+function fileExt(name){
+  const m=String(name||"").match(/\.([^.]+)$/);
+  return m ? m[1].toUpperCase() : "FILE";
+}
+function totalSharedFileBytes(){
+  return (state.sharedFiles||[]).reduce((s,f)=>s+Number(f.size||0),0);
+}
+function readFileDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+function renderSharedFiles(){
+  const list=document.getElementById("sharedFileList");
+  const empty=document.getElementById("sharedFileEmpty");
+  if(!list) return;
+  const files=Array.isArray(state.sharedFiles)?state.sharedFiles:[];
+  list.innerHTML="";
+  if(empty) empty.style.display=files.length?"none":"block";
+
+  files.forEach(f=>{
+    const card=document.createElement("div");
+    card.className="shared-file-card";
+    const isImg=String(f.type||"").startsWith("image/");
+    card.innerHTML=`
+      <div class="shared-file-preview">
+        ${isImg && f.dataUrl ? `<img src="${f.dataUrl}" alt="">` : `<span>${escapeHtml(fileExt(f.name))}</span>`}
+      </div>
+      <div class="shared-file-main">
+        <div class="shared-file-name" title="${escapeHtml(f.name||"")}">${escapeHtml(f.name||"파일")}</div>
+        <div class="shared-file-meta">${formatFileSize(f.size)} · ${escapeHtml(f.addedAt||"")}${f.owner?` · ${escapeHtml(f.owner)}`:""}</div>
+        <div class="shared-file-note">${escapeHtml(f.note||"")}</div>
+        <div class="shared-file-buttons">
+          <button type="button" class="mini-btn shared-file-open">열기 / 다운로드</button>
+          <button type="button" class="mini-btn shared-file-note-edit lockable">메모</button>
+          <button type="button" class="mini-btn danger shared-file-delete lockable">삭제</button>
+        </div>
+      </div>`;
+
+    card.querySelector(".shared-file-open")?.addEventListener("click",()=>{
+      if(!f.dataUrl) return;
+      const a=document.createElement("a");
+      a.href=f.dataUrl;
+      a.download=f.name||"file";
+      a.target="_blank";
+      document.body.appendChild(a);a.click();a.remove();
+    });
+    card.querySelector(".shared-file-note-edit")?.addEventListener("click",async()=>{
+      if(!state.editMode) return;
+      const note=prompt("파일 메모",f.note||"");
+      if(note===null) return;
+      f.note=note.trim();
+      await dSet("sharedFiles",state.sharedFiles);
+      renderSharedFiles();
+      applyEditLock();
+    });
+    card.querySelector(".shared-file-delete")?.addEventListener("click",async()=>{
+      if(!state.editMode) return;
+      if(!await customConfirm(`"${f.name}" 파일을 삭제할까요?`)) return;
+      state.sharedFiles=state.sharedFiles.filter(x=>x.id!==f.id);
+      await dSet("sharedFiles",state.sharedFiles);
+      renderSharedFiles();
+      applyEditLock();
+    });
+    list.appendChild(card);
+  });
+}
+document.getElementById("addSharedFile")?.addEventListener("click",()=>{
+  if(!state.editMode) return;
+  document.getElementById("sharedFileInput")?.click();
+});
+document.getElementById("sharedFileInput")?.addEventListener("change",async e=>{
+  if(!state.editMode || !e.target.files?.[0]) return;
+  const file=e.target.files[0];
+
+  if(file.size>2*1024*1024){
+    alert("파일당 최대 2MB까지 첨부할 수 있습니다.");
+    e.target.value="";
+    return;
+  }
+  if(totalSharedFileBytes()+file.size>10*1024*1024){
+    alert("첨부 파일 전체 용량은 10MB 이내로 사용해주세요.");
+    e.target.value="";
+    return;
+  }
+
+  try{
+    const dataUrl=await readFileDataUrl(file);
+    state.sharedFiles.push({
+      id:uid(),
+      name:file.name,
+      type:file.type||"application/octet-stream",
+      size:file.size,
+      dataUrl,
+      note:"",
+      addedAt:new Date().toLocaleDateString("ko-KR"),
+      owner:editorName||""
+    });
+    await dSet("sharedFiles",state.sharedFiles);
+    renderSharedFiles();
+    applyEditLock();
+  }catch(err){
+    console.error(err);
+    alert("파일 첨부에 실패했습니다.");
+  }finally{
+    e.target.value="";
+  }
+});
+
+
 // ---------- notices ----------
 function noticeStatusOptions(selected){
   return ["작성중","검토중","확정","발송완료"].map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("");
@@ -3274,9 +3472,59 @@ function collectEventAccount(){
   };
 }
 document.getElementById("saveEventAccount")?.addEventListener("click",async()=>{
-  if(!state.editMode) return;
-  state.eventAccount=collectEventAccount();
-  await dSet("eventAccount",state.eventAccount);
+  const btn=document.getElementById("saveEventAccount");
+  const status=document.getElementById("eventAccountSaveStatus");
+
+  if(!state.editMode){
+    if(status){
+      status.textContent="먼저 편집하기를 눌러주세요.";
+      status.className="account-save-status err";
+    }
+    return;
+  }
+
+  try{
+    if(btn){
+      btn.disabled=true;
+      btn.textContent="저장 중...";
+    }
+    if(status){
+      status.textContent="";
+      status.className="account-save-status";
+    }
+
+    state.eventAccount=collectEventAccount();
+    await dSet("eventAccount",state.eventAccount);
+
+    renderEventAccount();
+
+    if(btn) btn.textContent="✓ 저장 완료";
+    if(status){
+      status.textContent="저장됨";
+      status.className="account-save-status ok";
+    }
+
+    setTimeout(()=>{
+      if(btn){
+        btn.disabled=false;
+        btn.textContent="계좌정보 저장";
+      }
+      if(status){
+        status.textContent="";
+        status.className="account-save-status";
+      }
+    },1600);
+  }catch(e){
+    console.error("계좌정보 저장 실패",e);
+    if(btn){
+      btn.disabled=false;
+      btn.textContent="다시 저장";
+    }
+    if(status){
+      status.textContent="저장 실패";
+      status.className="account-save-status err";
+    }
+  }
 });
 document.getElementById("copyEventAccount")?.addEventListener("click",async()=>{
   const a=collectEventAccount();
@@ -3743,15 +3991,28 @@ function renderPublicInfoEditor(){
     const row = document.createElement("div");
     row.className = "faq-edit-row";
     row.innerHTML = `
+      <div class="faq-row-head">
+        <strong style="font-size:11px;">질문 ${idx+1}</strong>
+        <button type="button" class="faq-remove-btn lockable" data-remove-faq="${idx}">삭제</button>
+      </div>
       <div class="public-field">
-        <label>질문 ${idx+1}</label>
+        <label>질문</label>
         <input type="text" class="lockable pub-faq-q" data-idx="${idx}" value="${escapeHtml(item.q || "")}">
       </div>
       <div class="public-field">
-        <label>답변 ${idx+1}</label>
+        <label>답변</label>
         <textarea class="lockable pub-faq-a" data-idx="${idx}">${escapeHtml(item.a || "")}</textarea>
       </div>`;
     faqWrap.appendChild(row);
+    row.querySelector("[data-remove-faq]")?.addEventListener("click",()=>{
+      if(!state.editMode) return;
+      const current=collectPublicInfoFromEditor();
+      current.faq.splice(idx,1);
+      state.publicInfo={...state.publicInfo,...current};
+      renderPublicInfoEditor();
+      setPublicSaveState("dirty");
+      applyEditLock();
+    });
   });
   setPublicSaveState("idle");
 }
@@ -3790,6 +4051,21 @@ function collectPublicInfoFromEditor(){
     faq
   };
 }
+
+
+document.getElementById("addPublicFaq")?.addEventListener("click",()=>{
+  if(!state.editMode) return;
+  const current=collectPublicInfoFromEditor();
+  current.faq.push({q:"",a:""});
+  state.publicInfo={...state.publicInfo,...current};
+  renderPublicInfoEditor();
+  setPublicSaveState("dirty");
+  applyEditLock();
+  setTimeout(()=>{
+    const inputs=document.querySelectorAll(".pub-faq-q");
+    inputs[inputs.length-1]?.focus();
+  },50);
+});
 
 document.getElementById("savePublicInfo")?.addEventListener("click", async () => {
   if(state.shareMode && !state.editMode) return;
@@ -3851,7 +4127,11 @@ function renderAll(){
   renderDayProgram();
   renderPublicInfoEditor();
   renderNotices();
+  renderSharedFiles();
   renderBudget();
+  renderEventAccount();
+  renderTransactions();
+  renderParticipantPayments();
   applyEditLock();
 }
 

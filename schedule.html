@@ -205,8 +205,18 @@ button{cursor:pointer}
 .visitor-counter b{color:var(--ink);font-size:11.5px}
 .visitor-counter .counter-error{color:#999}
 
-.application-stats-simple{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:10.5px;color:var(--mute)}
-.application-stats-simple strong{font-size:15px;color:var(--ink);margin:0 3px}
+.application-cta{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.application-cta-title{font-size:12px;font-weight:800;margin-bottom:7px}
+.application-btn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
+.application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
+.application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
+
+.application-stats{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.application-stats .stat-chip{font-size:9.8px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;background:#FDFCFB;color:var(--ink)}
+
+.application-stats.simple{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center}
+.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}
+.application-stats-label{font-size:10.5px;color:var(--mute)}
 </style>
 </head>
 
@@ -254,7 +264,6 @@ button{cursor:pointer}
       <div class="info-title" id="venueName"></div>
       <div class="info-text" id="venueAddress"></div>
       <div class="event-time" id="eventTimeBox"></div>
-      <div class="event-time" id="participantFeeBox" style="display:none"></div>
 
       <div class="info-actions">
         <a class="link-btn primary" id="mapBtn" target="_blank" rel="noopener">지도에서 보기</a>
@@ -331,22 +340,29 @@ button{cursor:pointer}
   </div>
 
   
-<div class="application-stats-simple" id="participantApplyPublic" style="display:none">
-  현재 <strong id="participantApplyPublicCount">-</strong> 신청
+
+<div class="application-stats simple" id="applicationStatsBlock" style="display:none">
+  <span class="application-stats-label">현재</span>
+  <strong id="publicParticipantTotal">-</strong>
+  <span class="application-stats-label">신청</span>
+</div>
+
+<div class="application-cta" id="applicationCta" style="display:none">
+  <div class="application-cta-title">1차 참가신청</div>
+  <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
+  <div class="application-cta-sub" id="applicationSub"></div>
 </div>
 
 <div class="visitor-counter" id="visitorCounter">
     방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
   </div>
   <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
-  <div class="note" id="publicInfoUpdated" style="margin-top:6px"></div>
-  <div class="note" style="margin-top:4px">외부 페이지 버전 · 2026.08.22-1437</div>
 </div>
 
 <div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
-// HANJOGO_PUBLIC_UI_VERSION: 2026-08-22-final-1to1
+const PUBLIC_BUILD_VERSION = "2026-08-22-rpc-unified";
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -383,28 +399,6 @@ const DEFAULT_PUBLIC_INFO = {
 
 let publicInfo = {...DEFAULT_PUBLIC_INFO};
 let alumniStats = null;
-const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
-let alumniCsvUrl = ALUMNI_CSV_URL;
-const ALUMNI_CACHE_KEY = "hanjogo_alumni_stats_cache_v1";
-
-function loadCachedAlumniStats(){
-  try{
-    const raw=localStorage.getItem(ALUMNI_CACHE_KEY);
-    if(!raw) return null;
-    const parsed=JSON.parse(raw);
-    const stats=parsed?.stats;
-    if(!stats || typeof stats!=="object") return null;
-    return stats;
-  }catch(e){
-    return null;
-  }
-}
-
-function saveCachedAlumniStats(stats){
-  try{
-    localStorage.setItem(ALUMNI_CACHE_KEY, JSON.stringify({stats, savedAt:Date.now()}));
-  }catch(e){}
-}
 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
@@ -488,21 +482,8 @@ function getSchedule(){
   ];
 }
 
-function instagramDisplayName(url){
-  try{
-    const u=new URL(url);
-    const name=u.pathname.split("/").filter(Boolean)[0] || "Instagram";
-    return name ? "@"+name : "Instagram";
-  }catch(e){
-    return "Instagram";
-  }
-}
-
 function renderHeaderAndInfo(){
   const p=publicInfo;
-
-  // 내부 대시보드에서 관리하는 행사명/날짜를 페이지 제목에도 그대로 반영한다.
-  document.title=`${p.eventName || "한조고 동문 네트워크 모임"} · 주요 일정`;
   document.getElementById("heroDate").textContent=formatEventDate(p.eventDate);
   document.getElementById("heroPlace").textContent=`${p.eventName || ""} · ${p.venueName || ""}`;
 
@@ -510,16 +491,6 @@ function renderHeaderAndInfo(){
   document.getElementById("venueAddress").textContent=p.venueAddress || "";
   document.getElementById("eventTimeBox").innerHTML=
     `입장 가능 · ${esc(p.entryTime || "")} 이후<br>본행사 시작 · ${esc(p.startTime || "")}`;
-
-  const feeBox=document.getElementById("participantFeeBox");
-  if(feeBox){
-    if(String(p.participantFee || "").trim()){
-      feeBox.innerHTML=`참가비 · <strong>${esc(p.participantFee)}</strong>`;
-      feeBox.style.display="block";
-    }else{
-      feeBox.style.display="none";
-    }
-  }
 
   const mapBtn=document.getElementById("mapBtn");
   mapBtn.href=p.venueMapUrl || "#";
@@ -544,11 +515,8 @@ function renderHeaderAndInfo(){
   document.getElementById("contactMailBtn").href="mailto:"+(p.contactEmail || "");
 
   const resources=[];
-  const resourceTitle=document.querySelector(".resource-title");
-  if(resourceTitle) resourceTitle.textContent=`${p.eventName || "한조고"} · 공식 링크`;
-
   if(p.instagramUrl){
-    resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">${esc(instagramDisplayName(p.instagramUrl))}</div></a>`);
+    resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">@kcas_archived</div></a>`);
   }
 
   if(p.kakaoUrl){
@@ -725,128 +693,12 @@ function renderCalendar(){
 
 
 
-function normalizePublicGoogleSheetCsvUrl(raw){
-  const input=String(raw||"").trim();
-  if(!input) return "";
-  try{
-    const u=new URL(input);
-    if(/output=csv/i.test(u.search) || /tqx=out:csv/i.test(u.search)) return input;
-    const pubMatch=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(pubhtml|pub)$/);
-    if(pubMatch){
-      const gid=u.searchParams.get("gid") || "0";
-      return `${u.origin}/spreadsheets/d/e/${pubMatch[1]}/pub?output=csv&gid=${encodeURIComponent(gid)}`;
-    }
-    const sheetMatch=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
-    if(sheetMatch){
-      let gid=u.searchParams.get("gid") || "";
-      if(!gid && u.hash){
-        const hm=u.hash.match(/gid=(\d+)/);
-        if(hm) gid=hm[1];
-      }
-      const qs=new URLSearchParams({tqx:"out:csv"});
-      if(gid) qs.set("gid",gid);
-      return `${u.origin}/spreadsheets/d/${sheetMatch[1]}/gviz/tq?${qs.toString()}`;
-    }
-  }catch(e){}
-  return input;
-}
 
-function parsePublicCsv(text){
-  const rows=[]; let row=[], field="", quoted=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(quoted){
-      if(c==='"' && text[i+1]==='"'){ field+='"'; i++; }
-      else if(c==='"') quoted=false;
-      else field+=c;
-    }else{
-      if(c==='"') quoted=true;
-      else if(c===','){ row.push(field); field=""; }
-      else if(c==='\n'){ row.push(field.replace(/\r$/,"") ); rows.push(row); row=[]; field=""; }
-      else field+=c;
-    }
-  }
-  if(field.length || row.length){ row.push(field.replace(/\r$/,"") ); rows.push(row); }
-  return rows.filter(r=>r.some(c=>String(c||"").trim()!==""));
-}
 
-function normalizePublicHeader(v){
-  return String(v||"").trim().toLowerCase().replace(/\s+/g,"");
-}
-
-function parsePublicDate(v){
-  const s=String(v||"").trim();
-  if(!s) return null;
-  const d=new Date(s);
-  if(!isNaN(d)) return d;
-  const m=s.match(/(\d{4})[./-]\s*(\d{1,2})[./-]\s*(\d{1,2})/);
-  return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null;
-}
-
-function buildPublicAlumniStats(text){
-  const rows=parsePublicCsv(text);
-  if(rows.length<2) return null;
-  const headers=rows[0].map(normalizePublicHeader);
-  const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
-  const genIdx=headers.findIndex(h=>h.includes("기수") || h.includes("졸업기수"));
-  const timeIdx=headers.findIndex(h=>h.includes("타임스탬프") || h.includes("timestamp") || h.includes("제출시간") || h.includes("응답시간") || h.includes("작성시간"));
-  const byGeneration={};
-  let recent7=0;
-  const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
-
-  dataRows.forEach(r=>{
-    if(genIdx>=0){
-      const m=String(r[genIdx]||"").trim().match(/(\d{1,2})\s*기?/);
-      if(m){
-        const n=Number(m[1]);
-        if(n>0 && n<100) byGeneration[n]=(byGeneration[n]||0)+1;
-      }
-    }
-    if(timeIdx>=0){
-      const d=parsePublicDate(r[timeIdx]);
-      if(d && d>=since) recent7++;
-    }
-  });
-
-  return {
-    total:dataRows.length,
-    recent7:timeIdx>=0 ? recent7 : null,
-    byGeneration,
-    updatedAt:new Date().toLocaleString("ko-KR")
-  };
-}
-
-async function ensureAlumniStats(){
-  // 외부 페이지는 내부 대시보드의 수동 새로고침에 의존하지 않고
-  // 저장된 CSV 주소에서 항상 최신 졸업생 DB를 직접 다시 집계한다.
-  // 직접 조회가 실패한 경우에만 Supabase에 저장된 기존 집계값을 그대로 사용한다.
-  if(!alumniCsvUrl){
-    renderAlumniStats();
-    return;
-  }
-  try{
-    const rawUrl=normalizePublicGoogleSheetCsvUrl(alumniCsvUrl);
-    const u=new URL(rawUrl, window.location.href);
-    u.searchParams.set("_refresh", String(Date.now()));
-    const res=await fetch(u.toString(),{cache:"no-store"});
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const text=await res.text();
-    const low=String(text||"").trim().slice(0,200).toLowerCase();
-    if(low.startsWith("<!doctype html") || low.startsWith("<html")) throw new Error("CSV 대신 HTML 응답");
-    const built=buildPublicAlumniStats(text);
-    if(built && Number(built.total||0)>=0){
-      alumniStats=built;
-      saveCachedAlumniStats(built);
-    }
-  }catch(e){
-    console.warn("졸업생 DB 직접 집계 실패 - 기존 집계값을 유지합니다.",e);
-  }
-  renderAlumniStats();
-}
 
 function renderAlumniStats(){
   const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중입니다. 잠시 후에도 표시되지 않으면 졸업생 DB 원본 연결 상태를 확인해주세요.</div>';if(updated)updated.textContent="";return;}
+  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중이거나 연동을 확인하고 있습니다.</div>';if(updated)updated.textContent="";return;}
   const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
   const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
   body.innerHTML=`<div class="alumni-summary">
@@ -857,13 +709,59 @@ function renderAlumniStats(){
 }
 
 
-function renderParticipantApplyPublic(){
-  const wrap=document.getElementById("participantApplyPublic");
-  const count=document.getElementById("participantApplyPublicCount");
+function parseKoreaLocalDateTime(v){
+  if(!v) return null;
+  return new Date(v + ":00+09:00");
+}
+
+function renderParticipantApplicationStats(){
+  const wrap=document.getElementById("applicationStatsBlock");
+  const total=document.getElementById("publicParticipantTotal");
+  const s=participantApplicationStats;
   if(!wrap) return;
-  if(!participantApplyStats){wrap.style.display="none";return;}
+  if(!s){ wrap.style.display="none"; return; }
   wrap.style.display="block";
-  if(count) count.textContent=Number(participantApplyStats.total||0).toLocaleString()+"명";
+  if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
+}
+
+function renderApplicationCta(){
+  const wrap=document.getElementById("applicationCta");
+  const btn=document.getElementById("applicationBtn");
+  const sub=document.getElementById("applicationSub");
+  if(!wrap || !btn) return;
+  const a={...DEFAULT_APPLICATION_SCHEDULE,...(applicationSchedule||{})};
+  if(a.enabled===false){ wrap.style.display="none"; return; }
+  wrap.style.display="block";
+
+  const now=new Date();
+  const open=parseKoreaLocalDateTime(a.openAt);
+  const close=parseKoreaLocalDateTime(a.closeAt);
+
+  btn.classList.add("disabled");
+  btn.removeAttribute("href");
+  btn.removeAttribute("target");
+
+  if(open && now<open){
+    btn.textContent=a.beforeLabel||DEFAULT_APPLICATION_SCHEDULE.beforeLabel;
+    if(sub) sub.textContent="지정된 오픈 시간에 자동으로 신청 버튼이 활성화됩니다.";
+    return;
+  }
+  if(close && now>=close){
+    btn.textContent=a.closedLabel||DEFAULT_APPLICATION_SCHEDULE.closedLabel;
+    if(sub) sub.textContent="1차 참가신청이 마감되었습니다.";
+    return;
+  }
+  if(a.formUrl){
+    btn.textContent=a.openLabel||DEFAULT_APPLICATION_SCHEDULE.openLabel;
+    btn.classList.remove("disabled");
+    btn.href=a.formUrl;
+    btn.target="_blank";
+    btn.rel="noopener";
+    if(sub) sub.textContent="버튼을 누르면 참가신청 구글폼으로 이동합니다.";
+  }else{
+    btn.textContent="참가신청 링크 준비 중";
+    if(sub) sub.textContent="참가신청 링크가 등록되는 대로 열립니다.";
+  }
 }
 
 function renderAll(){
@@ -872,7 +770,8 @@ function renderAll(){
   renderNextAndTimeline();
   renderCalendar();
   renderAlumniStats();
-  renderParticipantApplyPublic();
+  renderParticipantApplicationStats();
+  renderApplicationCta();
 }
 
 
@@ -925,89 +824,42 @@ async function recordAndShowVisit(){
   }
 }
 
-
-async function fetchPublicDashboardRow(){
-  // 1순위: 내부 대시보드가 반영 완료 여부를 확인하는 것과 동일한 RPC에서
-  // dashboard_state의 최신 publicInfo를 직접 읽는다.
+async function loadPublicInfo(){
+  renderAll();
   try{
     const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
     if(error) throw error;
-    if(data && typeof data==="object"){
-      console.info("한조고 공개정보: RPC 최신값 사용", data.updatedAt || "");
-      return {data, updated_at:data.updatedAt||null};
-    }
-  }catch(e){
-    console.warn("RPC 공개정보 조회 실패, 공개 테이블로 재시도합니다.", e);
-  }
 
-  // 2순위: RPC가 실제로 실패한 경우에만 기존 공개 테이블을 fallback으로 사용한다.
-  const {data:row,error}=await sb
-    .from("public_dashboard_state")
-    .select("data,updated_at")
-    .eq("id","main")
-    .maybeSingle();
-  if(error) throw error;
-  if(row && row.data && typeof row.data==="object"){
-    console.info("한조고 공개정보: public_dashboard_state fallback 사용", row.updated_at || "");
-    return row;
-  }
-  return null;
-}
+    const payload=(data && typeof data==="object") ? data : {};
+    const saved=payload.publicInfo;
 
-async function loadPublicInfo(){
-  // 1) 이전에 정상 조회한 졸업생 DB를 즉시 표시한다.
-  // 2) Google CSV 최신 조회는 Supabase 로딩과 병렬로 시작한다.
-  const cached=loadCachedAlumniStats();
-  if(cached) alumniStats=cached;
-  renderAll();
-  const alumniRefreshPromise=ensureAlumniStats();
+    alumniStats=payload.publicAlumniStats || null;
+    participantApplicationStats=payload.participantApplicationStats || null;
+    applicationSchedule={
+      ...DEFAULT_APPLICATION_SCHEDULE,
+      ...(payload.applicationSchedule || {})
+    };
 
-  try{
-    const row=await fetchPublicDashboardRow();
-    const saved=row?.data?.publicInfo;
-    participantApplyStats=row?.data?.participantApplyStats || null;
-    alumniCsvUrl=ALUMNI_CSV_URL;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
-      const stamp=document.getElementById("publicInfoUpdated");
-      if(stamp && row?.updated_at){
-        const d=new Date(row.updated_at);
-        stamp.textContent=isNaN(d)?"":`공개정보 최근 반영 · ${d.toLocaleString("ko-KR")}`;
-      }
     }
-  }catch(e){
-    console.warn("공개 정보를 불러오지 못했습니다. 마지막 표시값/기본값을 사용합니다.",e);
-  }
 
-  // Supabase를 기다리느라 졸업생 DB 표시가 늦어지지 않도록 별도로 갱신한다.
-  renderAll();
-  await alumniRefreshPromise;
-}
-
-async function refreshPublicState({render=true}={}){
-  try{
-    const row=await fetchPublicDashboardRow();
-    const saved=row?.data?.publicInfo;
-    participantApplyStats=row?.data?.participantApplyStats || null;
-    if(saved && typeof saved==="object"){
-      publicInfo=mergePublicInfo(saved);
-      const stamp=document.getElementById("publicInfoUpdated");
-      if(stamp && row?.updated_at){
-        const d=new Date(row.updated_at);
-        stamp.textContent=isNaN(d)?"":`공개정보 최근 반영 · ${d.toLocaleString("ko-KR")}`;
-      }
-    }
-    if(render) renderAll();
-    return true;
+    renderAll();
   }catch(e){
-    console.warn("공개 정보 새로고침 실패",e);
-    return false;
+    console.warn("공개 대시보드 정보를 불러오지 못했습니다.",e);
+    renderAll();
   }
 }
 
 function subscribeRealtime(){
-  // 공개정보는 RPC에서 직접 최신값을 읽는다.
-  // 중간 공개 테이블의 오래된 Realtime 이벤트가 화면을 덮어쓰지 않도록 사용하지 않는다.
+  sb.channel("hanjogo-public-page")
+    .on("postgres_changes",
+      {event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},
+      async ()=>{
+        await loadPublicInfo();
+      }
+    )
+    .subscribe();
 }
 
 function showToast(text){
@@ -1032,10 +884,9 @@ async function copyText(text,message){
 }
 
 async function sharePage(){
-  const p=publicInfo || DEFAULT_PUBLIC_INFO;
   const data={
-    title:p.eventName || "한조고 동문 네트워크 모임",
-    text:`${formatEventDate(p.eventDate)} · ${p.venueName || ""} · ${p.eventName || "한조고 동문 네트워크 모임"}`,
+    title:"한조고 동문 네트워크 모임",
+    text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
     url:window.location.href
   };
 
@@ -1059,22 +910,7 @@ document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText
 loadPublicInfo();
 subscribeRealtime();
 recordAndShowVisit();
-
-// 불필요한 1분 폴링은 하지 않습니다.
-// 탭으로 돌아왔을 때 마지막 확인 후 5분이 지났으면 한 번만 최신값을 확인합니다.
-let lastAlumniRefreshAt = Date.now();
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState === "visible" && Date.now()-lastAlumniRefreshAt > 5*60*1000){
-    lastAlumniRefreshAt=Date.now();
-    ensureAlumniStats();
-  }
-});
-
-// Realtime 설정이 꺼져 있거나 모바일 브라우저가 연결을 끊어도 공개정보가 갱신되도록
-// 작은 공개 상태 행만 20초마다 확인한다. Google 졸업생 CSV는 여기서 재조회하지 않는다.
-setInterval(()=>{ if(!document.hidden) refreshPublicState(); },20000);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshPublicState(); });
+setInterval(renderApplicationCta,30000);
 </script>
-<!-- HANJOGO_EXTERNAL_FIX_20260822_1437 -->
 </body>
 </html>

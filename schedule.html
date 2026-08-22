@@ -895,6 +895,13 @@ async function recordAndShowVisit(){
   }
 }
 
+
+async function fetchPublicDashboardRow(){
+  const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
+  if(error) throw error;
+  return data ? {data, updated_at:data.updatedAt||null} : null;
+}
+
 async function loadPublicInfo(){
   // 1) 이전에 정상 조회한 졸업생 DB를 즉시 표시한다.
   // 2) Google CSV 최신 조회는 Supabase 로딩과 병렬로 시작한다.
@@ -904,11 +911,9 @@ async function loadPublicInfo(){
   const alumniRefreshPromise=ensureAlumniStats();
 
   try{
-    const {data,error}=await sb.from("public_dashboard_state").select("data").eq("id","main").maybeSingle();
-    if(error) throw error;
-
-    const saved=data?.data?.publicInfo;
-    participantApplyStats=data?.data?.participantApplyStats || null;
+    const row=await fetchPublicDashboardRow();
+    const saved=row?.data?.publicInfo;
+    participantApplyStats=row?.data?.participantApplyStats || null;
     alumniCsvUrl=ALUMNI_CSV_URL;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
@@ -924,10 +929,9 @@ async function loadPublicInfo(){
 
 async function refreshPublicState({render=true}={}){
   try{
-    const {data,error}=await sb.from("public_dashboard_state").select("data,updated_at").eq("id","main").maybeSingle();
-    if(error) throw error;
-    const saved=data?.data?.publicInfo;
-    participantApplyStats=data?.data?.participantApplyStats || null;
+    const row=await fetchPublicDashboardRow();
+    const saved=row?.data?.publicInfo;
+    participantApplyStats=row?.data?.participantApplyStats || null;
     if(saved && typeof saved==="object") publicInfo=mergePublicInfo(saved);
     if(render) renderAll();
     return true;
@@ -938,18 +942,8 @@ async function refreshPublicState({render=true}={}){
 }
 
 function subscribeRealtime(){
-  sb.channel("hanjogo-public-page")
-    .on("postgres_changes",{event:"*",schema:"public",table:"public_dashboard_state",filter:"id=eq.main"},payload=>{
-      const saved=payload.new?.data?.publicInfo;
-      alumniCsvUrl=ALUMNI_CSV_URL;
-      participantApplyStats=payload.new?.data?.participantApplyStats || null;
-      if(!saved || typeof saved!=="object"){ renderAlumniStats(); return; }
-
-      publicInfo=mergePublicInfo(saved);
-      renderAll();
-      ensureAlumniStats();
-    })
-    .subscribe();
+  // 공개정보는 RPC에서 직접 최신값을 읽는다.
+  // 중간 공개 테이블의 오래된 Realtime 이벤트가 화면을 덮어쓰지 않도록 사용하지 않는다.
 }
 
 function showToast(text){

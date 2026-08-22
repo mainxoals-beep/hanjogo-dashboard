@@ -857,10 +857,11 @@
 
   <nav class="main-tabs" id="mainTabs" aria-label="대시보드 메뉴">
     <button class="main-tab active" data-tab="home">홈</button>
-    <button class="main-tab" data-tab="schedule">일정 · 할 일</button>
-    <button class="main-tab" data-tab="people">참가자 · 운영</button>
-    <button class="main-tab" data-tab="notice">공지 · 협찬</button>
-    <button class="main-tab" data-tab="budget">예산 · 설정</button>
+    <button class="main-tab" data-tab="people">참가 · 졸업생</button>
+    <button class="main-tab" data-tab="operations">행사 운영</button>
+    <button class="main-tab" data-tab="finance">협찬 · 재정</button>
+    <button class="main-tab" data-tab="public">홍보 · 외부페이지</button>
+    <button class="main-tab" data-tab="system">시스템 설정</button>
   </nav>
 
   <div class="hero">
@@ -1622,7 +1623,38 @@ const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const DASHBOARD_TABLE = "dashboard_state";
+const PUBLIC_DASHBOARD_TABLE = "public_dashboard_state";
 const DASHBOARD_ID = "main";
+
+function buildPublicProjection(){
+  return {
+    publicInfo: {...DEFAULT_PUBLIC_INFO, ...(state.publicInfo||{})},
+    publicAlumniStats: state.formSync?.alumniStats || null,
+    participantApplyStats: state.participantApplySync?.stats || null,
+    publishedAt: new Date().toISOString()
+  };
+}
+
+async function syncPublicProjection(options={}){
+  const silent=!!options.silent;
+  try{
+    const payload=buildPublicProjection();
+    const {error}=await sb.from(PUBLIC_DASHBOARD_TABLE).upsert({
+      id:DASHBOARD_ID,
+      data:payload,
+      updated_at:new Date().toISOString()
+    },{onConflict:"id"});
+    if(error) throw error;
+    return true;
+  }catch(e){
+    console.error("외부 공개 데이터 동기화 실패",e);
+    if(!silent){
+      const status=document.getElementById("publicSaveStatus");
+      if(status){status.textContent="내부 저장됨 · 외부 반영 실패";status.className="public-save-status dirty";}
+    }
+    return false;
+  }
+}
 let sharedDataCache = null;
 let sharedRowExists = false;
 let remoteLoadingPromise = null;
@@ -3016,6 +3048,7 @@ async function fetchFormCsv(){
     state.formSync.lastCount = count;
     state.formSync.lastSyncTime = new Date().toLocaleString("ko-KR");
     await dSet("formSync", state.formSync);
+    await syncPublicProjection({silent:true});
     renderFormSyncStats();
     renderAlumniDbSummary();
   }catch(err){
@@ -3110,6 +3143,7 @@ async function fetchParticipantApplyCsv(){
     const stats=participantApplyBuildStats(text);
     state.participantApplySync={...state.participantApplySync,stats};
     await dSet("participantApplySync",state.participantApplySync);
+    await syncPublicProjection({silent:true});
     renderParticipantApplySync();
     if(status){status.textContent=`연동 완료 · ${stats.total}명`;status.className="account-save-status ok";}
   }catch(e){
@@ -3277,10 +3311,11 @@ function setupMainTabs(){
   };
 
   // reverse insertion order because every panel is inserted immediately after nav
-  const budget = makePanel("budget","예산과 외부 페이지·링크 설정을 관리합니다.");
-  const notice = makePanel("notice","외부로 공유되는 공지문, 협찬과 제작 진행 상황을 관리합니다.");
-  const people = makePanel("people","참가자와 준비위원, 대기자 등 사람 관련 정보를 관리합니다.");
-  const schedule = makePanel("schedule","준비 일정, 세부 할 일과 행사 당일 운영을 관리합니다.");
+  const system = makePanel("system","DB 연동과 공동 저장 등 평소 자주 변경하지 않는 시스템 설정입니다.");
+  const publicPanel = makePanel("public","외부에 공개되는 공지·파일·행사 정보와 공식 링크를 한곳에서 관리합니다.");
+  const finance = makePanel("finance","협찬·제작비·수입·지출 등 비용과 지원 관련 업무를 관리합니다.");
+  const operations = makePanel("operations","준비 일정, 세부 할 일, 제작물과 행사 당일 운영을 관리합니다.");
+  const people = makePanel("people","참가신청, 졸업생 DB, 참가자·대기자·준비위원을 관리합니다.");
   const home = makePanel("home","현재 준비 상황에서 중요한 내용만 빠르게 확인합니다.");
 
   const move = (selector, panel) => {
@@ -3293,6 +3328,7 @@ function setupMainTabs(){
     if(section) panel.appendChild(section);
   };
 
+  // 홈 = 확인 중심
   move(".hero", home);
   move(".action-card", home);
   move(".stat-row", home);
@@ -3303,53 +3339,48 @@ function setupMainTabs(){
   home.appendChild(visitorCard);
   visitorCard.querySelector("#refreshVisitorStats")?.addEventListener("click",loadVisitorStats);
 
-
-  moveSectionByBody("body-phases", schedule);
-  moveSectionByBody("body-dayprogram", schedule);
-
+  // 참가 · 졸업생
   move("#section-alumni-db", people);
   move("#section-participant-apply-sync", people);
   moveSectionByBody("body-participants", people);
   moveSectionByBody("body-waitlist", people);
   moveSectionByBody("body-committee", people);
 
-  move("#section-announcements", notice);
-  move("#section-shared-files", notice);
-  moveSectionByBody("body-sponsors", notice);
-  moveSectionByBody("body-production", notice);
+  // 행사 운영
+  moveSectionByBody("body-phases", operations);
+  moveSectionByBody("body-dayprogram", operations);
+  moveSectionByBody("body-production", operations);
 
-  move("#section-budget", budget);
-  moveSectionByBody("body-settings", budget);
+  // 협찬 · 재정
+  moveSectionByBody("body-sponsors", finance);
+  move("#section-budget", finance);
 
-  const publicShortcut=document.createElement("div");
-  publicShortcut.className="public-editor-shortcut";
-  publicShortcut.innerHTML=`
-    <div>
-      <div class="public-editor-shortcut-title">외부 페이지 정보 수정</div>
-      <div class="public-editor-shortcut-sub">외부 링크에 표시되는 행사 정보·장소·주차·문의·공식 링크·FAQ를 수정합니다.</div>
-    </div>
-    <button type="button" id="openPublicEditorShortcut">수정하기</button>`;
-  budget.prepend(publicShortcut);
+  // 홍보 · 외부페이지 / 시스템 설정: 기존 설정 섹션 내부 그룹을 역할별로 분리
+  move("#section-announcements", publicPanel);
+  move("#section-shared-files", publicPanel);
+  const settingsBody=document.getElementById("body-settings");
+  const settingsSection=settingsBody?.closest("section");
+  if(settingsBody){
+    const groups=[...settingsBody.querySelectorAll(":scope > .settings-group")];
+    groups.forEach(group=>{
+      const title=(group.querySelector(".settings-title")?.textContent||"").trim();
+      if(title==="채널 & 링크" || title==="외부 페이지 관리") publicPanel.appendChild(group);
+      else system.appendChild(group);
+    });
+    if(settingsSection) settingsSection.remove();
+  }
 
-  publicShortcut.querySelector("#openPublicEditorShortcut")?.addEventListener("click",()=>{
-    const settingsBody=document.getElementById("body-settings");
-    if(settingsBody){
-      settingsBody.classList.remove("collapsed");
-      const btn=document.querySelector('.collapse-btn[data-target="body-settings"]');
-      if(btn){
-        btn.querySelector(".collapse-label") && (btn.querySelector(".collapse-label").textContent="접기");
-        btn.querySelector(".chevron") && (btn.querySelector(".chevron").textContent="▴");
-      }
-    }
-    const publicEditor=document.getElementById("publicFaqEditor")?.closest(".settings-group");
-    if(publicEditor){
-      setTimeout(()=>publicEditor.scrollIntoView({behavior:"smooth",block:"start"}),50);
-    }
-  });
-
+  // 외부 페이지 편집 상단 안내/바로가기
+  const publicHeader=document.createElement("div");
+  publicHeader.className="public-editor-shortcut";
+  publicHeader.innerHTML=`<div><div class="public-editor-shortcut-title">외부 페이지 관리</div><div class="public-editor-shortcut-sub">저장 시 공개용 데이터에 별도로 반영됩니다. 아래 상태에서 실제 외부 반영 여부를 확인할 수 있습니다.</div></div><button type="button" id="openPublicPageTop">외부 페이지 열기</button>`;
+  publicPanel.prepend(publicHeader);
+  publicHeader.querySelector("#openPublicPageTop")?.addEventListener("click",()=>window.open("./schedule.html","_blank"));
 
   let current = "home";
   try{ current = localStorage.getItem("hanjogo_main_tab") || "home"; }catch(e){}
+  const legacyMap={schedule:"operations",notice:"public",budget:"finance"};
+  current=legacyMap[current]||current;
   const activate = (name) => {
     if(!document.getElementById("tab-"+name)) name="home";
     document.querySelectorAll(".main-tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
@@ -3361,7 +3392,6 @@ function setupMainTabs(){
   activate(current);
   dashboardTabsReady = true;
 }
-
 
 async function loadVisitorStats(){
   const todayEl=document.getElementById("internalTodayVisitors");
@@ -4224,7 +4254,12 @@ document.getElementById("savePublicInfo")?.addEventListener("click", async () =>
     };
 
     await dSet("publicInfo", state.publicInfo);
-    setPublicSaveState("saved");
+    const publicSynced = await syncPublicProjection();
+    if(publicSynced){
+      setPublicSaveState("saved");
+      const status=document.getElementById("publicSaveStatus");
+      if(status){status.textContent="외부 반영 완료";status.className="public-save-status saved";}
+    }
   }catch(e){
     console.error(e);
     if(btn){

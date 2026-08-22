@@ -339,6 +339,8 @@ button{cursor:pointer}
     방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
   </div>
   <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
+  <div class="note" id="publicInfoUpdated" style="margin-top:6px"></div>
+  <div class="note" style="margin-top:4px">외부 페이지 버전 · 2026.08.22-1437</div>
 </div>
 
 <div class="toast" id="toast">복사되었습니다.</div>
@@ -925,9 +927,29 @@ async function recordAndShowVisit(){
 
 
 async function fetchPublicDashboardRow(){
+  // 1순위: 처음 안정적으로 동작하던 공개 테이블을 직접 읽는다.
+  // dashboard_state 변경 시 서버 트리거가 public_dashboard_state를 갱신한다.
+  try{
+    const {data:row,error}=await sb
+      .from("public_dashboard_state")
+      .select("data,updated_at")
+      .eq("id","main")
+      .maybeSingle();
+    if(error) throw error;
+    if(row && row.data && typeof row.data==="object"){
+      console.info("한조고 공개정보: public_dashboard_state 사용", row.updated_at || "");
+      return row;
+    }
+  }catch(e){
+    console.warn("공개 테이블 직접 조회 실패, RPC로 재시도합니다.", e);
+  }
+
+  // 2순위: 공개 테이블 조회가 실패할 때만 RPC를 사용한다.
   const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
   if(error) throw error;
-  return data ? {data, updated_at:data.updatedAt||null} : null;
+  if(!data || typeof data!=="object") return null;
+  console.info("한조고 공개정보: RPC fallback 사용", data.updatedAt || "");
+  return {data, updated_at:data.updatedAt||null};
 }
 
 async function loadPublicInfo(){
@@ -945,6 +967,11 @@ async function loadPublicInfo(){
     alumniCsvUrl=ALUMNI_CSV_URL;
     if(saved && typeof saved==="object"){
       publicInfo=mergePublicInfo(saved);
+      const stamp=document.getElementById("publicInfoUpdated");
+      if(stamp && row?.updated_at){
+        const d=new Date(row.updated_at);
+        stamp.textContent=isNaN(d)?"":`공개정보 최근 반영 · ${d.toLocaleString("ko-KR")}`;
+      }
     }
   }catch(e){
     console.warn("공개 정보를 불러오지 못했습니다. 마지막 표시값/기본값을 사용합니다.",e);
@@ -960,7 +987,14 @@ async function refreshPublicState({render=true}={}){
     const row=await fetchPublicDashboardRow();
     const saved=row?.data?.publicInfo;
     participantApplyStats=row?.data?.participantApplyStats || null;
-    if(saved && typeof saved==="object") publicInfo=mergePublicInfo(saved);
+    if(saved && typeof saved==="object"){
+      publicInfo=mergePublicInfo(saved);
+      const stamp=document.getElementById("publicInfoUpdated");
+      if(stamp && row?.updated_at){
+        const d=new Date(row.updated_at);
+        stamp.textContent=isNaN(d)?"":`공개정보 최근 반영 · ${d.toLocaleString("ko-KR")}`;
+      }
+    }
     if(render) renderAll();
     return true;
   }catch(e){
@@ -1039,5 +1073,6 @@ document.addEventListener("visibilitychange",()=>{
 setInterval(()=>{ if(!document.hidden) refreshPublicState(); },20000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshPublicState(); });
 </script>
+<!-- HANJOGO_EXTERNAL_FIX_20260822_1437 -->
 </body>
 </html>

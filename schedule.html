@@ -739,7 +739,15 @@ function renderParticipantApplicationStats(){
   const total=document.getElementById("publicParticipantTotal");
   const s=participantApplicationStats;
   if(!wrap) return;
-  if(!s){ wrap.style.display="none"; return; }
+
+  const a={...DEFAULT_APPLICATION_SCHEDULE,...((applicationSchedule&&typeof applicationSchedule==="object")?applicationSchedule:{})};
+  const open=parseKoreaLocalDateTime(a.openAt);
+
+  if(!s || (open && new Date() < open)){
+    wrap.style.display="none";
+    return;
+  }
+
   wrap.style.display="block";
   if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
 }

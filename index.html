@@ -1635,6 +1635,18 @@ function buildPublicProjection(){
   };
 }
 
+function stableJson(value){
+  if(Array.isArray(value)) return value.map(stableJson);
+  if(value && typeof value==="object"){
+    return Object.keys(value).sort().reduce((out,key)=>{ out[key]=stableJson(value[key]); return out; },{});
+  }
+  return value;
+}
+
+function publicInfoEquals(a,b){
+  return JSON.stringify(stableJson(a))===JSON.stringify(stableJson(b));
+}
+
 async function syncPublicProjection(options={}){
   // 공개정보는 브라우저가 public_dashboard_state에 직접 쓰지 않는다.
   // dashboard_state 저장 후 Supabase DB 트리거가 공개 가능한 값만 서버에서 복제한다.
@@ -1642,17 +1654,17 @@ async function syncPublicProjection(options={}){
   const expected={...DEFAULT_PUBLIC_INFO, ...(state.publicInfo||{})};
   try{
     // 트리거 반영 직후 약간의 지연이 있을 수 있어 짧게 재확인한다.
-    for(let i=0;i<6;i++){
+    for(let i=0;i<8;i++){
       const {data,error}=await sb.from(PUBLIC_DASHBOARD_TABLE)
         .select("data,updated_at")
         .eq("id",DASHBOARD_ID)
         .maybeSingle();
       if(error) throw error;
       const actual=data?.data?.publicInfo;
-      if(actual && JSON.stringify(actual)===JSON.stringify(expected)){
+      if(actual && publicInfoEquals(actual,expected)){
         return true;
       }
-      await new Promise(r=>setTimeout(r,350));
+      await new Promise(r=>setTimeout(r,400));
     }
     throw new Error("공개 테이블 반영 확인 시간 초과");
   }catch(e){

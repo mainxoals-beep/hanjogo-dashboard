@@ -1707,6 +1707,7 @@ function setSaveStatus(kind, retryFn){
 }
 
 // ---------- Supabase shared storage ----------
+const ATOMIC_SAVE_BUILD = "2026-08-22-atomic-key-save-v1";
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1714,6 +1715,7 @@ const DASHBOARD_TABLE = "dashboard_state";
 const DASHBOARD_ID = "main";
 let sharedDataCache = null;
 let sharedRowExists = false;
+let remoteLoadFailed = false;
 let remoteLoadingPromise = null;
 let lastRemoteUpdatedAt = null;
 let lastRemoteUpdatedBy = "";
@@ -1764,6 +1766,7 @@ async function loadRemoteState(){
       const { data, error } = await sb.from(DASHBOARD_TABLE).select("data,updated_at,updated_by").eq("id", DASHBOARD_ID).maybeSingle();
       if(error) throw error;
       sharedRowExists = !!data;
+      remoteLoadFailed = false;
       sharedDataCache = data && data.data && typeof data.data === "object" ? data.data : {};
       lastRemoteUpdatedAt = data ? data.updated_at : null;
       lastRemoteUpdatedBy = data ? (data.updated_by || "") : "";
@@ -1771,6 +1774,7 @@ async function loadRemoteState(){
       return sharedDataCache;
     }catch(e){
       console.error("Supabase load failed", e);
+      remoteLoadFailed = true;
       setSaveStatus("failed", () => location.reload());
       sharedDataCache = {};
       return sharedDataCache;
@@ -1824,15 +1828,42 @@ async function storageSet(key, value, shared){
     try{ localStorage.setItem(lsKey(key), JSON.stringify(value)); }catch(e){ console.error(e); }
     return;
   }
-  await loadRemoteState();
-  sharedDataCache[key] = value;
-  await saveRemoteState();
+
+  setSaveStatus("saving");
+  try{
+    const saveTs=new Date().toISOString();
+    const saveBy=editorName || loadEditorName() || "이름 미입력";
+    lastLocalSaveTimestamp=saveTs;
+
+    const {data,error}=await sb.rpc("update_hanjogo_dashboard_key",{
+      p_key:key,
+      p_value:value,
+      p_updated_by:saveBy
+    });
+    if(error) throw error;
+
+    // RPC returns the newest full JSON after atomically changing only this key.
+    sharedDataCache=(data && typeof data==="object") ? data : {...(sharedDataCache||{}),[key]:value};
+    sharedRowExists=true;
+    remoteLoadFailed=false;
+    lastRemoteUpdatedAt=saveTs;
+    lastRemoteUpdatedBy=saveBy;
+    renderLastEditMeta();
+    setSaveStatus("saved");
+  }catch(e){
+    console.error("Supabase atomic save failed",e);
+    setSaveStatus("failed",()=>storageSet(key,value,shared));
+    throw e;
+  }
 }
 
 function dGet(key, fallback){ return storageGet(key, fallback, true); }
 function dSet(key, value){ return storageSet(key, value, true); }
 
 async function initializeRemoteIfNeeded(){
+  // Never initialize defaults when the remote read itself failed.
+  // Otherwise a temporary network error can overwrite the live dashboard.
+  if(remoteLoadFailed) return;
   if(sharedRowExists) return;
   sharedDataCache = {
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,

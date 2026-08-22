@@ -808,6 +808,23 @@
   .file-repo-empty{padding:18px;text-align:center;color:var(--ink-mute);font-size:11px}
   @media(max-width:700px){.file-repo-grid{grid-template-columns:1fr}}
 
+
+.form-sync-success{margin-top:8px;padding:8px 10px;border-radius:8px;background:#F2F8F3;color:#2E6B45;font-size:10.5px;font-weight:800}
+
+  /* sponsor readability */
+  #sponsorTable{min-width:1420px;table-layout:fixed;}
+  #sponsorTable td{vertical-align:top;}
+  #sponsorTable .sponsor-longtext{
+    width:100%;min-height:76px;resize:vertical;
+    border:1px solid var(--line);border-radius:8px;padding:8px 9px;
+    font-size:12.5px;line-height:1.5;background:#fff;color:var(--ink);box-sizing:border-box;
+  }
+  #sponsorTable .sponsor-longtext:focus{outline:none;border-color:var(--purple);}
+  @media (max-width:640px){
+    #sponsorTable{min-width:0;table-layout:auto;}
+    #sponsorTable .sponsor-longtext{min-height:88px;}
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -857,11 +874,10 @@
 
   <nav class="main-tabs" id="mainTabs" aria-label="대시보드 메뉴">
     <button class="main-tab active" data-tab="home">홈</button>
-    <button class="main-tab" data-tab="people">참가 · 졸업생</button>
-    <button class="main-tab" data-tab="operations">행사 운영</button>
-    <button class="main-tab" data-tab="finance">협찬 · 재정</button>
-    <button class="main-tab" data-tab="public">홍보 · 외부페이지</button>
-    <button class="main-tab" data-tab="system">시스템 설정</button>
+    <button class="main-tab" data-tab="schedule">일정 · 할 일</button>
+    <button class="main-tab" data-tab="people">참가자 · 운영</button>
+    <button class="main-tab" data-tab="notice">공지 · 협찬</button>
+    <button class="main-tab" data-tab="budget">예산 · 설정</button>
   </nav>
 
   <div class="hero">
@@ -1029,7 +1045,7 @@
       <div class="card">
         <div style="overflow-x:auto;">
         <table class="to-cards" id="sponsorTable">
-          <thead><tr><th style="width:16%">업체/품목</th><th style="width:13%">협찬내용</th><th style="width:10%">담당</th><th style="width:11%">상태</th><th style="width:10%">최근연락</th><th style="width:16%">다음 액션</th><th style="width:14%">비고</th><th style="width:14%">이미지</th><th style="width:6%"></th></tr></thead>
+          <thead><tr><th style="width:14%">업체/품목</th><th style="width:24%">협찬내용</th><th style="width:9%">담당</th><th style="width:9%">상태</th><th style="width:9%">최근연락</th><th style="width:14%">다음 액션</th><th style="width:17%">비고</th><th style="width:4%"></th></tr></thead>
           <tbody id="sponsorBody"></tbody>
         </table>
         </div>
@@ -1124,35 +1140,97 @@
 
 
 
+  
   <!-- ===== 1차 참가신청 현황 자동 연동 ===== -->
-  <section id="section-participant-apply-sync">
+  <section id="section-participant-form-sync">
     <div class="sec-head">
       <div>
         <div class="sec-title">1차 참가신청 현황 자동 연동</div>
-        <div class="sec-note">참가신청 구글폼 응답 시트를 별도 CSV로 연결합니다. 졸업생 DB 연동과는 완전히 분리되어 있습니다.</div>
+        <div class="sec-note">1차 참가신청 구글폼 응답 시트를 CSV로 연결해 신청 건수를 자동 집계합니다.</div>
       </div>
       <div class="sec-head-right">
-        <button class="collapse-btn" data-target="body-participant-apply-sync"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+        <button class="collapse-btn" data-target="body-participant-form-sync"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
       </div>
     </div>
-    <div class="sec-body" id="body-participant-apply-sync">
+    <div class="sec-body" id="body-participant-form-sync">
       <div class="public-editor-card">
         <div class="mini-note" style="margin-bottom:10px">
-          1차 참가신청 구글폼의 응답 시트를 <b>파일 → 공유 → 웹에 게시 → CSV</b>로 공개한 뒤 아래 주소에 넣어주세요.
-          화면에는 개인정보 없이 신청 인원만 집계합니다.
+          참가신청 구글폼의 응답이 쌓이는 구글 시트를 <b>파일 → 공유 → 웹에 게시 → CSV</b>로 공개한 뒤 아래에 연결해주세요.
+          응답 원본은 화면에 표시하지 않고 <b>총 신청 인원 · 최근 7일 신규 · 기수별 신청 인원</b>만 집계합니다.
         </div>
         <div class="public-field">
           <label>1차 참가신청 응답 CSV 주소</label>
-          <input type="url" id="participantApplyCsvUrl" class="lockable" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv">
+          <input type="url" id="participantCsvUrl" class="lockable" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv">
         </div>
         <div class="form-actions" style="margin-top:10px">
-          <button type="button" class="mini-btn primary lockable" id="saveParticipantApplyCsv">CSV 주소 저장</button>
-          <button type="button" class="mini-btn" id="refreshParticipantApplyCsv">지금 새로고침</button>
-          <span id="participantApplyCsvStatus" class="account-save-status"></span>
+          <button type="button" class="mini-btn primary lockable" id="saveParticipantCsvUrl">CSV 주소 저장</button>
+          <button type="button" class="mini-btn" id="refreshParticipantCsv">지금 새로고침</button>
+          <span id="participantCsvStatus" class="account-save-status"></span>
         </div>
         <div class="kpi-grid" style="margin-top:12px">
-          <div class="kpi-card"><div class="kpi-label">총 신청 인원</div><div class="kpi-value" id="participantApplyTotal">-</div></div>
-          <div class="kpi-card"><div class="kpi-label">최근 7일 신규</div><div class="kpi-value" id="participantApplyRecent">-</div></div>
+          <div class="kpi-card"><div class="kpi-label">총 신청 인원</div><div class="kpi-value" id="participantTotalCount">-</div></div>
+          <div class="kpi-card"><div class="kpi-label">최근 7일 신규</div><div class="kpi-value" id="participantRecentCount">-</div></div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="sub-title">기수별 신청 인원</div>
+          <div id="participantCohortStats" class="chip-wrap"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 참가신청 자동 오픈 ===== -->
+  <section id="section-application-schedule">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title">참가신청 자동 오픈 설정</div>
+        <div class="sec-note">구글폼 링크를 미리 등록하고 외부 페이지 버튼을 지정한 날짜·시간에 자동으로 활성화합니다.</div>
+      </div>
+      <div class="sec-head-right">
+        <button class="collapse-btn" data-target="body-application-schedule"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+      </div>
+    </div>
+    <div class="sec-body" id="body-application-schedule">
+      <div class="public-editor-card">
+        <div class="public-grid">
+          <div class="public-field" style="grid-column:1/-1">
+            <label>1차 참가신청 구글폼 URL</label>
+            <input type="url" id="appFormUrl" class="lockable" placeholder="https://forms.gle/...">
+          </div>
+          <div class="public-field">
+            <label>오픈 일시</label>
+            <input type="datetime-local" id="appOpenAt" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>마감 일시 <span style="font-weight:400;color:var(--ink-mute)">(선택)</span></label>
+            <input type="datetime-local" id="appCloseAt" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>오픈 전 문구</label>
+            <input type="text" id="appBeforeLabel" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>접수 중 버튼 문구</label>
+            <input type="text" id="appOpenLabel" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>마감 후 문구</label>
+            <input type="text" id="appClosedLabel" class="lockable">
+          </div>
+          <div class="public-field">
+            <label>외부 페이지 노출</label>
+            <select id="appEnabled" class="lockable">
+              <option value="true">사용</option>
+              <option value="false">숨김</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:12px">
+          <button type="button" class="mini-btn primary lockable" id="saveApplicationSchedule">참가신청 설정 저장</button>
+          <span id="applicationScheduleSaveStatus" class="account-save-status"></span>
+        </div>
+        <div class="mini-note" style="margin-top:9px">
+          ※ 외부 페이지 버튼만 자동 제어합니다. 구글폼 자체의 ‘응답 받기’ 설정은 별도로 관리해주세요.
         </div>
       </div>
     </div>
@@ -1309,7 +1387,7 @@
         <div class="settings-title">졸업생 DB 현황 자동 연동</div>
         <div class="form-sync-card">
           <div class="form-sync-note">
-            <b>구글폼 링크 자체는 위 "채널 &amp; 링크"에 추가</b>해주세요. 여기는 폼 응답이 쌓이는 구글 시트를 <b>파일 → 공유 → 웹에 게시 → CSV</b>로 공개한 뒤 그 주소를 연결하면 신청 건수를 자동으로 세어주는 기능이에요. 개인정보 보호를 위해 응답 원본(이름·연락처)은 표시하지 않고 집계 수치만 보여줍니다.
+            <b>구글폼 링크 자체는 위 "채널 &amp; 링크"에 추가</b>해주세요. 여기는 폼 응답이 쌓이는 구글 시트를 <b>파일 → 공유 → 웹에 게시 → CSV</b>로 공개한 뒤 그 주소를 연결하면 졸업생 DB 등록 현황을 자동으로 집계하는 기능이에요. 개인정보 보호를 위해 응답 원본(이름·연락처)은 표시하지 않고 집계 수치만 보여줍니다.
           </div>
           <div class="form-sync-row">
             <input type="text" id="formCsvUrl" placeholder="구글 시트 CSV 게시 링크 붙여넣기" class="lockable">
@@ -1550,6 +1628,15 @@ const DEFAULT_TRANSACTIONS = {
   importedAt:""
 };
 
+const DEFAULT_APPLICATION_SCHEDULE = {
+  enabled:true,
+  formUrl:"",
+  openAt:"2026-09-02T10:00",
+  closeAt:"",
+  beforeLabel:"1차 참가신청 · 9월 2일 오픈 예정",
+  openLabel:"1차 참가신청 하기",
+  closedLabel:"1차 참가신청 마감"
+};
 const DEFAULT_SHARED_FILES = [];
 const DEFAULT_NOTICES = [];
 
@@ -1577,10 +1664,11 @@ let state = {
   committee: [],
   links: [],
   formSync: {csvUrl:"", lastCount:null, dayStartCount:null, dayStartDate:"", lastSyncTime:"", alumniStats:null},
-  participantApplySync: {csvUrl:"", stats:null},
+  participantFormSync: {csvUrl:"", stats:null},
   dayProgram: [],
   publicInfo: {...DEFAULT_PUBLIC_INFO},
   notices: [],
+  applicationSchedule: {...DEFAULT_APPLICATION_SCHEDULE},
   sharedFiles: [...DEFAULT_SHARED_FILES],
   budget: [],
   eventAccount: {...DEFAULT_EVENT_ACCOUNT},
@@ -1623,52 +1711,7 @@ const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const DASHBOARD_TABLE = "dashboard_state";
-const PUBLIC_DASHBOARD_TABLE = "public_dashboard_state";
 const DASHBOARD_ID = "main";
-
-function buildPublicProjection(){
-  return {
-    publicInfo: {...DEFAULT_PUBLIC_INFO, ...(state.publicInfo||{})},
-    publicAlumniStats: state.formSync?.alumniStats || null,
-    participantApplyStats: state.participantApplySync?.stats || null,
-    publishedAt: new Date().toISOString()
-  };
-}
-
-function stableJson(value){
-  if(Array.isArray(value)) return value.map(stableJson);
-  if(value && typeof value==="object"){
-    return Object.keys(value).sort().reduce((out,key)=>{ out[key]=stableJson(value[key]); return out; },{});
-  }
-  return value;
-}
-
-function publicInfoEquals(a,b){
-  return JSON.stringify(stableJson(a))===JSON.stringify(stableJson(b));
-}
-
-async function syncPublicProjection(options={}){
-  // 공개 페이지가 실제로 읽는 것과 동일한 RPC를 호출해 저장 결과를 확인한다.
-  const silent=!!options.silent;
-  const expected={...DEFAULT_PUBLIC_INFO, ...(state.publicInfo||{})};
-  try{
-    const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
-    if(error) throw error;
-    const actual=data?.publicInfo;
-    if(actual && publicInfoEquals(actual,expected)) return true;
-    throw new Error("저장된 공개정보와 RPC 조회값이 다릅니다.");
-  }catch(e){
-    console.error("외부 공개 데이터 반영 확인 실패",e);
-    if(!silent){
-      const status=document.getElementById("publicSaveStatus");
-      if(status){
-        status.textContent="내부 저장됨 · 외부 반영 확인 실패";
-        status.className="public-save-status dirty";
-      }
-    }
-    return false;
-  }
-}
 let sharedDataCache = null;
 let sharedRowExists = false;
 let remoteLoadingPromise = null;
@@ -1794,8 +1837,8 @@ async function initializeRemoteIfNeeded(){
   sharedDataCache = {
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
-    committee: state.committee, links: state.links, formSync: state.formSync, participantApplySync: state.participantApplySync, dayProgram: state.dayProgram,
-    publicInfo: state.publicInfo, notices: state.notices, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
+    committee: state.committee, links: state.links, formSync: state.formSync, publicAlumniStats: state.formSync?.alumniStats || null, participantFormSync: state.participantFormSync, dayProgram: state.dayProgram,
+    publicInfo: state.publicInfo, notices: state.notices, applicationSchedule: state.applicationSchedule, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
   };
   await saveRemoteState();
 }
@@ -1866,7 +1909,7 @@ async function loadAll(){
 
   const loadedFormSync = await dGet("formSync", null);
   state.formSync = loadedFormSync || {csvUrl:"", lastCount:null, dayStartCount:null, dayStartDate:"", lastSyncTime:"", alumniStats:null};
-  state.participantApplySync = await dGet("participantApplySync", {csvUrl:"", stats:null});
+  state.participantFormSync = await dGet("participantFormSync", {csvUrl:"", stats:null});
 
   state.dayProgram = await dGet("dayProgram", DEFAULT_DAY_PROGRAM.map(x => ({id:uid(), ...x})));
 
@@ -1883,6 +1926,7 @@ async function loadAll(){
     };
   }
   state.notices = await dGet("notices", DEFAULT_NOTICES.map(x => ({...x})));
+  state.applicationSchedule = await dGet("applicationSchedule", {...DEFAULT_APPLICATION_SCHEDULE});
   state.sharedFiles = await dGet("sharedFiles", [...DEFAULT_SHARED_FILES]);
   state.budget = await dGet("budget", DEFAULT_BUDGET.map(x => ({...x})));
   state.eventAccount = await dGet("eventAccount", {...DEFAULT_EVENT_ACCOUNT});
@@ -1943,7 +1987,7 @@ function applyEditLock(){
   const locked = !state.editMode;
   document.body.classList.toggle("view-only", locked);
   document.querySelectorAll(".lockable").forEach(el => { el.disabled = locked; });
-  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #matchParticipantPayments, #addParticipantPayment")
+  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody textarea, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #matchParticipantPayments, #addParticipantPayment")
     .forEach(el => { el.disabled = locked; });
 }
 
@@ -1969,7 +2013,7 @@ document.getElementById("editModeBtn").addEventListener("click", () => {
 
 function applyRemoteDataToState(remote){
   if(!remote || typeof remote !== "object") return;
-  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","dayProgram","publicInfo","notices","sharedFiles","budget","eventAccount","transactions","participantPayments"];
+  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","participantFormSync","dayProgram","publicInfo","notices","applicationSchedule","sharedFiles","budget","eventAccount","transactions","participantPayments"];
   keys.forEach(k => { if(Object.prototype.hasOwnProperty.call(remote,k)) state[k] = remote[k]; });
   if(Array.isArray(state.phases)) state.phases.forEach(p => { if(!p.priority) p.priority = IMPORTANT_IDS.includes(p.id) ? "important" : "normal"; });
   if(Array.isArray(state.sponsors)) state.sponsors.forEach(s => {
@@ -2659,7 +2703,7 @@ function renderWaitlist(){
     tr.innerHTML = `
       <td data-label="이름"><input type="text" value="${escapeHtml(row.name)}" data-field="name"></td>
       <td data-label="연락처"><input type="text" value="${escapeHtml(row.phone)}" data-field="phone"></td>
-      <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>
+      <td data-label="비고"><textarea class="sponsor-longtext" data-field="note" placeholder="협의 내용·조건·추가 메모">${escapeHtml(row.note||"")}</textarea></td>
       <td><button class="row-del" title="삭제">✕</button></td>`;
     tr.querySelectorAll("input").forEach(el => {
       el.addEventListener("change", async (e) => {
@@ -2704,14 +2748,14 @@ function renderSponsors(){
     }
     tr.innerHTML = `
       <td data-label="업체/품목"><input type="text" value="${escapeHtml(row.name)}" data-field="name">${followBadge}</td>
-      <td data-label="협찬내용"><input type="text" value="${escapeHtml(row.item)}" data-field="item"></td>
+      <td data-label="협찬내용"><textarea class="sponsor-longtext" data-field="item" placeholder="협찬 내용">${escapeHtml(row.item||"")}</textarea></td>
       <td data-label="담당"><select class="owner-select" data-field="owner">${committeeOptionsHtml(row.owner)}</select></td>
       <td data-label="상태"><select class="status ${statusBadgeClass(row.status)}" data-field="status">${opts}</select></td>
       <td data-label="최근연락"><input type="date" value="${row.lastContact||""}" data-field="lastContact"></td>
       <td data-label="다음 액션"><input type="text" value="${escapeHtml(row.nextAction||"")}" data-field="nextAction" placeholder="다음 액션"></td>
       <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>
       <td><button class="row-del" title="삭제">✕</button></td>`;
-    tr.querySelectorAll("input,select").forEach(el => {
+    tr.querySelectorAll("input,select,textarea").forEach(el => {
       el.addEventListener("change", async (e) => {
         row[e.target.dataset.field] = e.target.value;
         await dSet("sponsors", state.sponsors);
@@ -2948,6 +2992,45 @@ document.getElementById("addLink").addEventListener("click", async () => {
 });
 
 // ---------- google sheet CSV sync (aggregate counts only, no PII preview) ----------
+
+function normalizeGoogleSheetCsvUrl(raw){
+  const input=String(raw||"").trim();
+  if(!input) return "";
+  try{
+    const u=new URL(input);
+
+    // Already a CSV URL
+    if(/output=csv/i.test(u.search) || /tqx=out:csv/i.test(u.search)) return input;
+
+    // Published-to-web Google Sheets URL:
+    // .../spreadsheets/d/e/{publishedId}/pubhtml?gid=...  -> pub?output=csv&gid=...
+    const pubMatch=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(pubhtml|pub)$/);
+    if(pubMatch){
+      const gid=u.searchParams.get("gid") || "0";
+      return `${u.origin}/spreadsheets/d/e/${pubMatch[1]}/pub?output=csv&gid=${encodeURIComponent(gid)}`;
+    }
+
+    // Normal Google Sheets editing/share URL:
+    // .../spreadsheets/d/{sheetId}/edit#gid=... -> gviz/tq?tqx=out:csv&gid=...
+    const sheetMatch=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+    if(sheetMatch){
+      let gid=u.searchParams.get("gid") || "";
+      if(!gid && u.hash){
+        const hm=u.hash.match(/gid=(\d+)/);
+        if(hm) gid=hm[1];
+      }
+      const qs=new URLSearchParams({tqx:"out:csv"});
+      if(gid) qs.set("gid",gid);
+      return `${u.origin}/spreadsheets/d/${sheetMatch[1]}/gviz/tq?${qs.toString()}`;
+    }
+  }catch(e){}
+  return input;
+}
+function looksLikeHtmlResponse(text){
+  const s=String(text||"").trim().slice(0,300).toLowerCase();
+  return s.startsWith("<!doctype html") || s.startsWith("<html") || s.includes("<body");
+}
+
 function parseCsv(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -3040,141 +3123,78 @@ function renderFormSyncStats(){
     </div>`;
 }
 async function fetchFormCsv(){
-  const url = (state.formSync.csvUrl || "").trim();
-  if(!url){ renderFormSyncStats(); return; }
-  const resultEl = document.getElementById("formSyncResult");
-  resultEl.innerHTML = `<div class="form-sync-stats"><div class="form-sync-stat"><div class="k">연동 상태</div><div class="v" style="font-size:13px;">불러오는 중...</div></div></div>`;
-  try{
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    const rows = parseCsv(text);
-    if(!rows.length) throw new Error("빈 응답");
-    const headers = rows[0] || [];
-    const dataRows = rows.slice(1).filter(r => r.some(c => c && c.trim()));
-    const count = dataRows.length;
-    state.formSync.alumniStats = buildAlumniStats(headers, dataRows);
-    const day = todayStr();
-    if(state.formSync.dayStartDate !== day){
-      state.formSync.dayStartDate = day;
-      state.formSync.dayStartCount = state.formSync.lastCount !== null && state.formSync.lastCount !== undefined ? state.formSync.lastCount : count;
-    }
-    state.formSync.lastCount = count;
-    state.formSync.lastSyncTime = new Date().toLocaleString("ko-KR");
-    await dSet("formSync", state.formSync);
-    await syncPublicProjection({silent:true});
-    renderFormSyncStats();
-    renderAlumniDbSummary();
-  }catch(err){
-    resultEl.innerHTML = `<div class="form-sync-error">CSV를 불러오지 못했어요. 링크가 '웹에 게시(CSV)' 상태인지, 주소가 정확한지 확인해주세요.<br>(${escapeHtml(String(err.message || err))})</div>`;
-  }
-}
-document.getElementById("formSyncSave").addEventListener("click", async () => {
-  state.formSync.csvUrl = document.getElementById("formCsvUrl").value.trim();
-  await dSet("formSync", state.formSync);
-  fetchFormCsv();
-});
-document.getElementById("formSyncRefresh").addEventListener("click", fetchFormCsv);
+  const rawUrl=(state.formSync.csvUrl || "").trim();
+  if(!rawUrl){ renderFormSyncStats(); renderAlumniDbSummary(); return; }
 
+  const url=normalizeGoogleSheetCsvUrl(rawUrl);
+  const resultEl=document.getElementById("formSyncResult");
+  if(resultEl){
+    resultEl.innerHTML=`<div class="form-sync-stats"><div class="form-sync-stat"><div class="k">연동 상태</div><div class="v" style="font-size:13px;">불러오는 중...</div></div></div>`;
+  }
 
-// ---------- participant application CSV sync (isolated from alumni DB) ----------
-function participantApplyParseCsv(text){
-  const rows=[]; let row=[], field="", quoted=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(quoted){
-      if(c==='"' && text[i+1]==='"'){ field+='"'; i++; }
-      else if(c==='"') quoted=false;
-      else field+=c;
-    }else{
-      if(c==='"') quoted=true;
-      else if(c===','){ row.push(field); field=""; }
-      else if(c==='\n' || c==='\r'){
-        if(c==='\r' && text[i+1]==='\n') i++;
-        row.push(field); field=""; rows.push(row); row=[];
-      }else field+=c;
-    }
-  }
-  if(field.length || row.length){ row.push(field); rows.push(row); }
-  return rows.filter(r=>r.some(v=>String(v||"").trim()!==""));
-}
-function participantApplyHeaderIndex(headers, words){
-  const norm=headers.map(h=>String(h||"").trim().toLowerCase().replace(/\s+/g,""));
-  for(const word of words){
-    const w=String(word).toLowerCase().replace(/\s+/g,"");
-    const idx=norm.findIndex(h=>h.includes(w));
-    if(idx>=0) return idx;
-  }
-  return -1;
-}
-function participantApplyDate(v){
-  const s=String(v||"").trim();
-  if(!s) return null;
-  let d=new Date(s);
-  if(!Number.isNaN(d.getTime())) return d;
-  const m=s.match(/(\d{4})[.\-/년\s]+(\d{1,2})[.\-/월\s]+(\d{1,2})/);
-  if(!m) return null;
-  d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
-  return Number.isNaN(d.getTime())?null:d;
-}
-function participantApplyBuildStats(text){
-  const rows=participantApplyParseCsv(text);
-  if(rows.length<2) return {total:0,recent7:0};
-  const headers=rows[0];
-  const dataRows=rows.slice(1).filter(r=>r.some(v=>String(v||"").trim()!==""));
-  const timeIdx=participantApplyHeaderIndex(headers,["타임스탬프","timestamp","제출시간","응답시간"]);
-  const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
-  let recent7=0;
-  if(timeIdx>=0){
-    dataRows.forEach(r=>{
-      const d=participantApplyDate(r[timeIdx]);
-      if(d && d>=since) recent7++;
-    });
-  }
-  return {total:dataRows.length,recent7:timeIdx>=0?recent7:null,updatedAt:new Date().toLocaleString("ko-KR")};
-}
-function renderParticipantApplySync(){
-  const s=state.participantApplySync?.stats||null;
-  const url=document.getElementById("participantApplyCsvUrl");
-  const total=document.getElementById("participantApplyTotal");
-  const recent=document.getElementById("participantApplyRecent");
-  if(url) url.value=state.participantApplySync?.csvUrl||"";
-  if(total) total.textContent=s ? Number(s.total||0).toLocaleString()+"명" : "-";
-  if(recent) recent.textContent=s ? (s.recent7===null?"-":Number(s.recent7||0).toLocaleString()+"명") : "-";
-}
-async function fetchParticipantApplyCsv(){
-  const status=document.getElementById("participantApplyCsvStatus");
-  const url=String(state.participantApplySync?.csvUrl||"").trim();
-  if(!url){
-    if(status){status.textContent="CSV 주소를 먼저 저장해주세요.";status.className="account-save-status err";}
-    return;
-  }
   try{
-    if(status){status.textContent="불러오는 중...";status.className="account-save-status";}
     const res=await fetch(url,{cache:"no-store"});
     if(!res.ok) throw new Error("HTTP "+res.status);
+
     const text=await res.text();
-    const stats=participantApplyBuildStats(text);
-    state.participantApplySync={...state.participantApplySync,stats};
-    await dSet("participantApplySync",state.participantApplySync);
-    await syncPublicProjection({silent:true});
-    renderParticipantApplySync();
-    if(status){status.textContent=`연동 완료 · ${stats.total}명`;status.className="account-save-status ok";}
-  }catch(e){
-    console.error("참가신청 CSV 연동 실패",e);
-    if(status){status.textContent="CSV 연동 실패";status.className="account-save-status err";}
+    if(looksLikeHtmlResponse(text)){
+      throw new Error("CSV가 아니라 웹페이지가 반환되었습니다. 구글시트 게시 설정을 확인해주세요.");
+    }
+
+    const rows=parseCsv(text);
+    if(rows.length<2) throw new Error("응답 데이터가 없거나 CSV 형식을 확인할 수 없습니다.");
+
+    const headers=rows[0] || [];
+    const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
+    if(!dataRows.length) throw new Error("응답 행이 없습니다.");
+
+    const stats=buildAlumniStats(headers,dataRows);
+    if(!stats || !stats.total) throw new Error("졸업생 DB 집계값을 만들지 못했습니다.");
+
+    const day=todayStr();
+    if(state.formSync.dayStartDate!==day){
+      state.formSync.dayStartDate=day;
+      state.formSync.dayStartCount=
+        state.formSync.lastCount!==null && state.formSync.lastCount!==undefined
+          ? state.formSync.lastCount
+          : dataRows.length;
+    }
+
+    state.formSync.csvUrl=rawUrl;
+    state.formSync.normalizedCsvUrl=url;
+    state.formSync.alumniStats=stats;
+    state.formSync.lastCount=dataRows.length;
+    state.formSync.lastSyncTime=new Date().toLocaleString("ko-KR");
+    state.formSync.lastError="";
+
+    await dSet("formSync",state.formSync);
+    await dSet("publicAlumniStats",stats);
+
+    renderFormSyncStats();
+    renderAlumniDbSummary();
+
+    if(resultEl){
+      resultEl.insertAdjacentHTML("beforeend",
+        `<div class="form-sync-success">✓ 졸업생 DB 집계 완료 · 총 ${escapeHtml(stats.total)}명</div>`);
+    }
+  }catch(err){
+    state.formSync.lastError=String(err.message||err);
+    try{ await dSet("formSync",state.formSync); }catch(e){}
+    if(resultEl){
+      resultEl.innerHTML=
+        `<div class="form-sync-error">졸업생 DB CSV를 불러오지 못했습니다.<br>${escapeHtml(String(err.message||err))}</div>`;
+    }
+    renderAlumniDbSummary();
   }
 }
-document.getElementById("saveParticipantApplyCsv")?.addEventListener("click",async()=>{
+document.getElementById("formSyncSave")?.addEventListener("click",async()=>{
   if(!state.editMode) return;
-  state.participantApplySync={
-    ...(state.participantApplySync||{}),
-    csvUrl:String(document.getElementById("participantApplyCsvUrl")?.value||"").trim()
-  };
-  await dSet("participantApplySync",state.participantApplySync);
-  fetchParticipantApplyCsv();
+  const raw=(document.getElementById("formCsvUrl")?.value||"").trim();
+  state.formSync={...(state.formSync||{}),csvUrl:raw};
+  await dSet("formSync",state.formSync);
+  fetchFormCsv();
 });
-document.getElementById("refreshParticipantApplyCsv")?.addEventListener("click",fetchParticipantApplyCsv);
+document.getElementById("formSyncRefresh")?.addEventListener("click",fetchFormCsv);
 
 // ---------- D-day ----------
 function renderDday(){
@@ -3325,11 +3345,10 @@ function setupMainTabs(){
   };
 
   // reverse insertion order because every panel is inserted immediately after nav
-  const system = makePanel("system","DB 연동과 공동 저장 등 평소 자주 변경하지 않는 시스템 설정입니다.");
-  const publicPanel = makePanel("public","외부에 공개되는 공지·파일·행사 정보와 공식 링크를 한곳에서 관리합니다.");
-  const finance = makePanel("finance","협찬·제작비·수입·지출 등 비용과 지원 관련 업무를 관리합니다.");
-  const operations = makePanel("operations","준비 일정, 세부 할 일, 제작물과 행사 당일 운영을 관리합니다.");
-  const people = makePanel("people","참가신청, 졸업생 DB, 참가자·대기자·준비위원을 관리합니다.");
+  const budget = makePanel("budget","예산과 외부 페이지·링크 설정을 관리합니다.");
+  const notice = makePanel("notice","외부로 공유되는 공지문, 협찬과 제작 진행 상황을 관리합니다.");
+  const people = makePanel("people","참가자와 준비위원, 대기자 등 사람 관련 정보를 관리합니다.");
+  const schedule = makePanel("schedule","준비 일정, 세부 할 일과 행사 당일 운영을 관리합니다.");
   const home = makePanel("home","현재 준비 상황에서 중요한 내용만 빠르게 확인합니다.");
 
   const move = (selector, panel) => {
@@ -3342,7 +3361,6 @@ function setupMainTabs(){
     if(section) panel.appendChild(section);
   };
 
-  // 홈 = 확인 중심
   move(".hero", home);
   move(".action-card", home);
   move(".stat-row", home);
@@ -3353,48 +3371,54 @@ function setupMainTabs(){
   home.appendChild(visitorCard);
   visitorCard.querySelector("#refreshVisitorStats")?.addEventListener("click",loadVisitorStats);
 
-  // 참가 · 졸업생
+
+  moveSectionByBody("body-phases", schedule);
+  moveSectionByBody("body-dayprogram", schedule);
+
   move("#section-alumni-db", people);
-  move("#section-participant-apply-sync", people);
+  move("#section-participant-form-sync", people);
   moveSectionByBody("body-participants", people);
   moveSectionByBody("body-waitlist", people);
   moveSectionByBody("body-committee", people);
 
-  // 행사 운영
-  moveSectionByBody("body-phases", operations);
-  moveSectionByBody("body-dayprogram", operations);
-  moveSectionByBody("body-production", operations);
+  move("#section-announcements", notice);
+  move("#section-shared-files", notice);
+  moveSectionByBody("body-sponsors", notice);
+  moveSectionByBody("body-production", notice);
 
-  // 협찬 · 재정
-  moveSectionByBody("body-sponsors", finance);
-  move("#section-budget", finance);
+  move("#section-application-schedule", budget);
+  move("#section-budget", budget);
+  moveSectionByBody("body-settings", budget);
 
-  // 홍보 · 외부페이지 / 시스템 설정: 기존 설정 섹션 내부 그룹을 역할별로 분리
-  move("#section-announcements", publicPanel);
-  move("#section-shared-files", publicPanel);
-  const settingsBody=document.getElementById("body-settings");
-  const settingsSection=settingsBody?.closest("section");
-  if(settingsBody){
-    const groups=[...settingsBody.querySelectorAll(":scope > .settings-group")];
-    groups.forEach(group=>{
-      const title=(group.querySelector(".settings-title")?.textContent||"").trim();
-      if(title==="채널 & 링크" || title==="외부 페이지 관리") publicPanel.appendChild(group);
-      else system.appendChild(group);
-    });
-    if(settingsSection) settingsSection.remove();
-  }
+  const publicShortcut=document.createElement("div");
+  publicShortcut.className="public-editor-shortcut";
+  publicShortcut.innerHTML=`
+    <div>
+      <div class="public-editor-shortcut-title">외부 페이지 정보 수정</div>
+      <div class="public-editor-shortcut-sub">외부 링크에 표시되는 행사 정보·장소·주차·문의·공식 링크·FAQ를 수정합니다.</div>
+    </div>
+    <button type="button" id="openPublicEditorShortcut">수정하기</button>`;
+  budget.prepend(publicShortcut);
 
-  // 외부 페이지 편집 상단 안내/바로가기
-  const publicHeader=document.createElement("div");
-  publicHeader.className="public-editor-shortcut";
-  publicHeader.innerHTML=`<div><div class="public-editor-shortcut-title">외부 페이지 관리</div><div class="public-editor-shortcut-sub">저장 시 공개용 데이터에 별도로 반영됩니다. 아래 상태에서 실제 외부 반영 여부를 확인할 수 있습니다.</div></div><button type="button" id="openPublicPageTop">외부 페이지 열기</button>`;
-  publicPanel.prepend(publicHeader);
-  publicHeader.querySelector("#openPublicPageTop")?.addEventListener("click",()=>window.open("./schedule.html","_blank"));
+  publicShortcut.querySelector("#openPublicEditorShortcut")?.addEventListener("click",()=>{
+    const settingsBody=document.getElementById("body-settings");
+    if(settingsBody){
+      settingsBody.classList.remove("collapsed");
+      const btn=document.querySelector('.collapse-btn[data-target="body-settings"]');
+      if(btn){
+        btn.querySelector(".collapse-label") && (btn.querySelector(".collapse-label").textContent="접기");
+        btn.querySelector(".chevron") && (btn.querySelector(".chevron").textContent="▴");
+      }
+    }
+    const publicEditor=document.getElementById("publicFaqEditor")?.closest(".settings-group");
+    if(publicEditor){
+      setTimeout(()=>publicEditor.scrollIntoView({behavior:"smooth",block:"start"}),50);
+    }
+  });
+
 
   let current = "home";
   try{ current = localStorage.getItem("hanjogo_main_tab") || "home"; }catch(e){}
-  const legacyMap={schedule:"operations",notice:"public",budget:"finance"};
-  current=legacyMap[current]||current;
   const activate = (name) => {
     if(!document.getElementById("tab-"+name)) name="home";
     document.querySelectorAll(".main-tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
@@ -3406,6 +3430,7 @@ function setupMainTabs(){
   activate(current);
   dashboardTabsReady = true;
 }
+
 
 async function loadVisitorStats(){
   const todayEl=document.getElementById("internalTodayVisitors");
@@ -3430,6 +3455,166 @@ async function loadVisitorStats(){
     if(totalEl) totalEl.textContent="확인 필요";
   }
 }
+
+
+
+// ---------- participant application CSV sync ----------
+function participantFindHeaderIndex(headers, candidates){
+  const norm=headers.map(h=>String(h||"").trim().toLowerCase().replace(/\s+/g,""));
+  for(const c of candidates){
+    const cc=String(c).toLowerCase().replace(/\s+/g,"");
+    const idx=norm.findIndex(h=>h.includes(cc));
+    if(idx>=0) return idx;
+  }
+  return -1;
+}
+function parseDateLoose(v){
+  const s=String(v||"").trim();
+  if(!s) return null;
+  const d=new Date(s);
+  if(!isNaN(d)) return d;
+  const m=s.match(/(\d{4})[./-]\s*(\d{1,2})[./-]\s*(\d{1,2})/);
+  if(m) return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  return null;
+}
+function computeParticipantFormStats(text){
+  const rows=csvParse(text);
+  if(rows.length<2) return {total:0,recent7:0,cohorts:{}};
+  const headers=rows[0];
+  const timeIdx=participantFindHeaderIndex(headers,["타임스탬프","timestamp","제출시간","응답시간"]);
+  const cohortIdx=participantFindHeaderIndex(headers,["기수","졸업기수","몇기"]);
+  const dataRows=rows.slice(1).filter(r=>r.some(c=>String(c||"").trim()!==""));
+  const now=new Date();
+  const sevenAgo=new Date(now.getTime()-7*24*60*60*1000);
+  let recent7=0;
+  const cohorts={};
+  dataRows.forEach(r=>{
+    if(timeIdx>=0){
+      const d=parseDateLoose(r[timeIdx]);
+      if(d && d>=sevenAgo && d<=now) recent7++;
+    }
+    if(cohortIdx>=0){
+      let c=String(r[cohortIdx]||"").trim();
+      if(c){
+        const mm=c.match(/(\d+)\s*기?/);
+        c=mm ? `${mm[1]}기` : c;
+        cohorts[c]=(cohorts[c]||0)+1;
+      }
+    }
+  });
+  return {total:dataRows.length,recent7,cohorts};
+}
+function renderParticipantFormStats(){
+  const s=state.participantFormSync?.stats||null;
+  const total=document.getElementById("participantTotalCount");
+  const recent=document.getElementById("participantRecentCount");
+  const cohort=document.getElementById("participantCohortStats");
+  const url=document.getElementById("participantCsvUrl");
+  if(url) url.value=state.participantFormSync?.csvUrl||"";
+  if(total) total.textContent=s ? Number(s.total||0).toLocaleString()+"명" : "-";
+  if(recent) recent.textContent=s ? Number(s.recent7||0).toLocaleString()+"명" : "-";
+  if(cohort){
+    cohort.innerHTML="";
+    if(s?.cohorts && Object.keys(s.cohorts).length){
+      Object.entries(s.cohorts)
+        .sort((a,b)=>parseInt(a[0]) - parseInt(b[0]))
+        .forEach(([k,v])=>{
+          const span=document.createElement("span");
+          span.className="chip";
+          span.textContent=`${k} ${v}명`;
+          cohort.appendChild(span);
+        });
+    }else{
+      cohort.innerHTML='<span class="mini-note">집계 데이터가 없습니다.</span>';
+    }
+  }
+}
+async function fetchParticipantFormCsv(){
+  const status=document.getElementById("participantCsvStatus");
+  const url=(state.participantFormSync?.csvUrl||"").trim();
+  if(!url){
+    if(status){ status.textContent="CSV 주소를 먼저 입력해주세요."; status.className="account-save-status err"; }
+    return;
+  }
+  try{
+    if(status){ status.textContent="불러오는 중..."; status.className="account-save-status"; }
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text=await res.text();
+    const stats=computeParticipantFormStats(text);
+    state.participantFormSync={...state.participantFormSync,stats,lastFetchedAt:new Date().toISOString()};
+    await dSet("participantFormSync",state.participantFormSync);
+    renderParticipantFormStats();
+    if(status){ status.textContent=`연동 완료 · ${stats.total}명`; status.className="account-save-status ok"; }
+  }catch(e){
+    console.error("참가신청 CSV 연동 실패",e);
+    if(status){ status.textContent="CSV 연동 실패"; status.className="account-save-status err"; }
+  }
+}
+document.getElementById("saveParticipantCsvUrl")?.addEventListener("click",async()=>{
+  if(!state.editMode) return;
+  const status=document.getElementById("participantCsvStatus");
+  const csvUrl=(document.getElementById("participantCsvUrl")?.value||"").trim();
+  try{
+    state.participantFormSync={...(state.participantFormSync||{}),csvUrl};
+    await dSet("participantFormSync",state.participantFormSync);
+    if(status){ status.textContent="주소 저장 완료"; status.className="account-save-status ok"; }
+    if(csvUrl) fetchParticipantFormCsv();
+  }catch(e){
+    if(status){ status.textContent="저장 실패"; status.className="account-save-status err"; }
+  }
+});
+document.getElementById("refreshParticipantCsv")?.addEventListener("click",fetchParticipantFormCsv);
+
+
+// ---------- participant application schedule ----------
+function renderApplicationSchedule(){
+  const a={...DEFAULT_APPLICATION_SCHEDULE,...(state.applicationSchedule||{})};
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.value=val??""; };
+  set("appFormUrl",a.formUrl);
+  set("appOpenAt",a.openAt);
+  set("appCloseAt",a.closeAt);
+  set("appBeforeLabel",a.beforeLabel);
+  set("appOpenLabel",a.openLabel);
+  set("appClosedLabel",a.closedLabel);
+  set("appEnabled",String(a.enabled!==false));
+}
+function collectApplicationSchedule(){
+  return {
+    enabled:document.getElementById("appEnabled")?.value!=="false",
+    formUrl:(document.getElementById("appFormUrl")?.value||"").trim(),
+    openAt:document.getElementById("appOpenAt")?.value||"",
+    closeAt:document.getElementById("appCloseAt")?.value||"",
+    beforeLabel:(document.getElementById("appBeforeLabel")?.value||"").trim()||DEFAULT_APPLICATION_SCHEDULE.beforeLabel,
+    openLabel:(document.getElementById("appOpenLabel")?.value||"").trim()||DEFAULT_APPLICATION_SCHEDULE.openLabel,
+    closedLabel:(document.getElementById("appClosedLabel")?.value||"").trim()||DEFAULT_APPLICATION_SCHEDULE.closedLabel
+  };
+}
+document.getElementById("saveApplicationSchedule")?.addEventListener("click",async()=>{
+  const btn=document.getElementById("saveApplicationSchedule");
+  const status=document.getElementById("applicationScheduleSaveStatus");
+  if(!state.editMode){
+    if(status){ status.textContent="먼저 편집하기를 눌러주세요."; status.className="account-save-status err"; }
+    return;
+  }
+  try{
+    if(btn){ btn.disabled=true; btn.textContent="저장 중..."; }
+    state.applicationSchedule=collectApplicationSchedule();
+    await dSet("applicationSchedule",state.applicationSchedule);
+    renderApplicationSchedule();
+    if(btn) btn.textContent="✓ 저장 완료";
+    if(status){ status.textContent="외부 페이지에 자동 반영됩니다."; status.className="account-save-status ok"; }
+    setTimeout(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="참가신청 설정 저장"; }
+      if(status){ status.textContent=""; status.className="account-save-status"; }
+    },1800);
+  }catch(e){
+    console.error("참가신청 설정 저장 실패",e);
+    if(btn){ btn.disabled=false; btn.textContent="다시 저장"; }
+    if(status){ status.textContent="저장 실패"; status.className="account-save-status err"; }
+  }
+});
+
 
 // ---------- shared event files ----------
 function formatFileSize(bytes){
@@ -4268,15 +4453,7 @@ document.getElementById("savePublicInfo")?.addEventListener("click", async () =>
     };
 
     await dSet("publicInfo", state.publicInfo);
-    const publicSynced = await syncPublicProjection();
-    if(publicSynced){
-      setPublicSaveState("saved");
-      const status=document.getElementById("publicSaveStatus");
-      if(status){status.textContent="외부 반영 완료";status.className="public-save-status saved";}
-    }else{
-      publicInfoDirty=true;
-      if(btn){btn.disabled=false;btn.textContent="반영 상태 다시 확인";}
-    }
+    setPublicSaveState("saved");
   }catch(e){
     console.error(e);
     if(btn){
@@ -4313,9 +4490,10 @@ function renderAll(){
   renderCommittee();
   renderLinks();
   renderFormSyncInputs();
-  renderParticipantApplySync();
+  renderParticipantFormStats();
   renderDayProgram();
   renderPublicInfoEditor();
+  renderApplicationSchedule();
   renderNotices();
   renderSharedFiles();
   renderBudget();
@@ -4338,7 +4516,7 @@ async function init(){
   bindParticipantInputs();
   applyCollapseState();
   if(state.formSync.csvUrl) fetchFormCsv();
-  if(state.participantApplySync?.csvUrl) fetchParticipantApplyCsv();
+  if(state.participantFormSync?.csvUrl) fetchParticipantFormCsv();
   editorName = loadEditorName();
   renderLastEditMeta();
   subscribeRealtime();

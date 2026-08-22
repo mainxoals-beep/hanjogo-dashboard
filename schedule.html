@@ -927,29 +927,31 @@ async function recordAndShowVisit(){
 
 
 async function fetchPublicDashboardRow(){
-  // 1순위: 처음 안정적으로 동작하던 공개 테이블을 직접 읽는다.
-  // dashboard_state 변경 시 서버 트리거가 public_dashboard_state를 갱신한다.
+  // 1순위: 내부 대시보드가 반영 완료 여부를 확인하는 것과 동일한 RPC에서
+  // dashboard_state의 최신 publicInfo를 직접 읽는다.
   try{
-    const {data:row,error}=await sb
-      .from("public_dashboard_state")
-      .select("data,updated_at")
-      .eq("id","main")
-      .maybeSingle();
+    const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
     if(error) throw error;
-    if(row && row.data && typeof row.data==="object"){
-      console.info("한조고 공개정보: public_dashboard_state 사용", row.updated_at || "");
-      return row;
+    if(data && typeof data==="object"){
+      console.info("한조고 공개정보: RPC 최신값 사용", data.updatedAt || "");
+      return {data, updated_at:data.updatedAt||null};
     }
   }catch(e){
-    console.warn("공개 테이블 직접 조회 실패, RPC로 재시도합니다.", e);
+    console.warn("RPC 공개정보 조회 실패, 공개 테이블로 재시도합니다.", e);
   }
 
-  // 2순위: 공개 테이블 조회가 실패할 때만 RPC를 사용한다.
-  const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
+  // 2순위: RPC가 실제로 실패한 경우에만 기존 공개 테이블을 fallback으로 사용한다.
+  const {data:row,error}=await sb
+    .from("public_dashboard_state")
+    .select("data,updated_at")
+    .eq("id","main")
+    .maybeSingle();
   if(error) throw error;
-  if(!data || typeof data!=="object") return null;
-  console.info("한조고 공개정보: RPC fallback 사용", data.updatedAt || "");
-  return {data, updated_at:data.updatedAt||null};
+  if(row && row.data && typeof row.data==="object"){
+    console.info("한조고 공개정보: public_dashboard_state fallback 사용", row.updated_at || "");
+    return row;
+  }
+  return null;
 }
 
 async function loadPublicInfo(){

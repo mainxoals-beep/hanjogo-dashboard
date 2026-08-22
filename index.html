@@ -1648,25 +1648,15 @@ function publicInfoEquals(a,b){
 }
 
 async function syncPublicProjection(options={}){
-  // 공개정보는 브라우저가 public_dashboard_state에 직접 쓰지 않는다.
-  // dashboard_state 저장 후 Supabase DB 트리거가 공개 가능한 값만 서버에서 복제한다.
+  // 공개 페이지가 실제로 읽는 것과 동일한 RPC를 호출해 저장 결과를 확인한다.
   const silent=!!options.silent;
   const expected={...DEFAULT_PUBLIC_INFO, ...(state.publicInfo||{})};
   try{
-    // 트리거 반영 직후 약간의 지연이 있을 수 있어 짧게 재확인한다.
-    for(let i=0;i<8;i++){
-      const {data,error}=await sb.from(PUBLIC_DASHBOARD_TABLE)
-        .select("data,updated_at")
-        .eq("id",DASHBOARD_ID)
-        .maybeSingle();
-      if(error) throw error;
-      const actual=data?.data?.publicInfo;
-      if(actual && publicInfoEquals(actual,expected)){
-        return true;
-      }
-      await new Promise(r=>setTimeout(r,400));
-    }
-    throw new Error("공개 테이블 반영 확인 시간 초과");
+    const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
+    if(error) throw error;
+    const actual=data?.publicInfo;
+    if(actual && publicInfoEquals(actual,expected)) return true;
+    throw new Error("저장된 공개정보와 RPC 조회값이 다릅니다.");
   }catch(e){
     console.error("외부 공개 데이터 반영 확인 실패",e);
     if(!silent){

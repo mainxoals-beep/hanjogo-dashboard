@@ -922,6 +922,21 @@ async function loadPublicInfo(){
   await alumniRefreshPromise;
 }
 
+async function refreshPublicState({render=true}={}){
+  try{
+    const {data,error}=await sb.from("public_dashboard_state").select("data,updated_at").eq("id","main").maybeSingle();
+    if(error) throw error;
+    const saved=data?.data?.publicInfo;
+    participantApplyStats=data?.data?.participantApplyStats || null;
+    if(saved && typeof saved==="object") publicInfo=mergePublicInfo(saved);
+    if(render) renderAll();
+    return true;
+  }catch(e){
+    console.warn("공개 정보 새로고침 실패",e);
+    return false;
+  }
+}
+
 function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",{event:"*",schema:"public",table:"public_dashboard_state",filter:"id=eq.main"},payload=>{
@@ -995,6 +1010,11 @@ document.addEventListener("visibilitychange",()=>{
     ensureAlumniStats();
   }
 });
+
+// Realtime 설정이 꺼져 있거나 모바일 브라우저가 연결을 끊어도 공개정보가 갱신되도록
+// 작은 공개 상태 행만 20초마다 확인한다. Google 졸업생 CSV는 여기서 재조회하지 않는다.
+setInterval(()=>{ if(!document.hidden) refreshPublicState(); },20000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshPublicState(); });
 </script>
 </body>
 </html>

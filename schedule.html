@@ -206,6 +206,8 @@ button{cursor:pointer}
 .visitor-counter .counter-error{color:#999}
 
 .application-stats-simple{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:10.5px;color:var(--mute)}
+.event-fee{margin-top:10px;padding:9px 11px;border:1px solid #DDD7F5;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:800}
+.event-fee .fee-label{margin-right:6px;color:var(--sub);font-size:10.5px;font-weight:700}
 .application-stats-simple strong{font-size:15px;color:var(--ink);margin:0 3px}
 </style>
 </head>
@@ -254,6 +256,7 @@ button{cursor:pointer}
       <div class="info-title" id="venueName"></div>
       <div class="info-text" id="venueAddress"></div>
       <div class="event-time" id="eventTimeBox"></div>
+      <div class="event-fee" id="participantFeeBox"><span class="fee-label">참가비</span><span id="participantFee"></span></div>
 
       <div class="info-actions">
         <a class="link-btn primary" id="mapBtn" target="_blank" rel="noopener">지도에서 보기</a>
@@ -343,6 +346,7 @@ button{cursor:pointer}
 <div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
+const PUBLIC_UI_VERSION = "2026-08-22-public-fields-v2";
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -493,6 +497,11 @@ function renderHeaderAndInfo(){
   document.getElementById("venueAddress").textContent=p.venueAddress || "";
   document.getElementById("eventTimeBox").innerHTML=
     `입장 가능 · ${esc(p.entryTime || "")} 이후<br>본행사 시작 · ${esc(p.startTime || "")}`;
+  const feeEl=document.getElementById("participantFee");
+  const feeBox=document.getElementById("participantFeeBox");
+  if(feeEl) feeEl.textContent=p.participantFee || "";
+  if(feeBox) feeBox.style.display=p.participantFee ? "block" : "none";
+  document.title=`${p.eventName || "한조고 동문 네트워크 모임"} · 주요 일정`;
 
   const mapBtn=document.getElementById("mapBtn");
   mapBtn.href=p.venueMapUrl || "#";
@@ -518,7 +527,7 @@ function renderHeaderAndInfo(){
 
   const resources=[];
   if(p.instagramUrl){
-    resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">@kcas_archived</div></a>`);
+    resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">공식 인스타그램</div></a>`);
   }
 
   if(p.kakaoUrl){
@@ -969,8 +978,8 @@ async function copyText(text,message){
 
 async function sharePage(){
   const data={
-    title:"한조고 동문 네트워크 모임",
-    text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
+    title:publicInfo.eventName || "한조고 동문 네트워크 모임",
+    text:`${publicInfo.eventName || "한조고 동문 네트워크 모임"} 주요 일정 및 참가 안내`,
     url:window.location.href
   };
 

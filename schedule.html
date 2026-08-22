@@ -217,6 +217,9 @@ button{cursor:pointer}
 .application-stats.simple{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center}
 .application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}
 .application-stats-label{font-size:10.5px;color:var(--mute)}
+
+.public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}
+.public-sync-status.error{color:#9b3a3a}
 </style>
 </head>
 
@@ -353,6 +356,11 @@ button{cursor:pointer}
   <div class="application-cta-sub" id="applicationSub"></div>
 </div>
 
+
+<div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-22-force-sync-v2">
+  외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
+</div>
+
 <div class="visitor-counter" id="visitorCounter">
     방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
   </div>
@@ -362,7 +370,7 @@ button{cursor:pointer}
 <div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
-const PUBLIC_BUILD_VERSION = "2026-08-22-rpc-unified";
+const PUBLIC_BUILD_VERSION = "2026-08-22-force-sync-v2";
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -825,14 +833,18 @@ async function recordAndShowVisit(){
 }
 
 async function loadPublicInfo(){
-  renderAll();
+  const status=document.getElementById("publicSyncStatus");
+  const timeEl=document.getElementById("publicSyncTime");
   try{
     const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
     if(error) throw error;
 
     const payload=(data && typeof data==="object") ? data : {};
-    const saved=payload.publicInfo;
+    const saved=(payload.publicInfo && typeof payload.publicInfo==="object")
+      ? payload.publicInfo
+      : {};
 
+    publicInfo=mergePublicInfo(saved);
     alumniStats=payload.publicAlumniStats || null;
     participantApplicationStats=payload.participantApplicationStats || null;
     applicationSchedule={
@@ -840,14 +852,17 @@ async function loadPublicInfo(){
       ...(payload.applicationSchedule || {})
     };
 
-    if(saved && typeof saved==="object"){
-      publicInfo=mergePublicInfo(saved);
-    }
+    renderAll();
 
-    renderAll();
+    const updated=payload.updatedAt ? new Date(payload.updatedAt) : new Date();
+    if(timeEl) timeEl.textContent=updated.toLocaleString("ko-KR");
+    if(status) status.classList.remove("error");
+    return true;
   }catch(e){
-    console.warn("공개 대시보드 정보를 불러오지 못했습니다.",e);
-    renderAll();
+    console.error("공개 대시보드 동기화 실패",e);
+    if(timeEl) timeEl.textContent="동기화 실패";
+    if(status) status.classList.add("error");
+    return false;
   }
 }
 
@@ -855,9 +870,7 @@ function subscribeRealtime(){
   sb.channel("hanjogo-public-page")
     .on("postgres_changes",
       {event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},
-      async ()=>{
-        await loadPublicInfo();
-      }
+      ()=>{ loadPublicInfo(); }
     )
     .subscribe();
 }
@@ -911,6 +924,7 @@ loadPublicInfo();
 subscribeRealtime();
 recordAndShowVisit();
 setInterval(renderApplicationCta,30000);
+setInterval(loadPublicInfo,15000);
 </script>
 </body>
 </html>

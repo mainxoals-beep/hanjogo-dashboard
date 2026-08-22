@@ -357,7 +357,7 @@ button{cursor:pointer}
 </div>
 
 
-<div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-22-force-sync-v2">
+<div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-22-runtime-fix-v3">
   외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
 </div>
 
@@ -370,7 +370,7 @@ button{cursor:pointer}
 <div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
-const PUBLIC_BUILD_VERSION = "2026-08-22-force-sync-v2";
+const PUBLIC_BUILD_VERSION = "2026-08-22-runtime-fix-v3";
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -407,6 +407,18 @@ const DEFAULT_PUBLIC_INFO = {
 
 let publicInfo = {...DEFAULT_PUBLIC_INFO};
 let alumniStats = null;
+let participantApplicationStats = null;
+
+const DEFAULT_APPLICATION_SCHEDULE = {
+  enabled: true,
+  formUrl: "",
+  openAt: "2026-09-02T10:00",
+  closeAt: "",
+  beforeLabel: "1차 참가신청 · 9월 2일 오픈 예정",
+  openLabel: "1차 참가신청 하기",
+  closedLabel: "1차 참가신청 마감"
+};
+let applicationSchedule = {...DEFAULT_APPLICATION_SCHEDULE};
 
 const APPLY_OPEN = new Date("2026-09-02T00:00:00");
 const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
@@ -737,7 +749,7 @@ function renderApplicationCta(){
   const btn=document.getElementById("applicationBtn");
   const sub=document.getElementById("applicationSub");
   if(!wrap || !btn) return;
-  const a={...DEFAULT_APPLICATION_SCHEDULE,...(applicationSchedule||{})};
+  const a={...DEFAULT_APPLICATION_SCHEDULE,...((applicationSchedule&&typeof applicationSchedule==="object")?applicationSchedule:{})};
   if(a.enabled===false){ wrap.style.display="none"; return; }
   wrap.style.display="block";
 
@@ -861,7 +873,7 @@ async function loadPublicInfo(){
   }catch(e){
     console.error("공개 대시보드 동기화 실패",e);
     if(timeEl) timeEl.textContent="동기화 실패";
-    if(status) status.classList.add("error");
+    if(status){ status.classList.add("error"); status.title=String(e?.message||e); }
     return false;
   }
 }

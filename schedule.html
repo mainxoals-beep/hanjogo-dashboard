@@ -46,7 +46,7 @@ button{cursor:pointer}
 }
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
 
-.status-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-bottom:18px}
+.status-grid{display:grid;grid-template-columns: 1fr;gap:12px;margin-bottom:18px}
 .status-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .status-kicker{margin-bottom:6px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.05em}
 .status-main{font-size:18px;font-weight:900}
@@ -220,6 +220,33 @@ button{cursor:pointer}
 
 .public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}
 .public-sync-status.error{color:#9b3a3a}
+
+  .committee-inline{
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px dashed rgba(30,42,55,.18);
+  }
+.committee-inline-label{
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.04em;
+    color:#6d7480;
+    margin-bottom:8px;
+  }
+  .committee-inline-names{
+    font-size:14px;
+    line-height:1.8;
+    font-weight:600;
+    color:#20242a;
+    word-break:keep-all;
+  }
+  @media (max-width:640px){
+    .committee-inline-names{
+      font-size:14px;
+      line-height:1.75;
+    }
+  }
+
 </style>
 </head>
 
@@ -242,7 +269,6 @@ button{cursor:pointer}
 
   <div class="top-actions">
     <button class="top-action primary" id="shareBtn">공유하기</button>
-    <button class="top-action" id="copyPageBtn">이 페이지 링크 복사</button>
     <a class="top-action" href="#eventInfo">행사 정보 보기</a>
   </div>
 
@@ -254,12 +280,13 @@ button{cursor:pointer}
       <span class="status-pill before" id="applyStatusPill">오픈 전</span>
     </div>
 
-    <div class="status-card">
-      <div class="status-kicker">참가 신청까지</div>
-      <div class="status-main" id="applyDday">D-</div>
-      <div class="status-sub">1차 참가 신청 오픈 · 2026년 9월 2일</div>
-    </div>
   </div>
+<div class="application-cta" id="applicationCta" style="display:none">
+  <div class="application-cta-title">1차 참가신청</div>
+  <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
+  <div class="application-cta-sub" id="applicationSub"></div>
+</div>
+
 
   <div class="info-grid" id="eventInfo">
     <div class="info-card">
@@ -288,7 +315,13 @@ button{cursor:pointer}
 
     <div class="info-card">
       <div class="info-label">행사 문의</div>
-      <div class="info-title" id="contactName"></div>
+      <div class="info-title" id="contactName">
+      <div class="committee-inline">
+        <div class="committee-inline-label">준비위원</div>
+        <div class="committee-inline-names">
+          박혜림 7기 · 안지현 9기 · 이민주 10기 · 이예린 18기 · 주보근 20기
+        </div>
+      </div></div>
       <div class="info-text" id="contactInfo"></div>
 
       <div class="info-actions">
@@ -348,16 +381,7 @@ button{cursor:pointer}
   <span class="application-stats-label">현재</span>
   <strong id="publicParticipantTotal">-</strong>
   <span class="application-stats-label">신청</span>
-</div>
-
-<div class="application-cta" id="applicationCta" style="display:none">
-  <div class="application-cta-title">1차 참가신청</div>
-  <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
-  <div class="application-cta-sub" id="applicationSub"></div>
-</div>
-
-
-<div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-22-runtime-fix-v3">
+</div><div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-22-runtime-fix-v3">
   외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
 </div>
 
@@ -579,8 +603,7 @@ function renderDdaysAndStatus(){
     eventDiff===0 ? "D-DAY" : eventDiff>0 ? "D-"+eventDiff : "D+"+Math.abs(eventDiff);
 
   const applyDiff=daysBetween(today,APPLY_OPEN);
-  document.getElementById("applyDday").textContent=
-    applyDiff===0 ? "D-DAY" : applyDiff>0 ? "D-"+applyDiff : "오픈됨";
+  const applyDdayEl=document.getElementById("applyDday"); if(applyDdayEl) applyDdayEl.textContent=applyDiff===0 ? "D-DAY" : applyDiff>0 ? "D-"+applyDiff : "오픈됨";
 
   const now=new Date();
   const title=document.getElementById("applyStatusTitle");

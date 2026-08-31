@@ -6,974 +6,1453 @@
 <title>한조고 동문 네트워크 모임 · 주요 일정</title>
 <meta name="description" content="2026 한조고 동문 네트워크 모임 주요 일정, 참가 신청 및 행사 안내">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root{
   --purple:#6E5FCB; --purple-dark:#4E43A0; --purple-light:#EEEDFB;
   --ivory:#FAF8F4; --ink:#1E1C1A; --sub:#6B6862; --mute:#9C988F;
-  --line:#E7E3D9; --white:#fff;
-  --event:#C85A42; --event-dark:#9F3F2B; --event-light:#F8E8E2;
-  --ok:#4B9463; --ok-light:#E9F3EC; --radius:16px;
+  --line:#E7E3D9; --white:#fff; --event:#C85A42; --event-dark:#9F3F2B;
+  --event-light:#F8E8E2; --ok:#4B9463; --ok-light:#E9F3EC; --radius:16px;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;background:var(--ivory);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
-  line-height:1.5
-}
-button,a{font:inherit}
-button{cursor:pointer}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.5}
+button,a{font:inherit} button{cursor:pointer}
 .wrap{max-width:920px;margin:0 auto;padding:30px 18px 72px}
 .eyebrow{margin:0 0 7px;color:var(--purple-dark);font-size:12px;font-weight:800;letter-spacing:.08em}
-.head{margin-bottom:18px}
-.head h1{margin:0 0 6px;font-size:25px;letter-spacing:-.03em}
-.head p{margin:0;color:var(--sub);font-size:13px}
-
-.hero{
-  display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
-  padding:22px 24px;margin-bottom:14px;border-radius:20px;color:#fff;
-  background:linear-gradient(135deg,var(--purple),var(--purple-dark))
-}
-.hero-date{font-size:22px;font-weight:800}
-.hero-place{margin-top:4px;font-size:13px;opacity:.88}
-.hero-dday{font-size:36px;font-weight:900}
-
+.head{margin-bottom:18px}.head h1{margin:0 0 6px;font-size:25px;letter-spacing:-.03em}.head p{margin:0;color:var(--sub);font-size:13px}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:22px 24px;margin-bottom:14px;border-radius:20px;color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple-dark))}
+.hero-date{font-size:22px;font-weight:800}.hero-place{margin-top:4px;font-size:13px;opacity:.88}.hero-dday{font-size:36px;font-weight:900}
 .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.top-action{
-  flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;
-  background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center
-}
+.top-action{flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center}
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
-
-.status-grid{display:grid;grid-template-columns: 1fr;gap:12px;margin-bottom:18px}
+.status-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
 .status-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .status-kicker{margin-bottom:6px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.05em}
-.status-main{font-size:18px;font-weight:900}
-.status-sub{margin-top:4px;color:var(--sub);font-size:12.5px}
+.status-main{font-size:18px;font-weight:900}.status-sub{margin-top:4px;color:var(--sub);font-size:12.5px}
 .status-pill{display:inline-block;margin-top:10px;padding:5px 9px;border-radius:999px;font-size:10.5px;font-weight:900}
 .status-pill.before{background:var(--purple-light);color:var(--purple-dark)}
 .status-pill.open{background:var(--ok-light);color:var(--ok)}
 .status-pill.closed{background:#F1EFE8;color:var(--sub)}
-.status-pill.event{background:var(--event-light);color:var(--event-dark)}
-
-.info-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:18px}
-.info-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
-.info-label{margin-bottom:7px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.04em}
-.info-title{margin-bottom:4px;font-size:17px;font-weight:800}
-.info-text{color:var(--sub);font-size:12.5px;line-height:1.7}
-.info-text strong{color:var(--ink)}
-.event-time{
-  margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--event-light);
-  color:var(--event-dark);font-size:12px;font-weight:800;line-height:1.7
-}
-.info-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-
-.parking-box{
-  margin-top:12px;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB
-}
-.parking-label{margin-bottom:5px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.04em}
-.parking-title{font-size:13.5px;font-weight:800}
-.parking-meta{margin-top:3px;color:var(--sub);font-size:12px;line-height:1.65}
-.parking-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
-.link-btn{
-  display:inline-flex;align-items:center;justify-content:center;padding:8px 11px;
-  border:1px solid var(--line);border-radius:9px;background:#FDFCFB;color:var(--purple-dark);
-  text-decoration:none;font-size:11.5px;font-weight:800
-}
-.link-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
-
-.resource-card{padding:16px 18px;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
-.resource-title{margin-bottom:10px;font-size:15px;font-weight:800}
-.resource-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.resource-item{
-  display:flex;flex-direction:column;justify-content:center;min-height:69px;padding:11px 12px;
-  border:1px solid var(--line);border-radius:11px;background:#FDFCFB;color:var(--ink);text-decoration:none
-}
-.resource-item:hover{border-color:var(--purple);background:var(--purple-light)}
-.r-k{margin-bottom:3px;color:var(--mute);font-size:10.5px}
-.r-v{color:var(--purple-dark);font-size:12.5px;font-weight:800}
-.resource-item.disabled{cursor:default;opacity:.74}
-.resource-item.disabled:hover{border-color:var(--line);background:#FDFCFB}
-.resource-item.disabled .r-v{color:var(--sub)}
-.ready-badge{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;background:#F1EFE8;color:var(--sub);font-size:9.5px;font-weight:800}
-
-.next-card{
-  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
-  padding:16px 18px;margin-bottom:24px;border:1px solid #D6CFF4;border-radius:var(--radius);
-  background:linear-gradient(90deg,#FBFAFF,#fff)
-}
-.next-kicker{margin-bottom:3px;color:var(--purple-dark);font-size:11px;font-weight:800}
-.next-title{font-size:16px;font-weight:800}
-.next-meta{margin-top:3px;color:var(--sub);font-size:12.5px}
-.next-date{padding:8px 12px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:800;white-space:nowrap}
-
-.section{margin-top:28px}
-.sec-title{margin-bottom:12px;font-size:17px;font-weight:800}
-.timeline{padding:4px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
-.item{display:grid;grid-template-columns:112px 18px 1fr;gap:12px;padding:17px 0;border-bottom:1px solid var(--line)}
-.item:last-child{border-bottom:none}
-.datebox{color:var(--sub);font-size:12px;font-weight:700}
-.datebox strong{display:block;margin-bottom:1px;color:var(--purple-dark);font-size:14px}
-.dotcol{position:relative}
-.dot{position:relative;z-index:2;width:11px;height:11px;margin-top:5px;border-radius:50%;background:var(--purple)}
-.dotcol:after{content:"";position:absolute;top:18px;bottom:-22px;left:5px;width:1px;background:var(--line)}
-.item:last-child .dotcol:after{display:none}
-.content h3{margin:0 0 4px;font-size:14px}
-.content p{margin:0;color:var(--sub);font-size:12.5px}
-.tag{display:inline-block;margin-left:5px;padding:2px 7px;border-radius:999px;background:var(--purple-light);color:var(--purple-dark);font-size:10.5px;font-weight:800}
-.item.event-row{margin:0 -18px;padding-left:18px;padding-right:18px;background:linear-gradient(90deg,var(--event-light),transparent)}
-.item.event-row .datebox strong{color:var(--event-dark)}
-.item.event-row .dot{background:var(--event);box-shadow:0 0 0 4px var(--event-light)}
-.tag.event{background:var(--event);color:#fff}
-
-.months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.month{padding:13px;background:#fff;border:1px solid var(--line);border-radius:14px}
-.month-title{margin-bottom:9px;font-size:13px;font-weight:800}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.dow{color:var(--mute);text-align:center;font-size:9px;font-weight:700}
-.day{
-  position:relative;min-height:31px;padding-top:7px;border:1px solid transparent;border-radius:7px;
-  background:transparent;color:var(--sub);text-align:center;font-size:10px
-}
-.day.mark{cursor:pointer;background:var(--purple-light);color:var(--purple-dark);font-weight:800}
-.day.event{
-  cursor:pointer;background:var(--event);color:#fff;font-weight:900;
-  box-shadow:0 0 0 2px var(--event-light),0 3px 8px rgba(159,63,43,.18)
-}
-.day.mark::after,.day.event::after{content:"";position:absolute;bottom:3px;left:50%;width:4px;height:4px;border-radius:50%;transform:translateX(-50%)}
-.day.mark::after{background:var(--purple)}
-.day.event::after{background:#fff}
-.calendar-detail{min-height:96px;margin-top:12px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:14px}
-.calendar-detail.event-detail{border-color:#E5B5A8;background:var(--event-light)}
-.detail-empty{color:var(--mute);font-size:12.5px}
-.detail-date{margin-bottom:4px;color:var(--purple-dark);font-size:11px;font-weight:800}
-.detail-title{margin-bottom:5px;font-size:15px;font-weight:800}
-.detail-desc{color:var(--sub);font-size:12.5px}
-.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:var(--sub);font-size:11px}
-.legend span:before{content:"";display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:3px;background:var(--purple-light)}
-.legend .event:before{background:var(--event)}
-
-.faq{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
-.faq-item{border-bottom:1px solid var(--line)}
-.faq-item:last-child{border-bottom:none}
-.faq-q{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:15px 17px;
-  border:none;background:#fff;color:var(--ink);text-align:left;font-size:13px;font-weight:800
-}
-.faq-icon{color:var(--purple-dark);font-size:16px}
-.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}
-.faq-item.open .faq-a{display:block}
-.faq-item.open .faq-icon{transform:rotate(45deg)}
-
-.contact-cta{
-  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
-  padding:17px 18px;border:1px solid #DCD7F5;border-radius:var(--radius);
-  background:linear-gradient(135deg,#fff,var(--purple-light))
-}
-.contact-title{font-size:15px;font-weight:900}
-.contact-sub{margin-top:3px;color:var(--sub);font-size:12.5px}
-.contact-actions{display:flex;gap:7px;flex-wrap:wrap}
-
-.toast{
-  position:fixed;left:50%;bottom:22px;z-index:1000;padding:9px 13px;border-radius:10px;
-  background:#1E1C1A;color:#fff;font-size:12px;font-weight:700;opacity:0;pointer-events:none;
-  transform:translateX(-50%);transition:.2s
-}
-.toast.show{opacity:1}
-.note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}
-
-@media(max-width:700px){
-  .status-grid,.info-grid{grid-template-columns:1fr}
-  .resource-list{grid-template-columns:1fr}
-  .months{grid-template-columns:1fr}
-  .item{grid-template-columns:88px 16px 1fr;gap:8px}
-  .hero-dday{font-size:30px}
-  .head h1{font-size:22px}
-  .top-action{min-width:calc(50% - 4px)}
-}
-
-.alumni-card{padding:16px 18px;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
-.alumni-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:11px}.alumni-title{font-size:15px;font-weight:800}.alumni-updated{font-size:10.5px;color:var(--mute)}
-.alumni-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.alumni-stat{padding:10px 11px;border-radius:11px;background:#FDFCFB;border:1px solid var(--line)}
-.alumni-stat .k{font-size:10px;color:var(--mute);margin-bottom:3px}.alumni-stat .v{font-size:16px;font-weight:900}.alumni-gen-title{font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:7px}
-.alumni-gen-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.alumni-gen-item{display:flex;justify-content:space-between;gap:5px;padding:6px 7px;border:1px solid var(--line);border-radius:8px;font-size:10.5px}.alumni-gen-item b{color:var(--purple-dark)}
-.alumni-privacy{margin-top:9px;color:var(--mute);font-size:10.5px}.alumni-empty{color:var(--mute);font-size:12px}@media(max-width:700px){.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}}
-
-
-.visitor-counter{margin:18px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;text-align:center;font-size:10.5px;color:var(--mute)}
-.visitor-counter b{color:var(--ink);font-size:11.5px}
-.visitor-counter .counter-error{color:#999}
-
 .application-cta{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .application-cta-title{font-size:12px;font-weight:800;margin-bottom:7px}
-.application-btn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
+.application-btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
-.application-cta-sub{font-size:10px;color:var(--mute);text-align:center;margin-top:7px}
-
-.application-stats{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
-.application-stats .stat-chip{font-size:9.8px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;background:#FDFCFB;color:var(--ink)}
-
-.application-stats.simple{margin:12px 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center}
-.application-stats.simple strong{font-size:15px;color:var(--ink);margin:0 3px}
-.application-stats-label{font-size:10.5px;color:var(--mute)}
-
-.public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}
-.public-sync-status.error{color:#9b3a3a}
-
-  .committee-in-contact{
-    margin-top:24px;
-    padding-top:16px;
-    border-top:1px solid rgba(38,45,58,.12);
-  }
-  .committee-in-contact-label{
-    margin-bottom:9px;
-    font-size:12px;
-    line-height:1.3;
-    font-weight:800;
-    color:#65528a;
-  }
-  .committee-in-contact-list{
-    display:flex;
-    flex-wrap:wrap;
-    gap:7px 15px;
-    font-size:14px;
-    line-height:1.65;
-    font-weight:600;
-    color:#24272d;
-  }
-  .committee-in-contact-list span{
-    font:inherit;
-    color:inherit;
-    white-space:nowrap;
-  }
-
+.application-cta-sub{font-size:10.5px;color:var(--mute);text-align:center;margin-top:7px}
+.info-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:18px}
+.info-card,.resource-card,.alumni-card,.month,.calendar-detail,.faq,.application-stats,.visitor-counter{background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.info-card{padding:17px 18px}.info-label{margin-bottom:7px;color:var(--purple-dark);font-size:10.5px;font-weight:800}.info-title{margin-bottom:4px;font-size:17px;font-weight:800}
+.info-text{color:var(--sub);font-size:12.5px;line-height:1.7}.info-text strong{color:var(--ink)}
+.event-time{margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--event-light);color:var(--event-dark);font-size:12px;font-weight:800;line-height:1.7}
+.info-actions,.parking-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.link-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:#FDFCFB;color:var(--purple-dark);text-decoration:none;font-size:11.5px;font-weight:800}
+.link-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
+.parking-box{margin-top:12px;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB}
+.parking-label{margin-bottom:5px;color:var(--purple-dark);font-size:10.5px;font-weight:800}.parking-title{font-size:13.5px;font-weight:800}.parking-meta{margin-top:3px;color:var(--sub);font-size:12px;line-height:1.65}
+.committee-in-contact{margin-top:24px;padding-top:16px;border-top:1px solid rgba(38,45,58,.12)}
+.committee-in-contact-label{margin-bottom:9px;font-size:12px;font-weight:800;color:#65528a}
+.committee-in-contact-list{display:flex;flex-wrap:wrap;gap:7px 15px;font-size:14px;font-weight:600}
+.resource-card,.alumni-card{padding:16px 18px;margin-bottom:18px}.resource-title,.alumni-title{margin-bottom:10px;font-size:15px;font-weight:800}
+.resource-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.resource-item{display:flex;flex-direction:column;justify-content:center;min-height:69px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;color:var(--ink);text-decoration:none}
+.resource-item.disabled{cursor:default;opacity:.74}.r-k{margin-bottom:3px;color:var(--mute);font-size:10.5px}.r-v{color:var(--purple-dark);font-size:12.5px;font-weight:800}
+.ready-badge{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;background:#F1EFE8;color:var(--sub);font-size:9.5px;font-weight:800}
+.alumni-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:11px}.alumni-updated{font-size:10.5px;color:var(--mute)}
+.alumni-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.alumni-stat{padding:10px 11px;border-radius:11px;background:#FDFCFB;border:1px solid var(--line)}
+.alumni-stat .k{font-size:10px;color:var(--mute)}.alumni-stat .v{font-size:16px;font-weight:900}
+.alumni-gen-title{font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:7px}.alumni-gen-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.alumni-gen-item{display:flex;justify-content:space-between;gap:5px;padding:6px 7px;border:1px solid var(--line);border-radius:8px;font-size:10.5px}.alumni-gen-item b{color:var(--purple-dark)}
+.alumni-privacy,.alumni-empty{margin-top:9px;color:var(--mute);font-size:10.5px}
+.next-card{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;margin-bottom:24px;border:1px solid #D6CFF4;border-radius:var(--radius);background:linear-gradient(90deg,#FBFAFF,#fff)}
+.next-kicker{margin-bottom:3px;color:var(--purple-dark);font-size:11px;font-weight:800}.next-title{font-size:16px;font-weight:800}.next-meta{margin-top:3px;color:var(--sub);font-size:12.5px}.next-date{padding:8px 12px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:800}
+.section{margin-top:28px}.sec-title{margin-bottom:12px;font-size:17px;font-weight:800}
+.timeline{padding:4px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.item{display:grid;grid-template-columns:112px 18px 1fr;gap:12px;padding:17px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:none}
+.datebox{color:var(--sub);font-size:12px;font-weight:700}.datebox strong{display:block;color:var(--purple-dark);font-size:14px}.dot{width:11px;height:11px;margin-top:5px;border-radius:50%;background:var(--purple)}
+.content h3{margin:0 0 4px;font-size:14px}.content p{margin:0;color:var(--sub);font-size:12.5px}.tag{display:inline-block;margin-left:5px;padding:2px 7px;border-radius:999px;background:var(--purple-light);color:var(--purple-dark);font-size:10.5px;font-weight:800}
+.item.event-row{margin:0 -18px;padding-left:18px;padding-right:18px;background:linear-gradient(90deg,var(--event-light),transparent)}.item.event-row .dot{background:var(--event)}.tag.event{background:var(--event);color:#fff}
+.months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.month{padding:13px}.month-title{margin-bottom:9px;font-size:13px;font-weight:800}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.dow{color:var(--mute);text-align:center;font-size:9px;font-weight:700}
+.day{min-height:31px;padding-top:7px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--sub);text-align:center;font-size:10px}.day.mark{background:var(--purple-light);color:var(--purple-dark);font-weight:800}.day.event{background:var(--event);color:#fff;font-weight:900}
+.calendar-detail{min-height:96px;margin-top:12px;padding:16px 18px}.detail-empty{color:var(--mute);font-size:12.5px}.detail-date{margin-bottom:4px;color:var(--purple-dark);font-size:11px;font-weight:800}.detail-title{margin-bottom:5px;font-size:15px;font-weight:800}.detail-desc{color:var(--sub);font-size:12.5px}
+.faq{overflow:hidden}.faq-item{border-bottom:1px solid var(--line)}.faq-item:last-child{border-bottom:none}.faq-q{display:flex;justify-content:space-between;width:100%;padding:15px 17px;border:none;background:#fff;text-align:left;font-size:13px;font-weight:800}.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}.faq-item.open .faq-a{display:block}
+.application-stats{margin:14px 0;padding:11px 13px;text-align:center}.application-stats strong{font-size:15px}.application-stats-label{font-size:10.5px;color:var(--mute)}
+.public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}.visitor-counter{margin:18px 0 4px;padding:11px 13px;text-align:center;font-size:10.5px;color:var(--mute)}
+.note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
+@media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.hero-dday{font-size:30px}.head h1{font-size:22px}}
 </style>
 </head>
-
 <body>
 <div class="wrap">
 
-  <div class="head">
-    <p class="eyebrow">한국조리고 동문 네트워크 모임</p>
-    <h1>주요 일정 안내</h1>
-    <p>참가 신청부터 행사일까지 필요한 내용을 한곳에 정리했습니다.</p>
-  </div>
-
-  <div class="hero">
-    <div>
-      <div class="hero-date" id="heroDate"></div>
-      <div class="hero-place" id="heroPlace"></div>
-    </div>
-    <div class="hero-dday" id="eventDday">D-</div>
-  </div>
-
-  <div class="top-actions">
-    <button class="top-action primary" id="shareBtn">공유하기</button>
-    <a class="top-action" href="#eventInfo">행사 정보 보기</a>
-  </div>
-
-  <div class="status-grid">
-    <div class="status-card">
-      <div class="status-kicker">참가 신청</div>
-      <div class="status-main" id="applyStatusTitle"></div>
-      <div class="status-sub" id="applyStatusSub"></div>
-      <span class="status-pill before" id="applyStatusPill">오픈 전</span>
-    </div>
-
-  </div>
-<div class="application-cta" id="applicationCta" style="display:none">
-  <div class="application-cta-title">1차 참가신청</div>
-  <a id="applicationBtn" class="application-btn disabled" href="#">참가신청 준비 중</a>
-  <div class="application-cta-sub" id="applicationSub"></div>
+<div class="head">
+<p class="eyebrow">한국조리고 동문 네트워크 모임</p>
+<h1>주요 일정 안내</h1>
+<p>참가 신청부터 행사일까지 필요한 내용을 한곳에 정리했습니다.</p>
 </div>
 
+<div class="hero">
+<div>
+<div class="hero-date" id="heroDate"></div>
+<div class="hero-place" id="heroPlace"></div>
+</div>
+<div class="hero-dday" id="eventDday">D-</div>
+</div>
 
-  <div class="info-grid" id="eventInfo">
-    <div class="info-card">
-      <div class="info-label">행사 장소</div>
-      <div class="info-title" id="venueName"></div>
-      <div class="info-text" id="venueAddress"></div>
-      <div class="event-time" id="eventTimeBox"></div>
+<div class="top-actions">
+<button class="top-action primary" id="shareBtn">공유하기</button>
+<a class="top-action" href="#eventInfo">행사 정보 보기</a>
+</div>
 
-      <div class="info-actions">
-        <a class="link-btn primary" id="mapBtn" target="_blank" rel="noopener">지도에서 보기</a>
-        <button class="link-btn" id="copyAddressBtn">주소 복사</button>
-        <a class="link-btn" id="venueInstagramBtn" target="_blank" rel="noopener">카페 인스타그램</a>
-      </div>
+<div class="status-grid">
+<div class="status-card">
+<div class="status-kicker">참가 신청</div>
+<div class="status-main" id="applyStatusTitle"></div>
+<div class="status-sub" id="applyStatusSub"></div>
+<span class="status-pill before" id="applyStatusPill">오픈 전</span>
+</div>
+</div>
 
-      <div class="parking-box">
-        <div class="parking-label">주차 안내</div>
-        <div class="parking-title" id="parkingName"></div>
-        <div class="parking-meta" id="parkingAddress"></div>
-        <div class="parking-meta" id="parkingNote"></div>
-        <div class="parking-actions">
-          <a class="link-btn primary" id="parkingMapBtn" target="_blank" rel="noopener">주차장 지도에서 보기</a>
-          <button class="link-btn" id="copyParkingBtn">주차장 주소 복사</button>
-        </div>
-      </div>
-    </div>
+<div class="application-cta" id="applicationCta">
+<div class="application-cta-title">1차 참가신청</div>
+<a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
+<div class="application-cta-sub" id="applicationSub"></div>
+</div>
 
-    <div class="info-card">
-      <div class="info-label">행사 문의</div>
-      <div class="info-title" id="contactName"></div>
-      <div class="info-text" id="contactInfo"></div>
+<div class="info-grid" id="eventInfo">
+<div class="info-card">
+<div class="info-label">행사 장소</div>
+<div class="info-title" id="venueName"></div>
+<div class="info-text" id="venueAddress"></div>
+<div class="event-time" id="eventTimeBox"></div>
 
-      <div class="info-actions">
-        <a class="link-btn primary" id="contactTelBtn">문자하기</a>
-        <a class="link-btn" id="contactMailBtn">이메일 보내기</a>
-      </div>
+<div class="info-actions">
+<a class="link-btn primary" id="mapBtn" target="_blank">지도에서 보기</a>
+<button class="link-btn" id="copyAddressBtn">주소 복사</button>
+<a class="link-btn" id="venueInstagramBtn" target="_blank">카페 인스타그램</a>
+</div>
 
-      <div class="committee-in-contact">
-        <div class="committee-in-contact-label">준비위원</div>
-        <div class="committee-in-contact-list">
-          <span>박혜림 7기</span>
-          <span>안지현 9기</span>
-          <span>이민주 10기</span>
-          <span>이예린 18기</span>
-          <span>주보근 20기</span>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="parking-box">
+<div class="parking-label">주차 안내</div>
+<div class="parking-title" id="parkingName"></div>
+<div class="parking-meta" id="parkingAddress"></div>
+<div class="parking-meta" id="parkingNote"></div>
+<div class="parking-actions">
+<a class="link-btn primary" id="parkingMapBtn" target="_blank">주차장 지도에서 보기</a>
+<button class="link-btn" id="copyParkingBtn">주차장 주소 복사</button>
+</div>
+</div>
+</div>
 
-  <div class="resource-card">
-    <div class="resource-title">한조고 아카이브 · 공식 링크</div>
-    <div class="resource-list" id="resourceList"></div>
-  </div>
+<div class="info-card">
+<div class="info-label">행사 문의</div>
+<div class="info-title" id="contactName"></div>
+<div class="info-text" id="contactInfo"></div>
 
+<div class="info-actions">
+<a class="link-btn primary" id="contactTelBtn">문자하기</a>
+<a class="link-btn" id="contactMailBtn">이메일 보내기</a>
+</div>
 
-  <div class="alumni-card">
-    <div class="alumni-head"><div class="alumni-title">졸업생 DB 현황</div><div class="alumni-updated" id="alumniUpdated"></div></div>
-    <div id="alumniStatsBody"><div class="alumni-empty">집계 정보를 불러오는 중입니다.</div></div>
-  </div>
+<div class="committee-in-contact">
+<div class="committee-in-contact-label">준비위원</div>
+<div class="committee-in-contact-list">
+<span>박혜림 7기</span>
+<span>안지현 9기</span>
+<span>이민주 10기</span>
+<span>이예린 18기</span>
+<span>주보근 20기</span>
+</div>
+</div>
+</div>
+</div>
 
-  <div class="next-card">
-    <div>
-      <div class="next-kicker">NEXT</div>
-      <div class="next-title" id="nextTitle"></div>
-      <div class="next-meta" id="nextMeta"></div>
-    </div>
-    <div class="next-date" id="nextDate"></div>
-  </div>
+<div class="resource-card">
+<div class="resource-title">한조고 아카이브 · 공식 링크</div>
+<div class="resource-list" id="resourceList"></div>
+</div>
 
-  <div class="section">
-    <div class="sec-title">한눈에 보는 일정</div>
-    <div class="timeline" id="timeline"></div>
-  </div>
+<div class="alumni-card">
+<div class="alumni-head">
+<div class="alumni-title">졸업생 DB 현황</div>
+<div class="alumni-updated" id="alumniUpdated"></div>
+</div>
+<div id="alumniStatsBody">
+<div class="alumni-empty">집계 정보를 불러오는 중입니다.</div>
+</div>
+</div>
 
-  <div class="section">
-    <div class="sec-title">캘린더</div>
-    <div class="months" id="months"></div>
+<div class="next-card">
+<div>
+<div class="next-kicker">NEXT</div>
+<div class="next-title" id="nextTitle"></div>
+<div class="next-meta" id="nextMeta"></div>
+</div>
+<div class="next-date" id="nextDate"></div>
+</div>
 
-    <div class="calendar-detail" id="calendarDetail">
-      <div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>
-    </div>
+<div class="section">
+<div class="sec-title">한눈에 보는 일정</div>
+<div class="timeline" id="timeline"></div>
+</div>
 
-    <div class="legend">
-      <span>주요 일정</span>
-      <span class="event">행사일</span>
-    </div>
-  </div>
+<div class="section">
+<div class="sec-title">캘린더</div>
+<div class="months" id="months"></div>
+<div class="calendar-detail" id="calendarDetail">
+<div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>
+</div>
+</div>
 
-  <div class="section">
-    <div class="sec-title">자주 묻는 질문</div>
-    <div class="faq" id="faqList"></div>
-  </div>
+<div class="section">
+<div class="sec-title">자주 묻는 질문</div>
+<div class="faq" id="faqList"></div>
+</div>
 
-  
+<div class="application-stats" id="applicationStatsBlock" style="display:none">
+<span class="application-stats-label">현재</span>
+<strong id="publicParticipantTotal">-</strong>
+<span class="application-stats-label">신청</span>
+</div>
 
-<div class="application-stats simple" id="applicationStatsBlock" style="display:none">
-  <span class="application-stats-label">현재</span>
-  <strong id="publicParticipantTotal">-</strong>
-  <span class="application-stats-label">신청</span>
-</div><div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-22-runtime-fix-v3">
-  외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
+<div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-31-application-lock-fix-v1">
+외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
 </div>
 
 <div class="visitor-counter" id="visitorCounter">
-    방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
-  </div>
-  <div class="note">일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.</div>
+방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
+</div>
+
+<div class="note">
+일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.
+</div>
+
 </div>
 
 <div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
-const PUBLIC_BUILD_VERSION = "2026-08-22-runtime-fix-v3";
-const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
-const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const DEFAULT_PUBLIC_INFO = {
-  eventName:"한조고 동문 네트워크 모임",
-  eventDate:"2026-10-18",
-  entryTime:"18:30",
-  startTime:"19:00",
-  participantFee:"100,000원 (십만원)",
-  venueName:"카페 와일드덕",
-  venueAddress:"서울 중구 동호로15길 43 미래빌딩 지하 1층",
-  venueMapUrl:"https://www.google.com/maps/search/?api=1&query=%EC%B9%B4%ED%8E%98%20%EC%99%80%EC%9D%BC%EB%93%9C%EB%8D%95%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2043",
-  venueInstagram:"https://www.instagram.com/cafewildduck/",
-  parkingName:"다산동 공영주차장",
-  parkingAddress:"서울 중구 동호로15길 60",
-  parkingMapUrl:"https://www.google.com/maps/search/?api=1&query=%EB%8B%A4%EC%82%B0%EB%8F%99%20%EA%B3%B5%EC%98%81%EC%A3%BC%EC%B0%A8%EC%9E%A5%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2060",
-  parkingNote:"행사장 자체 주차는 불가합니다. 다산동 공영주차장은 행사장 도보 약 2~3분 거리이며, 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다.",
-  contactName:"김태민 · 2기",
-  contactPhone:"010-4202-4091",
-  contactEmail:"mainxoals@gmail.com",
-  instagramUrl:"https://www.instagram.com/kcas_archived?utm_source=qr",
-  kakaoName:"한조고 아카이브",
-  kakaoUrl:"",
-  dbFormUrl:"https://link24.kr/DPWKmSL",
-  applyFormUrl:"",
-  faq:[
-    {q:"누가 참여할 수 있나요?",a:"한국조리고등학교 졸업생을 대상으로 진행하는 동문 네트워크 모임입니다."},
-    {q:"참가비는 얼마인가요?",a:"참가비는 1인 100,000원(십만원)입니다. 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."},
-    {q:"신청하면 바로 참가가 확정되나요?",a:"아닙니다. 참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며, 입금 확인 후 최종 참가가 확정됩니다."},
-    {q:"주차가 가능한가요?",a:"행사장 자체 주차는 어렵습니다. 인근 다산동 공영주차장을 이용할 수 있으나 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다."}
-  ]
+const PUBLIC_BUILD_VERSION="2026-08-31-application-lock-fix-v1";
+
+const SUPABASE_URL="https://siuresrjvrrezhwsjery.supabase.co";
+const SUPABASE_KEY="sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
+
+const sb=window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const DEFAULT_PUBLIC_INFO={
+eventName:"한조고 동문 네트워크 모임",
+eventDate:"2026-10-18",
+entryTime:"18:30",
+startTime:"19:00",
+
+venueName:"카페 와일드덕",
+venueAddress:"서울 중구 동호로15길 43 미래빌딩 지하 1층",
+
+venueMapUrl:"https://www.google.com/maps/search/?api=1&query=%EC%B9%B4%ED%8E%98%20%EC%99%80%EC%9D%BC%EB%93%9C%EB%8D%95%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2043",
+
+venueInstagram:"https://www.instagram.com/cafewildduck/",
+
+parkingName:"다산동 공영주차장",
+parkingAddress:"서울 중구 동호로15길 60",
+
+parkingMapUrl:"https://www.google.com/maps/search/?api=1&query=%EB%8B%A4%EC%82%B0%EB%8F%99%20%EA%B3%B5%EC%98%81%EC%A3%BC%EC%B0%A8%EC%9E%A5%20%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C15%EA%B8%B8%2060",
+
+parkingNote:"행사장 자체 주차는 불가합니다. 다산동 공영주차장은 행사장 도보 약 2~3분 거리이며, 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다.",
+
+contactName:"김태민 · 2기",
+contactPhone:"010-4202-4091",
+contactEmail:"mainxoals@gmail.com",
+
+instagramUrl:"https://www.instagram.com/kcas_archived?utm_source=qr",
+
+kakaoName:"한조고 아카이브",
+kakaoUrl:"",
+
+dbFormUrl:"https://link24.kr/DPWKmSL",
+
+faq:[
+{
+q:"누가 참여할 수 있나요?",
+a:"한국조리고등학교 졸업생을 대상으로 진행하는 동문 네트워크 모임입니다."
+},
+{
+q:"참가비는 얼마인가요?",
+a:"참가비는 1인 100,000원(십만원)입니다. 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."
+},
+{
+q:"신청하면 바로 참가가 확정되나요?",
+a:"아닙니다. 참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며, 입금 확인 후 최종 참가가 확정됩니다."
+},
+{
+q:"주차가 가능한가요?",
+a:"행사장 자체 주차는 어렵습니다. 인근 다산동 공영주차장을 이용할 수 있으나 만차 가능성이 있어 가급적 대중교통 이용을 권장합니다."
+}
+]
 };
 
-let publicInfo = {...DEFAULT_PUBLIC_INFO};
-let alumniStats = null;
-let participantApplicationStats = null;
+const DEFAULT_APPLICATION_SCHEDULE={
+enabled:true,
 
-const DEFAULT_APPLICATION_SCHEDULE = {
-  enabled: true,
-  formUrl: "",
-  openAt: "2026-09-02T10:00",
-  closeAt: "",
-  beforeLabel: "1차 참가신청 · 9월 2일 오픈 예정",
-  openLabel: "1차 참가신청 하기",
-  closedLabel: "1차 참가신청 마감"
+formUrl:"",
+
+openAt:"2026-09-02T10:00",
+
+closeAt:"2026-09-06T23:59",
+
+beforeLabel:"1차 참가신청 · 9월 2일 오전 10시 오픈 예정",
+
+openLabel:"1차 참가신청 하기",
+
+closedLabel:"1차 참가신청 마감"
 };
-let applicationSchedule = {...DEFAULT_APPLICATION_SCHEDULE};
 
-const APPLY_OPEN = new Date("2026-09-02T00:00:00");
-const APPLY_FIRST_CLOSE = new Date("2026-09-06T23:59:59");
-const APPLY_SECOND_OPEN = new Date("2026-09-14T00:00:00");
-const APPLY_SECOND_CLOSE = new Date("2026-09-20T23:59:59");
+let publicInfo={...DEFAULT_PUBLIC_INFO};
 
-const BASE_SCHEDULE = [
-  {start:"2026-08-24",end:"2026-08-25",title:"참가 신청 사전 안내",desc:"카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다."},
-  {start:"2026-09-02",end:"2026-09-06",title:"1차 참가 신청",desc:"일반 참가자 대상 1차 신청 기간입니다.",tag:"신청"},
-  {start:"2026-09-07",end:"2026-09-10",title:"1차 신청자 정리 및 참가 확정",desc:"참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감은 9월 10일(목) 23:59입니다."},
-  {start:"2026-09-14",end:"2026-09-20",title:"2차 참가 신청",desc:"1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다.",tag:"추가 모집"},
-  {start:"2026-09-20",end:"2026-09-20",title:"기업 협찬·후원 접수 마감",desc:"협찬 및 후원 참여 접수가 마감됩니다."},
-  {start:"2026-09-21",end:"2026-09-25",title:"최종 참가자 확정",desc:"미입금 및 대기자 정리 후 최종 참가자가 확정됩니다."},
-  {start:"2026-10-05",end:"2026-10-11",title:"참가자 최종 안내",desc:"행사 전 필요한 최종 안내를 전달합니다."}
+let applicationSchedule={
+...DEFAULT_APPLICATION_SCHEDULE
+};
+
+let alumniStats=null;
+
+let participantApplicationStats=null;
+
+const BASE_SCHEDULE=[
+{
+start:"2026-08-24",
+end:"2026-08-25",
+title:"참가 신청 사전 안내",
+desc:"카카오톡 채널 등을 통해 참가 신청 오픈 일정을 미리 안내합니다."
+},
+
+{
+start:"2026-09-02",
+end:"2026-09-06",
+title:"1차 참가 신청",
+desc:"일반 참가자 대상 1차 신청 기간입니다. 신청 마감은 9월 6일 23:59입니다.",
+tag:"신청"
+},
+
+{
+start:"2026-09-07",
+end:"2026-09-10",
+title:"1차 신청자 정리 및 참가 확정",
+desc:"참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감은 9월 10일(목) 23:59입니다."
+},
+
+{
+start:"2026-09-14",
+end:"2026-09-20",
+title:"2차 참가 신청",
+desc:"1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다.",
+tag:"추가 모집"
+},
+
+{
+start:"2026-09-20",
+end:"2026-09-20",
+title:"기업 협찬·후원 접수 마감",
+desc:"협찬 및 후원 참여 접수가 마감됩니다."
+},
+
+{
+start:"2026-09-21",
+end:"2026-09-25",
+title:"최종 참가자 확정",
+desc:"미입금 및 대기자 정리 후 최종 참가자가 확정됩니다."
+},
+
+{
+start:"2026-10-05",
+end:"2026-10-11",
+title:"참가자 최종 안내",
+desc:"행사 전 필요한 최종 안내를 전달합니다."
+}
 ];
 
 function esc(v){
-  return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-
-function phoneHref(v){
-  return "tel:" + String(v || "").replace(/[^\d+]/g,"");
-}
-
-function today0(){
-  const d=new Date();
-  d.setHours(0,0,0,0);
-  return d;
-}
-
-function daysBetween(a,b){
-  const x=new Date(a),y=new Date(b);
-  x.setHours(0,0,0,0);
-  y.setHours(0,0,0,0);
-  return Math.round((y-x)/86400000);
+return String(v??"").replace(/[&<>"']/g,c=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+}[c]));
 }
 
 function toDate(s){
-  return new Date(s+"T00:00:00");
+return new Date(
+s+"T00:00:00+09:00"
+);
 }
 
 function fmtKR(s){
-  const d=toDate(s);
-  return `${d.getMonth()+1}월 ${d.getDate()}일`;
+const d=toDate(s);
+
+return `${d.getMonth()+1}월 ${d.getDate()}일`;
 }
 
-function fmtRange(item){
-  return item.start===item.end ? fmtKR(item.start) : `${fmtKR(item.start)} ~ ${fmtKR(item.end)}`;
-}
-
-
-function mergePublicInfo(saved){
-  const s=(saved && typeof saved==="object") ? saved : {};
-  return {
-    ...DEFAULT_PUBLIC_INFO,
-    ...s,
-    parkingName:String(s.parkingName||"").trim() || DEFAULT_PUBLIC_INFO.parkingName,
-    parkingAddress:String(s.parkingAddress||"").trim() || DEFAULT_PUBLIC_INFO.parkingAddress,
-    parkingMapUrl:String(s.parkingMapUrl||"").trim() || DEFAULT_PUBLIC_INFO.parkingMapUrl,
-    parkingNote:String(s.parkingNote||"").trim() || DEFAULT_PUBLIC_INFO.parkingNote,
-    faq:Array.isArray(s.faq) ? s.faq : DEFAULT_PUBLIC_INFO.faq
-  };
+function fmtRange(i){
+return i.start===i.end
+? fmtKR(i.start)
+: `${fmtKR(i.start)} ~ ${fmtKR(i.end)}`;
 }
 
 function formatEventDate(iso){
-  const d=toDate(iso || "2026-10-18");
-  const wd=["일","월","화","수","목","금","토"];
-  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일(${wd[d.getDay()]})`;
+
+const d=toDate(
+iso||"2026-10-18"
+);
+
+const wd=[
+"일","월","화","수","목","금","토"
+];
+
+return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일(${wd[d.getDay()]})`;
+}
+
+function mergePublicInfo(saved){
+
+const s=
+(saved&&typeof saved==="object")
+? saved
+: {};
+
+return {
+...DEFAULT_PUBLIC_INFO,
+...s,
+faq:Array.isArray(s.faq)
+? s.faq
+: DEFAULT_PUBLIC_INFO.faq
+};
+
+}
+
+function parseKoreaLocalDateTime(v){
+
+if(!v)return null;
+
+const s=String(v).trim();
+
+const hasZone=
+/(?:Z|[+-]\d{2}:?\d{2})$/i.test(s);
+
+let normalized=s;
+
+if(!hasZone){
+
+if(
+/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)
+){
+
+normalized=
+s+":00+09:00";
+
+}
+
+else if(
+/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)
+){
+
+normalized=
+s+"+09:00";
+
+}
+
+}
+
+const d=
+new Date(normalized);
+
+return Number.isNaN(d.getTime())
+? null
+: d;
+
+}
+
+function getApplicationGate(){
+
+const a={
+...DEFAULT_APPLICATION_SCHEDULE,
+...(
+(applicationSchedule&&typeof applicationSchedule==="object")
+? applicationSchedule
+: {}
+)
+};
+
+const now=
+new Date();
+
+const open=
+parseKoreaLocalDateTime(
+a.openAt
+);
+
+const close=
+parseKoreaLocalDateTime(
+a.closeAt
+);
+
+const url=
+String(
+a.formUrl||""
+).trim();
+
+const isBefore=
+Boolean(
+open&&now<open
+);
+
+const isClosed=
+Boolean(
+close&&now>=close
+);
+
+const isOpen=
+Boolean(
+a.enabled!==false &&
+!isBefore &&
+!isClosed &&
+open &&
+now>=open &&
+url
+);
+
+return {
+a,
+now,
+open,
+close,
+url,
+isBefore,
+isClosed,
+isOpen
+};
+
 }
 
 function getSchedule(){
-  return [
-    ...BASE_SCHEDULE.map(x=>({...x})),
-    {
-      start:publicInfo.eventDate || "2026-10-18",
-      end:publicInfo.eventDate || "2026-10-18",
-      title:publicInfo.eventName || "한조고 동문 네트워크 모임",
-      desc:`입장 ${publicInfo.entryTime || ""} 이후 · 본행사 ${publicInfo.startTime || ""} 시작`,
-      event:true
-    }
-  ];
+
+return [
+...BASE_SCHEDULE,
+
+{
+start:publicInfo.eventDate||"2026-10-18",
+
+end:publicInfo.eventDate||"2026-10-18",
+
+title:publicInfo.eventName||"한조고 동문 네트워크 모임",
+
+desc:
+`입장 ${publicInfo.entryTime||""} 이후 · 본행사 ${publicInfo.startTime||""} 시작`,
+
+event:true
+}
+];
+
 }
 
 function renderHeaderAndInfo(){
-  const p=publicInfo;
-  document.getElementById("heroDate").textContent=formatEventDate(p.eventDate);
-  document.getElementById("heroPlace").textContent=`${p.eventName || ""} · ${p.venueName || ""}`;
 
-  document.getElementById("venueName").textContent=p.venueName || "";
-  document.getElementById("venueAddress").textContent=p.venueAddress || "";
-  document.getElementById("eventTimeBox").innerHTML=
-    `입장 가능 · ${esc(p.entryTime || "")} 이후<br>본행사 시작 · ${esc(p.startTime || "")}`;
+const p=publicInfo;
 
-  const mapBtn=document.getElementById("mapBtn");
-  mapBtn.href=p.venueMapUrl || "#";
+const g=
+getApplicationGate();
 
-  const venueIg=document.getElementById("venueInstagramBtn");
-  venueIg.href=p.venueInstagram || "#";
-  venueIg.style.display=p.venueInstagram ? "inline-flex" : "none";
+heroDate.textContent=
+formatEventDate(
+p.eventDate
+);
 
-  document.getElementById("parkingName").textContent=p.parkingName || DEFAULT_PUBLIC_INFO.parkingName;
-  document.getElementById("parkingAddress").textContent=p.parkingAddress || DEFAULT_PUBLIC_INFO.parkingAddress;
-  document.getElementById("parkingNote").textContent=p.parkingNote || DEFAULT_PUBLIC_INFO.parkingNote;
+heroPlace.textContent=
+`${p.eventName||""} · ${p.venueName||""}`;
 
-  const parkingMapBtn=document.getElementById("parkingMapBtn");
-  parkingMapBtn.href=p.parkingMapUrl || DEFAULT_PUBLIC_INFO.parkingMapUrl;
-  parkingMapBtn.style.display="inline-flex";
+const eventDate=
+toDate(
+p.eventDate||"2026-10-18"
+);
 
-  document.getElementById("contactName").textContent=p.contactName || "";
-  document.getElementById("contactInfo").innerHTML=
-    `<strong>전화</strong> ${esc(p.contactPhone || "")}<br><strong>이메일</strong> ${esc(p.contactEmail || "")}`;
+const today=
+new Date();
 
-  document.getElementById("contactTelBtn").href="sms:"+(p.contactPhone || "").replace(/[^0-9+]/g,"");
-  document.getElementById("contactMailBtn").href="mailto:"+(p.contactEmail || "");
+today.setHours(
+0,0,0,0
+);
 
-  const resources=[];
-  if(p.instagramUrl){
-    resources.push(`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank" rel="noopener"><div class="r-k">Instagram</div><div class="r-v">@kcas_archived</div></a>`);
-  }
+const diff=
+Math.round(
+(eventDate-today)/86400000
+);
 
-  if(p.kakaoUrl){
-    resources.push(`<a class="resource-item" href="${esc(p.kakaoUrl)}" target="_blank" rel="noopener"><div class="r-k">KakaoTalk Channel</div><div class="r-v">${esc(p.kakaoName || "한조고 아카이브")}</div></a>`);
-  }else{
-    resources.push(`<div class="resource-item disabled"><div class="r-k">KakaoTalk Channel</div><div class="r-v">${esc(p.kakaoName || "한조고 아카이브")}</div></div>`);
-  }
+eventDday.textContent=
+diff===0
+? "D-DAY"
+: diff>0
+? "D-"+diff
+: "D+"+Math.abs(diff);
 
-  if(p.dbFormUrl){
-    resources.push(`<a class="resource-item" href="${esc(p.dbFormUrl)}" target="_blank" rel="noopener"><div class="r-k">졸업생 DB 등록</div><div class="r-v">구글폼 바로가기</div></a>`);
-  }
+venueName.textContent=
+p.venueName||"";
 
-  if(p.applyFormUrl){
-    resources.push(`<a class="resource-item" href="${esc(p.applyFormUrl)}" target="_blank" rel="noopener"><div class="r-k">2026 행사 참가 신청</div><div class="r-v">참가 신청하기</div></a>`);
-  }else{
-    resources.push(`<div class="resource-item disabled"><div class="r-k">2026 행사 참가 신청</div><div class="r-v">9월 2일 오픈 예정 <span class="ready-badge">준비 중</span></div></div>`);
-  }
+venueAddress.textContent=
+p.venueAddress||"";
 
-  document.getElementById("resourceList").innerHTML=resources.join("");
+eventTimeBox.innerHTML=
+`입장 가능 · ${esc(p.entryTime||"")} 이후<br>본행사 시작 · ${esc(p.startTime||"")}`;
 
-  const faq=(p.faq || []).filter(x=>x.q || x.a);
-  document.getElementById("faqList").innerHTML=faq.map(item=>`
-    <div class="faq-item">
-      <button class="faq-q"><span>${esc(item.q)}</span><span class="faq-icon">+</span></button>
-      <div class="faq-a">${esc(item.a)}</div>
-    </div>
-  `).join("");
+mapBtn.href=
+p.venueMapUrl||"#";
 
-  document.querySelectorAll(".faq-q").forEach(btn=>{
-    btn.addEventListener("click",()=>btn.closest(".faq-item").classList.toggle("open"));
-  });
+venueInstagramBtn.href=
+p.venueInstagram||"#";
+
+parkingName.textContent=
+p.parkingName||"";
+
+parkingAddress.textContent=
+p.parkingAddress||"";
+
+parkingNote.textContent=
+p.parkingNote||"";
+
+parkingMapBtn.href=
+p.parkingMapUrl||"#";
+
+contactName.textContent=
+p.contactName||"";
+
+contactInfo.innerHTML=
+`<strong>전화</strong> ${esc(p.contactPhone||"")}<br><strong>이메일</strong> ${esc(p.contactEmail||"")}`;
+
+contactTelBtn.href=
+"sms:"+
+String(
+p.contactPhone||""
+).replace(
+/[^0-9+]/g,""
+);
+
+contactMailBtn.href=
+"mailto:"+
+(p.contactEmail||"");
+
+const r=[];
+
+if(p.instagramUrl){
+
+r.push(
+`<a class="resource-item" href="${esc(p.instagramUrl)}" target="_blank">
+<div class="r-k">Instagram</div>
+<div class="r-v">@kcas_archived</div>
+</a>`
+);
+
 }
 
-function renderDdaysAndStatus(){
-  const today=today0();
-  const eventDate=toDate(publicInfo.eventDate || "2026-10-18");
-  const eventDiff=daysBetween(today,eventDate);
+if(p.kakaoUrl){
 
-  document.getElementById("eventDday").textContent=
-    eventDiff===0 ? "D-DAY" : eventDiff>0 ? "D-"+eventDiff : "D+"+Math.abs(eventDiff);
+r.push(
+`<a class="resource-item" href="${esc(p.kakaoUrl)}" target="_blank">
+<div class="r-k">KakaoTalk Channel</div>
+<div class="r-v">${esc(p.kakaoName||"한조고 아카이브")}</div>
+</a>`
+);
 
-  const applyDiff=daysBetween(today,APPLY_OPEN);
-  const applyDdayEl=document.getElementById("applyDday"); if(applyDdayEl) applyDdayEl.textContent=applyDiff===0 ? "D-DAY" : applyDiff>0 ? "D-"+applyDiff : "오픈됨";
-
-  const now=new Date();
-  const title=document.getElementById("applyStatusTitle");
-  const sub=document.getElementById("applyStatusSub");
-  const pill=document.getElementById("applyStatusPill");
-  pill.className="status-pill";
-
-  if(now<APPLY_OPEN){
-    const d=daysBetween(today,APPLY_OPEN);
-    title.textContent="9월 2일 1차 참가 신청 오픈";
-    sub.textContent=d>0 ? `참가 신청까지 ${d}일 남았습니다.` : "참가 신청이 곧 시작됩니다.";
-    pill.textContent="오픈 전";
-    pill.classList.add("before");
-  }else if(now<=APPLY_FIRST_CLOSE){
-    title.textContent="1차 참가 신청 진행 중";
-    sub.textContent="1차 신청 기간은 9월 6일까지입니다.";
-    pill.textContent="신청 중";
-    pill.classList.add("open");
-  }else if(now<APPLY_SECOND_OPEN){
-    title.textContent="1차 참가 신청 마감";
-    sub.textContent="1차 신청자 확인 및 참가 확정 절차가 진행됩니다.";
-    pill.textContent="1차 마감";
-    pill.classList.add("closed");
-  }else if(now<=APPLY_SECOND_CLOSE){
-    title.textContent="2차 참가 신청 진행 중";
-    sub.textContent="잔여 인원을 대상으로 추가 신청을 받고 있습니다.";
-    pill.textContent="추가 모집 중";
-    pill.classList.add("open");
-  }else if(now<eventDate){
-    title.textContent="참가 신청 마감";
-    sub.textContent="최종 참가자 확정 및 행사 준비가 진행 중입니다.";
-    pill.textContent="마감";
-    pill.classList.add("closed");
-  }else{
-    title.textContent="행사일";
-    sub.textContent="오늘 한조고 동문 네트워크 모임이 진행됩니다.";
-    pill.textContent="행사 진행";
-    pill.classList.add("event");
-  }
 }
 
-function renderNextAndTimeline(){
-  const schedule=getSchedule();
-  const today=today0();
-  const nowStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-  const next=schedule.find(item=>item.end>=nowStr) || schedule[schedule.length-1];
+if(p.dbFormUrl){
 
-  document.getElementById("nextTitle").textContent=next.title;
-  document.getElementById("nextMeta").textContent=next.desc;
-  document.getElementById("nextDate").textContent=fmtRange(next);
+r.push(
+`<a class="resource-item" href="${esc(p.dbFormUrl)}" target="_blank">
+<div class="r-k">졸업생 DB 등록</div>
+<div class="r-v">구글폼 바로가기</div>
+</a>`
+);
 
-  document.getElementById("timeline").innerHTML=schedule.map(item=>`
-    <div class="item ${item.event ? "event-row" : ""}">
-      <div class="datebox"><strong>${esc(fmtRange(item).replaceAll("월 ","/").replaceAll("일",""))}</strong></div>
-      <div class="dotcol"><div class="dot"></div></div>
-      <div class="content">
-        <h3>${esc(item.title)}${item.tag ? `<span class="tag">${esc(item.tag)}</span>` : ""}${item.event ? `<span class="tag event">행사일</span>` : ""}</h3>
-        <p>${esc(item.desc)}</p>
-      </div>
-    </div>
-  `).join("");
 }
 
-function findSchedulesForDate(str){
-  return getSchedule().filter(item=>str>=item.start && str<=item.end);
+if(g.isOpen){
+
+r.push(
+`<a class="resource-item" href="${esc(g.url)}" target="_blank" rel="noopener">
+<div class="r-k">2026 행사 참가 신청</div>
+<div class="r-v">참가 신청하기 · 9월 6일 23:59 마감</div>
+</a>`
+);
+
 }
 
-function fmtDate(y,m,d){
-  return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+else if(g.isClosed){
+
+r.push(
+`<div class="resource-item disabled">
+<div class="r-k">2026 행사 참가 신청</div>
+<div class="r-v">
+1차 참가신청 마감
+<span class="ready-badge">마감</span>
+</div>
+</div>`
+);
+
 }
 
-function showDetail(dateStr){
-  const items=findSchedulesForDate(dateStr);
-  const box=document.getElementById("calendarDetail");
-  const isEvent=items.some(x=>x.event);
-  box.className="calendar-detail"+(isEvent ? " event-detail" : "");
-  box.innerHTML=items.map(item=>`
-    <div style="${items.length>1 ? "margin-bottom:12px;" : ""}">
-      <div class="detail-date">${esc(fmtRange(item))}</div>
-      <div class="detail-title">${esc(item.title)}${item.event ? " · 행사일" : ""}</div>
-      <div class="detail-desc">${esc(item.desc)}</div>
-    </div>
-  `).join("");
+else{
+
+r.push(
+`<div class="resource-item disabled">
+<div class="r-k">2026 행사 참가 신청</div>
+<div class="r-v">
+9월 2일 오전 10시 오픈 · 9월 6일 23:59 마감
+<span class="ready-badge">준비 중</span>
+</div>
+</div>`
+);
+
 }
 
-function makeMonth(y,m){
-  const names=["일","월","화","수","목","금","토"];
-  const box=document.createElement("div");
-  box.className="month";
-  box.innerHTML=`<div class="month-title">${m+1}월</div><div class="cal">${names.map(n=>`<div class="dow">${n}</div>`).join("")}</div>`;
+resourceList.innerHTML=
+r.join("");
 
-  const cal=box.querySelector(".cal");
-  const first=new Date(y,m,1).getDay();
-  const last=new Date(y,m+1,0).getDate();
+faqList.innerHTML=
+(p.faq||[])
+.map(
+x=>
+`<div class="faq-item">
+<button class="faq-q">
+<span>${esc(x.q)}</span>
+<span>+</span>
+</button>
+<div class="faq-a">
+${esc(x.a)}
+</div>
+</div>`
+)
+.join("");
 
-  for(let i=0;i<first;i++){
-    const blank=document.createElement("div");
-    blank.className="day";
-    cal.appendChild(blank);
-  }
+document
+.querySelectorAll(
+".faq-q"
+)
+.forEach(
+b=>
+b.onclick=
+()=>
+b.closest(
+".faq-item"
+).classList.toggle(
+"open"
+)
+);
 
-  const eventDate=publicInfo.eventDate || "2026-10-18";
+}
 
-  for(let day=1;day<=last;day++){
-    const dateStr=fmtDate(y,m,day);
-    const items=findSchedulesForDate(dateStr);
-    const btn=document.createElement("button");
-    btn.type="button";
-    btn.className="day"+(dateStr===eventDate ? " event" : items.length ? " mark" : "");
-    btn.textContent=day;
+function renderApplication(){
 
-    if(items.length){
-      btn.addEventListener("click",()=>showDetail(dateStr));
-    }else{
-      btn.disabled=true;
-    }
-    cal.appendChild(btn);
-  }
+const g=
+getApplicationGate();
 
-  return box;
+const p=
+applyStatusPill;
+
+p.className=
+"status-pill";
+
+applicationBtn.classList.add(
+"disabled"
+);
+
+applicationBtn.removeAttribute(
+"href"
+);
+
+applicationBtn.removeAttribute(
+"target"
+);
+
+if(
+g.a.enabled===false
+){
+
+applyStatusTitle.textContent=
+"참가 신청 준비 중";
+
+applyStatusSub.textContent=
+"참가 신청 일정이 확정되면 안내드리겠습니다.";
+
+p.textContent=
+"준비 중";
+
+p.classList.add(
+"before"
+);
+
+applicationSub.textContent=
+"참가신청 준비 중";
+
+return;
+
+}
+
+if(g.isBefore){
+
+applyStatusTitle.textContent=
+"9월 2일 오전 10시 1차 참가 신청 오픈";
+
+applyStatusSub.textContent=
+"신청 마감은 9월 6일 23:59입니다.";
+
+p.textContent=
+"오픈 전";
+
+p.classList.add(
+"before"
+);
+
+applicationBtn.textContent=
+g.a.beforeLabel;
+
+applicationSub.textContent=
+"9월 2일 오전 10시에 자동으로 열립니다 · 9월 6일 23:59 마감";
+
+return;
+
+}
+
+if(g.isClosed){
+
+applyStatusTitle.textContent=
+"1차 참가 신청 마감";
+
+applyStatusSub.textContent=
+"1차 신청 접수가 9월 6일 23:59에 마감되었습니다.";
+
+p.textContent=
+"1차 마감";
+
+p.classList.add(
+"closed"
+);
+
+applicationBtn.textContent=
+g.a.closedLabel;
+
+applicationSub.textContent=
+"1차 참가신청이 마감되었습니다.";
+
+return;
+
+}
+
+if(g.isOpen){
+
+applyStatusTitle.textContent=
+"1차 참가 신청 진행 중";
+
+applyStatusSub.textContent=
+"신청 마감은 9월 6일 23:59입니다.";
+
+p.textContent=
+"신청 중";
+
+p.classList.add(
+"open"
+);
+
+applicationBtn.textContent=
+g.a.openLabel;
+
+applicationBtn.classList.remove(
+"disabled"
+);
+
+applicationBtn.href=
+g.url;
+
+applicationBtn.target=
+"_blank";
+
+applicationSub.textContent=
+"신청 마감 · 9월 6일 23:59";
+
+return;
+
+}
+
+applyStatusTitle.textContent=
+"참가 신청 준비 중";
+
+applyStatusSub.textContent=
+"참가 신청 일정 정보를 확인하고 있습니다.";
+
+p.textContent=
+"준비 중";
+
+p.classList.add(
+"before"
+);
+
+applicationBtn.textContent=
+"참가신청 준비 중";
+
+}
+
+function renderAlumni(){
+
+if(!alumniStats){
+
+alumniStatsBody.innerHTML=
+'<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중입니다.</div>';
+
+return;
+
+}
+
+const gens=
+Object.entries(
+alumniStats.byGeneration||{}
+)
+.sort(
+(a,b)=>
+Number(a[0])-Number(b[0])
+);
+
+alumniStatsBody.innerHTML=
+`<div class="alumni-summary">
+
+<div class="alumni-stat">
+<div class="k">총 등록 인원</div>
+<div class="v">${esc(alumniStats.total||0)}명</div>
+</div>
+
+<div class="alumni-stat">
+<div class="k">최근 7일 신규</div>
+<div class="v">${alumniStats.recent7===null?"-":esc(alumniStats.recent7)+"명"}</div>
+</div>
+
+</div>
+
+<div class="alumni-gen-title">
+기수별 등록 인원
+</div>
+
+<div class="alumni-gen-grid">
+
+${gens.map(
+([g,c])=>
+`<div class="alumni-gen-item">
+<span>${esc(g)}기</span>
+<b>${esc(c)}명</b>
+</div>`
+).join("")}
+
+</div>
+
+<div class="alumni-privacy">
+개인정보는 표시하지 않고 집계된 정보만 제공합니다.
+</div>`;
+
+alumniUpdated.textContent=
+alumniStats.updatedAt
+? `최근 집계 ${alumniStats.updatedAt}`
+: "";
+
+}
+
+function renderTimeline(){
+
+const s=
+getSchedule();
+
+const now=
+new Date();
+
+const today=
+`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+
+const next=
+s.find(
+i=>i.end>=today
+)
+||
+s[s.length-1];
+
+nextTitle.textContent=
+next.title;
+
+nextMeta.textContent=
+next.desc;
+
+nextDate.textContent=
+fmtRange(next);
+
+timeline.innerHTML=
+s.map(
+i=>
+`<div class="item ${i.event?"event-row":""}">
+
+<div class="datebox">
+<strong>${esc(fmtRange(i))}</strong>
+</div>
+
+<div>
+<div class="dot"></div>
+</div>
+
+<div class="content">
+
+<h3>
+${esc(i.title)}
+${i.tag?`<span class="tag">${esc(i.tag)}</span>`:""}
+${i.event?'<span class="tag event">행사일</span>':""}
+</h3>
+
+<p>
+${esc(i.desc)}
+</p>
+
+</div>
+
+</div>`
+)
+.join("");
+
 }
 
 function renderCalendar(){
-  const holder=document.getElementById("months");
-  holder.innerHTML="";
-  [[2026,7],[2026,8],[2026,9]].forEach(([y,m])=>holder.appendChild(makeMonth(y,m)));
-  document.getElementById("calendarDetail").className="calendar-detail";
-  document.getElementById("calendarDetail").innerHTML='<div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>';
+
+months.innerHTML="";
+
+[
+[2026,7],
+[2026,8],
+[2026,9]
+]
+.forEach(
+([y,m])=>{
+
+const box=
+document.createElement(
+"div"
+);
+
+box.className=
+"month";
+
+box.innerHTML=
+`<div class="month-title">${m+1}월</div>
+<div class="cal">
+${["일","월","화","수","목","금","토"].map(
+n=>`<div class="dow">${n}</div>`
+).join("")}
+</div>`;
+
+const cal=
+box.querySelector(
+".cal"
+);
+
+const first=
+new Date(
+y,m,1
+).getDay();
+
+const last=
+new Date(
+y,m+1,0
+).getDate();
+
+for(
+let i=0;
+i<first;
+i++
+){
+
+const blank=
+document.createElement(
+"div"
+);
+
+blank.className=
+"day";
+
+cal.appendChild(
+blank
+);
+
 }
 
+for(
+let d=1;
+d<=last;
+d++
+){
 
+const ds=
+`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
+const items=
+getSchedule().filter(
+i=>
+ds>=i.start &&
+ds<=i.end
+);
 
+const b=
+document.createElement(
+"button"
+);
 
+b.className=
+"day"+
+(
+ds===publicInfo.eventDate
+? " event"
+: items.length
+? " mark"
+: ""
+);
 
-function renderAlumniStats(){
-  const body=document.getElementById("alumniStatsBody"); const updated=document.getElementById("alumniUpdated"); if(!body) return;
-  if(!alumniStats){body.innerHTML='<div class="alumni-empty">졸업생 DB 집계 정보를 불러오는 중이거나 연동을 확인하고 있습니다.</div>';if(updated)updated.textContent="";return;}
-  const gens=Object.entries(alumniStats.byGeneration||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
-  const genHtml=gens.length?gens.map(([g,c])=>`<div class="alumni-gen-item"><span>${esc(g)}기</span><b>${esc(c)}명</b></div>`).join(""):'<div class="alumni-empty">기수별 집계 준비 중</div>';
-  body.innerHTML=`<div class="alumni-summary">
-    <div class="alumni-stat"><div class="k">총 등록 인원</div><div class="v">${esc(alumniStats.total||0)}명</div></div>
-    <div class="alumni-stat"><div class="k">최근 7일 신규</div><div class="v">${alumniStats.recent7===null?"-":esc(alumniStats.recent7)+"명"}</div></div>
-  </div><div class="alumni-gen-title">기수별 등록 인원</div><div class="alumni-gen-grid">${genHtml}</div><div class="alumni-privacy">개인정보는 표시하지 않고 집계된 정보만 제공합니다.</div>`;
-  if(updated) updated.textContent=alumniStats.updatedAt?`최근 집계 ${alumniStats.updatedAt}`:"";
+b.textContent=
+d;
+
+b.disabled=
+!items.length;
+
+if(items.length){
+
+b.onclick=
+()=>{
+
+calendarDetail.innerHTML=
+items.map(
+i=>
+`<div>
+<div class="detail-date">${esc(fmtRange(i))}</div>
+<div class="detail-title">${esc(i.title)}</div>
+<div class="detail-desc">${esc(i.desc)}</div>
+</div>`
+)
+.join("");
+
+};
+
 }
 
+cal.appendChild(
+b
+);
 
-function parseKoreaLocalDateTime(v){
-  if(!v) return null;
-  return new Date(v + ":00+09:00");
 }
 
-function renderParticipantApplicationStats(){
-  const wrap=document.getElementById("applicationStatsBlock");
-  const total=document.getElementById("publicParticipantTotal");
-  const s=participantApplicationStats;
-  if(!wrap) return;
+months.appendChild(
+box
+);
 
-  const a={...DEFAULT_APPLICATION_SCHEDULE,...((applicationSchedule&&typeof applicationSchedule==="object")?applicationSchedule:{})};
-  const open=parseKoreaLocalDateTime(a.openAt);
+}
+);
 
-  if(!s || (open && new Date() < open)){
-    wrap.style.display="none";
-    return;
-  }
-
-  wrap.style.display="block";
-  if(total) total.textContent=Number(s.total||0).toLocaleString()+"명";
 }
 
-function renderApplicationCta(){
-  const wrap=document.getElementById("applicationCta");
-  const btn=document.getElementById("applicationBtn");
-  const sub=document.getElementById("applicationSub");
-  if(!wrap || !btn) return;
-  const a={...DEFAULT_APPLICATION_SCHEDULE,...((applicationSchedule&&typeof applicationSchedule==="object")?applicationSchedule:{})};
-  if(a.enabled===false){ wrap.style.display="none"; return; }
-  wrap.style.display="block";
+function renderParticipantStats(){
 
-  const now=new Date();
-  const open=parseKoreaLocalDateTime(a.openAt);
-  const close=parseKoreaLocalDateTime(a.closeAt);
+const g=
+getApplicationGate();
 
-  btn.classList.add("disabled");
-  btn.removeAttribute("href");
-  btn.removeAttribute("target");
+if(
+!participantApplicationStats ||
+!g.isOpen
+){
 
-  if(open && now<open){
-    btn.textContent=a.beforeLabel||DEFAULT_APPLICATION_SCHEDULE.beforeLabel;
-    if(sub) sub.textContent="지정된 오픈 시간에 자동으로 신청 버튼이 활성화됩니다.";
-    return;
-  }
-  if(close && now>=close){
-    btn.textContent=a.closedLabel||DEFAULT_APPLICATION_SCHEDULE.closedLabel;
-    if(sub) sub.textContent="1차 참가신청이 마감되었습니다.";
-    return;
-  }
-  if(a.formUrl){
-    btn.textContent=a.openLabel||DEFAULT_APPLICATION_SCHEDULE.openLabel;
-    btn.classList.remove("disabled");
-    btn.href=a.formUrl;
-    btn.target="_blank";
-    btn.rel="noopener";
-    if(sub) sub.textContent="버튼을 누르면 참가신청 구글폼으로 이동합니다.";
-  }else{
-    btn.textContent="참가신청 링크 준비 중";
-    if(sub) sub.textContent="참가신청 링크가 등록되는 대로 열립니다.";
-  }
+applicationStatsBlock.style.display=
+"none";
+
+return;
+
+}
+
+applicationStatsBlock.style.display=
+"block";
+
+publicParticipantTotal.textContent=
+Number(
+participantApplicationStats.total||0
+).toLocaleString()+"명";
+
 }
 
 function renderAll(){
-  renderHeaderAndInfo();
-  renderDdaysAndStatus();
-  renderNextAndTimeline();
-  renderCalendar();
-  renderAlumniStats();
-  renderParticipantApplicationStats();
-  renderApplicationCta();
-}
 
+renderHeaderAndInfo();
 
-// ---------- simple visitor counter ----------
-function getVisitorId(){
-  const key="hanjogo_public_visitor_id";
-  try{
-    let id=localStorage.getItem(key);
-    if(!id){
-      id=(window.crypto && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : "v-"+Date.now()+"-"+Math.random().toString(36).slice(2);
-      localStorage.setItem(key,id);
-    }
-    return id;
-  }catch(e){
-    return "session-"+Date.now()+"-"+Math.random().toString(36).slice(2);
-  }
-}
+renderApplication();
 
-function showVisitorStats(row){
-  const today=Number(row?.today_visitors ?? 0);
-  const total=Number(row?.total_visitors ?? 0);
-  const t=document.getElementById("todayVisitorCount");
-  const a=document.getElementById("totalVisitorCount");
-  if(t) t.textContent=today.toLocaleString()+"명";
-  if(a) a.textContent=total.toLocaleString()+"명";
-}
+renderAlumni();
 
-async function recordAndShowVisit(){
-  try{
-    const {data,error}=await sb.rpc("record_page_visit",{
-      p_visitor_id:getVisitorId()
-    });
-    if(error) throw error;
-    const row=Array.isArray(data) ? data[0] : data;
-    showVisitorStats(row);
-  }catch(e){
-    console.warn("방문자 기록 실패:",e);
-    try{
-      const {data,error}=await sb.rpc("get_page_visit_stats");
-      if(error) throw error;
-      const row=Array.isArray(data) ? data[0] : data;
-      showVisitorStats(row);
-    }catch(e2){
-      console.warn("방문자 통계 조회 실패:",e2);
-      const box=document.getElementById("visitorCounter");
-      if(box) box.innerHTML='<span class="counter-error">방문자 집계 준비 중</span>';
-    }
-  }
+renderTimeline();
+
+renderCalendar();
+
+renderParticipantStats();
+
 }
 
 async function loadPublicInfo(){
-  const status=document.getElementById("publicSyncStatus");
-  const timeEl=document.getElementById("publicSyncTime");
-  try{
-    const {data,error}=await sb.rpc("get_hanjogo_public_dashboard");
-    if(error) throw error;
 
-    const payload=(data && typeof data==="object") ? data : {};
-    const saved=(payload.publicInfo && typeof payload.publicInfo==="object")
-      ? payload.publicInfo
-      : {};
+try{
 
-    publicInfo=mergePublicInfo(saved);
-    alumniStats=payload.publicAlumniStats || null;
-    participantApplicationStats=payload.participantApplicationStats || null;
-    applicationSchedule={
-      ...DEFAULT_APPLICATION_SCHEDULE,
-      ...(payload.applicationSchedule || {})
-    };
+const {
+data,
+error
+}
+=
+await sb.rpc(
+"get_hanjogo_public_dashboard"
+);
 
-    renderAll();
+if(error)
+throw error;
 
-    const updated=payload.updatedAt ? new Date(payload.updatedAt) : new Date();
-    if(timeEl) timeEl.textContent=updated.toLocaleString("ko-KR");
-    if(status) status.classList.remove("error");
-    return true;
-  }catch(e){
-    console.error("공개 대시보드 동기화 실패",e);
-    if(timeEl) timeEl.textContent="동기화 실패";
-    if(status){ status.classList.add("error"); status.title=String(e?.message||e); }
-    return false;
-  }
+const payload=
+(data&&typeof data==="object")
+? data
+: {};
+
+publicInfo=
+mergePublicInfo(
+payload.publicInfo||{}
+);
+
+applicationSchedule={
+...DEFAULT_APPLICATION_SCHEDULE,
+...(payload.applicationSchedule||{})
+};
+
+alumniStats=
+payload.publicAlumniStats||null;
+
+participantApplicationStats=
+payload.participantApplicationStats||null;
+
+renderAll();
+
+publicSyncTime.textContent=
+new Date(
+payload.updatedAt||Date.now()
+).toLocaleString(
+"ko-KR"
+);
+
+}
+catch(e){
+
+console.error(e);
+
+publicSyncTime.textContent=
+"동기화 실패";
+
 }
 
-function subscribeRealtime(){
-  sb.channel("hanjogo-public-page")
-    .on("postgres_changes",
-      {event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},
-      ()=>{ loadPublicInfo(); }
-    )
-    .subscribe();
 }
 
-function showToast(text){
-  const toast=document.getElementById("toast");
-  toast.textContent=text;
-  toast.classList.add("show");
-  setTimeout(()=>toast.classList.remove("show"),1600);
+function getVisitorId(){
+
+try{
+
+let id=
+localStorage.getItem(
+"hanjogo_public_visitor_id"
+);
+
+if(!id){
+
+id=
+crypto.randomUUID
+? crypto.randomUUID()
+: "v-"+Date.now();
+
+localStorage.setItem(
+"hanjogo_public_visitor_id",
+id
+);
+
 }
 
-async function copyText(text,message){
-  try{
-    await navigator.clipboard.writeText(text);
-  }catch(e){
-    const ta=document.createElement("textarea");
-    ta.value=text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    ta.remove();
-  }
-  showToast(message);
+return id;
+
+}
+catch(e){
+
+return "session-"+Date.now();
+
 }
 
-async function sharePage(){
-  const data={
-    title:"한조고 동문 네트워크 모임",
-    text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
-    url:window.location.href
-  };
-
-  if(navigator.share){
-    try{
-      await navigator.share(data);
-      return;
-    }catch(e){
-      if(e.name==="AbortError") return;
-    }
-  }
-
-  copyText(window.location.href,"페이지 링크를 복사했습니다.");
 }
 
-document.getElementById("shareBtn")?.addEventListener("click",sharePage);
-document.getElementById("copyPageBtn")?.addEventListener("click",()=>copyText(window.location.href,"페이지 링크를 복사했습니다."));
-document.getElementById("copyAddressBtn")?.addEventListener("click",()=>copyText(publicInfo.venueAddress || "","행사장 주소를 복사했습니다."));
-document.getElementById("copyParkingBtn")?.addEventListener("click",()=>copyText(publicInfo.parkingAddress || "","주차장 주소를 복사했습니다."));
+async function recordAndShowVisit(){
+
+try{
+
+const {
+data,
+error
+}
+=
+await sb.rpc(
+"record_page_visit",
+{
+p_visitor_id:getVisitorId()
+}
+);
+
+if(error)
+throw error;
+
+const r=
+Array.isArray(data)
+? data[0]
+: data;
+
+todayVisitorCount.textContent=
+Number(
+r?.today_visitors||0
+).toLocaleString()+"명";
+
+totalVisitorCount.textContent=
+Number(
+r?.total_visitors||0
+).toLocaleString()+"명";
+
+}
+catch(e){
+
+console.warn(
+"방문자 기록 실패",
+e
+);
+
+}
+
+}
+
+function showToast(t){
+
+toast.textContent=t;
+
+toast.classList.add(
+"show"
+);
+
+setTimeout(
+()=>
+toast.classList.remove(
+"show"
+),
+1500
+);
+
+}
+
+async function copyText(t,m){
+
+try{
+
+await navigator.clipboard.writeText(
+t
+);
+
+}
+catch(e){}
+
+showToast(
+m
+);
+
+}
+
+shareBtn.onclick=
+async ()=>{
+
+if(
+navigator.share
+){
+
+try{
+
+await navigator.share({
+title:"한조고 동문 네트워크 모임",
+text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
+url:location.href
+});
+
+return;
+
+}
+catch(e){}
+
+}
+
+copyText(
+location.href,
+"페이지 링크를 복사했습니다."
+);
+
+};
+
+copyAddressBtn.onclick=
+()=>
+copyText(
+publicInfo.venueAddress||"",
+"행사장 주소를 복사했습니다."
+);
+
+copyParkingBtn.onclick=
+()=>
+copyText(
+publicInfo.parkingAddress||"",
+"주차장 주소를 복사했습니다."
+);
 
 loadPublicInfo();
-subscribeRealtime();
+
 recordAndShowVisit();
-setInterval(renderApplicationCta,30000);
-setInterval(loadPublicInfo,15000);
+
+sb
+.channel(
+"hanjogo-public-page"
+)
+.on(
+"postgres_changes",
+{
+event:"*",
+schema:"public",
+table:"dashboard_state",
+filter:"id=eq.main"
+},
+()=>
+loadPublicInfo()
+)
+.subscribe();
+
+setInterval(
+()=>{
+
+renderApplication();
+
+renderHeaderAndInfo();
+
+renderParticipantStats();
+
+},
+30000
+);
+
+setInterval(
+loadPublicInfo,
+15000
+);
+
 </script>
+
 </body>
 </html>

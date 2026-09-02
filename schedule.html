@@ -1155,28 +1155,10 @@ box
 
 function renderParticipantStats(){
 
-const g=
-getApplicationGate();
-
-if(
-!participantApplicationStats ||
-!g.isOpen
-){
-
 applicationStatsBlock.style.display=
 "none";
 
-return;
-
 }
-
-applicationStatsBlock.style.display=
-"block";
-
-publicParticipantTotal.textContent=
-Number(
-participantApplicationStats.total||0
-).toLocaleString()+"명";
 
 }
 

@@ -3289,8 +3289,14 @@ async function fetchParticipantApplyCsv(){
     const stats=participantApplyBuildStats(text);
     state.participantApplySync={...state.participantApplySync,stats};
     await dSet("participantApplySync",state.participantApplySync);
+    state.participants={
+      ...state.participants,
+      first:Number(stats.total||0)
+    };
+    await dSet("participants",state.participants);
     await syncPublicProjection({silent:true});
     renderParticipantApplySync();
+    renderParticipants();
     if(status){status.textContent=`연동 완료 · ${stats.total}명`;status.className="account-save-status ok";}
   }catch(e){
     console.error("참가신청 CSV 연동 실패",e);

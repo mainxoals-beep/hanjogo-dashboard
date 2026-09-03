@@ -23,6 +23,7 @@ button,a{font:inherit} button{cursor:pointer}
 .hero-date{font-size:22px;font-weight:800}.hero-place{margin-top:4px;font-size:13px;opacity:.88}.hero-dday{font-size:36px;font-weight:900}
 .participant-highlight{margin-bottom:14px;padding:14px 16px;border:1px solid #DCD7F5;border-radius:14px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:700}
 .participant-highlight strong{font-size:18px;font-weight:900;color:var(--purple-dark)}
+.participant-basis{margin-top:3px;color:var(--mute);font-size:9.5px;font-weight:600}
 .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .top-action{flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center}
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
@@ -39,6 +40,12 @@ button,a{font:inherit} button{cursor:pointer}
 .application-btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-cta-sub{font-size:10.5px;color:var(--mute);text-align:center;margin-top:7px}
+.program-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.program-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
+.program-list{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;counter-reset:program}
+.program-item{padding:10px 8px;border-radius:10px;background:#FDFCFB;border:1px solid var(--line);text-align:center;color:var(--sub);font-size:11.5px;font-weight:700;line-height:1.45}
+.program-item:before{counter-increment:program;content:counter(program);display:block;width:20px;height:20px;margin:0 auto 6px;border-radius:50%;background:var(--purple-light);color:var(--purple-dark);font-size:10px;font-weight:900;line-height:20px}
+.program-note{margin-top:9px;color:var(--mute);text-align:right;font-size:9.5px}
 .info-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:18px}
 .info-card,.resource-card,.alumni-card,.month,.calendar-detail,.faq,.application-stats,.visitor-counter{background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .info-card{padding:17px 18px}.info-label{margin-bottom:7px;color:var(--purple-dark);font-size:10.5px;font-weight:800}.info-title{margin-bottom:4px;font-size:17px;font-weight:800}
@@ -78,7 +85,7 @@ button,a{font:inherit} button{cursor:pointer}
 .application-stats{margin:14px 0;padding:11px 13px;text-align:center}.application-stats strong{font-size:15px}.application-stats-label{font-size:10.5px;color:var(--mute)}
 .public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}.visitor-counter{margin:18px 0 4px;padding:11px 13px;text-align:center;font-size:10.5px;color:var(--mute)}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
-@media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.hero-dday{font-size:30px}.head h1{font-size:22px}}
+@media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.program-list{grid-template-columns:repeat(2,1fr)}.program-item:last-child{grid-column:1/-1}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.hero-dday{font-size:30px}.head h1{font-size:22px}}
 </style>
 </head>
 <body>
@@ -98,8 +105,8 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="hero-dday" id="eventDday">D-</div>
 </div>
 
-<div class="participant-highlight">
-9월 3일 기준, <strong>48명</strong>의 동문이 참가 신청했습니다.
+<div class="participant-highlight" id="participantHighlight">
+현재 참가 신청 인원을 불러오는 중입니다.
 </div>
 
 <div class="top-actions">
@@ -119,6 +126,18 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="application-cta-title">1차 참가신청</div>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-cta-sub" id="applicationSub"></div>
+</div>
+
+<div class="program-card">
+<div class="program-title">행사 프로그램</div>
+<div class="program-list">
+<div class="program-item">입장 및<br>자유 네트워킹</div>
+<div class="program-item">행사·협찬사<br>소개</div>
+<div class="program-item">동문<br>스포트라이트</div>
+<div class="program-item">경품 추첨</div>
+<div class="program-item">자유 교류 및<br>마무리</div>
+</div>
+<div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
 </div>
 
 <div class="info-grid" id="eventInfo">
@@ -1164,6 +1183,29 @@ function renderParticipantStats(){
 applicationStatsBlock.style.display=
 "none";
 
+const s=
+participantApplicationStats;
+
+const total=
+Number(
+s?.total
+);
+
+if(
+!s ||
+!Number.isFinite(total)
+){
+
+participantHighlight.textContent=
+"현재 참가 신청 인원을 불러오는 중입니다.";
+
+return;
+
+}
+
+participantHighlight.innerHTML=
+`현재 <strong>${total.toLocaleString()}</strong>명의 동문이 참가 신청했습니다.${s.updatedAt?`<div class="participant-basis">최근 집계 ${esc(s.updatedAt)} 기준</div>`:""}`;
+
 }
 
 
@@ -1218,7 +1260,9 @@ alumniStats=
 payload.publicAlumniStats||null;
 
 participantApplicationStats=
-payload.participantApplicationStats||null;
+payload.participantApplyStats||
+payload.participantApplicationStats||
+null;
 
 renderAll();
 

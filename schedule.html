@@ -39,6 +39,7 @@ button,a{font:inherit} button{cursor:pointer}
 .application-cta-title{font-size:12px;font-weight:800;margin-bottom:7px}
 .application-btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
+.application-countdown{margin-top:9px;padding:8px 10px;border-radius:9px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:900}
 .application-cta-sub{font-size:10.5px;color:var(--mute);text-align:center;margin-top:7px}
 .program-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .program-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
@@ -125,6 +126,7 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="application-cta" id="applicationCta">
 <div class="application-cta-title">1차 참가신청</div>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
+<div class="application-countdown" id="applicationCountdown" hidden></div>
 <div class="application-cta-sub" id="applicationSub"></div>
 </div>
 
@@ -771,6 +773,28 @@ b.closest(
 
 }
 
+function formatRemainingTime(target,now){
+
+if(!target)return "";
+
+const ms=target-(now||new Date());
+
+if(ms<=0)return "0분";
+
+const totalMinutes=Math.max(1,Math.ceil(ms/60000));
+const days=Math.floor(totalMinutes/1440);
+const hours=Math.floor((totalMinutes%1440)/60);
+const minutes=totalMinutes%60;
+const parts=[];
+
+if(days)parts.push(days+"일");
+if(hours)parts.push(hours+"시간");
+parts.push(minutes+"분");
+
+return parts.join(" ");
+
+}
+
 function renderApplication(){
 
 const g=
@@ -793,6 +817,10 @@ applicationBtn.removeAttribute(
 applicationBtn.removeAttribute(
 "target"
 );
+
+applicationCountdown.hidden=true;
+
+applicationCountdown.textContent="";
 
 if(
 g.a.enabled===false
@@ -846,10 +874,10 @@ return;
 if(g.isClosed){
 
 applyStatusTitle.textContent=
-"1차 참가 신청 마감";
+"1차 참가신청이 마감되었습니다";
 
 applyStatusSub.textContent=
-"1차 신청 접수가 9월 6일 23:59에 마감되었습니다.";
+"추가 모집 여부는 참가 현황을 확인한 후 안내드리겠습니다.";
 
 p.textContent=
 "1차 마감";
@@ -862,7 +890,7 @@ applicationBtn.textContent=
 g.a.closedLabel;
 
 applicationSub.textContent=
-"1차 참가신청이 마감되었습니다.";
+"신청해 주셔서 감사합니다.";
 
 return;
 
@@ -896,8 +924,13 @@ g.url;
 applicationBtn.target=
 "_blank";
 
+applicationCountdown.hidden=false;
+
+applicationCountdown.textContent=
+"마감까지 "+formatRemainingTime(g.close,g.now);
+
 applicationSub.textContent=
-"신청 마감 · 9월 6일 23:59";
+"9월 6일 23:59 마감";
 
 return;
 

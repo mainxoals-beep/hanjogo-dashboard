@@ -128,7 +128,7 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
-<div class="recruitment-target">전체 모집 목표 100명 · 1차 모집 약 80명</div>
+<div class="recruitment-target" id="recruitmentTarget">1차 모집 목표 80명</div>
 <p class="application-invitation">함께 올 동문이 없어도 괜찮습니다.<br>이번 모임에서 반가운 선후배를 만나보세요.</p>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
@@ -1217,7 +1217,19 @@ box
 
 }
 
+function formatRecruitmentTarget(total){
+if(!Number.isFinite(total)||total<0)return "1차 모집 목표 80명";
+return total>=80
+? "1차 모집 목표 80명 달성"
+: "1차 모집 목표 80명까지 "+(80-total).toLocaleString()+"명";
+}
+
 function renderParticipantStats(){
+
+const target=document.getElementById("recruitmentTarget");
+if(target)target.textContent=formatRecruitmentTarget(
+participantApplicationStats ? Number(participantApplicationStats.total) : NaN
+);
 
 applicationStatsBlock.style.display=
 "none";

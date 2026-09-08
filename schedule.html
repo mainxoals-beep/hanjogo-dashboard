@@ -60,6 +60,12 @@ button,a{font:inherit} button{cursor:pointer}
 .committee-in-contact{margin-top:24px;padding-top:16px;border-top:1px solid rgba(38,45,58,.12)}
 .committee-in-contact-label{margin-bottom:9px;font-size:12px;font-weight:800;color:#65528a}
 .committee-in-contact-list{display:flex;flex-wrap:wrap;gap:7px 15px;font-size:14px;font-weight:600}
+.committee-card{margin:0 0 18px;padding:15px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.committee-card-title{margin-bottom:10px;font-size:14px;font-weight:900;color:var(--purple-dark)}
+.committee-row{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.committee-row:first-of-type{border-top:none;padding-top:0}
+.committee-row-label{font-size:11.5px;font-weight:800;color:var(--sub)}
+.committee-row-list{font-size:12px;line-height:1.75;color:var(--ink);word-break:keep-all}
 .resource-card,.alumni-card{padding:16px 18px;margin-bottom:18px}.resource-title,.alumni-title{margin-bottom:10px;font-size:15px;font-weight:800}
 .resource-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .resource-item{display:flex;flex-direction:column;justify-content:center;min-height:69px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;color:var(--ink);text-decoration:none}
@@ -183,28 +189,19 @@ button,a{font:inherit} button{cursor:pointer}
 <a class="link-btn" id="contactMailBtn">이메일 보내기</a>
 </div>
 
-<div class="committee-in-contact">
-<div class="committee-in-contact-label">준비위원</div>
-<div class="committee-in-contact-list">
-<span>박혜림 7기</span>
-<span>안지현 9기</span>
-<span>이민주 10기</span>
-<span>이예린 18기</span>
-<span>주보근 20기</span>
-</div>
-<div class="committee-in-contact-label" style="margin-top:14px;">운영위원</div>
-<div class="committee-in-contact-list">
-<span>김미주 7기</span>
-<span>정지원 9기</span>
-<span>김동욱 10기</span>
-<span>이해리 11기</span>
-<span>조재영 22기</span>
-<span>윤여창 23기</span>
-<span>권능 23기</span>
-<span>송유진 25기</span>
 </div>
 </div>
-</div>
+
+<div class="committee-card">
+  <div class="committee-card-title">함께 준비하는 동문</div>
+  <div class="committee-row">
+    <div class="committee-row-label">준비위원</div>
+    <div class="committee-row-list">박혜림 7기 · 안지현 9기 · 이민주 10기 · 이예린 18기 · 주보근 20기</div>
+  </div>
+  <div class="committee-row">
+    <div class="committee-row-label">운영위원</div>
+    <div class="committee-row-list">김미주 7기 · 정지원 9기 · 김동욱 10기 · 이해리 11기 · 조재영 22기 · 윤여창 23기 · 권능 23기 · 송유진 25기</div>
+  </div>
 </div>
 
 <div class="resource-card">

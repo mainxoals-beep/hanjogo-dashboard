@@ -88,7 +88,7 @@ button,a{font:inherit} button{cursor:pointer}
 .months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.month{padding:13px}.month-title{margin-bottom:9px;font-size:13px;font-weight:800}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.dow{color:var(--mute);text-align:center;font-size:9px;font-weight:700}
 .day{min-height:31px;padding-top:7px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--sub);text-align:center;font-size:10px}.day.mark{background:var(--purple-light);color:var(--purple-dark);font-weight:800}.day.event{background:var(--event);color:#fff;font-weight:900}
 .calendar-detail{min-height:96px;margin-top:12px;padding:16px 18px}.detail-empty{color:var(--mute);font-size:12.5px}.detail-date{margin-bottom:4px;color:var(--purple-dark);font-size:11px;font-weight:800}.detail-title{margin-bottom:5px;font-size:15px;font-weight:800}.detail-desc{color:var(--sub);font-size:12.5px}
-.faq{overflow:hidden}.faq-item{border-bottom:1px solid var(--line)}.faq-item:last-child{border-bottom:none}.faq-q{display:flex;justify-content:space-between;width:100%;padding:15px 17px;border:none;background:#fff;text-align:left;font-size:13px;font-weight:800}.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}.faq-item.open .faq-a{display:block}
+.faq{overflow:hidden}.faq-item{border-bottom:1px solid var(--line)}.faq-item:last-child{border-bottom:none}.faq-q{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:15px 17px;border:none;background:#fff;text-align:left;font-size:13px;font-weight:800}.faq-icon{flex-shrink:0;width:22px;text-align:center;color:var(--purple-dark);font-size:14px;font-weight:900}.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}.faq-item.open .faq-a{display:block}
 .application-stats{margin:14px 0;padding:11px 13px;text-align:center}.application-stats strong{font-size:15px}.application-stats-label{font-size:10.5px;color:var(--mute)}
 .public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}.visitor-counter{margin:18px 0 4px;padding:11px 13px;text-align:center;font-size:10.5px;color:var(--mute)}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
@@ -365,6 +365,8 @@ let applicationSchedule={
 let alumniStats=null;
 
 let participantApplicationStats=null;
+
+const openFaqIndexes=new Set();
 
 const BASE_SCHEDULE=[
 {
@@ -765,34 +767,37 @@ r.join("");
 
 faqList.innerHTML=
 (p.faq||[])
-.map(
-x=>
-`<div class="faq-item">
-<button class="faq-q">
+.map((x,idx)=>{
+const isOpen=openFaqIndexes.has(idx);
+return `
+<div class="faq-item ${isOpen?"open":""}" data-faq-index="${idx}">
+<button class="faq-q" type="button" aria-expanded="${isOpen?"true":"false"}">
 <span>${esc(x.q)}</span>
-<span>+</span>
+<span class="faq-icon">${isOpen?"▴":"▾"}</span>
 </button>
 <div class="faq-a">
 ${esc(x.a)}
 </div>
-</div>`
-)
+</div>`;
+})
 .join("");
 
 document
-.querySelectorAll(
-".faq-q"
-)
-.forEach(
-b=>
-b.onclick=
-()=>
-b.closest(
-".faq-item"
-).classList.toggle(
-"open"
-)
-);
+.querySelectorAll(".faq-q")
+.forEach(b=>{
+b.onclick=()=>{
+const item=b.closest(".faq-item");
+const idx=Number(item?.dataset.faqIndex);
+if(!item||!Number.isFinite(idx))return;
+const willOpen=!item.classList.contains("open");
+item.classList.toggle("open",willOpen);
+if(willOpen)openFaqIndexes.add(idx);
+else openFaqIndexes.delete(idx);
+b.setAttribute("aria-expanded",willOpen?"true":"false");
+const icon=b.querySelector(".faq-icon");
+if(icon)icon.textContent=willOpen?"▴":"▾";
+};
+});
 
 }
 

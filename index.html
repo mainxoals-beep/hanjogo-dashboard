@@ -317,6 +317,25 @@
   .add-row-btn:hover{border-color:var(--purple);color:var(--purple-dark);background:var(--purple-light);}
   .empty-hint{padding:20px;text-align:center;color:var(--ink-mute);font-size:12.5px;}
 
+  /* sponsor table readability */
+  #sponsorTable{min-width:1380px;table-layout:fixed;}
+  #sponsorTable th:nth-child(1),#sponsorTable td:nth-child(1){width:180px;}
+  #sponsorTable th:nth-child(2),#sponsorTable td:nth-child(2){width:190px;}
+  #sponsorTable th:nth-child(3),#sponsorTable td:nth-child(3){width:105px;}
+  #sponsorTable th:nth-child(4),#sponsorTable td:nth-child(4){width:105px;}
+  #sponsorTable th:nth-child(5),#sponsorTable td:nth-child(5){width:125px;}
+  #sponsorTable th:nth-child(6),#sponsorTable td:nth-child(6){width:190px;}
+  #sponsorTable th:nth-child(7),#sponsorTable td:nth-child(7){width:280px;}
+  #sponsorTable th:nth-child(8),#sponsorTable td:nth-child(8){width:180px;}
+  #sponsorTable th:nth-child(9),#sponsorTable td:nth-child(9){width:42px;}
+  #sponsorTable td{vertical-align:top;}
+  #sponsorTable textarea{
+    width:100%;min-height:76px;resize:vertical;border:1px solid var(--line);border-radius:8px;
+    padding:7px 8px;background:#FDFCFB;color:var(--ink);font:inherit;font-size:12.5px;line-height:1.5;
+    white-space:pre-wrap;word-break:break-word;
+  }
+  #sponsorTable textarea:focus{outline:none;background:#fff;border-color:var(--purple);}
+
   /* mobile card-style rows for sponsors/production/waitlist */
   .row-card{display:none;}
   @media (max-width:640px){
@@ -1995,7 +2014,7 @@ function applyEditLock(){
   const locked = !state.editMode;
   document.body.classList.toggle("view-only", locked);
   document.querySelectorAll(".lockable").forEach(el => { el.disabled = locked; });
-  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #matchParticipantPayments, #addParticipantPayment")
+  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody textarea, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #matchParticipantPayments, #addParticipantPayment")
     .forEach(el => { el.disabled = locked; });
 }
 
@@ -2805,7 +2824,7 @@ function renderWaitlist(){
     tr.innerHTML = `
       <td data-label="이름"><input type="text" value="${escapeHtml(row.name)}" data-field="name"></td>
       <td data-label="연락처"><input type="text" value="${escapeHtml(row.phone)}" data-field="phone"></td>
-      <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>
+      <td data-label="비고"><textarea data-field="note" placeholder="협찬 조건·수량·배송 등 메모">${escapeHtml(row.note||"")}</textarea></td>
       <td><button class="row-del" title="삭제">✕</button></td>`;
     tr.querySelectorAll("input").forEach(el => {
       el.addEventListener("change", async (e) => {
@@ -2867,7 +2886,7 @@ function renderSponsors(){
         </div>
       </td>
       <td><button class="row-del" title="삭제">✕</button></td>`;
-    tr.querySelectorAll("input[data-field],select[data-field]").forEach(el => {
+    tr.querySelectorAll("input[data-field],select[data-field],textarea[data-field]").forEach(el => {
       el.addEventListener("change", async (e) => {
         row[e.target.dataset.field] = e.target.value;
         await dSet("sponsors", state.sponsors);

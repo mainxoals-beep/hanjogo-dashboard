@@ -1,0 +1,42 @@
+name: Move visitor counter upward
+
+on:
+  push:
+    paths:
+      - '.github/workflows/move-visitor-counter.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Move visitor counter
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('schedule.html')
+          s=p.read_text(encoding='utf-8')
+
+          visitor='''<div class="visitor-counter" id="visitorCounter">\n방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>\n</div>'''
+          anchor='''<div class="top-actions">\n<button class="top-action primary" id="shareBtn">공유하기</button>\n</div>'''
+
+          if visitor not in s:
+              raise SystemExit('visitor counter block not found')
+          if anchor not in s:
+              raise SystemExit('top actions anchor not found')
+
+          s=s.replace(visitor+'\n\n','',1)
+          s=s.replace(anchor,anchor+'\n\n'+visitor,1)
+
+          p.write_text(s,encoding='utf-8')
+      - name: Commit and clean workflow
+        run: |
+          rm .github/workflows/move-visitor-counter.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add schedule.html .github/workflows/move-visitor-counter.yml
+          git commit -m "feat: move visitor counter near top of public dashboard"
+          git push

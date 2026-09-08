@@ -3755,6 +3755,7 @@ function setupMainTabs(){
   moveSectionByBody("body-participants", people);
   moveSectionByBody("body-waitlist", people);
   moveSectionByBody("body-committee", people);
+  move("#section-operations-committee", people);
 
   // 행사 운영
   moveSectionByBody("body-phases", operations);
@@ -3763,6 +3764,7 @@ function setupMainTabs(){
 
   // 협찬 · 재정
   moveSectionByBody("body-sponsors", finance);
+  moveSectionByBody("body-donations", finance);
   move("#section-budget", finance);
 
   // 홍보 · 외부페이지 / 시스템 설정: 기존 설정 섹션 내부 그룹을 역할별로 분리

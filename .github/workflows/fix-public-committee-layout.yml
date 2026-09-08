@@ -1,0 +1,22 @@
+name: Fix public committee layout
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-public-committee-layout.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch public dashboard
+        run: python scripts/fix_public_committee_layout.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add schedule.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Compact public committee display"
+          git push

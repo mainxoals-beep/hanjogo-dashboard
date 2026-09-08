@@ -1,4 +1,4 @@
-name: Add top table scrollbars
+name: Compact sponsor image attachments
 
 on:
   push:
@@ -24,81 +24,61 @@ jobs:
           text = path.read_text(encoding='utf-8')
           original = text
 
-          # CSS for upper horizontal scrollbar
+          # Compact sponsor attachment UI
           css_marker = '  /* sponsor table readability */'
-          css = '''  /* synced top horizontal scrollbars for wide tables */\n  .top-hscroll{overflow-x:auto;overflow-y:hidden;height:16px;margin:2px 0 6px;}\n  .top-hscroll-inner{height:1px;}\n  .top-hscroll::-webkit-scrollbar{height:10px;}\n  .top-hscroll::-webkit-scrollbar-thumb{background:#CFC9BE;border-radius:999px;}\n  .top-hscroll::-webkit-scrollbar-track{background:#F1EFE8;border-radius:999px;}\n\n'''
+          css = '''  /* compact sponsor attachment UI */\n  .sponsor-file-compact{display:flex;flex-direction:column;gap:5px;min-width:145px;}\n  .sponsor-file-name{font-size:10.5px;font-weight:700;color:var(--ink-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;}\n  .sponsor-file-actions{display:flex;gap:4px;flex-wrap:wrap;}\n  .sponsor-file-actions .mini-btn{padding:5px 7px;font-size:10px;}\n\n'''
           if css.strip() not in text:
               text = text.replace(css_marker, css + css_marker)
 
-          # Give existing sponsor scroll wrapper an id and add top scrollbar above it
-          old_sponsor = '''        <div style="overflow-x:auto;">\n        <table class="to-cards" id="sponsorTable">'''
-          new_sponsor = '''        <div class="top-hscroll" data-sync-scroll="sponsorScroll"><div class="top-hscroll-inner"></div></div>\n        <div style="overflow-x:auto;" id="sponsorScroll">\n        <table class="to-cards" id="sponsorTable">'''
-          if old_sponsor in text:
-              text = text.replace(old_sponsor, new_sponsor, 1)
+          start = text.find('// ---------- sponsors ----------')
+          end = text.find('// ---------- production ----------', start)
+          if start == -1 or end == -1:
+              raise SystemExit('Sponsor render block not found')
+          block = text[start:end]
 
-          # Budget table top scrollbar
-          old_budget = '''        <div class="budget-table-wrap">\n          <table class="budget-table">'''
-          new_budget = '''        <div class="top-hscroll" data-sync-scroll="budgetScroll"><div class="top-hscroll-inner"></div></div>\n        <div class="budget-table-wrap" id="budgetScroll">\n          <table class="budget-table">'''
-          if old_budget in text:
-              text = text.replace(old_budget, new_budget, 1)
+          old = '''      <td data-label="이미지">\n        <div class="prod-image-wrap">\n          ${row.image ? `<img class="prod-thumb sponsor-thumb" src="${row.image}" alt="협찬 이미지">` : `<div class="prod-image-placeholder">이미지 없음</div>`}\n          <div class="prod-image-actions">\n            <button type="button" class="mini-btn sponsor-upload lockable">이미지 첨부</button>\n            ${row.image ? `<button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}\n            <input type="file" class="sponsor-file" accept="image/*" style="display:none;">\n          </div>\n        </div>\n      </td>'''
+          new = '''      <td data-label="이미지">\n        <div class="sponsor-file-compact">\n          ${row.image ? `<div class="sponsor-file-name" title="${escapeHtml(row.imageName||\"첨부 이미지\")}">${escapeHtml(row.imageName||\"첨부 이미지\")}</div>` : ""}\n          <div class="sponsor-file-actions">\n            <button type="button" class="mini-btn sponsor-upload lockable">${row.image ? "교체" : "이미지 첨부"}</button>\n            ${row.image ? `<button type="button" class="mini-btn sponsor-preview">미리보기</button><button type="button" class="mini-btn sponsor-download">다운로드</button><button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}\n            <input type="file" class="sponsor-file" accept="image/*" style="display:none;">\n          </div>\n        </div>\n      </td>'''
+          if old not in block:
+              raise SystemExit('Sponsor image UI block not found')
+          block = block.replace(old, new, 1)
 
-          # JS: synchronize the upper and lower scrollbars and keep width current
-          js_marker = '// ---------- render all / init ----------'
-          js = r'''
-// ---------- synced top horizontal scrollbars ----------
-function setupTopHorizontalScrollbars(){
-  document.querySelectorAll('.top-hscroll[data-sync-scroll]').forEach(top => {
-    const target = document.getElementById(top.dataset.syncScroll);
-    const inner = top.querySelector('.top-hscroll-inner');
-    if(!target || !inner || top.dataset.bound === '1') return;
-
-    const refresh = () => {
-      const width = Math.max(target.scrollWidth, target.clientWidth);
-      inner.style.width = width + 'px';
-      top.style.display = target.scrollWidth > target.clientWidth + 2 ? 'block' : 'none';
-      top.scrollLeft = target.scrollLeft;
-    };
-
-    let syncing = false;
-    top.addEventListener('scroll', () => {
-      if(syncing) return;
-      syncing = true;
-      target.scrollLeft = top.scrollLeft;
-      requestAnimationFrame(() => syncing = false);
-    });
-    target.addEventListener('scroll', () => {
-      if(syncing) return;
-      syncing = true;
-      top.scrollLeft = target.scrollLeft;
-      requestAnimationFrame(() => syncing = false);
-    });
-
-    if(window.ResizeObserver){
-      const ro = new ResizeObserver(refresh);
-      ro.observe(target);
-      const table = target.querySelector('table');
-      if(table) ro.observe(table);
-    }
-    window.addEventListener('resize', refresh);
-    top.dataset.bound = '1';
-    refresh();
-  });
-}
-
-'''
-          if 'function setupTopHorizontalScrollbars()' not in text:
-              text = text.replace(js_marker, js + js_marker)
-
-          # call after initial render and after any full rerender
-          text = text.replace(
-              '  renderParticipantPayments();\n  applyEditLock();\n}',
-              '  renderParticipantPayments();\n  applyEditLock();\n  requestAnimationFrame(setupTopHorizontalScrollbars);\n}',
-              1
+          # Update handler declarations
+          block = block.replace(
+              '    const sponsorThumb = tr.querySelector(".sponsor-thumb");',
+              '    const sponsorPreview = tr.querySelector(".sponsor-preview");\n    const sponsorDownload = tr.querySelector(".sponsor-download");'
           )
+
+          # Save original file name alongside compressed image
+          block = block.replace(
+              '          row.image = await compressImageFile(file, 1000, .72);\n          await dSet("sponsors", state.sponsors);',
+              '          row.image = await compressImageFile(file, 1000, .72);\n          row.imageName = file.name || "협찬 이미지";\n          await dSet("sponsors", state.sponsors);'
+          )
+
+          # Clear filename on removal
+          block = block.replace(
+              '        row.image = "";\n        await dSet("sponsors", state.sponsors);',
+              '        row.image = "";\n        row.imageName = "";\n        await dSet("sponsors", state.sponsors);'
+          )
+
+          old_preview_handler = '''    if(sponsorThumb){\n      sponsorThumb.addEventListener("click", () => openProductionImage(row.image));\n    }\n'''
+          new_preview_handler = '''    if(sponsorPreview){\n      sponsorPreview.addEventListener("click", () => openProductionImage(row.image));\n    }\n    if(sponsorDownload){\n      sponsorDownload.addEventListener("click", () => {\n        if(!row.image) return;\n        const a = document.createElement("a");\n        a.href = row.image;\n        a.download = row.imageName || "sponsor-image.jpg";\n        document.body.appendChild(a);\n        a.click();\n        a.remove();\n      });\n    }\n'''
+          if old_preview_handler in block:
+              block = block.replace(old_preview_handler, new_preview_handler, 1)
+          else:
+              raise SystemExit('Sponsor preview handler not found')
+
+          # New sponsor rows carry filename field too
+          block = block.replace(
+              'state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:""});',
+              'state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:"", imageName:""});'
+          )
+
+          text = text[:start] + block + text[end:]
+
+          # Migrate existing sponsor data
           text = text.replace(
-              '  renderAll();\n  loadVisitorStats();',
-              '  renderAll();\n  requestAnimationFrame(setupTopHorizontalScrollbars);\n  loadVisitorStats();',
-              1
+              '    if(s.image === undefined) s.image = "";\n',
+              '    if(s.image === undefined) s.image = "";\n    if(s.imageName === undefined) s.imageName = "";\n'
           )
 
           if text == original:
@@ -117,5 +97,5 @@ function setupTopHorizontalScrollbars(){
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Add synced top scrollbars for sponsor and budget tables"
+          git commit -m "Compact sponsor image attachments and add download"
           git push

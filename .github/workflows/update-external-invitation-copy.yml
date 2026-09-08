@@ -1,0 +1,36 @@
+name: Update external invitation copy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-external-invitation-copy.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update copy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('schedule.html')
+          s=p.read_text(encoding='utf-8')
+          old='<p class="application-invitation">함께 올 동문이 없어도 괜찮습니다.<br>이번 모임에서 반가운 선후배를 만나보세요.</p>'
+          new='<p class="application-invitation">오랜만에 만나는 동문들과 편하게 이야기 나누고,<br>새로운 인연도 만들어보세요.</p>'
+          if old not in s:
+              raise SystemExit('target copy not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add schedule.html
+          git commit -m "Update external dashboard invitation copy"
+          git push

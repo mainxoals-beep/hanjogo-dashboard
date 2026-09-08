@@ -1,0 +1,95 @@
+name: Patch dashboard sponsor images and budget notes
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-dashboard-ui.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch index.html
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          # 1) Budget table: make note column much easier to read.
+          text = text.replace(
+              '.budget-table input,.budget-table select,.budget-field input{',
+              '.budget-table input,.budget-table select,.budget-table textarea,.budget-field input{'
+          )
+          text = text.replace(
+              '  .budget-table{min-width:980px;}\n  .budget-table td{padding:6px 7px;}\n  .budget-table input[type=number]{text-align:right;}',
+              '''  .budget-table{min-width:1250px;table-layout:fixed;}\n  .budget-table th:nth-child(1),.budget-table td:nth-child(1){width:78px;}\n  .budget-table th:nth-child(2),.budget-table td:nth-child(2){width:120px;}\n  .budget-table th:nth-child(3),.budget-table td:nth-child(3){width:230px;}\n  .budget-table th:nth-child(4),.budget-table td:nth-child(4),\n  .budget-table th:nth-child(5),.budget-table td:nth-child(5){width:115px;}\n  .budget-table th:nth-child(6),.budget-table td:nth-child(6){width:125px;}\n  .budget-table th:nth-child(7),.budget-table td:nth-child(7){width:120px;}\n  .budget-table th:nth-child(8),.budget-table td:nth-child(8){width:100px;}\n  .budget-table th:nth-child(9),.budget-table td:nth-child(9){width:300px;}\n  .budget-table th:nth-child(10),.budget-table td:nth-child(10){width:42px;}\n  .budget-table td{padding:6px 7px;vertical-align:top;}\n  .budget-table input[type=number]{text-align:right;}\n  .budget-table textarea{min-height:68px;resize:vertical;line-height:1.45;white-space:pre-wrap;}\n  .budget-note-input{min-width:280px;}'''
+          )
+          text = text.replace(
+              '<td><input class="lockable" data-field="note" value="${escapeHtml(r.note||"")}"></td>',
+              '<td><textarea class="lockable budget-note-input" data-field="note" placeholder="비고를 입력하세요">${escapeHtml(r.note||"")}</textarea></td>'
+          )
+
+          # 2) Sponsor image upload: the header already existed, but the actual cell/actions were missing.
+          start = text.find('// ---------- sponsors ----------')
+          end = text.find('// ---------- production ----------', start)
+          if start == -1 or end == -1:
+              raise SystemExit('Sponsor render block not found')
+          block = text[start:end]
+
+          block = block.replace(
+              '    tr.querySelectorAll("input,select").forEach(el => {',
+              '    tr.querySelectorAll("input[data-field],select[data-field]").forEach(el => {'
+          )
+
+          old_row_tail = '''      <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>\n      <td><button class="row-del" title="삭제">✕</button></td>`;'''
+          new_row_tail = '''      <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>\n      <td data-label="이미지">\n        <div class="prod-image-wrap">\n          ${row.image ? `<img class="prod-thumb sponsor-thumb" src="${row.image}" alt="협찬 이미지">` : `<div class="prod-image-placeholder">이미지 없음</div>`}\n          <div class="prod-image-actions">\n            <button type="button" class="mini-btn sponsor-upload lockable">이미지 첨부</button>\n            ${row.image ? `<button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}\n            <input type="file" class="sponsor-file" accept="image/*" style="display:none;">\n          </div>\n        </div>\n      </td>\n      <td><button class="row-del" title="삭제">✕</button></td>`;'''
+          if old_row_tail not in block:
+              raise SystemExit('Sponsor row tail not found')
+          block = block.replace(old_row_tail, new_row_tail)
+
+          anchor = '''    tr.querySelector(".row-del").addEventListener("click", async () => {'''
+          handlers = '''    const sponsorFile = tr.querySelector(".sponsor-file");\n    const sponsorUpload = tr.querySelector(".sponsor-upload");\n    const sponsorRemove = tr.querySelector(".sponsor-remove");\n    const sponsorThumb = tr.querySelector(".sponsor-thumb");\n    if(sponsorUpload && sponsorFile){\n      sponsorUpload.addEventListener("click", () => { if(state.editMode) sponsorFile.click(); });\n      sponsorFile.addEventListener("change", async () => {\n        const file = sponsorFile.files?.[0];\n        if(!file) return;\n        try{\n          if(file.size > 8*1024*1024){ alert("이미지는 8MB 이하 파일을 사용해주세요."); return; }\n          row.image = await compressImageFile(file, 1000, .72);\n          await dSet("sponsors", state.sponsors);\n          renderSponsors();\n        }catch(err){\n          console.error(err);\n          alert("이미지를 첨부하지 못했습니다.");\n        }finally{ sponsorFile.value = ""; }\n      });\n    }\n    if(sponsorRemove){\n      sponsorRemove.addEventListener("click", async () => {\n        if(!state.editMode) return;\n        if(!await customConfirm("첨부 이미지를 삭제할까요?")) return;\n        row.image = "";\n        await dSet("sponsors", state.sponsors);\n        renderSponsors();\n      });\n    }\n    if(sponsorThumb){\n      sponsorThumb.addEventListener("click", () => openProductionImage(row.image));\n    }\n'''
+          if anchor not in block:
+              raise SystemExit('Sponsor delete handler anchor not found')
+          block = block.replace(anchor, handlers + anchor, 1)
+
+          block = block.replace(
+              'state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:""});',
+              'state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:""});'
+          )
+
+          text = text[:start] + block + text[end:]
+
+          # Add/migrate image field for existing sponsors in both initial and realtime loads.
+          text = text.replace(
+              '    if(s.nextAction === undefined) s.nextAction = "";\n',
+              '    if(s.nextAction === undefined) s.nextAction = "";\n    if(s.image === undefined) s.image = "";\n'
+          )
+
+          if text == original:
+              raise SystemExit('No changes were applied')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix sponsor image uploads and widen budget notes"
+          git push

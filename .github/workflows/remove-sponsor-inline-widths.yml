@@ -1,0 +1,37 @@
+name: Remove sponsor inline column widths
+
+on:
+  push:
+    paths:
+      - '.github/workflows/remove-sponsor-inline-widths.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove inline widths
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='''<thead><tr><th style="width:16%">업체/품목</th><th style="width:13%">협찬내용</th><th style="width:10%">담당</th><th style="width:11%">상태</th><th style="width:10%">최근연락</th><th style="width:16%">다음 액션</th><th style="width:14%">비고</th><th style="width:14%">이미지</th><th style="width:6%"></th></tr></thead>'''
+          new='''<thead><tr><th>업체/품목</th><th>협찬내용</th><th>담당</th><th>상태</th><th>최근연락</th><th>다음 액션</th><th>비고</th><th>이미지</th><th></th></tr></thead>'''
+          if old not in s:
+              raise SystemExit('sponsor header not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Remove sponsor inline widths so CSS column sizes apply"
+          git push

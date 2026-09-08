@@ -1,0 +1,31 @@
+name: Add public operations committee section
+on:
+  push:
+    paths:
+      - '.github/workflows/add-public-operations-committee.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch schedule
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('schedule.html')
+          s=p.read_text(encoding='utf-8')
+          old='''<div class="committee-in-contact">\n<div class="committee-in-contact-label">준비위원</div>\n<div class="committee-in-contact-list">\n<span>박혜림 7기</span>\n<span>안지현 9기</span>\n<span>이민주 10기</span>\n<span>이예린 18기</span>\n<span>주보근 20기</span>\n</div>\n</div>'''
+          new='''<div class="committee-in-contact">\n<div class="committee-in-contact-label">준비위원</div>\n<div class="committee-in-contact-list">\n<span>박혜림 7기</span>\n<span>안지현 9기</span>\n<span>이민주 10기</span>\n<span>이예린 18기</span>\n<span>주보근 20기</span>\n</div>\n<div class="committee-in-contact-label" style="margin-top:14px;">운영위원</div>\n<div class="committee-in-contact-list">\n<span>김미주 7기</span>\n<span>정지원 9기</span>\n<span>김동욱 10기</span>\n<span>이해리 11기</span>\n<span>조재영 22기</span>\n<span>윤여창 23기</span>\n<span>권능 23기</span>\n<span>송유진 25기</span>\n</div>\n</div>'''
+          if old not in s:
+              raise SystemExit('committee block not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add schedule.html
+          git diff --cached --quiet || git commit -m 'Show operations committee on public dashboard'
+          git push

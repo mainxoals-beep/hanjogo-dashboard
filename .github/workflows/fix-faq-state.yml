@@ -1,0 +1,48 @@
+name: Fix public FAQ state
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-faq-state.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch FAQ behavior
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('schedule.html')
+          s=p.read_text(encoding='utf-8')
+
+          css_old='.faq{overflow:hidden}.faq-item{border-bottom:1px solid var(--line)}.faq-item:last-child{border-bottom:none}.faq-q{display:flex;justify-content:space-between;width:100%;padding:15px 17px;border:none;background:#fff;text-align:left;font-size:13px;font-weight:800}.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}.faq-item.open .faq-a{display:block}'
+          css_new='.faq{overflow:hidden}.faq-item{border-bottom:1px solid var(--line)}.faq-item:last-child{border-bottom:none}.faq-q{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:15px 17px;border:none;background:#fff;text-align:left;font-size:13px;font-weight:800}.faq-icon{flex-shrink:0;width:22px;text-align:center;color:var(--purple-dark);font-size:14px;font-weight:900}.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}.faq-item.open .faq-a{display:block}'
+          if css_old not in s: raise SystemExit('FAQ css anchor not found')
+          s=s.replace(css_old,css_new,1)
+
+          state_anchor='let participantApplicationStats=null;'
+          state_new='let participantApplicationStats=null;\n\nconst openFaqIndexes=new Set();'
+          if state_anchor not in s: raise SystemExit('state anchor not found')
+          s=s.replace(state_anchor,state_new,1)
+
+          old='''faqList.innerHTML=\n(p.faq||[])\n.map(\nx=>\n`<div class="faq-item">\n<button class="faq-q">\n<span>${esc(x.q)}</span>\n<span>+</span>\n</button>\n<div class="faq-a">\n${esc(x.a)}\n</div>\n</div>`\n)\n.join("");\n\ndocument\n.querySelectorAll(\n".faq-q"\n)\n.forEach(\nb=>\nb.onclick=\n()=>\nb.closest(\n".faq-item"\n).classList.toggle(\n"open"\n)\n);'''
+
+          new='''faqList.innerHTML=\n(p.faq||[])\n.map((x,idx)=>{\nconst isOpen=openFaqIndexes.has(idx);\nreturn `\n<div class="faq-item ${isOpen?"open":""}" data-faq-index="${idx}">\n<button class="faq-q" type="button" aria-expanded="${isOpen?"true":"false"}">\n<span>${esc(x.q)}</span>\n<span class="faq-icon">${isOpen?"▴":"▾"}</span>\n</button>\n<div class="faq-a">\n${esc(x.a)}\n</div>\n</div>`;\n})\n.join("");\n\ndocument\n.querySelectorAll(".faq-q")\n.forEach(b=>{\nb.onclick=()=>{\nconst item=b.closest(".faq-item");\nconst idx=Number(item?.dataset.faqIndex);\nif(!item||!Number.isFinite(idx))return;\nconst willOpen=!item.classList.contains("open");\nitem.classList.toggle("open",willOpen);\nif(willOpen)openFaqIndexes.add(idx);\nelse openFaqIndexes.delete(idx);\nb.setAttribute("aria-expanded",willOpen?"true":"false");\nconst icon=b.querySelector(".faq-icon");\nif(icon)icon.textContent=willOpen?"▴":"▾";\n};\n});'''
+
+          if old not in s: raise SystemExit('FAQ render anchor not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+
+      - name: Commit and clean workflow
+        run: |
+          rm .github/workflows/fix-faq-state.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add schedule.html .github/workflows/fix-faq-state.yml
+          git commit -m "fix: preserve FAQ open state and replace plus icons"
+          git push

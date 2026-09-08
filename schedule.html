@@ -130,16 +130,16 @@ button,a{font:inherit} button{cursor:pointer}
 </div>
 
 <div class="application-cta" id="applicationCta">
-<div class="application-cta-title">1차 참가신청</div>
+<div class="application-cta-title">2차 참가신청</div>
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
-<div class="recruitment-target" id="recruitmentTarget">1차 모집 목표 80명</div>
+<div class="recruitment-target" id="recruitmentTarget">2차 참가신청 · 9월 19일(토) 23:59 마감</div>
 <p class="application-invitation">오랜만에 만나는 동문들과 편하게 이야기 나누고,<br>새로운 인연도 만들어보세요.</p>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
 <div class="application-cta-sub" id="applicationSub"></div>
-<p class="recruitment-note">※ 2차 모집은 1차 신청 및 참가 확정 현황에 따라 안내드립니다.</p>
+<p class="recruitment-note">※ 2차 참가신청은 9월 14일(월) 오후 2시부터 9월 19일(토) 23:59까지 진행됩니다.</p>
 </div>
 
 <div class="program-card">
@@ -262,7 +262,7 @@ button,a{font:inherit} button{cursor:pointer}
 <span class="application-stats-label">신청</span>
 </div>
 
-<div class="public-sync-status" id="publicSyncStatus" title="build 2026-08-31-application-lock-fix-v1">
+<div class="public-sync-status" id="publicSyncStatus" title="build 2026-09-09-second-application-v1">
 외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
 </div>
 
@@ -280,7 +280,7 @@ button,a{font:inherit} button{cursor:pointer}
 
 <script>
 
-const PUBLIC_BUILD_VERSION="2026-08-31-application-lock-fix-v1";
+const PUBLIC_BUILD_VERSION="2026-09-09-second-application-v1";
 
 const SUPABASE_URL="https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY="sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
@@ -293,7 +293,7 @@ const sb=window.supabase.createClient(
 const DEFAULT_PUBLIC_INFO={
 eventName:"한조고 동문 네트워크 모임",
 eventDate:"2026-10-18",
-entryTime:"18:30",
+entryTime:"18:50",
 startTime:"19:00",
 
 venueName:"카페 와일드덕",
@@ -328,7 +328,7 @@ a:"한국조리고등학교 졸업생을 대상으로 진행하는 동문 네트
 },
 {
 q:"참가비는 얼마인가요?",
-a:"참가비는 1인 100,000원(십만원)입니다. 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."
+a:"참가비는 1인 80,000원(팔만원)입니다. 여러 동문과 업체의 협찬·후원 덕분에 기존 10만원에서 8만원으로 인하했습니다. 참가비는 대관, 음식·음료 및 행사 운영 비용 등에 사용됩니다."
 },
 {
 q:"신청하면 바로 참가가 확정되나요?",
@@ -344,17 +344,17 @@ a:"행사장 자체 주차는 어렵습니다. 인근 다산동 공영주차장�
 const DEFAULT_APPLICATION_SCHEDULE={
 enabled:true,
 
-formUrl:"",
+formUrl:"https://forms.gle/ayrigW2hSvhubo1VA",
 
-openAt:"2026-09-02T10:00",
+openAt:"2026-09-14T14:00",
 
-closeAt:"2026-09-06T23:59",
+closeAt:"2026-09-19T23:59",
 
-beforeLabel:"1차 참가신청 · 9월 2일 오전 10시 오픈 예정",
+beforeLabel:"2차 참가신청 · 9월 14일 오후 2시 오픈 예정",
 
-openLabel:"1차 참가신청 하기",
+openLabel:"2차 참가신청 하기",
 
-closedLabel:"1차 참가신청 마감"
+closedLabel:"2차 참가신청 마감"
 };
 
 let publicInfo={...DEFAULT_PUBLIC_INFO};
@@ -392,9 +392,9 @@ desc:"참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감�
 
 {
 start:"2026-09-14",
-end:"2026-09-20",
+end:"2026-09-19",
 title:"2차 참가 신청",
-desc:"1차 모집 이후 잔여 인원을 대상으로 추가 신청을 받습니다.",
+desc:"9월 14일(월) 오후 2시부터 9월 19일(토) 23:59까지 추가 신청을 받습니다.",
 tag:"추가 모집"
 },
 
@@ -727,7 +727,7 @@ if(g.isOpen){
 r.push(
 `<a class="resource-item" href="${esc(g.url)}" target="_blank" rel="noopener">
 <div class="r-k">2026 행사 참가 신청</div>
-<div class="r-v">참가 신청하기 · 9월 6일 23:59 마감</div>
+<div class="r-v">2차 참가신청 하기 · 9월 19일 23:59 마감</div>
 </a>`
 );
 
@@ -739,7 +739,7 @@ r.push(
 `<div class="resource-item disabled">
 <div class="r-k">2026 행사 참가 신청</div>
 <div class="r-v">
-1차 참가신청 마감
+2차 참가신청 마감
 <span class="ready-badge">마감</span>
 </div>
 </div>`
@@ -753,7 +753,7 @@ r.push(
 `<div class="resource-item disabled">
 <div class="r-k">2026 행사 참가 신청</div>
 <div class="r-v">
-9월 2일 오전 10시 오픈 · 9월 6일 23:59 마감
+9월 14일 오후 2시 오픈 · 9월 19일 23:59 마감
 <span class="ready-badge">준비 중</span>
 </div>
 </div>`
@@ -873,10 +873,10 @@ return;
 if(g.isBefore){
 
 applyStatusTitle.textContent=
-"9월 2일 오전 10시 1차 참가 신청 오픈";
+"9월 14일 오후 2시 2차 참가 신청 오픈";
 
 applyStatusSub.textContent=
-"신청 마감은 9월 6일 23:59입니다.";
+"신청 마감은 9월 19일(토) 23:59입니다.";
 
 p.textContent=
 "오픈 전";
@@ -889,7 +889,7 @@ applicationBtn.textContent=
 g.a.beforeLabel;
 
 applicationSub.textContent=
-"9월 2일 오전 10시에 자동으로 열립니다 · 9월 6일 23:59 마감";
+"9월 14일 오후 2시에 자동으로 열립니다 · 9월 19일(토) 23:59 마감";
 
 return;
 
@@ -898,13 +898,13 @@ return;
 if(g.isClosed){
 
 applyStatusTitle.textContent=
-"1차 참가신청이 마감되었습니다";
+"2차 참가신청이 마감되었습니다";
 
 applyStatusSub.textContent=
-"추가 모집 여부는 참가 현황을 확인한 후 안내드리겠습니다.";
+"2차 참가신청이 마감되었습니다. 최종 참가자 확정 안내를 확인해 주세요.";
 
 p.textContent=
-"1차 마감";
+"2차 마감";
 
 p.classList.add(
 "closed"
@@ -923,10 +923,10 @@ return;
 if(g.isOpen){
 
 applyStatusTitle.textContent=
-"1차 참가 신청 진행 중";
+"2차 참가 신청 진행 중";
 
 applyStatusSub.textContent=
-"신청 마감은 9월 6일 23:59입니다.";
+"신청 마감은 9월 19일(토) 23:59입니다.";
 
 p.textContent=
 "신청 중";
@@ -954,7 +954,7 @@ applicationCountdown.textContent=
 "마감까지 "+formatRemainingTime(g.close,g.now);
 
 applicationSub.textContent=
-"9월 6일 23:59 마감";
+"9월 19일(토) 23:59 마감";
 
 return;
 
@@ -1236,10 +1236,7 @@ box
 }
 
 function formatRecruitmentTarget(total){
-if(!Number.isFinite(total)||total<0)return "1차 모집 목표 80명";
-return total>=80
-? "1차 모집 목표 80명 달성"
-: "1차 모집 목표 80명까지 "+(80-total).toLocaleString()+"명";
+return "2차 참가신청 · 9월 19일(토) 23:59 마감";
 }
 
 function renderParticipantStats(){

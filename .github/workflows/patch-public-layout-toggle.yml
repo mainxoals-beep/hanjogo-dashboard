@@ -1,0 +1,59 @@
+name: Patch public FAQ spacing and timeline toggle
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-public-layout-toggle.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch schedule.html
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('schedule.html')
+          s=p.read_text(encoding='utf-8')
+
+          css_anchor='.section{margin-top:28px}.sec-title{margin-bottom:12px;font-size:17px;font-weight:800}'
+          css_new='''.section{margin-top:28px}.sec-title{margin-bottom:12px;font-size:17px;font-weight:800}
+.faq-section{margin-bottom:30px}
+.section-head-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.section-head-toggle .sec-title{margin-bottom:0}
+.section-toggle-btn{border:none;background:#F1EFE8;color:var(--purple-dark);width:32px;height:32px;border-radius:999px;font-size:15px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.section-toggle-btn:hover{background:var(--purple-light)}
+.timeline.collapsed{display:none}'''
+          if 'section-toggle-btn' not in s:
+              if css_anchor not in s: raise SystemExit('css anchor not found')
+              s=s.replace(css_anchor,css_new,1)
+
+          faq_old='''<div class="section">\n<div class="sec-title">자주 묻는 질문</div>\n<div class="faq" id="faqList"></div>\n</div>'''
+          faq_new='''<div class="section faq-section">\n<div class="sec-title">자주 묻는 질문</div>\n<div class="faq" id="faqList"></div>\n</div>'''
+          if faq_old in s:
+              s=s.replace(faq_old,faq_new,1)
+
+          timeline_old='''<div class="section">\n<div class="sec-title">한눈에 보는 일정</div>\n<div class="timeline" id="timeline"></div>\n</div>'''
+          timeline_new='''<div class="section">\n<div class="section-head-toggle">\n<div class="sec-title">한눈에 보는 일정</div>\n<button type="button" class="section-toggle-btn" id="timelineToggleBtn" aria-expanded="false" aria-controls="timeline" title="일정 펼치기">▾</button>\n</div>\n<div class="timeline collapsed" id="timeline"></div>\n</div>'''
+          if timeline_old not in s: raise SystemExit('timeline block not found')
+          s=s.replace(timeline_old,timeline_new,1)
+
+          js_anchor='''copyParkingBtn.onclick=\n()=>\ncopyText(\npublicInfo.parkingAddress||"",\n"주차장 주소를 복사했습니다."\n);'''
+          js_new=js_anchor+'''\n\nconst timelineToggleBtn=document.getElementById("timelineToggleBtn");\nconst timelineEl=document.getElementById("timeline");\nlet timelineCollapsed=true;\nfunction applyTimelineCollapsed(){\n  if(!timelineEl||!timelineToggleBtn)return;\n  timelineEl.classList.toggle("collapsed",timelineCollapsed);\n  timelineToggleBtn.textContent=timelineCollapsed?"▾":"▴";\n  timelineToggleBtn.setAttribute("aria-expanded",timelineCollapsed?"false":"true");\n  timelineToggleBtn.title=timelineCollapsed?"일정 펼치기":"일정 접기";\n}\ntimelineToggleBtn?.addEventListener("click",()=>{\n  timelineCollapsed=!timelineCollapsed;\n  applyTimelineCollapsed();\n});\napplyTimelineCollapsed();'''
+          if 'applyTimelineCollapsed' not in s:
+              if js_anchor not in s: raise SystemExit('js anchor not found')
+              s=s.replace(js_anchor,js_new,1)
+
+          p.write_text(s,encoding='utf-8')
+      - name: Commit and clean workflow
+        run: |
+          rm .github/workflows/patch-public-layout-toggle.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add schedule.html .github/workflows/patch-public-layout-toggle.yml
+          git commit -m "feat: improve FAQ spacing and collapse timeline by default"
+          git push

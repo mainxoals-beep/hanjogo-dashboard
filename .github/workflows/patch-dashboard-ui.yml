@@ -1,4 +1,4 @@
-name: Patch sponsor note readability
+name: Add top table scrollbars
 
 on:
   push:
@@ -24,27 +24,81 @@ jobs:
           text = path.read_text(encoding='utf-8')
           original = text
 
-          # 협찬표를 넓혀 비고와 이미지가 답답하지 않게 표시
-          marker = '  /* mobile card-style rows for sponsors/production/waitlist */'
-          css = '''  /* sponsor table readability */\n  #sponsorTable{min-width:1380px;table-layout:fixed;}\n  #sponsorTable th:nth-child(1),#sponsorTable td:nth-child(1){width:180px;}\n  #sponsorTable th:nth-child(2),#sponsorTable td:nth-child(2){width:190px;}\n  #sponsorTable th:nth-child(3),#sponsorTable td:nth-child(3){width:105px;}\n  #sponsorTable th:nth-child(4),#sponsorTable td:nth-child(4){width:105px;}\n  #sponsorTable th:nth-child(5),#sponsorTable td:nth-child(5){width:125px;}\n  #sponsorTable th:nth-child(6),#sponsorTable td:nth-child(6){width:190px;}\n  #sponsorTable th:nth-child(7),#sponsorTable td:nth-child(7){width:280px;}\n  #sponsorTable th:nth-child(8),#sponsorTable td:nth-child(8){width:180px;}\n  #sponsorTable th:nth-child(9),#sponsorTable td:nth-child(9){width:42px;}\n  #sponsorTable td{vertical-align:top;}\n  #sponsorTable textarea{\n    width:100%;min-height:76px;resize:vertical;border:1px solid var(--line);border-radius:8px;\n    padding:7px 8px;background:#FDFCFB;color:var(--ink);font:inherit;font-size:12.5px;line-height:1.5;\n    white-space:pre-wrap;word-break:break-word;\n  }\n  #sponsorTable textarea:focus{outline:none;background:#fff;border-color:var(--purple);}\n\n'''
+          # CSS for upper horizontal scrollbar
+          css_marker = '  /* sponsor table readability */'
+          css = '''  /* synced top horizontal scrollbars for wide tables */\n  .top-hscroll{overflow-x:auto;overflow-y:hidden;height:16px;margin:2px 0 6px;}\n  .top-hscroll-inner{height:1px;}\n  .top-hscroll::-webkit-scrollbar{height:10px;}\n  .top-hscroll::-webkit-scrollbar-thumb{background:#CFC9BE;border-radius:999px;}\n  .top-hscroll::-webkit-scrollbar-track{background:#F1EFE8;border-radius:999px;}\n\n'''
           if css.strip() not in text:
-              text = text.replace(marker, css + marker)
+              text = text.replace(css_marker, css + css_marker)
 
-          # 협찬 비고를 한 줄 input -> 여러 줄 textarea로 변경
-          old = '<td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>'
-          new = '<td data-label="비고"><textarea data-field="note" placeholder="협찬 조건·수량·배송 등 메모">${escapeHtml(row.note||"")}</textarea></td>'
-          if old in text:
-              text = text.replace(old, new, 1)
+          # Give existing sponsor scroll wrapper an id and add top scrollbar above it
+          old_sponsor = '''        <div style="overflow-x:auto;">\n        <table class="to-cards" id="sponsorTable">'''
+          new_sponsor = '''        <div class="top-hscroll" data-sync-scroll="sponsorScroll"><div class="top-hscroll-inner"></div></div>\n        <div style="overflow-x:auto;" id="sponsorScroll">\n        <table class="to-cards" id="sponsorTable">'''
+          if old_sponsor in text:
+              text = text.replace(old_sponsor, new_sponsor, 1)
 
-          # textarea도 저장 이벤트 및 보기모드 잠금 대상에 포함
+          # Budget table top scrollbar
+          old_budget = '''        <div class="budget-table-wrap">\n          <table class="budget-table">'''
+          new_budget = '''        <div class="top-hscroll" data-sync-scroll="budgetScroll"><div class="top-hscroll-inner"></div></div>\n        <div class="budget-table-wrap" id="budgetScroll">\n          <table class="budget-table">'''
+          if old_budget in text:
+              text = text.replace(old_budget, new_budget, 1)
+
+          # JS: synchronize the upper and lower scrollbars and keep width current
+          js_marker = '// ---------- render all / init ----------'
+          js = r'''
+// ---------- synced top horizontal scrollbars ----------
+function setupTopHorizontalScrollbars(){
+  document.querySelectorAll('.top-hscroll[data-sync-scroll]').forEach(top => {
+    const target = document.getElementById(top.dataset.syncScroll);
+    const inner = top.querySelector('.top-hscroll-inner');
+    if(!target || !inner || top.dataset.bound === '1') return;
+
+    const refresh = () => {
+      const width = Math.max(target.scrollWidth, target.clientWidth);
+      inner.style.width = width + 'px';
+      top.style.display = target.scrollWidth > target.clientWidth + 2 ? 'block' : 'none';
+      top.scrollLeft = target.scrollLeft;
+    };
+
+    let syncing = false;
+    top.addEventListener('scroll', () => {
+      if(syncing) return;
+      syncing = true;
+      target.scrollLeft = top.scrollLeft;
+      requestAnimationFrame(() => syncing = false);
+    });
+    target.addEventListener('scroll', () => {
+      if(syncing) return;
+      syncing = true;
+      top.scrollLeft = target.scrollLeft;
+      requestAnimationFrame(() => syncing = false);
+    });
+
+    if(window.ResizeObserver){
+      const ro = new ResizeObserver(refresh);
+      ro.observe(target);
+      const table = target.querySelector('table');
+      if(table) ro.observe(table);
+    }
+    window.addEventListener('resize', refresh);
+    top.dataset.bound = '1';
+    refresh();
+  });
+}
+
+'''
+          if 'function setupTopHorizontalScrollbars()' not in text:
+              text = text.replace(js_marker, js + js_marker)
+
+          # call after initial render and after any full rerender
           text = text.replace(
-              'tr.querySelectorAll("input[data-field],select[data-field]").forEach(el => {',
-              'tr.querySelectorAll("input[data-field],select[data-field],textarea[data-field]").forEach(el => {',
+              '  renderParticipantPayments();\n  applyEditLock();\n}',
+              '  renderParticipantPayments();\n  applyEditLock();\n  requestAnimationFrame(setupTopHorizontalScrollbars);\n}',
               1
           )
           text = text.replace(
-              '#sponsorBody input, #sponsorBody select, #sponsorBody button,',
-              '#sponsorBody input, #sponsorBody select, #sponsorBody textarea, #sponsorBody button,'
+              '  renderAll();\n  loadVisitorStats();',
+              '  renderAll();\n  requestAnimationFrame(setupTopHorizontalScrollbars);\n  loadVisitorStats();',
+              1
           )
 
           if text == original:
@@ -63,5 +117,5 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Improve sponsor note readability"
+          git commit -m "Add synced top scrollbars for sponsor and budget tables"
           git push

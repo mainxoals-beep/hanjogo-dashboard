@@ -317,6 +317,12 @@
   .add-row-btn:hover{border-color:var(--purple);color:var(--purple-dark);background:var(--purple-light);}
   .empty-hint{padding:20px;text-align:center;color:var(--ink-mute);font-size:12.5px;}
 
+  /* compact sponsor attachment UI */
+  .sponsor-file-compact{display:flex;flex-direction:column;gap:5px;min-width:145px;}
+  .sponsor-file-name{font-size:10.5px;font-weight:700;color:var(--ink-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;}
+  .sponsor-file-actions{display:flex;gap:4px;flex-wrap:wrap;}
+  .sponsor-file-actions .mini-btn{padding:5px 7px;font-size:10px;}
+
   /* sponsor table readability */
   #sponsorTable{min-width:1380px;table-layout:fixed;}
   #sponsorTable th:nth-child(1),#sponsorTable td:nth-child(1){width:180px;}
@@ -1929,6 +1935,7 @@ async function loadAll(){
     if(s.lastContact === undefined) s.lastContact = "";
     if(s.nextAction === undefined) s.nextAction = "";
     if(s.image === undefined) s.image = "";
+    if(s.imageName === undefined) s.imageName = "";
   });
 
   state.production = await dGet("production", DEFAULT_PROD.map(p => ({id:uid(), ...p})));
@@ -2049,6 +2056,7 @@ function applyRemoteDataToState(remote){
     if(s.lastContact === undefined) s.lastContact = "";
     if(s.nextAction === undefined) s.nextAction = "";
     if(s.image === undefined) s.image = "";
+    if(s.imageName === undefined) s.imageName = "";
   });
   if(state.participants && state.participants.confirmed === undefined) state.participants.confirmed = state.participants.paid || 0;
 }
@@ -2876,11 +2884,11 @@ function renderSponsors(){
       <td data-label="다음 액션"><input type="text" value="${escapeHtml(row.nextAction||"")}" data-field="nextAction" placeholder="다음 액션"></td>
       <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>
       <td data-label="이미지">
-        <div class="prod-image-wrap">
-          ${row.image ? `<img class="prod-thumb sponsor-thumb" src="${row.image}" alt="협찬 이미지">` : `<div class="prod-image-placeholder">이미지 없음</div>`}
-          <div class="prod-image-actions">
-            <button type="button" class="mini-btn sponsor-upload lockable">이미지 첨부</button>
-            ${row.image ? `<button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}
+        <div class="sponsor-file-compact">
+          ${row.image ? `<div class="sponsor-file-name" title="${escapeHtml(row.imageName||"첨부 이미지")}">${escapeHtml(row.imageName||"첨부 이미지")}</div>` : ""}
+          <div class="sponsor-file-actions">
+            <button type="button" class="mini-btn sponsor-upload lockable">${row.image ? "교체" : "이미지 첨부"}</button>
+            ${row.image ? `<button type="button" class="mini-btn sponsor-preview">미리보기</button><button type="button" class="mini-btn sponsor-download">다운로드</button><button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}
             <input type="file" class="sponsor-file" accept="image/*" style="display:none;">
           </div>
         </div>
@@ -2896,7 +2904,8 @@ function renderSponsors(){
     const sponsorFile = tr.querySelector(".sponsor-file");
     const sponsorUpload = tr.querySelector(".sponsor-upload");
     const sponsorRemove = tr.querySelector(".sponsor-remove");
-    const sponsorThumb = tr.querySelector(".sponsor-thumb");
+    const sponsorPreview = tr.querySelector(".sponsor-preview");
+    const sponsorDownload = tr.querySelector(".sponsor-download");
     if(sponsorUpload && sponsorFile){
       sponsorUpload.addEventListener("click", () => { if(state.editMode) sponsorFile.click(); });
       sponsorFile.addEventListener("change", async () => {
@@ -2905,6 +2914,7 @@ function renderSponsors(){
         try{
           if(file.size > 8*1024*1024){ alert("이미지는 8MB 이하 파일을 사용해주세요."); return; }
           row.image = await compressImageFile(file, 1000, .72);
+          row.imageName = file.name || "협찬 이미지";
           await dSet("sponsors", state.sponsors);
           renderSponsors();
         }catch(err){
@@ -2918,12 +2928,24 @@ function renderSponsors(){
         if(!state.editMode) return;
         if(!await customConfirm("첨부 이미지를 삭제할까요?")) return;
         row.image = "";
+        row.imageName = "";
         await dSet("sponsors", state.sponsors);
         renderSponsors();
       });
     }
-    if(sponsorThumb){
-      sponsorThumb.addEventListener("click", () => openProductionImage(row.image));
+    if(sponsorPreview){
+      sponsorPreview.addEventListener("click", () => openProductionImage(row.image));
+    }
+    if(sponsorDownload){
+      sponsorDownload.addEventListener("click", () => {
+        if(!row.image) return;
+        const a = document.createElement("a");
+        a.href = row.image;
+        a.download = row.imageName || "sponsor-image.jpg";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
     }
     tr.querySelector(".row-del").addEventListener("click", async () => {
       if(!await customConfirm(`"${row.name||"이 협찬사"}"를 삭제할까요?`)) return;
@@ -2937,7 +2959,7 @@ function renderSponsors(){
   applyEditLock();
 }
 document.getElementById("addSponsor").addEventListener("click", async () => {
-  state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:""});
+  state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:"", imageName:""});
   await dSet("sponsors", state.sponsors);
   renderSponsors();
 });

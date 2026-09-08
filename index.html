@@ -2373,14 +2373,42 @@ function appendPhaseSubtasks(row, p){
   row.appendChild(box);
 }
 
+function getHideCompletedPhases(){
+  try{return localStorage.getItem("hanjogo_hide_completed_phases") !== "false";}catch(e){return true;}
+}
+function setHideCompletedPhases(value){
+  try{localStorage.setItem("hanjogo_hide_completed_phases", String(value));}catch(e){}
+  renderPhases();
+}
+function ensureCompletedPhaseToggle(doneCount){
+  const list=document.getElementById("phaseList");
+  const head=list?.closest("section")?.querySelector(".sec-head");
+  if(!head) return;
+  let btn=document.getElementById("completedPhaseToggle");
+  if(!btn){
+    btn=document.createElement("button");
+    btn.type="button";
+    btn.id="completedPhaseToggle";
+    btn.className="collapse-btn";
+    btn.addEventListener("click",()=>setHideCompletedPhases(!getHideCompletedPhases()));
+    const right=head.querySelector(".sec-head-right");
+    if(right) right.prepend(btn); else head.appendChild(btn);
+  }
+  const hidden=getHideCompletedPhases();
+  btn.textContent=hidden ? `완료 항목 펼치기 (${doneCount})` : `완료 항목 접기 (${doneCount})`;
+  btn.style.display=doneCount ? "flex" : "none";
+}
+
 function renderPhases(){
   const list = document.getElementById("phaseList");
   list.innerHTML = "";
   let doneCount = 0;
+  const hideCompleted = getHideCompletedPhases();
   const sorted = [...state.phases].sort((a,b) => (a.start||"").localeCompare(b.start||""));
   sorted.forEach(p => {
     const done = !!state.phaseStatus[p.id];
     if(done) doneCount++;
+    if(done && hideCompleted) return;
     const owner = state.phaseOwner[p.id] || "";
     const editOpen = openPhaseEditIds.has(p.id);
     const row = document.createElement("div");
@@ -2454,6 +2482,7 @@ function renderPhases(){
   });
   document.getElementById("phaseProgLabel").textContent = `${doneCount} / ${state.phases.length}`;
   document.getElementById("phaseProgBar").style.width = (state.phases.length ? doneCount/state.phases.length*100 : 0) + "%";
+  ensureCompletedPhaseToggle(doneCount);
   applyEditLock();
 }
 

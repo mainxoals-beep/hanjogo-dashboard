@@ -342,6 +342,19 @@
   }
   #sponsorTable textarea:focus{outline:none;background:#fff;border-color:var(--purple);}
 
+  /* cash donations */
+  #donationTable{min-width:760px;table-layout:fixed;}
+  #donationTable th:nth-child(1),#donationTable td:nth-child(1){width:150px;}
+  #donationTable th:nth-child(2),#donationTable td:nth-child(2){width:80px;}
+  #donationTable th:nth-child(3),#donationTable td:nth-child(3){width:130px;}
+  #donationTable th:nth-child(4),#donationTable td:nth-child(4){width:120px;}
+  #donationTable th:nth-child(5),#donationTable td:nth-child(5){width:120px;}
+  #donationTable th:nth-child(6),#donationTable td:nth-child(6){width:260px;}
+  .donation-summary{display:flex;gap:8px;flex-wrap:wrap;padding:12px;border-bottom:1px solid var(--line);}
+  .donation-stat{min-width:130px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fdfcfa;}
+  .donation-stat .k{font-size:10.5px;color:var(--ink-mute);}
+  .donation-stat .v{margin-top:2px;font-size:15px;font-weight:700;}
+
   /* mobile card-style rows for sponsors/production/waitlist */
   .row-card{display:none;}
   @media (max-width:640px){
@@ -1170,6 +1183,33 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
     </div>
   </section>
 
+  <!-- ===== 후원 진행 상황 ===== -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-title">후원 진행 상황</div>
+      <div class="sec-head-right">
+        <div class="sec-note">현금 후원만 별도로 관리합니다</div>
+        <button class="collapse-btn" data-target="body-donations"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+      </div>
+    </div>
+    <div class="sec-body" id="body-donations">
+      <div class="card">
+        <div class="donation-summary">
+          <div class="donation-stat"><div class="k">후원 예정·확정</div><div class="v" id="donationExpectedTotal">0원</div></div>
+          <div class="donation-stat"><div class="k">입금·처리 완료</div><div class="v" id="donationPaidTotal">0원</div></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="to-cards" id="donationTable">
+            <thead><tr><th>이름</th><th>기수</th><th>후원금액</th><th>상태</th><th>입금여부</th><th>비고</th><th></th></tr></thead>
+            <tbody id="donationBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-hint" id="donationEmpty" style="display:none;">등록된 현금 후원이 없습니다.</div>
+        <button class="add-row-btn lockable" id="addDonation">+ 후원 추가</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== 제작물 진행 상황 ===== -->
   <section>
     <div class="sec-head">
@@ -1705,6 +1745,7 @@ let state = {
   participants: {capacity:100, first:0, second:0, confirmed:0, paid:0, staff:0},
   waitlist: [],
   sponsors: [],
+  donations: [],
   production: [],
   committee: [],
   links: [],
@@ -1925,7 +1966,7 @@ async function initializeRemoteIfNeeded(){
   if(sharedRowExists) return;
   sharedDataCache = {
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
-    participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, production: state.production,
+    participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, donations: state.donations, production: state.production,
     committee: state.committee, links: state.links, formSync: state.formSync, participantApplySync: state.participantApplySync, dayProgram: state.dayProgram,
     publicInfo: state.publicInfo, notices: state.notices, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
   };
@@ -1992,6 +2033,16 @@ async function loadAll(){
     if(s.nextAction === undefined) s.nextAction = "";
     if(s.image === undefined) s.image = "";
     if(s.imageName === undefined) s.imageName = "";
+  });
+
+  state.donations = await dGet("donations", []);
+  if(!Array.isArray(state.donations)) state.donations = [];
+  state.donations.forEach(d => {
+    if(d.generation === undefined) d.generation = "";
+    if(d.amount === undefined) d.amount = 0;
+    if(d.status === undefined) d.status = "의사표시";
+    if(d.paid === undefined) d.paid = false;
+    if(d.note === undefined) d.note = "";
   });
 
   state.production = await dGet("production", DEFAULT_PROD.map(p => ({id:uid(), ...p})));
@@ -2915,6 +2966,60 @@ document.getElementById("addWaitlist").addEventListener("click", async () => {
 });
 
 function statusBadgeClass(s){ return "status-badge-" + s.replace(/\s/g,""); }
+
+// ---------- cash donations ----------
+const DONATION_STATUSES=["의사표시","확정","보류"];
+function renderDonations(){
+  const rows=Array.isArray(state.donations)?state.donations:[];
+  const body=document.getElementById("donationBody");
+  if(!body) return;
+  body.innerHTML="";
+  const empty=document.getElementById("donationEmpty");
+  if(empty) empty.style.display=rows.length?"none":"block";
+  let expected=0, paidTotal=0;
+  rows.forEach(row=>{
+    const amount=Math.max(0,Number(row.amount)||0);
+    if(row.status!=="보류") expected+=amount;
+    if(row.paid) paidTotal+=amount;
+    const tr=document.createElement("tr");
+    const statusOpts=DONATION_STATUSES.map(v=>`<option value="${v}" ${row.status===v?"selected":""}>${v}</option>`).join("");
+    tr.innerHTML=`
+      <td data-label="이름"><input class="lockable" type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
+      <td data-label="기수"><input class="lockable" type="text" value="${escapeHtml(row.generation||"")}" data-field="generation" placeholder="예: 2기"></td>
+      <td data-label="후원금액"><input class="lockable" type="number" min="0" step="10000" value="${amount}" data-field="amount"></td>
+      <td data-label="상태"><select class="lockable" data-field="status">${statusOpts}</select></td>
+      <td data-label="입금여부"><select class="lockable" data-field="paid"><option value="false" ${!row.paid?"selected":""}>미입금</option><option value="true" ${row.paid?"selected":""}>입금완료</option></select></td>
+      <td data-label="비고"><input class="lockable" type="text" value="${escapeHtml(row.note||"")}" data-field="note"></td>
+      <td><button class="row-del lockable" title="삭제">✕</button></td>`;
+    tr.querySelectorAll("[data-field]").forEach(el=>{
+      el.addEventListener("change",async e=>{
+        const f=e.target.dataset.field;
+        if(f==="amount") row.amount=Math.max(0,Number(e.target.value)||0);
+        else if(f==="paid") row.paid=e.target.value==="true";
+        else row[f]=e.target.value;
+        await dSet("donations",state.donations);
+        renderDonations();
+      });
+    });
+    tr.querySelector(".row-del").addEventListener("click",async()=>{
+      if(!state.editMode) return;
+      if(!await customConfirm(`"${row.name||"이 후원"}" 항목을 삭제할까요?`)) return;
+      state.donations=state.donations.filter(x=>x.id!==row.id);
+      await dSet("donations",state.donations);
+      renderDonations();
+    });
+    body.appendChild(tr);
+  });
+  const e=document.getElementById("donationExpectedTotal"); if(e) e.textContent=money(expected);
+  const p=document.getElementById("donationPaidTotal"); if(p) p.textContent=money(paidTotal);
+  applyEditLock();
+}
+document.getElementById("addDonation")?.addEventListener("click",async()=>{
+  if(!state.editMode) return;
+  state.donations.push({id:uid(),name:"",generation:"",amount:0,status:"의사표시",paid:false,note:""});
+  await dSet("donations",state.donations);
+  renderDonations();
+});
 
 // ---------- sponsors ----------
 function renderSponsors(){
@@ -4600,6 +4705,7 @@ function renderAll(){
   renderParticipants();
   renderWaitlist();
   renderSponsors();
+  renderDonations();
   renderProduction();
   renderCommittee();
   renderLinks();

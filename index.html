@@ -577,7 +577,7 @@
   .budget-table th:nth-child(10),.budget-table td:nth-child(10){width:42px;}
   .budget-table td{padding:6px 7px;vertical-align:top;}
   .budget-table input[type=number]{text-align:right;}
-  .budget-table textarea{min-height:68px;resize:vertical;line-height:1.45;white-space:pre-wrap;}
+  .budget-table textarea{min-height:36px;height:36px;resize:vertical;line-height:1.4;white-space:pre-wrap;overflow:hidden;}
   .budget-note-input{min-width:280px;}
   .budget-del{border:none;background:none;color:var(--ink-mute);font-size:14px;padding:5px;cursor:pointer;}
   .budget-del:hover{color:var(--danger);}
@@ -885,8 +885,39 @@
   .file-repo-empty{padding:18px;text-align:center;color:var(--ink-mute);font-size:11px}
   @media(max-width:700px){.file-repo-grid{grid-template-columns:1fr}}
 
+
+  .top-hscroll{overflow-x:auto;overflow-y:hidden;height:15px;margin:2px 0 6px;}
+  .top-hscroll-inner{height:1px;}
+  .top-hscroll::-webkit-scrollbar{height:10px;}
+  .top-hscroll::-webkit-scrollbar-thumb{background:#CFC9BE;border-radius:999px;}
+  .top-hscroll::-webkit-scrollbar-track{background:#F1EFE8;border-radius:999px;}
+
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function syncTopScroll(topId,wrapId){
+  const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
+  if(!top||!wrap) return;
+  const inner=top.querySelector('.top-hscroll-inner');
+  const refresh=()=>{ inner.style.width=Math.max(wrap.scrollWidth,wrap.clientWidth)+'px'; top.style.display=wrap.scrollWidth>wrap.clientWidth+2?'block':'none'; };
+  if(top.dataset.bound!=='1'){
+    let busy=false;
+    top.addEventListener('scroll',()=>{if(busy)return;busy=true;wrap.scrollLeft=top.scrollLeft;requestAnimationFrame(()=>busy=false);});
+    wrap.addEventListener('scroll',()=>{if(busy)return;busy=true;top.scrollLeft=wrap.scrollLeft;requestAnimationFrame(()=>busy=false);});
+    top.dataset.bound='1';
+  }
+  refresh();
+}
+function refreshWideTableUi(){
+  syncTopScroll('sponsorTop','sponsorScroll');
+  syncTopScroll('budgetTop','budgetScroll');
+  document.querySelectorAll('.budget-note-input').forEach(el=>{el.style.height='36px';el.style.height=Math.max(36,el.scrollHeight)+'px';});
+}
+window.addEventListener('resize',refreshWideTableUi);
+setTimeout(refreshWideTableUi,0);
+setTimeout(refreshWideTableUi,500);
+document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('budget-note-input')){e.target.style.height='36px';e.target.style.height=Math.max(36,e.target.scrollHeight)+'px';}});
+
+</script>
 </head>
 <body>
 
@@ -1103,7 +1134,8 @@
     </div>
     <div class="sec-body" id="body-sponsors">
       <div class="card">
-        <div style="overflow-x:auto;">
+        <div class="top-hscroll" id="sponsorTop"><div class="top-hscroll-inner"></div></div>
+        <div style="overflow-x:auto;" id="sponsorScroll">
         <table class="to-cards" id="sponsorTable">
           <thead><tr><th style="width:16%">업체/품목</th><th style="width:13%">협찬내용</th><th style="width:10%">담당</th><th style="width:11%">상태</th><th style="width:10%">최근연락</th><th style="width:16%">다음 액션</th><th style="width:14%">비고</th><th style="width:14%">이미지</th><th style="width:6%"></th></tr></thead>
           <tbody id="sponsorBody"></tbody>
@@ -1347,7 +1379,8 @@
       </div>
       <div class="budget-help">예상 금액은 행사 전체 계획용, 실제 금액은 입금·결제가 확정된 금액으로 기록하면 됩니다. 계약금과 잔금은 각각 별도 행으로 적어도 됩니다.</div>
       <div class="card">
-        <div class="budget-table-wrap">
+        <div class="top-hscroll" id="budgetTop"><div class="top-hscroll-inner"></div></div>
+        <div class="budget-table-wrap" id="budgetScroll">
           <table class="budget-table">
             <thead>
               <tr>

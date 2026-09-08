@@ -523,7 +523,7 @@
   .notice-edit .full{grid-column:1/-1;}
   .notice-edit label,.budget-field label{display:block;margin-bottom:4px;color:var(--ink-mute);font-size:10.5px;font-weight:700;}
   .notice-edit input,.notice-edit select,.notice-edit textarea,
-  .budget-table input,.budget-table select,.budget-field input{
+  .budget-table input,.budget-table select,.budget-table textarea,.budget-field input{
     width:100%;border:1px solid var(--line);border-radius:8px;background:#FDFCFB;color:var(--ink);
     padding:7px 8px;font-size:12px;font-family:inherit;
   }
@@ -539,9 +539,21 @@
   .budget-summary-card.balance .v.negative{color:var(--danger);}
   .budget-help{padding:10px 12px;margin-bottom:10px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:11.5px;line-height:1.6;}
   .budget-table-wrap{overflow-x:auto;}
-  .budget-table{min-width:980px;}
-  .budget-table td{padding:6px 7px;}
+  .budget-table{min-width:1250px;table-layout:fixed;}
+  .budget-table th:nth-child(1),.budget-table td:nth-child(1){width:78px;}
+  .budget-table th:nth-child(2),.budget-table td:nth-child(2){width:120px;}
+  .budget-table th:nth-child(3),.budget-table td:nth-child(3){width:230px;}
+  .budget-table th:nth-child(4),.budget-table td:nth-child(4),
+  .budget-table th:nth-child(5),.budget-table td:nth-child(5){width:115px;}
+  .budget-table th:nth-child(6),.budget-table td:nth-child(6){width:125px;}
+  .budget-table th:nth-child(7),.budget-table td:nth-child(7){width:120px;}
+  .budget-table th:nth-child(8),.budget-table td:nth-child(8){width:100px;}
+  .budget-table th:nth-child(9),.budget-table td:nth-child(9){width:300px;}
+  .budget-table th:nth-child(10),.budget-table td:nth-child(10){width:42px;}
+  .budget-table td{padding:6px 7px;vertical-align:top;}
   .budget-table input[type=number]{text-align:right;}
+  .budget-table textarea{min-height:68px;resize:vertical;line-height:1.45;white-space:pre-wrap;}
+  .budget-note-input{min-width:280px;}
   .budget-del{border:none;background:none;color:var(--ink-mute);font-size:14px;padding:5px;cursor:pointer;}
   .budget-del:hover{color:var(--danger);}
   .money-note{margin-top:7px;color:var(--ink-mute);font-size:11px;}
@@ -1897,6 +1909,7 @@ async function loadAll(){
     if(!SPONSOR_STATUSES.includes(s.status)) s.status = "컨택전";
     if(s.lastContact === undefined) s.lastContact = "";
     if(s.nextAction === undefined) s.nextAction = "";
+    if(s.image === undefined) s.image = "";
   });
 
   state.production = await dGet("production", DEFAULT_PROD.map(p => ({id:uid(), ...p})));
@@ -2016,6 +2029,7 @@ function applyRemoteDataToState(remote){
     if(!SPONSOR_STATUSES.includes(s.status)) s.status = "컨택전";
     if(s.lastContact === undefined) s.lastContact = "";
     if(s.nextAction === undefined) s.nextAction = "";
+    if(s.image === undefined) s.image = "";
   });
   if(state.participants && state.participants.confirmed === undefined) state.participants.confirmed = state.participants.paid || 0;
 }
@@ -2842,14 +2856,56 @@ function renderSponsors(){
       <td data-label="최근연락"><input type="date" value="${row.lastContact||""}" data-field="lastContact"></td>
       <td data-label="다음 액션"><input type="text" value="${escapeHtml(row.nextAction||"")}" data-field="nextAction" placeholder="다음 액션"></td>
       <td data-label="비고"><input type="text" value="${escapeHtml(row.note)}" data-field="note"></td>
+      <td data-label="이미지">
+        <div class="prod-image-wrap">
+          ${row.image ? `<img class="prod-thumb sponsor-thumb" src="${row.image}" alt="협찬 이미지">` : `<div class="prod-image-placeholder">이미지 없음</div>`}
+          <div class="prod-image-actions">
+            <button type="button" class="mini-btn sponsor-upload lockable">이미지 첨부</button>
+            ${row.image ? `<button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}
+            <input type="file" class="sponsor-file" accept="image/*" style="display:none;">
+          </div>
+        </div>
+      </td>
       <td><button class="row-del" title="삭제">✕</button></td>`;
-    tr.querySelectorAll("input,select").forEach(el => {
+    tr.querySelectorAll("input[data-field],select[data-field]").forEach(el => {
       el.addEventListener("change", async (e) => {
         row[e.target.dataset.field] = e.target.value;
         await dSet("sponsors", state.sponsors);
         if(["status","lastContact"].includes(e.target.dataset.field)){ renderSponsors(); renderActionItems(); }
       });
     });
+    const sponsorFile = tr.querySelector(".sponsor-file");
+    const sponsorUpload = tr.querySelector(".sponsor-upload");
+    const sponsorRemove = tr.querySelector(".sponsor-remove");
+    const sponsorThumb = tr.querySelector(".sponsor-thumb");
+    if(sponsorUpload && sponsorFile){
+      sponsorUpload.addEventListener("click", () => { if(state.editMode) sponsorFile.click(); });
+      sponsorFile.addEventListener("change", async () => {
+        const file = sponsorFile.files?.[0];
+        if(!file) return;
+        try{
+          if(file.size > 8*1024*1024){ alert("이미지는 8MB 이하 파일을 사용해주세요."); return; }
+          row.image = await compressImageFile(file, 1000, .72);
+          await dSet("sponsors", state.sponsors);
+          renderSponsors();
+        }catch(err){
+          console.error(err);
+          alert("이미지를 첨부하지 못했습니다.");
+        }finally{ sponsorFile.value = ""; }
+      });
+    }
+    if(sponsorRemove){
+      sponsorRemove.addEventListener("click", async () => {
+        if(!state.editMode) return;
+        if(!await customConfirm("첨부 이미지를 삭제할까요?")) return;
+        row.image = "";
+        await dSet("sponsors", state.sponsors);
+        renderSponsors();
+      });
+    }
+    if(sponsorThumb){
+      sponsorThumb.addEventListener("click", () => openProductionImage(row.image));
+    }
     tr.querySelector(".row-del").addEventListener("click", async () => {
       if(!await customConfirm(`"${row.name||"이 협찬사"}"를 삭제할까요?`)) return;
       state.sponsors = state.sponsors.filter(r => r.id !== row.id);
@@ -2862,7 +2918,7 @@ function renderSponsors(){
   applyEditLock();
 }
 document.getElementById("addSponsor").addEventListener("click", async () => {
-  state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:""});
+  state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:""});
   await dSet("sponsors", state.sponsors);
   renderSponsors();
 });
@@ -4028,7 +4084,7 @@ function renderBudget(){
       <td><input class="lockable" type="date" data-field="date" value="${escapeHtml(r.date||"")}"></td>
       <td><input class="lockable" data-field="owner" value="${escapeHtml(r.owner||"")}"></td>
       <td><select class="lockable" data-field="status">${budgetStatusOptions(r.status)}</select></td>
-      <td><input class="lockable" data-field="note" value="${escapeHtml(r.note||"")}"></td>
+      <td><textarea class="lockable budget-note-input" data-field="note" placeholder="비고를 입력하세요">${escapeHtml(r.note||"")}</textarea></td>
       <td><button class="budget-del lockable" title="삭제">✕</button></td>`;
     tr.querySelectorAll("[data-field]").forEach(el=>{
       el.addEventListener("change",async e=>{

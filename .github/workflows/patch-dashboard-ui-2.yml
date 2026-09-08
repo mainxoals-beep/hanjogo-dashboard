@@ -1,0 +1,39 @@
+name: Direct dashboard UI patch
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-dashboard-ui-2.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old=s
+          s=s.replace('.budget-table textarea{min-height:68px;resize:vertical;line-height:1.45;white-space:pre-wrap;}', '.budget-table textarea{min-height:36px;height:36px;resize:vertical;line-height:1.4;white-space:pre-wrap;overflow:hidden;}')
+          s=s.replace('<div style="overflow-x:auto;">\n        <table class="to-cards" id="sponsorTable">', '<div class="top-hscroll" id="sponsorTop"><div class="top-hscroll-inner"></div></div>\n        <div style="overflow-x:auto;" id="sponsorScroll">\n        <table class="to-cards" id="sponsorTable">', 1)
+          s=s.replace('<div class="budget-table-wrap">\n          <table class="budget-table">', '<div class="top-hscroll" id="budgetTop"><div class="top-hscroll-inner"></div></div>\n        <div class="budget-table-wrap" id="budgetScroll">\n          <table class="budget-table">', 1)
+          css='''\n  .top-hscroll{overflow-x:auto;overflow-y:hidden;height:15px;margin:2px 0 6px;}\n  .top-hscroll-inner{height:1px;}\n  .top-hscroll::-webkit-scrollbar{height:10px;}\n  .top-hscroll::-webkit-scrollbar-thumb{background:#CFC9BE;border-radius:999px;}\n  .top-hscroll::-webkit-scrollbar-track{background:#F1EFE8;border-radius:999px;}\n'''
+          if '.top-hscroll{overflow-x:auto' not in s:
+              s=s.replace('</style>', css+'\n</style>', 1)
+          js='''\nfunction syncTopScroll(topId,wrapId){\n  const top=document.getElementById(topId), wrap=document.getElementById(wrapId);\n  if(!top||!wrap) return;\n  const inner=top.querySelector('.top-hscroll-inner');\n  const refresh=()=>{ inner.style.width=Math.max(wrap.scrollWidth,wrap.clientWidth)+'px'; top.style.display=wrap.scrollWidth>wrap.clientWidth+2?'block':'none'; };\n  if(top.dataset.bound!=='1'){\n    let busy=false;\n    top.addEventListener('scroll',()=>{if(busy)return;busy=true;wrap.scrollLeft=top.scrollLeft;requestAnimationFrame(()=>busy=false);});\n    wrap.addEventListener('scroll',()=>{if(busy)return;busy=true;top.scrollLeft=wrap.scrollLeft;requestAnimationFrame(()=>busy=false);});\n    top.dataset.bound='1';\n  }\n  refresh();\n}\nfunction refreshWideTableUi(){\n  syncTopScroll('sponsorTop','sponsorScroll');\n  syncTopScroll('budgetTop','budgetScroll');\n  document.querySelectorAll('.budget-note-input').forEach(el=>{el.style.height='36px';el.style.height=Math.max(36,el.scrollHeight)+'px';});\n}\nwindow.addEventListener('resize',refreshWideTableUi);\nsetTimeout(refreshWideTableUi,0);\nsetTimeout(refreshWideTableUi,500);\ndocument.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('budget-note-input')){e.target.style.height='36px';e.target.style.height=Math.max(36,e.target.scrollHeight)+'px';}});\n'''
+          if 'function syncTopScroll(topId,wrapId)' not in s:
+              s=s.replace('</script>', js+'\n</script>', 1)
+          if s==old:
+              raise SystemExit('No changes made')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Compact budget rows and add top scrollbars"
+          git push

@@ -1,0 +1,39 @@
+name: Fix internal section tab placement
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-internal-section-tabs.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch internal dashboard tab placement
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          old_people='''  moveSectionByBody("body-waitlist", people);\n  moveSectionByBody("body-committee", people);'''
+          new_people='''  moveSectionByBody("body-waitlist", people);\n  moveSectionByBody("body-committee", people);\n  move("#section-operations-committee", people);'''
+          if old_people in s and 'move("#section-operations-committee", people);' not in s:
+              s=s.replace(old_people,new_people,1)
+
+          old_fin='''  // 협찬 · 재정\n  moveSectionByBody("body-sponsors", finance);\n  move("#section-budget", finance);'''
+          new_fin='''  // 협찬 · 재정\n  moveSectionByBody("body-sponsors", finance);\n  moveSectionByBody("body-donations", finance);\n  move("#section-budget", finance);'''
+          if old_fin in s and 'moveSectionByBody("body-donations", finance);' not in s:
+              s=s.replace(old_fin,new_fin,1)
+
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Fix internal committee and donation tab placement"
+          git push

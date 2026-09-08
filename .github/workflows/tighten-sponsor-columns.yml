@@ -1,0 +1,41 @@
+name: Tighten sponsor table columns
+
+on:
+  push:
+    paths:
+      - '.github/workflows/tighten-sponsor-columns.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tighten columns
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          reps={
+            '#sponsorTable th:nth-child(2),#sponsorTable td:nth-child(2){width:190px;}':'#sponsorTable th:nth-child(2),#sponsorTable td:nth-child(2){width:205px;}',
+            '#sponsorTable th:nth-child(3),#sponsorTable td:nth-child(3){width:105px;}':'#sponsorTable th:nth-child(3),#sponsorTable td:nth-child(3){width:85px;}',
+            '#sponsorTable th:nth-child(4),#sponsorTable td:nth-child(4){width:105px;}':'#sponsorTable th:nth-child(4),#sponsorTable td:nth-child(4){width:90px;}',
+            '#sponsorTable th:nth-child(5),#sponsorTable td:nth-child(5){width:125px;}':'#sponsorTable th:nth-child(5),#sponsorTable td:nth-child(5){width:105px;}',
+            '#sponsorTable th:nth-child(6),#sponsorTable td:nth-child(6){width:190px;}':'#sponsorTable th:nth-child(6),#sponsorTable td:nth-child(6){width:205px;}',
+            '#sponsorTable th:nth-child(7),#sponsorTable td:nth-child(7){width:280px;}':'#sponsorTable th:nth-child(7),#sponsorTable td:nth-child(7){width:305px;}',
+          }
+          for a,b in reps.items():
+            if a not in s: raise SystemExit('missing: '+a)
+            s=s.replace(a,b,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Tighten sponsor owner status contact columns"
+          git push

@@ -1,4 +1,4 @@
-name: Compact sponsor image attachments
+name: Compact budget rows and top scrollbars
 
 on:
   push:
@@ -24,62 +24,108 @@ jobs:
           text = path.read_text(encoding='utf-8')
           original = text
 
-          # Compact sponsor attachment UI
-          css_marker = '  /* sponsor table readability */'
-          css = '''  /* compact sponsor attachment UI */\n  .sponsor-file-compact{display:flex;flex-direction:column;gap:5px;min-width:145px;}\n  .sponsor-file-name{font-size:10.5px;font-weight:700;color:var(--ink-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;}\n  .sponsor-file-actions{display:flex;gap:4px;flex-wrap:wrap;}\n  .sponsor-file-actions .mini-btn{padding:5px 7px;font-size:10px;}\n\n'''
-          if css.strip() not in text:
-              text = text.replace(css_marker, css + css_marker)
+          # Compact budget note area: one line by default, expands only when content needs it.
+          css = '''
+  /* compact budget rows + synced top horizontal scrollbar */
+  .budget-table textarea.budget-note-input{
+    min-height:36px !important;
+    height:36px;
+    line-height:1.4;
+    resize:vertical;
+    overflow:hidden;
+  }
+  .top-hscroll{
+    overflow-x:auto;
+    overflow-y:hidden;
+    height:15px;
+    margin:2px 0 6px;
+  }
+  .top-hscroll-inner{height:1px;}
+  .top-hscroll::-webkit-scrollbar{height:10px;}
+  .top-hscroll::-webkit-scrollbar-thumb{background:#CFC9BE;border-radius:999px;}
+  .top-hscroll::-webkit-scrollbar-track{background:#F1EFE8;border-radius:999px;}
+'''
+          if '/* compact budget rows + synced top horizontal scrollbar */' not in text:
+              text = text.replace('</style>', css + '\n</style>', 1)
 
-          start = text.find('// ---------- sponsors ----------')
-          end = text.find('// ---------- production ----------', start)
-          if start == -1 or end == -1:
-              raise SystemExit('Sponsor render block not found')
-          block = text[start:end]
+          js = r'''
 
-          old = '''      <td data-label="이미지">\n        <div class="prod-image-wrap">\n          ${row.image ? `<img class="prod-thumb sponsor-thumb" src="${row.image}" alt="협찬 이미지">` : `<div class="prod-image-placeholder">이미지 없음</div>`}\n          <div class="prod-image-actions">\n            <button type="button" class="mini-btn sponsor-upload lockable">이미지 첨부</button>\n            ${row.image ? `<button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}\n            <input type="file" class="sponsor-file" accept="image/*" style="display:none;">\n          </div>\n        </div>\n      </td>'''
-          new = '''      <td data-label="이미지">\n        <div class="sponsor-file-compact">\n          ${row.image ? `<div class="sponsor-file-name" title="${escapeHtml(row.imageName||\"첨부 이미지\")}">${escapeHtml(row.imageName||\"첨부 이미지\")}</div>` : ""}\n          <div class="sponsor-file-actions">\n            <button type="button" class="mini-btn sponsor-upload lockable">${row.image ? "교체" : "이미지 첨부"}</button>\n            ${row.image ? `<button type="button" class="mini-btn sponsor-preview">미리보기</button><button type="button" class="mini-btn sponsor-download">다운로드</button><button type="button" class="mini-btn danger sponsor-remove lockable">삭제</button>` : ""}\n            <input type="file" class="sponsor-file" accept="image/*" style="display:none;">\n          </div>\n        </div>\n      </td>'''
-          if old not in block:
-              raise SystemExit('Sponsor image UI block not found')
-          block = block.replace(old, new, 1)
+// ---------- reliable top scrollbars + compact budget note height ----------
+function resizeBudgetNotes(){
+  document.querySelectorAll('.budget-note-input').forEach(el => {
+    el.style.height = '36px';
+    el.style.height = Math.max(36, el.scrollHeight) + 'px';
+  });
+}
 
-          # Update handler declarations
-          block = block.replace(
-              '    const sponsorThumb = tr.querySelector(".sponsor-thumb");',
-              '    const sponsorPreview = tr.querySelector(".sponsor-preview");\n    const sponsorDownload = tr.querySelector(".sponsor-download");'
-          )
+function ensureTopScrollbar(target, key){
+  if(!target) return;
+  let top = document.querySelector(`.top-hscroll[data-scroll-key="${key}"]`);
+  if(!top){
+    top = document.createElement('div');
+    top.className = 'top-hscroll';
+    top.dataset.scrollKey = key;
+    top.innerHTML = '<div class="top-hscroll-inner"></div>';
+    target.parentNode.insertBefore(top, target);
+  }
+  const inner = top.querySelector('.top-hscroll-inner');
+  const refresh = () => {
+    inner.style.width = Math.max(target.scrollWidth, target.clientWidth) + 'px';
+    top.style.display = target.scrollWidth > target.clientWidth + 2 ? 'block' : 'none';
+    if(Math.abs(top.scrollLeft - target.scrollLeft) > 1) top.scrollLeft = target.scrollLeft;
+  };
+  if(top.dataset.bound !== '1'){
+    let busy = false;
+    top.addEventListener('scroll', () => {
+      if(busy) return;
+      busy = true;
+      target.scrollLeft = top.scrollLeft;
+      requestAnimationFrame(() => busy = false);
+    });
+    target.addEventListener('scroll', () => {
+      if(busy) return;
+      busy = true;
+      top.scrollLeft = target.scrollLeft;
+      requestAnimationFrame(() => busy = false);
+    });
+    top.dataset.bound = '1';
+  }
+  refresh();
+}
 
-          # Save original file name alongside compressed image
-          block = block.replace(
-              '          row.image = await compressImageFile(file, 1000, .72);\n          await dSet("sponsors", state.sponsors);',
-              '          row.image = await compressImageFile(file, 1000, .72);\n          row.imageName = file.name || "협찬 이미지";\n          await dSet("sponsors", state.sponsors);'
-          )
+function setupReliableTableUi(){
+  const sponsorTable = document.getElementById('sponsorTable');
+  const sponsorWrap = sponsorTable ? sponsorTable.parentElement : null;
+  ensureTopScrollbar(sponsorWrap, 'sponsor');
 
-          # Clear filename on removal
-          block = block.replace(
-              '        row.image = "";\n        await dSet("sponsors", state.sponsors);',
-              '        row.image = "";\n        row.imageName = "";\n        await dSet("sponsors", state.sponsors);'
-          )
+  const budgetTable = document.querySelector('.budget-table');
+  const budgetWrap = budgetTable ? budgetTable.closest('.budget-table-wrap') : null;
+  ensureTopScrollbar(budgetWrap, 'budget');
 
-          old_preview_handler = '''    if(sponsorThumb){\n      sponsorThumb.addEventListener("click", () => openProductionImage(row.image));\n    }\n'''
-          new_preview_handler = '''    if(sponsorPreview){\n      sponsorPreview.addEventListener("click", () => openProductionImage(row.image));\n    }\n    if(sponsorDownload){\n      sponsorDownload.addEventListener("click", () => {\n        if(!row.image) return;\n        const a = document.createElement("a");\n        a.href = row.image;\n        a.download = row.imageName || "sponsor-image.jpg";\n        document.body.appendChild(a);\n        a.click();\n        a.remove();\n      });\n    }\n'''
-          if old_preview_handler in block:
-              block = block.replace(old_preview_handler, new_preview_handler, 1)
-          else:
-              raise SystemExit('Sponsor preview handler not found')
+  resizeBudgetNotes();
+}
 
-          # New sponsor rows carry filename field too
-          block = block.replace(
-              'state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:""});',
-              'state.sponsors.push({id:uid(), name:"", item:"", status:"컨택전", note:"", owner:"", lastContact:"", nextAction:"", image:"", imageName:""});'
-          )
+window.addEventListener('resize', setupReliableTableUi);
+setTimeout(setupReliableTableUi, 0);
+setTimeout(setupReliableTableUi, 500);
 
-          text = text[:start] + block + text[end:]
+const _budgetUiObserver = new MutationObserver(() => {
+  requestAnimationFrame(setupReliableTableUi);
+});
+const _budgetBodyWatch = document.getElementById('budgetBody');
+const _sponsorBodyWatch = document.getElementById('sponsorBody');
+if(_budgetBodyWatch) _budgetUiObserver.observe(_budgetBodyWatch, {childList:true, subtree:true});
+if(_sponsorBodyWatch) _budgetUiObserver.observe(_sponsorBodyWatch, {childList:true, subtree:true});
 
-          # Migrate existing sponsor data
-          text = text.replace(
-              '    if(s.image === undefined) s.image = "";\n',
-              '    if(s.image === undefined) s.image = "";\n    if(s.imageName === undefined) s.imageName = "";\n'
-          )
+document.addEventListener('input', e => {
+  if(e.target && e.target.classList && e.target.classList.contains('budget-note-input')){
+    e.target.style.height = '36px';
+    e.target.style.height = Math.max(36, e.target.scrollHeight) + 'px';
+  }
+});
+'''
+          if '// ---------- reliable top scrollbars + compact budget note height ----------' not in text:
+              text = text.replace('</script>', js + '\n</script>', 1)
 
           if text == original:
               raise SystemExit('No changes were applied')
@@ -97,5 +143,5 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Compact sponsor image attachments and add download"
+          git commit -m "Compact budget rows and add reliable top scrollbars"
           git push

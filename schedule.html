@@ -89,6 +89,12 @@ button,a{font:inherit} button{cursor:pointer}
 .day{min-height:31px;padding-top:7px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--sub);text-align:center;font-size:10px}.day.mark{background:var(--purple-light);color:var(--purple-dark);font-weight:800}.day.event{background:var(--event);color:#fff;font-weight:900}
 .calendar-detail{min-height:96px;margin-top:12px;padding:16px 18px}.detail-empty{color:var(--mute);font-size:12.5px}.detail-date{margin-bottom:4px;color:var(--purple-dark);font-size:11px;font-weight:800}.detail-title{margin-bottom:5px;font-size:15px;font-weight:800}.detail-desc{color:var(--sub);font-size:12.5px}
 .faq{overflow:hidden}.faq-item{border-bottom:1px solid var(--line)}.faq-item:last-child{border-bottom:none}.faq-q{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:15px 17px;border:none;background:#fff;text-align:left;font-size:13px;font-weight:800}.faq-icon{flex-shrink:0;width:22px;text-align:center;color:var(--purple-dark);font-size:14px;font-weight:900}.faq-a{display:none;padding:0 17px 15px;color:var(--sub);font-size:12.5px;line-height:1.7}.faq-item.open .faq-a{display:block}
+.faq-section{margin-bottom:32px}
+.collapsible-sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.collapsible-sec-head .sec-title{margin-bottom:0}
+.timeline-toggle{border:none;background:transparent;color:var(--purple-dark);font-size:16px;font-weight:900;padding:4px 7px;border-radius:8px}
+.timeline-toggle:hover{background:var(--purple-light)}
+.timeline-wrap[hidden]{display:none}
 .application-stats{margin:14px 0;padding:11px 13px;text-align:center}.application-stats strong{font-size:15px}.application-stats-label{font-size:10.5px;color:var(--mute)}
 .public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}.visitor-counter{margin:18px 0 4px;padding:11px 13px;text-align:center;font-size:10.5px;color:var(--mute)}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
@@ -222,7 +228,7 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="resource-list" id="resourceList"></div>
 </div>
 
-<div class="section">
+<div class="section faq-section">
 <div class="sec-title">자주 묻는 질문</div>
 <div class="faq" id="faqList"></div>
 </div>
@@ -246,9 +252,14 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="next-date" id="nextDate"></div>
 </div>
 
-<div class="section">
+<div class="section" id="timelineSection">
+<div class="collapsible-sec-head">
 <div class="sec-title">한눈에 보는 일정</div>
+<button class="timeline-toggle" id="timelineToggle" type="button" aria-expanded="false" aria-controls="timelineWrap" title="일정 펼치기">▾</button>
+</div>
+<div class="timeline-wrap" id="timelineWrap" hidden>
 <div class="timeline" id="timeline"></div>
+</div>
 </div>
 
 <div class="section">
@@ -1512,6 +1523,19 @@ copyText(
 publicInfo.parkingAddress||"",
 "주차장 주소를 복사했습니다."
 );
+
+const timelineToggle=document.getElementById("timelineToggle");
+const timelineWrap=document.getElementById("timelineWrap");
+if(timelineToggle && timelineWrap){
+  timelineToggle.addEventListener("click",()=>{
+    const open=timelineToggle.getAttribute("aria-expanded")==="true";
+    const next=!open;
+    timelineToggle.setAttribute("aria-expanded",next?"true":"false");
+    timelineToggle.textContent=next?"▴":"▾";
+    timelineToggle.title=next?"일정 접기":"일정 펼치기";
+    timelineWrap.hidden=!next;
+  });
+}
 
 loadPublicInfo();
 

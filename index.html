@@ -4289,7 +4289,7 @@ function budgetTypeOptions(selected){
   return `<option value="income" ${selected==="income"?"selected":""}>수입</option><option value="expense" ${selected==="expense"?"selected":""}>지출</option>`;
 }
 function budgetStatusOptions(selected){
-  return ["예정","견적중","확정","일부결제","완료"].map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("");
+  return ["가정","예정","거의 확정","견적중","확정","일부결제","완료"].map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("");
 }
 function budgetTotals(){
   const rows=Array.isArray(state.budget)?state.budget:[];

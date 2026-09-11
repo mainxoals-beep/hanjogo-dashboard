@@ -2834,7 +2834,7 @@ function normalizePersonName(v){
   return String(v||"").replace(/\s+/g,"").replace(/[()_\-\[\].]/g,"").toLowerCase();
 }
 function paymentStatusLabel(v){
-  return v==="paid" ? "입금완료" : v==="partial" ? "일부입금" : v==="hold" ? "확인필요" : "미입금";
+  return v==="paid" ? "입금완료" : v==="partial" ? "일부입금" : v==="hold" ? "확인필요" : v==="exempt" ? "참가비 면제" : "미입금";
 }
 function renderParticipantPayments(){
   const rows=Array.isArray(state.participantPayments) ? state.participantPayments : [];
@@ -2856,30 +2856,40 @@ function renderParticipantPayments(){
     tr.innerHTML=`
       <td data-label="이름"><input type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
       <td data-label="기수"><input type="text" value="${escapeHtml(row.generation||"")}" data-field="generation" placeholder="예: 2기"></td>
-      <td data-label="예정 참가비"><input type="number" min="0" step="1000" value="${Number(row.expectedAmount||100000)}" data-field="expectedAmount"></td>
+      <td data-label="예정 참가비"><input type="number" min="0" step="1000" value="${Number(row.expectedAmount??80000)}" data-field="expectedAmount"></td>
       <td data-label="입금액"><input type="number" min="0" step="1000" value="${Number(row.paidAmount||0)}" data-field="paidAmount"></td>
       <td data-label="입금일"><input type="date" value="${escapeHtml(row.paidDate||"")}" data-field="paidDate"></td>
       <td data-label="상태">
         <select data-field="status">
-          ${["unpaid","paid","partial","hold"].map(v=>`<option value="${v}" ${row.status===v?"selected":""}>${paymentStatusLabel(v)}</option>`).join("")}
+          ${["unpaid","paid","partial","hold","exempt"].map(v=>`<option value="${v}" ${row.status===v?"selected":""}>${paymentStatusLabel(v)}</option>`).join("")}
         </select>
       </td>
       <td data-label="비고">
         <input type="text" value="${escapeHtml(row.note||"")}" data-field="note" placeholder="입금자명 다를 경우 메모">
         ${matchText}
       </td>
-      <td><button class="row-del" title="삭제">✕</button></td>`;
+      <td><button class="row-del lockable" title="참가비 확인 명단에서 삭제">삭제</button></td>`;
 
     tr.querySelectorAll("input,select").forEach(el=>{
       el.addEventListener("change",async e=>{
         const f=e.target.dataset.field;
         row[f]=(f==="expectedAmount"||f==="paidAmount") ? Math.max(0,Number(e.target.value)||0) : e.target.value;
-        if(f==="paidAmount"){
-          if(row.paidAmount>=Number(row.expectedAmount||100000)) row.status="paid";
+        if(f==="status" && row.status==="exempt"){
+          row.expectedAmount=0;
+          row.paidAmount=0;
+          row.paidDate="";
+          row.matchInfo="참가비 면제 대상";
+        } else if(f==="status" && Number(row.expectedAmount||0)===0){
+          row.expectedAmount=80000;
+          row.matchInfo="";
+        } else if(f==="paidAmount" && row.status!=="exempt"){
+          if(row.paidAmount>=Number(row.expectedAmount??80000)) row.status="paid";
           else if(row.paidAmount>0) row.status="partial";
           else row.status="unpaid";
+          row.matchInfo="";
+        } else if(f!=="status"){
+          row.matchInfo="";
         }
-        row.matchInfo="";
         await dSet("participantPayments",state.participantPayments);
         syncPaidCountFromPayments();
         renderParticipantPayments();
@@ -2897,7 +2907,7 @@ function renderParticipantPayments(){
   });
 
   const managed=rows.length;
-  const unpaid=rows.filter(r=>r.status!=="paid").length;
+  const unpaid=rows.filter(r=>!["paid","exempt"].includes(r.status)).length;
   document.getElementById("feeManagedCount").textContent=`${managed}명`;
   document.getElementById("feePaidCount").textContent=`${paidCount}명`;
   document.getElementById("feeUnpaidCount").textContent=`${unpaid}명`;
@@ -2912,7 +2922,7 @@ async function syncPaidCountFromPayments(){
 document.getElementById("addParticipantPayment")?.addEventListener("click",async()=>{
   if(!state.editMode) return;
   state.participantPayments.push({
-    id:uid(),name:"",generation:"",expectedAmount:100000,paidAmount:0,paidDate:"",
+    id:uid(),name:"",generation:"",expectedAmount:80000,paidAmount:0,paidDate:"",
     status:"unpaid",note:"",matchInfo:""
   });
   await dSet("participantPayments",state.participantPayments);
@@ -2927,6 +2937,13 @@ document.getElementById("matchParticipantPayments")?.addEventListener("click",as
   }
   let matched=0, ambiguous=0;
   for(const row of state.participantPayments){
+    if(row.status==="exempt"){
+      row.expectedAmount=0;
+      row.paidAmount=0;
+      row.paidDate="";
+      row.matchInfo="참가비 면제 대상";
+      continue;
+    }
     const nm=normalizePersonName(row.name);
     if(!nm){ row.matchInfo=""; continue; }
     const candidates=txRows.filter(tx=>{
@@ -2939,7 +2956,7 @@ document.getElementById("matchParticipantPayments")?.addEventListener("click",as
       const dateRaw=String(tx.date||"");
       const dm=dateRaw.match(/(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
       if(dm) row.paidDate=`${dm[1]}-${String(dm[2]).padStart(2,"0")}-${String(dm[3]).padStart(2,"0")}`;
-      const expected=Number(row.expectedAmount||100000);
+      const expected=Number(row.expectedAmount??80000);
       row.status=row.paidAmount>=expected ? "paid" : row.paidAmount>0 ? "partial" : "unpaid";
       row.matchInfo=`자동매칭: ${tx.description||"입금"} · ${money(tx.income||0)}`;
       matched++;

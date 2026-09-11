@@ -1284,8 +1284,10 @@ return;
 
 }
 
+const firstConfirmed=Number(s?.firstConfirmed||0);
+const secondApplications=Number(s?.secondApplications||0);
 participantHighlight.innerHTML=
-`현재 <strong>${total.toLocaleString()}</strong>명의 동문이 참가 신청했습니다.${s.updatedAt?`<div class="participant-basis">최근 집계 ${esc(s.updatedAt)} 기준</div>`:""}`;
+`현재 <strong>${total.toLocaleString()}</strong>명이 참가 확정 또는 신청 중입니다.<div class="participant-basis">1차 확정 ${firstConfirmed.toLocaleString()}명 + 2차 신청 ${secondApplications.toLocaleString()}명${s.updatedAt?` · 최근 집계 ${esc(new Date(s.updatedAt).toLocaleString("ko-KR"))}`:""}</div>`;
 
 }
 

@@ -1286,8 +1286,11 @@ return;
 
 const firstConfirmed=Number(s?.firstConfirmed||0);
 const secondApplications=Number(s?.secondApplications||0);
+const expectedAttendance=Number(s?.expectedAttendance ?? total);
+const secondPart=secondApplications ? " + 2차 신청 "+secondApplications.toLocaleString()+"명" : "";
+const updatedPart=s.updatedAt ? " · 최근 집계 "+esc(new Date(s.updatedAt).toLocaleString("ko-KR")) : "";
 participantHighlight.innerHTML=
-`현재 <strong>${total.toLocaleString()}</strong>명이 참가 확정 또는 신청 중입니다.<div class="participant-basis">1차 확정 ${firstConfirmed.toLocaleString()}명 + 2차 신청 ${secondApplications.toLocaleString()}명${s.updatedAt?` · 최근 집계 ${esc(new Date(s.updatedAt).toLocaleString("ko-KR"))}`:""}</div>`;
+`현재 참석 예상 <strong>${expectedAttendance.toLocaleString()}</strong>명<div class="participant-basis">1차 확정 ${firstConfirmed.toLocaleString()}명 · 협찬/준비·운영위원 포함${secondPart}${updatedPart}</div>`;
 
 }
 

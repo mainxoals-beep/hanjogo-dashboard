@@ -144,7 +144,7 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
-<div class="recruitment-target" id="recruitmentTarget">2차 참가신청 · 9월 19일(토) 23:59 마감</div>
+<div class="recruitment-target" id="recruitmentTarget">2차 참가신청 · 추가 모집</div>
 <p class="application-invitation">오랜만에 만나는 동문들과 편하게 이야기 나누고,<br>새로운 인연도 만들어보세요.</p>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
@@ -358,7 +358,7 @@ formUrl:"https://forms.gle/ayrigW2hSvhubo1VA",
 
 openAt:"2026-09-14T14:00",
 
-closeAt:"2026-09-19T23:59",
+closeAt:"",
 
 beforeLabel:"2차 참가신청 · 9월 14일 오후 2시 오픈 예정",
 
@@ -404,9 +404,9 @@ desc:"참가 확정 안내 및 입금 확인이 진행됩니다. 입금 마감�
 
 {
 start:"2026-09-14",
-end:"2026-09-19",
-title:"2차 참가 신청",
-desc:"9월 14일(월) 오후 2시부터 9월 19일(토) 23:59까지 추가 신청을 받습니다.",
+end:"2026-09-14",
+title:"2차 참가 신청 오픈",
+desc:"9월 14일(월) 오후 2시부터 추가 참가 신청을 받습니다.",
 tag:"추가 모집"
 },
 
@@ -739,7 +739,7 @@ if(g.isOpen){
 r.push(
 `<a class="resource-item" href="${esc(g.url)}" target="_blank" rel="noopener">
 <div class="r-k">2026 행사 참가 신청</div>
-<div class="r-v">2차 참가신청 하기 · 9월 19일 23:59 마감</div>
+<div class="r-v">2차 참가신청 하기</div>
 </a>`
 );
 
@@ -891,7 +891,7 @@ applyStatusTitle.textContent=
 "9월 14일 오후 2시 2차 참가 신청 오픈";
 
 applyStatusSub.textContent=
-"신청 마감은 9월 19일(토) 23:59입니다.";
+"추가 참가 신청 오픈 예정입니다.";
 
 p.textContent=
 "오픈 전";
@@ -904,7 +904,7 @@ applicationBtn.textContent=
 g.a.beforeLabel;
 
 applicationSub.textContent=
-"9월 14일 오후 2시에 자동으로 열립니다 · 9월 19일(토) 23:59 마감";
+"9월 14일 오후 2시에 자동으로 열립니다.";
 
 return;
 
@@ -941,7 +941,7 @@ applyStatusTitle.textContent=
 "2차 참가 신청 진행 중";
 
 applyStatusSub.textContent=
-"신청 마감은 9월 19일(토) 23:59입니다.";
+"추가 참가 신청을 받고 있습니다.";
 
 p.textContent=
 "신청 중";
@@ -963,13 +963,12 @@ g.url;
 applicationBtn.target=
 "_blank";
 
-applicationCountdown.hidden=false;
+applicationCountdown.hidden=true;
 
-applicationCountdown.textContent=
-"마감까지 "+formatRemainingTime(g.close,g.now);
+applicationCountdown.textContent="";
 
 applicationSub.textContent=
-"9월 19일(토) 23:59 마감";
+"신청 후 참가비 입금 확인 시 최종 참가가 확정됩니다.";
 
 return;
 
@@ -1251,7 +1250,7 @@ box
 }
 
 function formatRecruitmentTarget(total){
-return "2차 참가신청 · 9월 19일(토) 23:59 마감";
+return "2차 참가신청 · 추가 모집";
 }
 
 function renderParticipantStats(){

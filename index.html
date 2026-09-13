@@ -1973,8 +1973,29 @@ async function storageSet(key, value, shared){
     try{ localStorage.setItem(lsKey(key), JSON.stringify(value)); }catch(e){ console.error(e); }
     return;
   }
-  await loadRemoteState();
-  sharedDataCache[key] = value;
+
+  // Always merge into the latest remote row before saving.
+  // This prevents an old browser tab from overwriting unrelated keys
+  // (for example, restoring an older committee list while saving another section).
+  try{
+    const { data, error } = await sb
+      .from(DASHBOARD_TABLE)
+      .select("data,updated_at,updated_by")
+      .eq("id", DASHBOARD_ID)
+      .maybeSingle();
+    if(error) throw error;
+
+    const latest = (data?.data && typeof data.data === "object") ? data.data : {};
+    sharedDataCache = { ...latest, [key]: value };
+    sharedRowExists = !!data;
+    if(data?.updated_at) lastRemoteUpdatedAt = data.updated_at;
+    if(data?.updated_by) lastRemoteUpdatedBy = data.updated_by;
+  }catch(e){
+    console.error("Fresh remote merge failed", e);
+    await loadRemoteState();
+    sharedDataCache = { ...(sharedDataCache||{}), [key]: value };
+  }
+
   await saveRemoteState();
 }
 

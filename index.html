@@ -2956,8 +2956,9 @@ function renderParticipantPayments(){
 }
 async function syncPaidCountFromPayments(){
   const rows=Array.isArray(state.participantPayments)?state.participantPayments:[];
-  state.participants.paid=rows.filter(r=>r.status==="paid").length;
-  state.participants.first=rows.filter(r=>["paid","exempt"].includes(r.status)).length;
+  const firstRows=rows.filter(r=>(r.phase||"first")!=="second");
+  state.participants.paid=firstRows.filter(r=>r.status==="paid").length;
+  state.participants.first=firstRows.filter(r=>["paid","exempt"].includes(r.status)).length;
   await dSet("participants",state.participants);
   renderParticipants();
 }
@@ -3611,6 +3612,61 @@ function participantApplyBuildStats(text){
   }
   return {total:dataRows.length,recent7:timeIdx>=0?recent7:null,updatedAt:new Date().toLocaleString("ko-KR")};
 }
+
+function sponsorPersonName(raw){
+  const s=String(raw||"").trim();
+  if(!s) return "";
+  const genMatch=s.match(/([가-힣]{2,4})\s*\(\s*\d+\s*기\s*\)/);
+  if(genMatch) return genMatch[1];
+  const tail=s.includes(" / ")?s.split(" / ").pop():s;
+  return String(tail||"")
+    .replace(/\([^)]*\)/g,"")
+    .replace(/\b\d+\s*기\b/g,"")
+    .split("·")[0]
+    .trim();
+}
+
+function secondParticipantApplyBuildStats(text){
+  const rows=participantApplyParseCsv(text);
+  if(rows.length<2) return {total:0,rawTotal:0,recent7:0};
+  const headers=rows[0];
+  const dataRows=rows.slice(1).filter(r=>r.some(v=>String(v||"").trim()!==""));
+  const nameIdx=participantApplyHeaderIndex(headers,["이름","성명","name"]);
+  const timeIdx=participantApplyHeaderIndex(headers,["타임스탬프","timestamp","제출시간","응답시간"]);
+  if(nameIdx<0) return {...participantApplyBuildStats(text),rawTotal:dataRows.length};
+
+  const existing=new Set();
+  (state.participantPayments||[]).forEach(r=>{
+    if(["paid","exempt"].includes(r.status) && (r.phase||"first")!=="second"){
+      const n=String(r.name||"").trim();
+      if(n) existing.add(n);
+    }
+  });
+  (state.committee||[]).forEach(r=>{ const n=String(r.name||"").trim(); if(n) existing.add(n); });
+  (state.sponsors||[]).forEach(r=>{ const n=sponsorPersonName(r.name); if(n) existing.add(n); });
+
+  const unique=new Map();
+  dataRows.forEach(r=>{
+    const n=String(r[nameIdx]||"").trim();
+    if(!n || existing.has(n) || unique.has(n)) return;
+    unique.set(n,r);
+  });
+
+  const since=new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate()-6);
+  let recent7=0;
+  if(timeIdx>=0){
+    unique.forEach(r=>{
+      const d=participantApplyDate(r[timeIdx]);
+      if(d && d>=since) recent7++;
+    });
+  }
+  return {
+    total:unique.size,
+    rawTotal:dataRows.length,
+    recent7:timeIdx>=0?recent7:null,
+    updatedAt:new Date().toLocaleString("ko-KR")
+  };
+}
 function renderParticipantApplySync(){
   const s=state.participantApplySync?.stats||null;
   const url=document.getElementById("participantApplyCsvUrl");
@@ -3686,7 +3742,7 @@ async function fetchSecondParticipantApplyCsv(){
     const res=await fetch(url,{cache:"no-store"});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const text=await res.text();
-    const stats=participantApplyBuildStats(text);
+    const stats=secondParticipantApplyBuildStats(text);
     state.secondParticipantApplySync={...state.secondParticipantApplySync,stats};
     await dSet("secondParticipantApplySync",state.secondParticipantApplySync);
     state.participants={...state.participants,second:Number(stats.total||0)};

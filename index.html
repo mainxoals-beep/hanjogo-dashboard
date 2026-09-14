@@ -733,7 +733,8 @@
   .fee-title{font-size:14px;font-weight:800;}
   .fee-sub{font-size:11px;color:var(--ink-mute);margin-top:3px;line-height:1.55;}
   .fee-actions{display:flex;gap:7px;flex-wrap:wrap;}
-  .fee-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .fee-body.collapsed{display:none;}
+  .fee-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
   .fee-stat{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB;}
   .fee-stat .k{font-size:10px;color:var(--ink-mute);margin-bottom:3px;}
   .fee-stat .v{font-size:15px;font-weight:800;}
@@ -1099,8 +1100,8 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
       <div class="card">
         <div class="p-grid">
           <div class="field"><label>모집 목표 인원</label><input type="number" id="pCapacity" min="0"></div>
-          <div class="field"><label>1차 신청 인원</label><input type="number" id="pFirst" min="0"></div>
-          <div class="field"><label>2차 신청 인원</label><input type="number" id="pSecond" min="0"></div>
+          <div class="field"><label>1차 확정 인원</label><input type="number" id="pFirst" min="0"></div>
+          <div class="field"><label>2차 확정 인원</label><input type="number" id="pSecond" min="0"></div>
           <div class="field"><label>참가 확정 인원</label><input type="number" id="pConfirmed" min="0"></div>
           <div class="field"><label>입금 완료 인원</label><input type="number" id="pPaid" min="0"></div>
           <div class="field"><label>운영스태프 인원</label><input type="number" id="pStaff" min="0"></div>
@@ -1120,40 +1121,93 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         <div class="fee-card">
           <div class="fee-head">
             <div>
-              <div class="fee-title">참가비 입금 확인</div>
-              <div class="fee-sub">참가자는 실제 이름으로 입금하고, 준비위원이 입금 상태를 확인합니다. 거래내역 CSV를 불러온 경우 이름 자동매칭을 사용할 수 있습니다.</div>
+              <div class="fee-title">1차 참가신청자</div>
+              <div class="fee-sub">1차 신청자 입금·면제·취소 상태를 관리합니다. 긴 명단은 접어둘 수 있습니다.</div>
             </div>
             <div class="fee-actions">
-              <button class="mini-btn primary lockable" id="matchParticipantPayments">거래내역 이름 자동매칭</button>
-              <button class="mini-btn lockable" id="addParticipantPayment">+ 참가자 추가</button>
+              <button class="collapse-btn" data-target="body-first-participants"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
             </div>
           </div>
 
-          <div class="fee-summary">
-            <div class="fee-stat"><div class="k">관리 인원</div><div class="v" id="feeManagedCount">0명</div></div>
-            <div class="fee-stat"><div class="k">입금 확인</div><div class="v" id="feePaidCount">0명</div></div>
-            <div class="fee-stat"><div class="k">미입금</div><div class="v" id="feeUnpaidCount">0명</div></div>
-            <div class="fee-stat"><div class="k">확인된 입금액</div><div class="v" id="feePaidTotal">0원</div></div>
+          <div class="fee-body" id="body-first-participants">
+            <div class="fee-actions" style="margin-bottom:12px;">
+              <button class="mini-btn primary lockable" id="matchParticipantPayments">1차 거래내역 이름 자동매칭</button>
+              <button class="mini-btn lockable" id="addParticipantPayment">+ 1차 참가자 추가</button>
+            </div>
+
+            <div class="fee-summary">
+              <div class="fee-stat"><div class="k">관리 인원</div><div class="v" id="feeManagedCount">0명</div></div>
+              <div class="fee-stat"><div class="k">입금 확인</div><div class="v" id="feePaidCount">0명</div></div>
+              <div class="fee-stat"><div class="k">미입금·확인중</div><div class="v" id="feeUnpaidCount">0명</div></div>
+              <div class="fee-stat"><div class="k">취소</div><div class="v" id="feeCancelledCount">0명</div></div>
+              <div class="fee-stat"><div class="k">확인된 입금액</div><div class="v" id="feePaidTotal">0원</div></div>
+            </div>
+
+            <div class="fee-table-wrap">
+              <table class="fee-table">
+                <thead>
+                  <tr>
+                    <th style="width:11%">이름</th>
+                    <th style="width:8%">기수</th>
+                    <th style="width:12%">예정 참가비</th>
+                    <th style="width:12%">입금액</th>
+                    <th style="width:11%">입금일</th>
+                    <th style="width:11%">상태</th>
+                    <th style="width:27%">비고 / 매칭</th>
+                    <th style="width:5%"></th>
+                  </tr>
+                </thead>
+                <tbody id="participantPaymentBody"></tbody>
+              </table>
+            </div>
+            <div class="fee-empty" id="participantPaymentEmpty">등록된 1차 참가자가 없습니다.</div>
+          </div>
+        </div>
+
+        <div class="fee-card">
+          <div class="fee-head">
+            <div>
+              <div class="fee-title">2차 참가신청자</div>
+              <div class="fee-sub">2차 신청자는 신청 후 입금 확인 순으로 참가 확정합니다. 2차 CSV 연동 시 신규 신청자를 자동으로 이 목록에 추가합니다.</div>
+            </div>
+            <div class="fee-actions">
+              <button class="collapse-btn" data-target="body-second-participants"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+            </div>
           </div>
 
-          <div class="fee-table-wrap">
-            <table class="fee-table">
-              <thead>
-                <tr>
-                  <th style="width:11%">이름</th>
-                  <th style="width:8%">기수</th>
-                  <th style="width:12%">예정 참가비</th>
-                  <th style="width:12%">입금액</th>
-                  <th style="width:11%">입금일</th>
-                  <th style="width:11%">상태</th>
-                  <th style="width:27%">비고 / 매칭</th>
-                  <th style="width:5%"></th>
-                </tr>
-              </thead>
-              <tbody id="participantPaymentBody"></tbody>
-            </table>
+          <div class="fee-body" id="body-second-participants">
+            <div class="fee-actions" style="margin-bottom:12px;">
+              <button class="mini-btn primary lockable" id="matchSecondParticipantPayments">2차 거래내역 이름 자동매칭</button>
+              <button class="mini-btn lockable" id="addSecondParticipantPayment">+ 2차 참가자 추가</button>
+            </div>
+
+            <div class="fee-summary">
+              <div class="fee-stat"><div class="k">관리 인원</div><div class="v" id="secondFeeManagedCount">0명</div></div>
+              <div class="fee-stat"><div class="k">입금 확인</div><div class="v" id="secondFeePaidCount">0명</div></div>
+              <div class="fee-stat"><div class="k">미입금·확인중</div><div class="v" id="secondFeeUnpaidCount">0명</div></div>
+              <div class="fee-stat"><div class="k">취소</div><div class="v" id="secondFeeCancelledCount">0명</div></div>
+              <div class="fee-stat"><div class="k">확인된 입금액</div><div class="v" id="secondFeePaidTotal">0원</div></div>
+            </div>
+
+            <div class="fee-table-wrap">
+              <table class="fee-table">
+                <thead>
+                  <tr>
+                    <th style="width:11%">이름</th>
+                    <th style="width:8%">기수</th>
+                    <th style="width:12%">예정 참가비</th>
+                    <th style="width:12%">입금액</th>
+                    <th style="width:11%">입금일</th>
+                    <th style="width:11%">상태</th>
+                    <th style="width:27%">비고 / 매칭</th>
+                    <th style="width:5%"></th>
+                  </tr>
+                </thead>
+                <tbody id="secondParticipantPaymentBody"></tbody>
+              </table>
+            </div>
+            <div class="fee-empty" id="secondParticipantPaymentEmpty">아직 등록된 2차 참가자가 없습니다.</div>
           </div>
-          <div class="fee-empty" id="participantPaymentEmpty">아직 등록된 참가자가 없습니다. 참가 확정 후 이름을 추가해 입금 여부를 관리하세요.</div>
         </div>
 
       </div>
@@ -1341,7 +1395,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         </div>
         <div class="kpi-grid" style="margin-top:12px">
           <div class="kpi-card"><div class="kpi-label">2차 신청 인원</div><div class="kpi-value" id="secondParticipantApplyTotal">0명</div></div>
-          <div class="kpi-card"><div class="kpi-label">외부 노출 합계</div><div class="kpi-value" id="combinedParticipantTotal">-</div></div>
+          <div class="kpi-card"><div class="kpi-label">참가 확정 합계</div><div class="kpi-value" id="combinedParticipantTotal">-</div></div>
         </div>
       </div>
     </div>
@@ -2169,7 +2223,7 @@ function applyEditLock(){
   const locked = !state.editMode;
   document.body.classList.toggle("view-only", locked);
   document.querySelectorAll(".lockable").forEach(el => { el.disabled = locked; });
-  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody textarea, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #matchParticipantPayments, #addParticipantPayment")
+  document.querySelectorAll("#phaseList input, #phaseList select, #phaseList button.phase-del, #phaseCalendar .cal-chip, #phaseTodo input, #phaseTodo button, #sponsorBody input, #sponsorBody select, #sponsorBody textarea, #sponsorBody button, #prodBody input, #prodBody select, #prodBody button, #waitlistBody input, #waitlistBody button, #dayProgramBody input, #dayProgramBody select, #dayProgramBody button, #committeeGrid input, #committeeGrid button, #linksCard input, #linksCard button, #pCapacity, #pFirst, #pSecond, #pConfirmed, #pPaid, #pStaff, #participantPaymentBody input, #participantPaymentBody select, #participantPaymentBody button, #secondParticipantPaymentBody input, #secondParticipantPaymentBody select, #secondParticipantPaymentBody button, #matchParticipantPayments, #addParticipantPayment, #matchSecondParticipantPayments, #addSecondParticipantPayment")
     .forEach(el => { el.disabled = locked; });
 }
 
@@ -2875,12 +2929,34 @@ function normalizePersonName(v){
   return String(v||"").replace(/\s+/g,"").replace(/[()_\-\[\].]/g,"").toLowerCase();
 }
 function paymentStatusLabel(v){
-  return v==="paid" ? "입금완료" : v==="partial" ? "일부입금" : v==="hold" ? "확인필요" : v==="exempt" ? "참가비 면제" : "미입금";
+  return v==="paid" ? "입금완료"
+    : v==="partial" ? "일부입금"
+    : v==="hold" ? "확인필요"
+    : v==="exempt" ? "참가비 면제"
+    : v==="cancelled" ? "취소"
+    : "미입금";
 }
-function renderParticipantPayments(){
-  const rows=Array.isArray(state.participantPayments) ? state.participantPayments : [];
-  const body=document.getElementById("participantPaymentBody");
-  const empty=document.getElementById("participantPaymentEmpty");
+function paymentRowPhase(row){
+  return row?.phase==="second" ? "second" : "first";
+}
+const PAYMENT_GROUPS={
+  first:{
+    bodyId:"participantPaymentBody",emptyId:"participantPaymentEmpty",
+    managedId:"feeManagedCount",paidId:"feePaidCount",unpaidId:"feeUnpaidCount",
+    cancelledId:"feeCancelledCount",totalId:"feePaidTotal"
+  },
+  second:{
+    bodyId:"secondParticipantPaymentBody",emptyId:"secondParticipantPaymentEmpty",
+    managedId:"secondFeeManagedCount",paidId:"secondFeePaidCount",unpaidId:"secondFeeUnpaidCount",
+    cancelledId:"secondFeeCancelledCount",totalId:"secondFeePaidTotal"
+  }
+};
+function renderPaymentGroup(phase){
+  const cfg=PAYMENT_GROUPS[phase];
+  const rows=(Array.isArray(state.participantPayments)?state.participantPayments:[])
+    .filter(row=>paymentRowPhase(row)===phase);
+  const body=document.getElementById(cfg.bodyId);
+  const empty=document.getElementById(cfg.emptyId);
   if(!body) return;
   body.innerHTML="";
   if(empty) empty.style.display=rows.length?"none":"block";
@@ -2892,38 +2968,44 @@ function renderParticipantPayments(){
 
     const tr=document.createElement("tr");
     const matchText=row.matchInfo
-      ? `<div class="fee-match ${row.matchInfo.includes("복수")?"warn":""}">${escapeHtml(row.matchInfo)}</div>`
+      ? `<div class="fee-match ${row.matchInfo.includes("복수")||row.matchInfo.includes("확인 필요")?"warn":""}">${escapeHtml(row.matchInfo)}</div>`
       : "";
     tr.innerHTML=`
       <td data-label="이름"><input type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
-      <td data-label="기수"><input type="text" value="${escapeHtml(row.generation||"")}" data-field="generation" placeholder="예: 2기"></td>
+      <td data-label="기수"><input type="text" value="${escapeHtml(row.generation||row.gen||"")}" data-field="generation" placeholder="예: 2기"></td>
       <td data-label="예정 참가비"><input type="number" min="0" step="1000" value="${Number(row.expectedAmount??80000)}" data-field="expectedAmount"></td>
       <td data-label="입금액"><input type="number" min="0" step="1000" value="${Number(row.paidAmount||0)}" data-field="paidAmount"></td>
       <td data-label="입금일"><input type="date" value="${escapeHtml(row.paidDate||"")}" data-field="paidDate"></td>
       <td data-label="상태">
         <select data-field="status">
-          ${["unpaid","paid","partial","hold","exempt"].map(v=>`<option value="${v}" ${row.status===v?"selected":""}>${paymentStatusLabel(v)}</option>`).join("")}
+          ${["unpaid","paid","partial","hold","exempt","cancelled"].map(v=>`<option value="${v}" ${row.status===v?"selected":""}>${paymentStatusLabel(v)}</option>`).join("")}
         </select>
       </td>
       <td data-label="비고">
-        <input type="text" value="${escapeHtml(row.note||"")}" data-field="note" placeholder="입금자명 다를 경우 메모">
+        <input type="text" value="${escapeHtml(row.note||"")}" data-field="note" placeholder="입금자명·취소 사유 등 메모">
         ${matchText}
       </td>
-      <td><button class="row-del lockable" title="참가비 확인 명단에서 삭제">삭제</button></td>`;
+      <td><button class="row-del lockable" title="참가자 관리 명단에서 삭제">삭제</button></td>`;
 
     tr.querySelectorAll("input,select").forEach(el=>{
       el.addEventListener("change",async e=>{
         const f=e.target.dataset.field;
         row[f]=(f==="expectedAmount"||f==="paidAmount") ? Math.max(0,Number(e.target.value)||0) : e.target.value;
+        row.phase=phase;
         if(f==="status" && row.status==="exempt"){
           row.expectedAmount=0;
           row.paidAmount=0;
           row.paidDate="";
           row.matchInfo="참가비 면제 대상";
+        } else if(f==="status" && row.status==="cancelled"){
+          row.paidAmount=0;
+          row.paidDate="";
+          row.matchInfo="참가 취소";
+          if(!row.note) row.note="참가 취소";
         } else if(f==="status" && Number(row.expectedAmount||0)===0){
           row.expectedAmount=80000;
           row.matchInfo="";
-        } else if(f==="paidAmount" && row.status!=="exempt"){
+        } else if(f==="paidAmount" && !["exempt","cancelled"].includes(row.status)){
           if(row.paidAmount>=Number(row.expectedAmount??80000)) row.status="paid";
           else if(row.paidAmount>0) row.status="partial";
           else row.status="unpaid";
@@ -2932,46 +3014,62 @@ function renderParticipantPayments(){
           row.matchInfo="";
         }
         await dSet("participantPayments",state.participantPayments);
-        syncPaidCountFromPayments();
+        await syncPaidCountFromPayments();
         renderParticipantPayments();
       });
     });
     tr.querySelector(".row-del").addEventListener("click",async()=>{
       if(!state.editMode) return;
-      if(!await customConfirm("이 참가자의 입금 확인 항목을 삭제할까요?")) return;
+      if(!await customConfirm("이 참가자의 관리 항목을 삭제할까요?")) return;
       state.participantPayments=state.participantPayments.filter(x=>x.id!==row.id);
       await dSet("participantPayments",state.participantPayments);
-      syncPaidCountFromPayments();
+      await syncPaidCountFromPayments();
       renderParticipantPayments();
     });
     body.appendChild(tr);
   });
 
   const managed=rows.length;
-  const unpaid=rows.filter(r=>!["paid","exempt"].includes(r.status)).length;
-  document.getElementById("feeManagedCount").textContent=`${managed}명`;
-  document.getElementById("feePaidCount").textContent=`${paidCount}명`;
-  document.getElementById("feeUnpaidCount").textContent=`${unpaid}명`;
-  document.getElementById("feePaidTotal").textContent=money(paidTotal);
+  const unpaid=rows.filter(r=>["unpaid","partial","hold"].includes(r.status)).length;
+  const cancelled=rows.filter(r=>r.status==="cancelled").length;
+  document.getElementById(cfg.managedId).textContent=`${managed}명`;
+  document.getElementById(cfg.paidId).textContent=`${paidCount}명`;
+  document.getElementById(cfg.unpaidId).textContent=`${unpaid}명`;
+  document.getElementById(cfg.cancelledId).textContent=`${cancelled}명`;
+  document.getElementById(cfg.totalId).textContent=money(paidTotal);
+}
+function renderParticipantPayments(){
+  renderPaymentGroup("first");
+  renderPaymentGroup("second");
+  applyEditLock();
 }
 async function syncPaidCountFromPayments(){
   const rows=Array.isArray(state.participantPayments)?state.participantPayments:[];
-  const firstRows=rows.filter(r=>(r.phase||"first")!=="second");
-  state.participants.paid=firstRows.filter(r=>r.status==="paid").length;
-  state.participants.first=firstRows.filter(r=>["paid","exempt"].includes(r.status)).length;
+  const firstRows=rows.filter(r=>paymentRowPhase(r)==="first");
+  const secondRows=rows.filter(r=>paymentRowPhase(r)==="second");
+  const firstConfirmed=firstRows.filter(r=>["paid","exempt"].includes(r.status)).length;
+  const secondConfirmed=secondRows.filter(r=>["paid","exempt"].includes(r.status)).length;
+  state.participants.paid=rows.filter(r=>r.status==="paid").length;
+  state.participants.first=firstConfirmed;
+  state.participants.second=secondConfirmed;
+  state.participants.confirmed=firstConfirmed+secondConfirmed;
   await dSet("participants",state.participants);
   renderParticipants();
+  renderSecondParticipantApplySync();
 }
-document.getElementById("addParticipantPayment")?.addEventListener("click",async()=>{
+async function addParticipantPaymentRow(phase){
   if(!state.editMode) return;
   state.participantPayments.push({
-    id:uid(),name:"",generation:"",expectedAmount:80000,paidAmount:0,paidDate:"",
-    status:"unpaid",note:"",matchInfo:""
+    id:uid(),phase,name:"",generation:"",expectedAmount:80000,paidAmount:0,paidDate:"",
+    status:"unpaid",note:phase==="second"?"2차 참가신청":"",matchInfo:""
   });
   await dSet("participantPayments",state.participantPayments);
   renderParticipantPayments();
-});
-document.getElementById("matchParticipantPayments")?.addEventListener("click",async()=>{
+}
+document.getElementById("addParticipantPayment")?.addEventListener("click",()=>addParticipantPaymentRow("first"));
+document.getElementById("addSecondParticipantPayment")?.addEventListener("click",()=>addParticipantPaymentRow("second"));
+
+async function matchParticipantPaymentsByPhase(phase){
   if(!state.editMode) return;
   const txRows=state.transactions?.rows || [];
   if(!txRows.length){
@@ -2980,6 +3078,7 @@ document.getElementById("matchParticipantPayments")?.addEventListener("click",as
   }
   let matched=0, ambiguous=0;
   for(const row of state.participantPayments){
+    if(paymentRowPhase(row)!==phase) continue;
     if(row.status==="exempt"){
       row.expectedAmount=0;
       row.paidAmount=0;
@@ -2987,6 +3086,7 @@ document.getElementById("matchParticipantPayments")?.addEventListener("click",as
       row.matchInfo="참가비 면제 대상";
       continue;
     }
+    if(row.status==="cancelled") continue;
     const nm=normalizePersonName(row.name);
     if(!nm){ row.matchInfo=""; continue; }
     const candidates=txRows.filter(tx=>{
@@ -3014,8 +3114,10 @@ document.getElementById("matchParticipantPayments")?.addEventListener("click",as
   await dSet("participantPayments",state.participantPayments);
   await syncPaidCountFromPayments();
   renderParticipantPayments();
-  alert(`자동매칭 완료: ${matched}명${ambiguous?` · 확인 필요 ${ambiguous}명`:""}`);
-});
+  alert(`${phase==="first"?"1차":"2차"} 자동매칭 완료: ${matched}명${ambiguous?` · 확인 필요 ${ambiguous}명`:""}`);
+}
+document.getElementById("matchParticipantPayments")?.addEventListener("click",()=>matchParticipantPaymentsByPhase("first"));
+document.getElementById("matchSecondParticipantPayments")?.addEventListener("click",()=>matchParticipantPaymentsByPhase("second"));
 
 
 // ---------- waitlist ----------
@@ -3667,6 +3769,38 @@ function secondParticipantApplyBuildStats(text){
     updatedAt:new Date().toLocaleString("ko-KR")
   };
 }
+function secondParticipantApplyBuildEntries(text){
+  const rows=participantApplyParseCsv(text);
+  if(rows.length<2) return [];
+  const headers=rows[0];
+  const dataRows=rows.slice(1).filter(r=>r.some(v=>String(v||"").trim()!==""));
+  const nameIdx=participantApplyHeaderIndex(headers,["이름","성명","name"]);
+  const genIdx=participantApplyHeaderIndex(headers,["졸업기수","기수","generation"]);
+  const phoneIdx=participantApplyHeaderIndex(headers,["연락처","전화번호","휴대폰","phone"]);
+  if(nameIdx<0) return [];
+
+  const baseNames=new Set();
+  (state.participantPayments||[]).forEach(r=>{
+    if(paymentRowPhase(r)==="first" && ["paid","exempt"].includes(r.status)){
+      const n=String(r.name||"").trim();
+      if(n) baseNames.add(n);
+    }
+  });
+  (state.committee||[]).forEach(r=>{const n=String(r.name||"").trim();if(n)baseNames.add(n);});
+  (state.sponsors||[]).forEach(r=>{const n=sponsorPersonName(r.name);if(n)baseNames.add(n);});
+
+  const unique=new Map();
+  dataRows.forEach(r=>{
+    const name=String(r[nameIdx]||"").trim();
+    if(!name || baseNames.has(name) || unique.has(name)) return;
+    unique.set(name,{
+      name,
+      generation:genIdx>=0?String(r[genIdx]||"").trim():"",
+      phone:phoneIdx>=0?String(r[phoneIdx]||"").trim():""
+    });
+  });
+  return [...unique.values()];
+}
 function renderParticipantApplySync(){
   const s=state.participantApplySync?.stats||null;
   const url=document.getElementById("participantApplyCsvUrl");
@@ -3691,11 +3825,8 @@ async function fetchParticipantApplyCsv(){
     const stats=participantApplyBuildStats(text);
     state.participantApplySync={...state.participantApplySync,stats};
     await dSet("participantApplySync",state.participantApplySync);
-    state.participants={
-      ...state.participants,
-      first:Number(stats.total||0)
-    };
-    await dSet("participants",state.participants);
+    // Raw 1차 form responses are informational only.
+    // Confirmed counts are controlled by the participant payment list.
     await syncPublicProjection({silent:true});
     renderParticipantApplySync();
   renderSecondParticipantApplySync();
@@ -3726,7 +3857,7 @@ function renderSecondParticipantApplySync(){
   if(url) url.value=state.secondParticipantApplySync?.csvUrl||"";
   if(total) total.textContent=(s ? Number(s.total||0) : Number(state.participants?.second||0)).toLocaleString()+"명";
   const first=Number(state.participants?.first||0);
-  const second=Number(s?.total ?? state.participants?.second ?? 0);
+  const second=Number(state.participants?.second||0);
   if(combined) combined.textContent=(first+second).toLocaleString()+"명";
 }
 
@@ -3743,14 +3874,31 @@ async function fetchSecondParticipantApplyCsv(){
     if(!res.ok) throw new Error("HTTP "+res.status);
     const text=await res.text();
     const stats=secondParticipantApplyBuildStats(text);
+    const entries=secondParticipantApplyBuildEntries(text);
     state.secondParticipantApplySync={...state.secondParticipantApplySync,stats};
     await dSet("secondParticipantApplySync",state.secondParticipantApplySync);
-    state.participants={...state.participants,second:Number(stats.total||0)};
-    await dSet("participants",state.participants);
+
+    let changed=false;
+    entries.forEach(entry=>{
+      const existing=(state.participantPayments||[]).find(r=>paymentRowPhase(r)==="second" && String(r.name||"").trim()===entry.name);
+      if(existing){
+        if(!existing.generation && entry.generation){existing.generation=entry.generation;changed=true;}
+        if(!existing.phone && entry.phone){existing.phone=entry.phone;changed=true;}
+        return;
+      }
+      state.participantPayments.push({
+        id:uid(),phase:"second",name:entry.name,generation:entry.generation||"",phone:entry.phone||"",
+        expectedAmount:80000,paidAmount:0,paidDate:"",status:"unpaid",
+        note:"2차 구글폼 신청",matchInfo:""
+      });
+      changed=true;
+    });
+    if(changed) await dSet("participantPayments",state.participantPayments);
+    await syncPaidCountFromPayments();
+    renderParticipantPayments();
     renderSecondParticipantApplySync();
-    renderParticipants();
     await syncPublicProjection({silent:true});
-    if(status){status.textContent=`2차 연동 완료 · ${stats.total}명`;status.className="account-save-status ok";}
+    if(status){status.textContent=`2차 연동 완료 · 신청 ${stats.total}명 · 확정 ${state.participants.second||0}명`;status.className="account-save-status ok";}
   }catch(e){
     console.error("2차 참가신청 CSV 연동 실패",e);
     if(status){status.textContent="2차 CSV 연동 실패";status.className="account-save-status err";}
@@ -3863,7 +4011,7 @@ document.getElementById("copyWeekly").addEventListener("click", async (e) => {
 // ---------- collapsible sections ----------
 function isSectionCollapsed(id){
   if(state.sectionCollapse[id] !== undefined) return state.sectionCollapse[id];
-  const defaultOpen = ["body-committee","body-phases","body-participants","body-sponsors"];
+  const defaultOpen = ["body-committee","body-phases","body-participants","body-sponsors","body-second-participants"];
   return !defaultOpen.includes(id);
 }
 function applyCollapseState(){

@@ -41,6 +41,14 @@ button,a{font:inherit} button{cursor:pointer}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-countdown{margin-top:9px;padding:8px 10px;border-radius:9px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:900}
 .application-cta-sub{font-size:10.5px;color:var(--mute);text-align:center;margin-top:7px}
+.payment-account-btn{display:block;width:100%;margin-top:8px;text-align:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:#FDFCFB;color:var(--purple-dark);font-size:11.5px;font-weight:800;cursor:pointer}
+.payment-account-btn:hover{background:var(--purple-light)}
+.payment-account-box{margin-top:8px;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:#FAF8F5;text-align:center}
+.payment-account-box[hidden]{display:none}
+.payment-account-label{font-size:10.5px;color:var(--mute);margin-bottom:5px}
+.payment-account-number{font-size:18px;font-weight:900;letter-spacing:.02em;color:var(--ink)}
+.payment-account-meta{margin-top:4px;font-size:11.5px;color:var(--sub);line-height:1.6}
+.payment-account-copy{margin-top:9px;border:0;border-radius:9px;padding:8px 12px;background:var(--purple);color:#fff;font-size:11px;font-weight:800;cursor:pointer}
 .program-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .program-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
 .program-list{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;counter-reset:program}
@@ -150,6 +158,13 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="first-round-note">※ 1차 참가신청자 중 참가비 미입금자는 취소 처리되었습니다.</div>
 <p class="application-invitation">오랜만에 만나는 동문들과 편하게 이야기 나누고,<br>새로운 인연도 만들어보세요.</p>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
+<button type="button" class="payment-account-btn" id="paymentAccountBtn">참가비 입금 계좌 확인</button>
+<div class="payment-account-box" id="paymentAccountBox" hidden>
+  <div class="payment-account-label">참가비 입금 계좌</div>
+  <div class="payment-account-number" id="paymentAccountNumber">-</div>
+  <div class="payment-account-meta" id="paymentAccountMeta">계좌 정보를 불러오는 중입니다.</div>
+  <button type="button" class="payment-account-copy" id="copyPaymentAccount">계좌번호 복사</button>
+</div>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
 <div class="application-cta-sub" id="applicationSub"></div>
 </div>
@@ -379,6 +394,13 @@ let applicationSchedule={
 let alumniStats=null;
 
 let participantApplicationStats=null;
+
+let publicPaymentAccount={
+bankName:"",
+accountNumber:"",
+holder:"",
+participantFee:80000
+};
 
 const openFaqIndexes=new Set();
 
@@ -1297,6 +1319,30 @@ participantHighlight.innerHTML=
 }
 
 
+function formatAccountNumber(v){
+const s=String(v||"").replace(/\D/g,"");
+if(s.length===11)return s.slice(0,4)+"-"+s.slice(4,8)+"-"+s.slice(8);
+return String(v||"");
+}
+
+function renderPaymentAccount(){
+const numberEl=document.getElementById("paymentAccountNumber");
+const metaEl=document.getElementById("paymentAccountMeta");
+const btn=document.getElementById("paymentAccountBtn");
+const n=String(publicPaymentAccount?.accountNumber||"").trim();
+if(!numberEl||!metaEl||!btn)return;
+if(!n){
+  btn.hidden=true;
+  return;
+}
+btn.hidden=false;
+numberEl.textContent=formatAccountNumber(n);
+const fee=Number(publicPaymentAccount?.participantFee||80000).toLocaleString("ko-KR")+"원";
+const bank=String(publicPaymentAccount?.bankName||"").replace(" 모임통장","");
+const holder=String(publicPaymentAccount?.holder||"");
+metaEl.textContent=[bank,holder,"참가비 "+fee].filter(Boolean).join(" · ");
+}
+
 function renderAll(){
 
 renderHeaderAndInfo();
@@ -1310,6 +1356,8 @@ renderTimeline();
 renderCalendar();
 
 renderParticipantStats();
+
+renderPaymentAccount();
 
 }
 
@@ -1351,6 +1399,11 @@ participantApplicationStats=
 payload.participantApplyStats||
 payload.participantApplicationStats||
 null;
+
+publicPaymentAccount={
+...publicPaymentAccount,
+...(payload.publicPaymentAccount||{})
+};
 
 renderAll();
 
@@ -1530,6 +1583,24 @@ copyText(
 publicInfo.parkingAddress||"",
 "주차장 주소를 복사했습니다."
 );
+
+const paymentAccountBtn=document.getElementById("paymentAccountBtn");
+const paymentAccountBox=document.getElementById("paymentAccountBox");
+const copyPaymentAccount=document.getElementById("copyPaymentAccount");
+if(paymentAccountBtn&&paymentAccountBox){
+  paymentAccountBtn.addEventListener("click",()=>{
+    const willOpen=paymentAccountBox.hidden;
+    paymentAccountBox.hidden=!willOpen;
+    paymentAccountBtn.textContent=willOpen ? "참가비 입금 계좌 닫기" : "참가비 입금 계좌 확인";
+  });
+}
+if(copyPaymentAccount){
+  copyPaymentAccount.addEventListener("click",()=>{
+    const n=String(publicPaymentAccount?.accountNumber||"").trim();
+    if(!n)return;
+    copyText(n,"계좌번호를 복사했습니다.");
+  });
+}
 
 const timelineToggle=document.getElementById("timelineToggle");
 const timelineWrap=document.getElementById("timelineWrap");

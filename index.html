@@ -1480,7 +1480,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         <div class="tx-head">
           <div>
             <div class="tx-title">계좌 거래내역 불러오기</div>
-            <div class="tx-sub">은행에서 내려받은 CSV 파일을 불러와 입금·출금 내역을 확인합니다. 불러온 거래내역은 예산 실제금액을 자동 변경하지 않습니다.</div>
+            <div class="tx-sub">은행에서 내려받은 CSV 파일을 불러와 입금·출금 내역을 확인합니다. 불러온 <b>입금 합계는 아래 실제 수입에 자동 연동</b>됩니다.</div>
           </div>
           <div class="tx-actions">
             <button class="mini-btn primary lockable" id="importTransactionCsv">CSV 불러오기</button>
@@ -1507,12 +1507,12 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
 
       <div class="budget-summary">
         <div class="budget-summary-card"><div class="k">예상 수입</div><div class="v" id="budgetExpectedIncome">0원</div></div>
-        <div class="budget-summary-card"><div class="k">실제 수입</div><div class="v" id="budgetActualIncome">0원</div></div>
+        <div class="budget-summary-card"><div class="k">실제 수입 · 거래내역 연동</div><div class="v" id="budgetActualIncome">0원</div></div>
         <div class="budget-summary-card"><div class="k">예상 지출</div><div class="v" id="budgetExpectedExpense">0원</div></div>
         <div class="budget-summary-card"><div class="k">실제 지출</div><div class="v" id="budgetActualExpense">0원</div></div>
         <div class="budget-summary-card balance"><div class="k">예상 잔액</div><div class="v" id="budgetBalance">0원</div></div>
       </div>
-      <div class="budget-help">예상 금액은 행사 전체 계획용, 실제 금액은 입금·결제가 확정된 금액으로 기록하면 됩니다. 계약금과 잔금은 각각 별도 행으로 적어도 됩니다.</div>
+      <div class="budget-help">예상 금액은 행사 전체 계획용입니다. <b>실제 수입은 위 계좌 거래내역의 입금 합계와 자동 연동</b>되고, 실제 지출은 아래 항목별 실제금액으로 관리합니다.</div>
       <div class="card">
         <div class="top-hscroll" id="budgetTop"><div class="top-hscroll-inner"></div></div>
         <div class="budget-table-wrap" id="budgetScroll">
@@ -4582,6 +4582,7 @@ document.getElementById("transactionCsvFile")?.addEventListener("change",async e
     state.transactions={rows:mapped,sourceFile:file.name,importedAt:new Date().toLocaleString("ko-KR")};
     await dSet("transactions",state.transactions);
     renderTransactions();
+    renderBudget();
   }catch(err){
     console.error(err);
     alert("CSV 파일을 불러오지 못했습니다.");
@@ -4595,6 +4596,7 @@ document.getElementById("clearTransactions")?.addEventListener("click",async()=>
   state.transactions={...DEFAULT_TRANSACTIONS};
   await dSet("transactions",state.transactions);
   renderTransactions();
+  renderBudget();
 });
 
 
@@ -4606,14 +4608,24 @@ function budgetTypeOptions(selected){
 function budgetStatusOptions(selected){
   return ["가정","예정","거의 확정","견적중","확정","일부결제","완료"].map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("");
 }
+function transactionIncomeTotal(){
+  const rows=Array.isArray(state.transactions?.rows)?state.transactions.rows:[];
+  return rows.reduce((sum,r)=>sum+Number(r.income||0),0);
+}
 function budgetTotals(){
   const rows=Array.isArray(state.budget)?state.budget:[];
-  return rows.reduce((a,r)=>{
+  const totals=rows.reduce((a,r)=>{
     const exp=Number(r.expected||0), act=Number(r.actual||0);
-    if(r.type==="income"){a.expectedIncome+=exp;a.actualIncome+=act;}
+    if(r.type==="income"){a.expectedIncome+=exp;a.manualActualIncome+=act;}
     else{a.expectedExpense+=exp;a.actualExpense+=act;}
     return a;
-  },{expectedIncome:0,actualIncome:0,expectedExpense:0,actualExpense:0});
+  },{expectedIncome:0,manualActualIncome:0,actualIncome:0,expectedExpense:0,actualExpense:0});
+
+  const txRows=Array.isArray(state.transactions?.rows)?state.transactions.rows:[];
+  // When a bank transaction file is loaded, the bank's deposit total is the source of truth
+  // for actual income. Without a transaction file, keep the manually categorized income total.
+  totals.actualIncome=txRows.length ? transactionIncomeTotal() : totals.manualActualIncome;
+  return totals;
 }
 function renderBudget(){
   const body=document.getElementById("budgetBody");

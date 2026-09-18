@@ -107,7 +107,7 @@ button,a{font:inherit} button{cursor:pointer}
 .public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}.visitor-counter{margin:18px 0 4px;padding:11px 13px;text-align:center;font-size:10.5px;color:var(--mute)}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
 @media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.program-list{grid-template-columns:repeat(2,1fr)}.program-item:last-child{grid-column:1/-1}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.hero-dday{font-size:30px}.head h1{font-size:22px}}
-.application-cta .participant-highlight{margin:10px 0 6px;font-size:14px}
+.application-cta .participant-highlight{margin:8px 0 12px;font-size:14px}
 .recruitment-target{text-align:center;font-size:12px;color:var(--sub);line-height:1.7}
 .application-invitation{text-align:center;font-size:16px;font-weight:700;line-height:1.8;margin:18px 0;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
 .recruitment-note{font-size:12px;line-height:1.7;color:var(--sub);margin:12px 0 0;text-align:center;word-break:keep-all}
@@ -153,11 +153,8 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
-<div class="recruitment-target" id="recruitmentTarget">2차 참가신청 · 추가 모집</div>
-<div class="recruitment-note">추가 모집은 목표 인원 도달 시 조기 마감될 수 있습니다.</div>
-<div class="first-round-note">※ 1차 참가신청자 중 참가비 미입금자는 취소 처리되었습니다.</div>
-<p class="application-invitation">오랜만에 만나는 동문들과 편하게 이야기 나누고,<br>새로운 인연도 만들어보세요.</p>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
+<div class="application-cta-sub" id="applicationSub"></div>
 <button type="button" class="payment-account-btn" id="paymentAccountBtn">참가비 입금 계좌 확인</button>
 <div class="payment-account-box" id="paymentAccountBox" hidden>
   <div class="payment-account-label">참가비 입금 계좌</div>
@@ -166,7 +163,6 @@ button,a{font:inherit} button{cursor:pointer}
   <button type="button" class="payment-account-copy" id="copyPaymentAccount">계좌번호 복사</button>
 </div>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
-<div class="application-cta-sub" id="applicationSub"></div>
 </div>
 
 <div class="program-card">
@@ -1311,10 +1307,8 @@ return;
 const firstConfirmed=Number(s?.firstConfirmed||0);
 const secondApplications=Number(s?.secondApplications||0);
 const expectedAttendance=Number(s?.expectedAttendance ?? total);
-const secondPart=secondApplications ? " + 2차 확정 "+secondApplications.toLocaleString()+"명" : "";
-const updatedPart=s.updatedAt ? " · 최근 집계 "+esc(new Date(s.updatedAt).toLocaleString("ko-KR")) : "";
 participantHighlight.innerHTML=
-`현재 참석 예상 <strong>${expectedAttendance.toLocaleString()}</strong>명<div class="participant-basis">1차 확정 ${firstConfirmed.toLocaleString()}명 · 협찬/준비·운영위원 포함${secondPart}${updatedPart}</div>`;
+`현재 참석 예상 <strong>${expectedAttendance.toLocaleString()}</strong>명<div class="participant-basis">1차 ${firstConfirmed.toLocaleString()}명 · 2차 ${secondApplications.toLocaleString()}명 · 협찬·운영 포함</div>`;
 
 }
 

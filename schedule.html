@@ -24,6 +24,15 @@ button,a{font:inherit} button{cursor:pointer}
 .participant-highlight{margin-bottom:14px;padding:14px 16px;border:1px solid #DCD7F5;border-radius:14px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:700}
 .participant-highlight strong{font-size:18px;font-weight:900;color:var(--purple-dark)}
 .participant-basis{margin-top:3px;color:var(--mute);font-size:9.5px;font-weight:600}
+.generation-attendance{margin:0 0 12px;border:1px solid var(--line);border-radius:10px;background:#FCFBF8;overflow:hidden}
+.generation-attendance summary{padding:9px 11px;cursor:pointer;list-style:none;text-align:center;color:var(--sub);font-size:10.5px;font-weight:800}
+.generation-attendance summary::-webkit-details-marker{display:none}
+.generation-attendance summary::after{content:" ▾";color:var(--purple-dark)}
+.generation-attendance[open] summary::after{content:" ▴"}
+.generation-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 10px 10px}
+.generation-item{padding:7px 4px;border-radius:8px;background:#fff;border:1px solid var(--line);text-align:center;font-size:10px;color:var(--sub)}
+.generation-item b{display:block;margin-top:1px;color:var(--ink);font-size:12px}
+@media(max-width:480px){.generation-grid{grid-template-columns:repeat(4,1fr);gap:5px}.generation-item{padding:6px 2px}}
 .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .top-action{flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center}
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
@@ -153,6 +162,10 @@ button,a{font:inherit} button{cursor:pointer}
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
+<details class="generation-attendance" id="generationAttendance">
+  <summary>기수별 참석 인원 보기</summary>
+  <div class="generation-grid" id="generationGrid"></div>
+</details>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-cta-sub" id="applicationSub"></div>
 <button type="button" class="payment-account-btn" id="paymentAccountBtn">참가비 입금 계좌 확인</button>
@@ -1309,6 +1322,19 @@ const secondApplications=Number(s?.secondApplications||0);
 const expectedAttendance=Number(s?.expectedAttendance ?? total);
 participantHighlight.innerHTML=
 `현재 참석 예상 <strong>${expectedAttendance.toLocaleString()}</strong>명<div class="participant-basis">1차 ${firstConfirmed.toLocaleString()}명 · 2차 ${secondApplications.toLocaleString()}명 · 협찬·운영 포함</div>`;
+
+const generationGrid=document.getElementById("generationGrid");
+const generationAttendance=document.getElementById("generationAttendance");
+const byGeneration=Array.isArray(s?.attendanceByGeneration)?s.attendanceByGeneration:[];
+if(generationGrid&&generationAttendance){
+  generationAttendance.hidden=!byGeneration.length;
+  generationGrid.innerHTML=byGeneration.map(row=>{
+    const g=Number(row?.generation);
+    const count=Number(row?.count||0);
+    if(!Number.isFinite(g)||!count)return "";
+    return `<div class="generation-item">${g}기<b>${count.toLocaleString()}명</b></div>`;
+  }).join("");
+}
 
 }
 

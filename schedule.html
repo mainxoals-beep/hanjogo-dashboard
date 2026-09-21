@@ -58,6 +58,11 @@ button,a{font:inherit} button{cursor:pointer}
 .payment-account-number{font-size:18px;font-weight:900;letter-spacing:.02em;color:var(--ink)}
 .payment-account-meta{margin-top:4px;font-size:11.5px;color:var(--sub);line-height:1.6}
 .payment-account-copy{margin-top:9px;border:0;border-radius:9px;padding:8px 12px;background:var(--purple);color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+.brand-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.brand-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
+.brand-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.brand-item{display:flex;align-items:center;justify-content:center;min-height:42px;padding:9px 8px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB;text-align:center;color:var(--ink);font-size:11px;font-weight:800;line-height:1.35}
+@media(max-width:520px){.brand-grid{grid-template-columns:repeat(2,1fr)}}
 .program-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .program-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
 .program-list{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;counter-reset:program}
@@ -176,6 +181,11 @@ button,a{font:inherit} button{cursor:pointer}
   <button type="button" class="payment-account-copy" id="copyPaymentAccount">계좌번호 복사</button>
 </div>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
+</div>
+
+<div class="brand-card" id="brandCard" hidden>
+  <div class="brand-title">함께하는 브랜드</div>
+  <div class="brand-grid" id="brandGrid"></div>
 </div>
 
 <div class="program-card">
@@ -403,6 +413,8 @@ let applicationSchedule={
 let alumniStats=null;
 
 let participantApplicationStats=null;
+
+let relatedBrands=[];
 
 let publicPaymentAccount={
 bankName:"",
@@ -1345,6 +1357,17 @@ if(s.length===11)return s.slice(0,4)+"-"+s.slice(4,8)+"-"+s.slice(8);
 return String(v||"");
 }
 
+function renderRelatedBrands(){
+const card=document.getElementById("brandCard");
+const grid=document.getElementById("brandGrid");
+if(!card||!grid)return;
+const brands=Array.isArray(relatedBrands)
+  ? relatedBrands.map(v=>String(v||"").trim()).filter(Boolean)
+  : [];
+card.hidden=!brands.length;
+grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).join("");
+}
+
 function renderPaymentAccount(){
 const numberEl=document.getElementById("paymentAccountNumber");
 const metaEl=document.getElementById("paymentAccountMeta");
@@ -1376,6 +1399,8 @@ renderTimeline();
 renderCalendar();
 
 renderParticipantStats();
+
+renderRelatedBrands();
 
 renderPaymentAccount();
 
@@ -1419,6 +1444,10 @@ participantApplicationStats=
 payload.participantApplyStats||
 payload.participantApplicationStats||
 null;
+
+relatedBrands=Array.isArray(payload.relatedBrands)
+? payload.relatedBrands
+: [];
 
 publicPaymentAccount={
 ...publicPaymentAccount,

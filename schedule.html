@@ -359,7 +359,7 @@ body.modal-open{overflow:hidden}
 }
 
 /* consent-based direct alumni email */
-.network-profile-contact{margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:8px 9px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:900;cursor:pointer}
+.network-profile-contact{text-decoration:none;display:block;box-sizing:border-box;text-align:center;margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:8px 9px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:900;cursor:pointer}
 .network-profile-contact:hover{background:var(--purple-light)}
 </style>
 </head>
@@ -1597,7 +1597,13 @@ function renderNetworkProfiles(){
       </div>
       ${lines.join("")}
       ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>`:""}
-      ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
+      ${p.allowEmailContact&&p.email?(()=>{
+        const target=[p.gen?p.gen+"기":"",p.name].filter(Boolean).join(" ");
+        const subject="[한조고 네트워크] "+target+" 동문께 연락드립니다";
+        const body=["안녕하세요.","","한조고 네트워크를 통해 연락드립니다.","","간단한 자기소개와 연락 내용을 작성해주세요.","","감사합니다."].join("\n");
+        const gmailUrl="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(p.email)+"&su="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+        return `<a class="network-profile-contact" href="${esc(gmailUrl)}" target="_blank" rel="noopener">이메일로 연락하기</a>`;
+      })():""}
     </div>`;
   }).join("");
   if(more){
@@ -1671,25 +1677,6 @@ document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
 });
 networkProfileModal?.addEventListener("click",e=>{if(e.target===networkProfileModal)closeNetworkProfileModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&networkProfileModal&&!networkProfileModal.hidden)closeNetworkProfileModal();});
-
-document.getElementById("networkProfileList")?.addEventListener("click",e=>{
-  const btn=e.target.closest(".network-profile-contact[data-contact-email]");
-  if(!btn)return;
-  const email=String(btn.dataset.contactEmail||"").trim();
-  if(!email)return;
-  const target=[btn.dataset.contactGen?btn.dataset.contactGen+"기":"",btn.dataset.contactName||""].filter(Boolean).join(" ");
-  const subject="[한조고 네트워크] "+target+" 동문께 연락드립니다";
-  const body=[
-    "안녕하세요.",
-    "",
-    "한조고 네트워크를 통해 연락드립니다.",
-    "",
-    "간단한 자기소개와 연락 내용을 작성해주세요.",
-    "",
-    "감사합니다."
-  ].join("\n");
-  location.href="mailto:"+encodeURIComponent(email)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
-});
 
 const alumniDbOpenBtn=document.getElementById("alumniDbOpenBtn");
 const alumniDbModal=document.getElementById("alumniDbModal");

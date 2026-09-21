@@ -155,6 +155,25 @@ body.modal-open{overflow:hidden}
 .attendee-row{grid-template-columns:44px 86px 1fr;gap:8px}
 .attendee-role{grid-column:2 / 4;justify-self:start;margin-top:-3px}
 }
+
+/* alumni network profile directory */
+.network-profile-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.network-profile-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:11px}
+.network-profile-title{font-size:15px;font-weight:900;color:var(--purple-dark)}
+.network-profile-meta{font-size:10.5px;color:var(--mute)}
+.network-profile-search{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font-size:12px;background:#FDFCFB;color:var(--ink)}
+.network-profile-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.network-profile-item{padding:12px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;min-width:0}
+.network-profile-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
+.network-profile-name{font-size:13px;font-weight:900;color:var(--ink)}
+.network-profile-gen{font-size:10px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 6px;border-radius:999px}
+.network-profile-line{font-size:11.5px;color:var(--sub);line-height:1.6;word-break:keep-all}
+.network-profile-label{font-size:9.5px;font-weight:800;color:var(--mute);margin-right:4px}
+.network-profile-bio{margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font-size:11px;color:var(--sub);line-height:1.55}
+.network-profile-more{display:block;width:100%;margin-top:10px;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff;color:var(--purple-dark);font-size:11px;font-weight:800}
+.network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:11.5px}
+.network-profile-privacy{margin-top:9px;color:var(--mute);font-size:10px;line-height:1.55}
+@media(max-width:620px){.network-profile-list{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -324,6 +343,21 @@ body.modal-open{overflow:hidden}
 <div id="alumniStatsBody">
 <div class="alumni-empty">집계 정보를 불러오는 중입니다.</div>
 </div>
+</div>
+
+<div class="network-profile-card" id="networkProfileCard">
+  <div class="network-profile-head">
+    <div>
+      <div class="network-profile-title">한조고 동문 네트워크</div>
+      <div class="network-profile-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
+    </div>
+  </div>
+  <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="기수 · 이름 · 소속 · 활동 분야 검색">
+  <div class="network-profile-list" id="networkProfileList">
+    <div class="network-profile-empty">프로필을 불러오는 중입니다.</div>
+  </div>
+  <button class="network-profile-more" id="networkProfileMore" type="button" hidden>더 보기</button>
+  <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. 이메일·연락처 등 개인정보는 공개하지 않습니다.</div>
 </div>
 
 <div class="next-card">
@@ -1147,6 +1181,150 @@ alumniStats.updatedAt
 : "";
 
 }
+
+
+const NETWORK_PROFILE_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQm2qyYr9BAEm-fyZvNyExxiPS9lcRBPi06n__Qq__WlRPvGF_Iou7x1lIjsmBgqpoqHo4M2syaFVxc/pub?gid=648141668&single=true&output=csv";
+const NETWORK_PROFILE_CSV_FALLBACK="https://docs.google.com/spreadsheets/d/1tCtxM55yxwdqayihB56qsxFI8qWNzliB6N8wRxIJrQk/gviz/tq?tqx=out:csv&gid=648141668";
+let networkProfiles=[];
+let networkProfileLimit=30;
+function parseNetworkCsv(text){
+  const rows=[]; let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i],n=text[i+1];
+    if(q){
+      if(ch==='"'&&n==='"'){cell+='"';i++;}
+      else if(ch==='"'){q=false;}
+      else cell+=ch;
+    }else{
+      if(ch==='"')q=true;
+      else if(ch===','){row.push(cell);cell="";}
+      else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell="";}
+      else if(ch!=='\r')cell+=ch;
+    }
+  }
+  row.push(cell); if(row.some(v=>v!==""))rows.push(row);
+  return rows;
+}
+function networkNorm(v){return String(v||"").replace(/\s+/g,"").toLowerCase();}
+function networkRows(csvRows){
+  if(csvRows.length<2)return [];
+  const headers=csvRows[0].map(v=>String(v||"").trim());
+  return csvRows.slice(1).filter(r=>r.some(v=>String(v||"").trim())).map(r=>{
+    const o={}; headers.forEach((h,i)=>o[h]=String(r[i]??"").trim()); return o;
+  });
+}
+function networkGet(row,label){
+  const key=Object.keys(row).find(k=>networkNorm(k)===networkNorm(label));
+  return key?row[key]:"";
+}
+async function fetchNetworkCsv(){
+  let lastErr;
+  for(const url of [NETWORK_PROFILE_CSV_URL,NETWORK_PROFILE_CSV_FALLBACK]){
+    try{
+      const res=await fetch(url+(url.includes("?")?"&":"?")+"_="+Date.now(),{cache:"no-store"});
+      if(!res.ok)throw new Error("HTTP "+res.status);
+      return await res.text();
+    }catch(e){lastErr=e;}
+  }
+  throw lastErr||new Error("CSV load failed");
+}
+function maskNetworkName(name){
+  const s=String(name||"").trim();
+  if(!s)return "이름 비공개";
+  if(s.length===1)return "○";
+  if(s.length===2)return s[0]+"○";
+  return s[0]+"○".repeat(Math.max(1,s.length-2))+s[s.length-1];
+}
+function networkFieldSet(row){
+  return new Set(networkGet(row,"사이트에 공개해도 되는 정보를 모두 선택해주세요").split(",").map(v=>v.trim()).filter(Boolean));
+}
+function networkAllowed(set,label){return [...set].some(v=>networkNorm(v)===networkNorm(label));}
+function safeInstagram(value){
+  const raw=String(value||"").trim();
+  if(!raw)return null;
+  if(/^https:\/\/([\w-]+\.)?instagram\.com\//i.test(raw))return {label:raw.replace(/^https?:\/\/(www\.)?instagram\.com\//i,"@").replace(/\/$/,""),url:raw};
+  const h=raw.replace(/^@/,"").trim();
+  if(!/^[A-Za-z0-9._]+$/.test(h))return {label:raw,url:null};
+  return {label:"@"+h,url:"https://www.instagram.com/"+h+"/"};
+}
+function buildPublicNetworkProfile(r){
+  const consent=networkGet(r,"작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
+  if(!consent.includes("동의합니다"))return null;
+  const fields=networkFieldSet(r);
+  const mode=networkGet(r,"사이트에서 이름을 어떻게 표시할까요?");
+  const actual=networkGet(r,"이름");
+  const name=mode.includes("실명 전체")?actual:mode.includes("마스킹")?maskNetworkName(actual):"이름 비공개";
+  const gen=networkAllowed(fields,"졸업 기수")?networkGet(r,"졸업 기수"):"";
+  const company=networkAllowed(fields,"현재 소속 / 직장 / 사업체·브랜드")?networkGet(r,"현재 소속 / 직장 / 사업체·브랜드"):"";
+  const work=networkAllowed(fields,"현재 하는 일")?networkGet(r,"현재 하는 일"):"";
+  const activity=networkAllowed(fields,"활동 분야")?networkGet(r,"활동 분야"):"";
+  const region=networkAllowed(fields,"활동 지역")?networkGet(r,"활동 지역"):"";
+  const instagram=networkAllowed(fields,"Instagram")?safeInstagram(networkGet(r,"Instagram")):null;
+  const bio=networkAllowed(fields,"프로필 소개")?networkGet(r,"동문들에게 소개하고 싶은 내용"):"";
+  const connect=networkAllowed(fields,"연결 희망 분야")?networkGet(r,"동문들과 어떤 분야로 연결되고 싶나요?"):"";
+  return {name,gen,company,work,activity,region,instagram,bio,connect,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
+}
+function renderNetworkProfiles(){
+  const list=document.getElementById("networkProfileList");
+  const meta=document.getElementById("networkProfileMeta");
+  const search=document.getElementById("networkProfileSearch");
+  const more=document.getElementById("networkProfileMore");
+  if(!list)return;
+  const q=networkNorm(search?.value||"");
+  const filtered=networkProfiles.filter(p=>{
+    if(!q)return true;
+    return networkNorm([p.gen,p.name,p.company,p.work,p.activity,p.region,p.bio,p.connect,p.instagram?.label].join(" ")).includes(q);
+  });
+  if(meta)meta.textContent=`공개 동의 ${networkProfiles.length}명 · 구글폼 응답 자동 연동`;
+  if(!filtered.length){
+    list.innerHTML='<div class="network-profile-empty">검색 결과가 없습니다.</div>';
+    if(more)more.hidden=true;
+    return;
+  }
+  const visible=filtered.slice(0,networkProfileLimit);
+  list.innerHTML=visible.map(p=>{
+    const lines=[];
+    if(p.company)lines.push(`<div class="network-profile-line"><span class="network-profile-label">소속</span>${esc(p.company)}</div>`);
+    if(p.work)lines.push(`<div class="network-profile-line"><span class="network-profile-label">하는 일</span>${esc(p.work)}</div>`);
+    if(p.activity)lines.push(`<div class="network-profile-line"><span class="network-profile-label">분야</span>${esc(p.activity)}</div>`);
+    if(p.region)lines.push(`<div class="network-profile-line"><span class="network-profile-label">지역</span>${esc(p.region)}</div>`);
+    if(p.instagram){
+      const v=esc(p.instagram.label);
+      lines.push(`<div class="network-profile-line"><span class="network-profile-label">Instagram</span>${p.instagram.url?`<a href="${esc(p.instagram.url)}" target="_blank" rel="noopener">${v}</a>`:v}</div>`);
+    }
+    if(p.connect)lines.push(`<div class="network-profile-line"><span class="network-profile-label">연결 희망</span>${esc(p.connect)}</div>`);
+    return `<div class="network-profile-item">
+      <div class="network-profile-top">
+        ${p.gen?`<span class="network-profile-gen">${esc(p.gen)}기</span>`:""}
+        <span class="network-profile-name">${esc(p.name)}</span>
+      </div>
+      ${lines.join("")}
+      ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>`:""}
+    </div>`;
+  }).join("");
+  if(more){
+    more.hidden=visible.length>=filtered.length;
+    more.textContent=`더 보기 (${filtered.length-visible.length}명)`;
+  }
+}
+async function loadNetworkProfiles(){
+  const list=document.getElementById("networkProfileList");
+  const meta=document.getElementById("networkProfileMeta");
+  try{
+    const text=await fetchNetworkCsv();
+    networkProfiles=networkRows(parseNetworkCsv(text)).map(buildPublicNetworkProfile).filter(Boolean)
+      .sort((a,b)=>a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
+    renderNetworkProfiles();
+  }catch(e){
+    console.error("동문 네트워크 CSV 연동 실패",e);
+    if(meta)meta.textContent="동문 프로필 연동 확인 중";
+    if(list)list.innerHTML='<div class="network-profile-empty">프로필을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>';
+  }
+}
+document.getElementById("networkProfileSearch")?.addEventListener("input",()=>{networkProfileLimit=30;renderNetworkProfiles();});
+document.getElementById("networkProfileMore")?.addEventListener("click",()=>{networkProfileLimit+=30;renderNetworkProfiles();});
+loadNetworkProfiles();
+setInterval(loadNetworkProfiles,60000);
 
 function renderTimeline(){
 

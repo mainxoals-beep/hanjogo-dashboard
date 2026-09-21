@@ -988,6 +988,7 @@
 .special-access-row{display:grid;grid-template-columns:1.3fr .7fr 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:11px}
 .special-access-email{font-weight:800;color:var(--ink)}
 .special-access-meta{font-size:10px;color:var(--ink-mute)}
+.special-access-protected{font-size:9.5px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:5px 7px;border-radius:999px;white-space:nowrap}
 @media(max-width:760px){
   .access-admin-form,.access-admin-add{grid-template-columns:1fr}
   .special-access-row{grid-template-columns:1fr auto}
@@ -5595,7 +5596,9 @@ async function renderSpecialAccess(){
         <div><div class="special-access-email">${escapeHtml(x.email||"")}</div><div class="special-access-meta">${escapeHtml(x.created_at?new Date(x.created_at).toLocaleDateString("ko-KR"):"")}</div></div>
         <div>${escapeHtml(x.name||"-")}</div>
         <div class="special-access-note">${escapeHtml(x.note||"-")}</div>
-        <button type="button" class="mini-btn danger special-access-remove" data-id="${x.id}" ${String(x.email).toLowerCase()==="mainxoals@gmail.com"?"disabled":""}>삭제</button>
+        ${String(x.email).toLowerCase()==="mainxoals@gmail.com"
+          ? '<span class="special-access-protected">고정 관리자</span>'
+          : `<button type="button" class="mini-btn danger special-access-remove" data-id="${x.id}">삭제</button>`}
       </div>`
     ).join(""):'<div class="fee-empty">별도 등록된 이메일이 없습니다.</div>';
   }catch(e){

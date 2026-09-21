@@ -1737,6 +1737,12 @@ function closeAttendeeModal(){
 }
 attendeeOpenBtn?.addEventListener("click",openAttendeeModal);
 attendeeCloseBtn?.addEventListener("click",closeAttendeeModal);
+
+// 리플렛 QR 등에서 ?attendees=1 로 접속하면 참가자 명단을 바로 엽니다.
+const attendeeParams=new URLSearchParams(location.search);
+if(attendeeParams.get("attendees")==="1"){
+  setTimeout(openAttendeeModal,120);
+}
 attendeeSearch?.addEventListener("input",e=>renderPublicAttendees(e.target.value));
 attendeeModal?.addEventListener("click",e=>{if(e.target===attendeeModal)closeAttendeeModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&attendeeModal&&!attendeeModal.hidden)closeAttendeeModal();});

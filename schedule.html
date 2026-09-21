@@ -292,6 +292,27 @@ body.modal-open{overflow:hidden}
   .attendee-w{font-size:12.5px;line-height:1.55}
   .attendee-role{font-size:10px}
 }
+
+/* attendee popup aligned with alumni-network cards */
+#attendeeModal .attendee-dialog{width:min(920px,100%)}
+#attendeeModal .attendee-desc{font-size:11px;line-height:1.6}
+#attendeeModal .attendee-summary{padding:12px 20px;border-bottom:1px solid var(--line);background:#fff}
+#attendeeModal .attendee-summary-title{margin-bottom:8px;font-size:11.5px;font-weight:900;color:var(--purple-dark)}
+#attendeeModal .attendee-generation-grid{grid-template-columns:repeat(5,1fr);gap:6px;padding:0!important}
+#attendeeModal .attendee-generation-grid .generation-item{padding:7px 4px;border-radius:8px;font-size:10px;background:#FDFCFB}
+#attendeeModal .attendee-generation-grid .generation-item b{font-size:12px;margin-top:1px}
+#attendeeModal .attendee-tools{padding:12px 20px;border-bottom:1px solid var(--line)}
+#attendeeModal .attendee-search{padding:10px 11px;font-size:12px;background:#FDFCFB}
+#attendeeModal .attendee-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;overflow:auto;padding:12px 20px 20px}
+#attendeeModal .attendee-profile-item{margin:0}
+.attendee-card-role{margin-left:auto;border-radius:999px;padding:3px 7px;background:var(--purple-light);color:var(--purple-dark);font-size:9.5px;font-weight:900;white-space:nowrap}
+@media(max-width:620px){
+  #attendeeModal .attendee-summary{padding:11px 16px}
+  #attendeeModal .attendee-generation-grid{grid-template-columns:repeat(4,1fr);gap:5px}
+  #attendeeModal .attendee-tools{padding:10px 16px}
+  #attendeeModal .attendee-search{font-size:16px}
+  #attendeeModal .attendee-list{grid-template-columns:1fr;padding:10px 16px 18px}
+}
 </style>
 </head>
 <body>
@@ -1836,22 +1857,14 @@ if(!filtered.length){
   list.innerHTML='<div class="attendee-empty">검색 결과가 없습니다.</div>';
   return;
 }
-const groups=new Map();
-filtered.forEach(x=>{
-  if(!groups.has(x.generation))groups.set(x.generation,[]);
-  groups.get(x.generation).push(x);
-});
-list.innerHTML=[...groups.entries()].map(([g,rows])=>`
-  <div class="attendee-gen">
-    <div class="attendee-gen-title">${g}기 · ${rows.length}명</div>
-    ${rows.map(x=>`
-      <div class="attendee-row">
-        <div class="attendee-g">${x.generation}기</div>
-        <div class="attendee-n">${esc(x.name)}</div>
-        <div class="attendee-w">${esc(x.work)}</div>
-        ${x.role?`<div class="attendee-role">${esc(x.role)}</div>`:""}
-      </div>
-    `).join("")}
+list.innerHTML=filtered.map(x=>`
+  <div class="network-profile-item attendee-profile-item">
+    <div class="network-profile-top">
+      <span class="network-profile-gen">${x.generation}기</span>
+      <span class="network-profile-name">${esc(x.name)}</span>
+      ${x.role?`<span class="attendee-card-role">${esc(x.role)}</span>`:""}
+    </div>
+    ${x.work?`<div class="network-profile-line"><span class="network-profile-label">소속 · 활동</span>${esc(x.work)}</div>`:""}
   </div>
 `).join("");
 }

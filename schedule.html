@@ -366,6 +366,45 @@ body.modal-open{overflow:hidden}
 .attendee-collision-badge{font-size:9px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 6px;border-radius:999px}
 .attendee-name-collision{border-color:#d7cffa;background:#fbf9ff}
 .attendee-collision-work{font-weight:800;color:var(--ink)}
+
+/* generation horizontal scroll usability */
+#attendeeModal .attendee-generation-grid,
+.generation-chip-row{
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  touch-action:pan-x;
+  scrollbar-width:thin!important;
+  scrollbar-color:#c9c2e8 transparent;
+  padding-bottom:6px!important;
+}
+#attendeeModal .attendee-generation-grid::-webkit-scrollbar,
+.generation-chip-row::-webkit-scrollbar{
+  display:block!important;
+  height:6px;
+}
+#attendeeModal .attendee-generation-grid::-webkit-scrollbar-thumb,
+.generation-chip-row::-webkit-scrollbar-thumb{
+  background:#c9c2e8;
+  border-radius:999px;
+}
+#attendeeModal .attendee-generation-grid::-webkit-scrollbar-track,
+.generation-chip-row::-webkit-scrollbar-track{
+  background:transparent;
+}
+#attendeeModal .attendee-generation-grid::after,
+.generation-chip-row::after{
+  content:"";
+  flex:0 0 12px;
+}
+@media(max-width:620px){
+  #attendeeModal .attendee-generation-grid,
+  .generation-chip-row{
+    scrollbar-width:auto!important;
+    padding-bottom:8px!important;
+  }
+}
 </style>
 </head>
 <body>

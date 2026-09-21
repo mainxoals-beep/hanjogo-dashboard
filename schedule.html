@@ -248,6 +248,13 @@ body.modal-open{overflow:hidden}
   .network-hub-stats{grid-template-columns:1fr 1fr}
   .visitor-counter{text-align:center}
 }
+
+/* combined participant status + list */
+.attendee-summary{padding:13px 20px 12px;border-bottom:1px solid var(--line);background:#FCFBFE}
+.attendee-summary-title{margin-bottom:8px;font-size:11.5px;font-weight:900;color:var(--purple-dark)}
+.attendee-generation-grid{margin:0!important}
+.attendee-generation-grid .generation-item{background:#fff}
+@media(max-width:600px){.attendee-summary{padding:12px 16px 10px}}
 </style>
 </head>
 <body>
@@ -306,11 +313,7 @@ body.modal-open{overflow:hidden}
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
-<details class="generation-attendance" id="generationAttendance">
-  <summary>기수별 참석 인원 보기</summary>
-  <div class="generation-grid" id="generationGrid"></div>
-</details>
-<button type="button" class="attendee-open-btn" id="attendeeOpenBtn">참가자 명단 보기</button>
+<button type="button" class="attendee-open-btn" id="attendeeOpenBtn">참가자 현황 · 명단 보기</button>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-cta-sub" id="applicationSub"></div>
 <button type="button" class="payment-account-btn" id="paymentAccountBtn">참가비 입금 계좌 확인</button>
@@ -327,10 +330,14 @@ body.modal-open{overflow:hidden}
   <div class="attendee-dialog" role="dialog" aria-modal="true" aria-labelledby="attendeeModalTitle">
     <div class="attendee-head">
       <div>
-        <div class="attendee-title" id="attendeeModalTitle">참가자 명단</div>
-        <div class="attendee-desc">1·2차 참가 확정자, 준비·운영위원 및 협찬사 관계자 기준 · 준비·운영위원은 실명, 그 외 참가자는 이름 일부를 가려 표시합니다.</div>
+        <div class="attendee-title" id="attendeeModalTitle">참가자 현황 · 명단</div>
+        <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 준비·운영위원은 실명, 그 외 참가자는 이름 일부를 가려 표시합니다.</div>
       </div>
       <button type="button" class="attendee-close" id="attendeeCloseBtn" aria-label="닫기">×</button>
+    </div>
+    <div class="attendee-summary">
+      <div class="attendee-summary-title">기수별 참가 현황</div>
+      <div class="generation-grid attendee-generation-grid" id="generationGrid"></div>
     </div>
     <div class="attendee-tools">
       <input class="attendee-search" id="attendeeSearch" type="search" placeholder="기수 · 이름 · 소속/하는 일 검색">
@@ -1747,10 +1754,8 @@ participantHighlight.innerHTML=
 `현재 참석 예상 <strong>${expectedAttendance.toLocaleString()}</strong>명<div class="participant-basis">1차 ${firstConfirmed.toLocaleString()}명 · 2차 ${secondApplications.toLocaleString()}명 · 협찬·운영 포함</div>`;
 
 const generationGrid=document.getElementById("generationGrid");
-const generationAttendance=document.getElementById("generationAttendance");
 const byGeneration=Array.isArray(s?.attendanceByGeneration)?s.attendanceByGeneration:[];
-if(generationGrid&&generationAttendance){
-  generationAttendance.hidden=!byGeneration.length;
+if(generationGrid){
   generationGrid.innerHTML=byGeneration.map(row=>{
     const g=Number(row?.generation);
     const count=Number(row?.count||0);

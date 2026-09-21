@@ -361,6 +361,11 @@ body.modal-open{overflow:hidden}
 /* consent-based direct alumni email */
 .network-profile-contact{text-decoration:none;display:block;box-sizing:border-box;text-align:center;margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:8px 9px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:900;cursor:pointer}
 .network-profile-contact:hover{background:var(--purple-light)}
+
+/* attendee masked-name collision aid */
+.attendee-collision-badge{font-size:9px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 6px;border-radius:999px}
+.attendee-name-collision{border-color:#d7cffa;background:#fbf9ff}
+.attendee-collision-work{font-weight:800;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -2008,6 +2013,14 @@ function resolveAttendeePublicName(attendee){
   return current;
 }
 
+function attendeeMaskedCollisionSet(){
+  const counts=new Map();
+  PUBLIC_ATTENDEES.forEach(x=>{
+    const key=String(x.generation)+"|"+String(x.name||"");
+    counts.set(key,(counts.get(key)||0)+1);
+  });
+  return new Set([...counts.entries()].filter(([,n])=>n>1).map(([k])=>k));
+}
 function renderPublicAttendees(query=""){
 const list=document.getElementById("attendeeList");
 if(!list)return;
@@ -2022,16 +2035,21 @@ if(!filtered.length){
   list.innerHTML='<div class="attendee-empty">해당 조건의 참가자가 없습니다.</div>';
   return;
 }
-list.innerHTML=filtered.map(x=>`
-  <div class="network-profile-item attendee-profile-item">
+const collisions=attendeeMaskedCollisionSet();
+list.innerHTML=filtered.map(x=>{
+  const displayName=resolveAttendeePublicName(x);
+  const collision=collisions.has(String(x.generation)+"|"+String(x.name||"")) && displayName===x.name;
+  return `
+  <div class="network-profile-item attendee-profile-item ${collision?"attendee-name-collision":""}">
     <div class="network-profile-top">
       <span class="network-profile-gen">${x.generation}기</span>
-      <span class="network-profile-name">${esc(resolveAttendeePublicName(x))}</span>
+      <span class="network-profile-name">${esc(displayName)}</span>
+      ${collision?'<span class="attendee-collision-badge">동명이름 구분</span>':""}
       ${x.role?`<span class="attendee-card-role">${esc(x.role)}</span>`:""}
     </div>
-    ${x.work?`<div class="network-profile-line"><span class="network-profile-label">소속 · 활동</span>${esc(x.work)}</div>`:""}
-  </div>
-`).join("");
+    ${x.work?`<div class="network-profile-line ${collision?"attendee-collision-work":""}"><span class="network-profile-label">소속 · 활동</span>${esc(x.work)}</div>`:""}
+  </div>`;
+}).join("");
 }
 function selectAttendeeGeneration(gen){
   attendeeGenerationFilter=gen===null?null:Number(gen);

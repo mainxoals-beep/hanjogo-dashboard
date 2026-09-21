@@ -447,6 +447,13 @@ body.modal-open{overflow:hidden}
 }
 
 /* alumni access gate */
+
+.access-loading{text-align:center;padding:8px 0 4px}
+.access-spinner{width:28px;height:28px;margin:0 auto 10px;border:3px solid #E8E4F6;border-top-color:var(--purple);border-radius:50%;animation:accessSpin .8s linear infinite}
+.access-loading-title{font-size:14px;font-weight:900;color:var(--ink)}
+.access-loading-sub{margin-top:4px;font-size:10.5px;color:var(--mute)}
+@keyframes accessSpin{to{transform:rotate(360deg)}}
+
 body.access-pending{overflow:hidden}
 body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 .access-gate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--ivory)}
@@ -474,11 +481,16 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 <body class="access-pending">
 <div class="access-gate" id="accessGate">
   <div class="access-card">
+    <div class="access-loading" id="accessLoading">
+      <div class="access-spinner" aria-hidden="true"></div>
+      <div class="access-loading-title">로그인 확인 중</div>
+      <div class="access-loading-sub">등록된 이메일과 접근 권한을 확인하고 있습니다.</div>
+    </div>
     <div class="access-brand">
       <img src="./assets/hanjogo-logo.svg" alt="KCAS 로고">
       <div><div class="access-brand-title">한조고 네트워크</div><div class="access-brand-sub">한국조리과학고등학교 졸업생 네트워크</div></div>
     </div>
-    <div id="accessSignedOut">
+    <div id="accessSignedOut" hidden>
       <div class="access-title">등록된 이메일로 로그인해주세요</div>
       <div class="access-desc">졸업생 DB에 등록된 이메일 또는 별도 승인된 이메일만 이용할 수 있습니다. 로그인 링크를 이메일로 보내드립니다.</div>
       <form class="access-form" id="accessLoginForm">
@@ -2704,9 +2716,20 @@ async function verifyHanjogoAccess(session){
   return !!data?.allowed;
 }
 
+function showAccessLoading(){
+  document.body.classList.add("access-pending");
+  document.getElementById("accessGate").hidden=false;
+  const loading=document.getElementById("accessLoading");
+  if(loading)loading.hidden=false;
+  document.getElementById("accessSignedOut").hidden=true;
+  document.getElementById("accessDenied").hidden=true;
+}
+
 async function showSignedOutGate(message=""){
   document.body.classList.add("access-pending");
   document.getElementById("accessGate").hidden=false;
+  const loading=document.getElementById("accessLoading");
+  if(loading)loading.hidden=true;
   document.getElementById("accessSignedOut").hidden=false;
   document.getElementById("accessDenied").hidden=true;
   document.getElementById("accessStatus").textContent=message;
@@ -2715,6 +2738,8 @@ async function showSignedOutGate(message=""){
 async function showDeniedGate(email){
   document.body.classList.add("access-pending");
   document.getElementById("accessGate").hidden=false;
+  const loading=document.getElementById("accessLoading");
+  if(loading)loading.hidden=true;
   document.getElementById("accessSignedOut").hidden=true;
   document.getElementById("accessDenied").hidden=false;
   document.getElementById("accessDeniedEmail").textContent=email||"";
@@ -2727,6 +2752,7 @@ function unlockDashboard(){
 }
 
 async function checkCurrentAccess(){
+  showAccessLoading();
   const {data:{session}}=await sb.auth.getSession();
   if(!session){
     await showSignedOutGate();

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>한조고 동문 네트워크 모임 · 주요 일정</title>
-<meta name="description" content="2026 한조고 동문 네트워크 모임 주요 일정, 참가 신청 및 행사 안내">
+<title>한조고 네트워크 · 모임과 동문 연결</title>
+<meta name="description" content="2026 한조고 네트워크 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -36,7 +36,6 @@ button,a{font:inherit} button{cursor:pointer}
 .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .top-action{flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center}
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
-.status-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
 .status-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .status-kicker{margin-bottom:6px;color:var(--purple-dark);font-size:10.5px;font-weight:800;letter-spacing:.05em}
 .status-main{font-size:18px;font-weight:900}.status-sub{margin-top:4px;color:var(--sub);font-size:12.5px}
@@ -45,7 +44,8 @@ button,a{font:inherit} button{cursor:pointer}
 .status-pill.open{background:var(--ok-light);color:var(--ok)}
 .status-pill.closed{background:#F1EFE8;color:var(--sub)}
 .application-cta{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
-.application-cta-title{font-size:12px;font-weight:800;margin-bottom:7px}
+.application-status-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.application-status-row .status-pill{flex:0 0 auto;margin-top:0}
 .application-btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-countdown{margin-top:9px;padding:8px 10px;border-radius:9px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:900}
@@ -174,8 +174,9 @@ body.modal-open{overflow:hidden}
 .network-profile-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
 .network-profile-name{font-size:13px;font-weight:900;color:var(--ink)}
 .network-profile-gen{font-size:10px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 6px;border-radius:999px}
-.network-profile-line{font-size:11.5px;color:var(--sub);line-height:1.6;word-break:keep-all}
-.network-profile-label{font-size:9.5px;font-weight:800;color:var(--mute);margin-right:4px}
+.network-profile-line{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--sub);line-height:1.6;word-break:keep-all}
+.network-profile-label{font-size:9.5px;font-weight:800;color:var(--mute)}
+.network-profile-value{min-width:0;overflow-wrap:anywhere}
 .network-profile-bio{margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font-size:11px;color:var(--sub);line-height:1.55}
 .network-profile-more{display:block;width:100%;margin-top:10px;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff;color:var(--purple-dark);font-size:11px;font-weight:800}
 .network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:11.5px}
@@ -229,8 +230,7 @@ body.modal-open{overflow:hidden}
 .network-hub-btn:hover{transform:translateY(-1px)}
 .network-hub-meta{margin-top:8px;font-size:10px;color:var(--mute)}
 
-.status-grid,.application-cta,.brand-card,.next-card,.public-fold{box-shadow:0 5px 18px rgba(30,28,26,.035)}
-.status-grid{margin-top:0}
+.application-cta,.brand-card,.next-card,.public-fold{box-shadow:0 5px 18px rgba(30,28,26,.035)}
 .application-cta{border-color:#E2DDF5}
 .brand-card{margin-top:16px}
 .public-fold{border-color:#E9E5DD}
@@ -446,39 +446,6 @@ body.modal-open{overflow:hidden}
   .head-logo{width:36px;height:36px}
 }
 
-/* alumni access gate */
-
-.access-loading{text-align:center;padding:8px 0 4px}
-.access-spinner{width:28px;height:28px;margin:0 auto 10px;border:3px solid #E8E4F6;border-top-color:var(--purple);border-radius:50%;animation:accessSpin .8s linear infinite}
-.access-loading-title{font-size:14px;font-weight:900;color:var(--ink)}
-.access-loading-sub{margin-top:4px;font-size:10.5px;color:var(--mute)}
-@keyframes accessSpin{to{transform:rotate(360deg)}}
-
-body.access-pending{overflow:hidden}
-body.access-pending>.wrap{visibility:hidden;pointer-events:none}
-.access-gate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--ivory)}
-.access-gate[hidden]{display:none}
-.access-card{width:min(430px,100%);padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 18px 55px rgba(30,28,26,.12)}
-.access-brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.access-brand img{width:42px;height:42px;object-fit:contain}
-.access-brand-title{font-size:17px;font-weight:900;color:var(--ink)}
-.access-brand-sub{font-size:10px;color:var(--mute)}
-.access-title{font-size:19px;font-weight:900;color:var(--ink)}
-.access-desc{margin-top:7px;font-size:12px;line-height:1.65;color:var(--sub)}
-.access-form{display:grid;gap:8px;margin-top:17px}
-.access-input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:14px;outline:none}
-.access-input:focus{border-color:var(--purple)}
-.access-btn{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--purple);color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
-.access-btn.secondary{border:1px solid var(--line);background:#fff;color:var(--purple-dark)}
-.access-btn:disabled{opacity:.55;cursor:not-allowed}
-.access-status{min-height:19px;margin-top:10px;font-size:11px;line-height:1.55;color:var(--sub)}
-.access-login-help{margin-top:7px;font-size:9.8px;line-height:1.55;color:var(--mute);text-align:center}
-.access-register{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
-.access-register-title{font-size:11px;font-weight:900;color:var(--ink)}
-.access-register p{margin:5px 0 10px;font-size:10.5px;line-height:1.6;color:var(--mute)}
-.access-session{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:10px;color:var(--mute)}
-.access-logout{border:0;background:transparent;color:var(--purple-dark);font-size:10px;font-weight:800;cursor:pointer}
-
 /* site navigation / page shell */
 .site-nav{
   position:sticky;top:0;z-index:1200;
@@ -547,43 +514,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 </style>
 </head>
-<body class="access-pending">
-<div class="access-gate" id="accessGate">
-  <div class="access-card">
-    <div class="access-loading" id="accessLoading">
-      <div class="access-spinner" aria-hidden="true"></div>
-      <div class="access-loading-title">로그인 확인 중</div>
-      <div class="access-loading-sub">등록된 이메일과 접근 권한을 확인하고 있습니다.</div>
-    </div>
-    <div class="access-brand">
-      <img src="./assets/hanjogo-logo.svg" alt="KCAS 로고">
-      <div><div class="access-brand-title">한조고 네트워크</div><div class="access-brand-sub">한국조리과학고등학교 졸업생 네트워크</div></div>
-    </div>
-    <div id="accessSignedOut" hidden>
-      <div class="access-title">등록된 이메일로 로그인해주세요</div>
-      <div class="access-desc">졸업생 DB에 등록된 이메일 또는 별도 승인된 이메일만 이용할 수 있습니다.</div>
-      <form class="access-form" id="accessLoginForm">
-        <input class="access-input" id="accessEmail" type="email" autocomplete="email" placeholder="등록한 이메일 주소" required>
-        <button class="access-btn" id="accessLoginBtn" type="submit">로그인</button>
-      </form>
-      <div class="access-login-help">로그인 버튼을 누르면 입력한 이메일로 일회용 인증 링크가 발송됩니다.</div>
-      <div class="access-status" id="accessStatus"></div>
-      <div class="access-register">
-        <div class="access-register-title">처음 방문하시나요?</div>
-        <p>먼저 한조고 졸업생 DB를 작성한 뒤, 등록한 이메일로 다시 로그인해주세요.</p>
-        <a class="access-btn secondary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-      </div>
-    </div>
-    <div id="accessDenied" hidden>
-      <div class="access-title">등록 확인이 필요합니다</div>
-      <div class="access-desc">현재 로그인한 이메일은 졸업생 DB 또는 별도 승인 명단에서 확인되지 않습니다.</div>
-      <div class="access-session"><span id="accessDeniedEmail"></span><button class="access-logout" id="accessSwitchEmail" type="button">다른 이메일 사용</button></div>
-      <div class="access-register">
-        <a class="access-btn" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-      </div>
-    </div>
-  </div>
-</div>
+<body>
 <div class="wrap">
 
 <div class="head">
@@ -633,20 +564,14 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="hero-dday" id="eventDday">D-</div>
 </div>
 
-<div class="top-actions">
+<div class="top-actions site-view" data-site-view="home">
 <button class="top-action primary" id="shareBtn">공유하기</button>
-<button class="top-action" id="accessLogoutBtn" type="button" hidden>로그아웃</button>
 </div>
 
-<div class="visitor-counter" id="visitorCounter">
+<div class="visitor-counter site-view" data-site-view="home" id="visitorCounter">
 방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
 </div>
 
-<div class="site-page-intro site-view" data-site-view="network">
-  <div class="site-page-kicker">ALUMNI NETWORK</div>
-  <div class="site-page-title">동문 네트워크</div>
-  <div class="site-page-desc">졸업생 DB 등록 현황을 확인하고, 기수·이름·소속·활동 분야를 기준으로 공개 동문을 찾아보세요.</div>
-</div>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
     <div class="network-hub-kicker">ALUMNI NETWORK</div>
@@ -664,17 +589,15 @@ body.site-view-network.modal-open{overflow:auto!important}
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
 </div>
 
-<div class="status-grid site-view" data-site-view="event">
-<div class="status-card">
-<div class="status-kicker">참가 신청</div>
-<div class="status-main" id="applyStatusTitle"></div>
-<div class="status-sub" id="applyStatusSub"></div>
-<span class="status-pill before" id="applyStatusPill">오픈 전</span>
-</div>
-</div>
-
 <div class="application-cta site-view" id="applicationCta" data-site-view="event">
-<div class="application-cta-title">2차 참가신청</div>
+<div class="application-status-row">
+  <div>
+    <div class="status-kicker">참가 신청</div>
+    <div class="status-main" id="applyStatusTitle"></div>
+    <div class="status-sub" id="applyStatusSub"></div>
+  </div>
+  <span class="status-pill before" id="applyStatusPill">오픈 전</span>
+</div>
 <div class="participant-highlight" id="participantHighlight">
 현재 참가 신청 인원을 불러오는 중입니다.
 </div>
@@ -830,15 +753,12 @@ body.site-view-network.modal-open{overflow:auto!important}
 </div>
 
 <div class="attendee-modal" id="alumniDbModal" hidden aria-hidden="true">
-  <div class="attendee-dialog alumni-db-dialog" role="dialog" aria-modal="true" aria-labelledby="alumniDbModalTitle">
-    <div class="attendee-head">
-      <div>
-        <div class="attendee-title" id="alumniDbModalTitle">졸업생 DB 현황</div>
-        <div class="attendee-desc">졸업생 DB의 전체 등록 수와 기수별 현황만 표시합니다. 이름·연락처 등 개인정보는 노출하지 않습니다.</div>
-      </div>
-      <button type="button" class="attendee-close" id="alumniDbCloseBtn" aria-label="닫기">×</button>
-    </div>
-    <div class="alumni-db-modal-body">
+  <div class="attendee-dialog alumni-db-dialog" aria-labelledby="alumniDbModalTitle">
+    <button class="public-fold-head" type="button" data-fold-target="alumniDbModalBody" aria-expanded="false">
+      <span><span class="public-fold-title" id="alumniDbModalTitle">졸업생 DB 현황</span><span class="public-fold-sub">전체 등록 수와 기수별 현황 보기</span></span>
+      <span class="public-fold-icon">▾</span>
+    </button>
+    <div class="alumni-db-modal-body" id="alumniDbModalBody" hidden>
       <div class="alumni-updated" id="alumniUpdated"></div>
       <div id="alumniStatsBody"><div class="alumni-empty">집계 정보를 불러오는 중입니다.</div></div>
     </div>
@@ -846,7 +766,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 </div>
 
 <div class="attendee-modal" id="networkProfileModal" hidden aria-hidden="true">
-  <div class="attendee-dialog network-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="networkProfileModalTitle">
+  <div class="attendee-dialog network-profile-dialog" aria-labelledby="networkProfileModalTitle">
     <div class="attendee-head">
       <div>
         <div class="attendee-title" id="networkProfileModalTitle">한조고 동문 네트워크</div>
@@ -889,22 +809,15 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="next-date" id="nextDate"></div>
 </div>
 
-<div class="section site-view" id="timelineSection" data-site-view="event">
-<div class="collapsible-sec-head">
-<div class="sec-title">한눈에 보는 일정</div>
-<button class="timeline-toggle" id="timelineToggle" type="button" aria-expanded="false" aria-controls="timelineWrap" title="일정 펼치기">▾</button>
-</div>
-<div class="timeline-wrap" id="timelineWrap" hidden>
-<div class="timeline" id="timeline"></div>
-</div>
-</div>
-
 <div class="public-fold site-view" data-site-view="event">
-<button class="public-fold-head" type="button" data-fold-target="publicCalendarBody" aria-expanded="false">
-  <span><span class="public-fold-title">캘린더</span><span class="public-fold-sub">8~10월 준비 일정 확인</span></span>
+<button class="public-fold-head" type="button" data-fold-target="publicScheduleBody" aria-expanded="false">
+  <span><span class="public-fold-title">준비 일정</span><span class="public-fold-sub">주요 일정과 8~10월 캘린더 확인</span></span>
   <span class="public-fold-icon">▾</span>
 </button>
-<div class="public-fold-body" id="publicCalendarBody" hidden>
+<div class="public-fold-body" id="publicScheduleBody" hidden>
+  <div class="timeline-wrap" id="timelineWrap">
+    <div class="timeline" id="timeline"></div>
+  </div>
   <div class="months" id="months"></div>
   <div class="calendar-detail" id="calendarDetail">
     <div class="detail-empty">색이 표시된 날짜를 누르면 해당 일정의 상세 내용을 확인할 수 있습니다.</div>
@@ -1746,9 +1659,14 @@ function networkAllowed(set,label){return [...set].some(v=>networkNorm(v)===netw
 function safeInstagram(value){
   const raw=String(value||"").trim();
   if(!raw)return null;
-  if(/^https:\/\/([\w-]+\.)?instagram\.com\//i.test(raw))return {label:raw.replace(/^https?:\/\/(www\.)?instagram\.com\//i,"@").replace(/\/$/,""),url:raw};
+  if(/^(없음|없어요|없습니다|해당\s*없음|-|x)$/i.test(raw))return null;
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw))return null;
+  if(/^https?:\/\/([\w-]+\.)?instagram\.com\//i.test(raw)){
+    const url=raw.replace(/^http:\/\//i,"https://");
+    return {label:url.replace(/^https?:\/\/(www\.)?instagram\.com\//i,"@").replace(/\/$/,""),url};
+  }
   const h=raw.replace(/^@/,"").trim();
-  if(!/^[A-Za-z0-9._]+$/.test(h))return {label:raw,url:null};
+  if(!/^[A-Za-z0-9._]+$/.test(h))return null;
   return {label:"@"+h,url:"https://www.instagram.com/"+h+"/"};
 }
 function buildPublicNetworkProfile(r){
@@ -1816,15 +1734,15 @@ function renderNetworkProfiles(){
   const visible=filtered.slice(0,networkProfileLimit);
   list.innerHTML=visible.map(p=>{
     const lines=[];
-    if(p.company)lines.push(`<div class="network-profile-line"><span class="network-profile-label">소속</span>${esc(p.company)}</div>`);
-    if(p.work)lines.push(`<div class="network-profile-line"><span class="network-profile-label">하는 일</span>${esc(p.work)}</div>`);
-    if(p.activity)lines.push(`<div class="network-profile-line"><span class="network-profile-label">분야</span>${esc(p.activity)}</div>`);
-    if(p.region)lines.push(`<div class="network-profile-line"><span class="network-profile-label">지역</span>${esc(p.region)}</div>`);
+    if(p.company)lines.push(`<div class="network-profile-line"><span class="network-profile-label">소속</span><span class="network-profile-value">${esc(p.company)}</span></div>`);
+    if(p.work)lines.push(`<div class="network-profile-line"><span class="network-profile-label">하는 일</span><span class="network-profile-value">${esc(p.work)}</span></div>`);
+    if(p.activity)lines.push(`<div class="network-profile-line"><span class="network-profile-label">분야</span><span class="network-profile-value">${esc(p.activity)}</span></div>`);
+    if(p.region)lines.push(`<div class="network-profile-line"><span class="network-profile-label">지역</span><span class="network-profile-value">${esc(p.region)}</span></div>`);
     if(p.instagram){
       const v=esc(p.instagram.label);
-      lines.push(`<div class="network-profile-line"><span class="network-profile-label">Instagram</span>${p.instagram.url?`<a href="${esc(p.instagram.url)}" target="_blank" rel="noopener">${v}</a>`:v}</div>`);
+      lines.push(`<div class="network-profile-line"><span class="network-profile-label">Instagram</span><span class="network-profile-value"><a href="${esc(p.instagram.url)}" target="_blank" rel="noopener">${v}</a></span></div>`);
     }
-    if(p.connect)lines.push(`<div class="network-profile-line"><span class="network-profile-label">연결 희망</span>${esc(p.connect)}</div>`);
+    if(p.connect)lines.push(`<div class="network-profile-line"><span class="network-profile-label">연결 희망</span><span class="network-profile-value">${esc(p.connect)}</span></div>`);
     return `<div class="network-profile-item">
       <div class="network-profile-top">
         ${p.gen?`<span class="network-profile-gen">${esc(p.gen)}기</span>`:""}
@@ -1942,9 +1860,9 @@ document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
 });
 
 const alumniDbModal=document.getElementById("alumniDbModal");
-
-
-
+if(networkProfileModal && alumniDbModal && alumniDbModal.parentNode){
+  alumniDbModal.parentNode.insertBefore(networkProfileModal,alumniDbModal);
+}
 
 const SITE_VIEWS=new Set(["home","event","network"]);
 
@@ -1957,19 +1875,19 @@ function syncHomeSummary(){
   const alumniSource=document.getElementById("networkAlumniCount");
 
   if(eventMeta){
-    const txt=String(participant?.textContent||"").replace(/\s+/g," ").trim();
-    eventMeta.textContent=txt&&txt!=="현재 참가 신청 인원을 불러오는 중입니다."
-      ? txt
+    const count=String(participant?.querySelector("strong")?.textContent||"").trim();
+    eventMeta.textContent=count
+      ? "현재 참석 예상 "+count+"명"
       : "10월 18일 행사 참가 현황을 확인해보세요.";
   }
   if(networkCount){
     const txt=String(publicCount?.textContent||"").trim();
-    networkCount.textContent=txt&&txt!=="-" ? "공개 프로필 "+txt+"명" : "-";
+    networkCount.textContent=txt&&txt!=="-" ? "공개 프로필 "+txt : "-";
   }
   if(networkMeta){
     const txt=String(alumniSource?.textContent||"").trim();
     networkMeta.textContent=txt&&txt!=="-"
-      ? "졸업생 DB "+txt+"명 등록 · 공개 동문을 함께 확인할 수 있습니다."
+      ? "졸업생 DB "+txt+" 등록 · 공개 동문을 함께 확인할 수 있습니다."
       : "졸업생 DB 현황과 공개 동문 프로필을 함께 확인할 수 있습니다.";
   }
 }
@@ -2685,8 +2603,8 @@ navigator.share
 try{
 
 await navigator.share({
-title:"한조고 동문 네트워크 모임",
-text:"2026 한조고 동문 네트워크 모임 주요 일정 및 참가 안내",
+title:"한조고 네트워크",
+text:"2026 네트워크 모임 정보와 공개 동문 프로필을 확인해보세요.",
 url:location.href
 });
 
@@ -2779,20 +2697,6 @@ if(copyPaymentAccount){
   });
 }
 
-const timelineToggle=document.getElementById("timelineToggle");
-const timelineWrap=document.getElementById("timelineWrap");
-if(timelineToggle && timelineWrap){
-  timelineToggle.addEventListener("click",()=>{
-    const open=timelineToggle.getAttribute("aria-expanded")==="true";
-    const next=!open;
-    timelineToggle.setAttribute("aria-expanded",next?"true":"false");
-    timelineToggle.textContent=next?"▴":"▾";
-    timelineToggle.title=next?"일정 접기":"일정 펼치기";
-    timelineWrap.hidden=!next;
-  });
-}
-
-
 function setupPublicFolds(){
   document.querySelectorAll(".public-fold-head[data-fold-target]").forEach(btn=>{
     const body=document.getElementById(btn.dataset.foldTarget);
@@ -2812,10 +2716,10 @@ function setupPublicFolds(){
 }
 setupPublicFolds();
 
-let protectedAppStarted=false;
-function startProtectedApp(){
-  if(protectedAppStarted)return;
-  protectedAppStarted=true;
+let publicAppStarted=false;
+function startPublicApp(){
+  if(publicAppStarted)return;
+  publicAppStarted=true;
 
   loadPublicInfo();
   loadNetworkProfiles();
@@ -2832,150 +2736,12 @@ function startProtectedApp(){
     renderParticipantStats();
   },30000);
 
-  setInterval(loadPublicInfo,15000);
+  setInterval(loadPublicInfo,60000);
 
   if(openAttendeesAfterAuth)setTimeout(openAttendeeModal,180);
 }
 
-async function verifyHanjogoAccess(session){
-  if(!session?.access_token)return false;
-  const {data,error}=await sb.functions.invoke("hanjogo-access",{
-    body:{action:"verify"},
-    headers:{Authorization:"Bearer "+session.access_token}
-  });
-  if(error)throw error;
-  return !!data?.allowed;
-}
-
-function showAccessLoading(){
-  document.body.classList.add("access-pending");
-  document.getElementById("accessGate").hidden=false;
-  const loading=document.getElementById("accessLoading");
-  if(loading)loading.hidden=false;
-  document.getElementById("accessSignedOut").hidden=true;
-  document.getElementById("accessDenied").hidden=true;
-}
-
-async function showSignedOutGate(message=""){
-  document.body.classList.add("access-pending");
-  document.getElementById("accessGate").hidden=false;
-  const loading=document.getElementById("accessLoading");
-  if(loading)loading.hidden=true;
-  document.getElementById("accessSignedOut").hidden=false;
-  document.getElementById("accessDenied").hidden=true;
-  document.getElementById("accessStatus").textContent=message;
-  restoreAccessLoginCooldown();
-}
-
-async function showDeniedGate(email){
-  document.body.classList.add("access-pending");
-  document.getElementById("accessGate").hidden=false;
-  const loading=document.getElementById("accessLoading");
-  if(loading)loading.hidden=true;
-  document.getElementById("accessSignedOut").hidden=true;
-  document.getElementById("accessDenied").hidden=false;
-  document.getElementById("accessDeniedEmail").textContent=email||"";
-}
-
-function unlockDashboard(){
-  document.getElementById("accessGate").hidden=true;
-  document.body.classList.remove("access-pending");
-  startProtectedApp();
-}
-
-async function checkCurrentAccess(){
-  unlockDashboard();
-}
-
-let accessLoginCooldownTimer=null;
-const ACCESS_LOGIN_COOLDOWN_KEY="hanjogo_login_cooldown_until";
-
-function getAccessCooldownLeft(){
-  const until=Number(localStorage.getItem(ACCESS_LOGIN_COOLDOWN_KEY)||0);
-  if(!until)return 0;
-  return Math.max(0,Math.ceil((until-Date.now())/1000));
-}
-
-function clearAccessCooldown(){
-  localStorage.removeItem(ACCESS_LOGIN_COOLDOWN_KEY);
-}
-
-function setAccessLoginCooldown(seconds=60,persist=true){
-  const btn=document.getElementById("accessLoginBtn");
-  const status=document.getElementById("accessStatus");
-  if(!btn)return;
-  clearInterval(accessLoginCooldownTimer);
-
-  if(persist){
-    localStorage.setItem(ACCESS_LOGIN_COOLDOWN_KEY,String(Date.now()+seconds*1000));
-  }
-
-  const tick=()=>{
-    const left=getAccessCooldownLeft();
-    if(left<=0){
-      clearInterval(accessLoginCooldownTimer);
-      clearAccessCooldown();
-      btn.disabled=false;
-      btn.textContent="인증메일 다시 받기";
-      if(status&&/후 다시/.test(status.textContent||"")) status.textContent="지금 다시 인증메일을 받을 수 있습니다.";
-      return;
-    }
-    btn.disabled=true;
-    btn.textContent="다시 받기까지 "+left+"초";
-    if(status)status.textContent="인증메일을 다시 받으려면 "+left+"초 기다려주세요.";
-  };
-
-  tick();
-  accessLoginCooldownTimer=setInterval(tick,1000);
-}
-
-function restoreAccessLoginCooldown(){
-  const left=getAccessCooldownLeft();
-  if(left>0)setAccessLoginCooldown(left,false);
-}
-
-document.getElementById("accessLoginForm")?.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const email=String(document.getElementById("accessEmail")?.value||"").trim().toLowerCase();
-  const status=document.getElementById("accessStatus");
-  const btn=document.getElementById("accessLoginBtn");
-  if(!email||btn?.disabled)return;
-  if(btn){btn.disabled=true;btn.textContent="로그인 확인 중...";}
-  status.textContent="인증메일을 보내는 중입니다.";
-  const redirectTo=location.origin+location.pathname+location.search;
-  const {error}=await sb.auth.signInWithOtp({
-    email,
-    options:{emailRedirectTo:redirectTo,shouldCreateUser:true}
-  });
-  if(error){
-    const msg=String(error.message||"");
-    const rateLimited=/rate|seconds|too many|limit/i.test(msg);
-    if(rateLimited){
-      const secMatch=msg.match(/(\d+)\s*(?:seconds?|초)/i);
-      const waitSeconds=secMatch?Math.max(1,Number(secMatch[1])):60;
-      localStorage.setItem(ACCESS_LOGIN_COOLDOWN_KEY,String(Date.now()+waitSeconds*1000));
-      setAccessLoginCooldown(waitSeconds,false);
-    }else{
-      status.textContent="로그인 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
-      if(btn){btn.disabled=false;btn.textContent="로그인";}
-    }
-    return;
-  }
-  status.textContent="인증메일을 보냈습니다. 메일의 로그인 링크를 눌러주세요.";
-  setAccessLoginCooldown(60);
-});
-
-async function signOutAccess(){
-  await sb.auth.signOut();
-  protectedAppStarted=false;
-  location.reload();
-}
-document.getElementById("accessLogoutBtn")?.addEventListener("click",signOutAccess);
-document.getElementById("accessSwitchEmail")?.addEventListener("click",signOutAccess);
-
-sb.auth.onAuthStateChange(()=>{});
-
-checkCurrentAccess();
+startPublicApp();
 setSiteView(currentSiteView(),{updateHash:false});
 
 </script>

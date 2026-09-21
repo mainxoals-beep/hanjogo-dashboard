@@ -157,6 +157,13 @@ body.modal-open{overflow:hidden}
 }
 
 /* alumni network profile directory */
+.network-profile-launch{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px;padding:15px 17px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.network-profile-launch-title{font-size:14px;font-weight:900;color:var(--purple-dark)}
+.network-profile-launch-sub{margin-top:3px;font-size:10.5px;color:var(--mute)}
+.network-profile-open-btn{flex:0 0 auto;border:0;border-radius:10px;padding:10px 13px;background:var(--purple);color:#fff;font-size:11.5px;font-weight:900;cursor:pointer}
+.network-profile-open-btn:hover{background:var(--purple-dark)}
+.network-profile-dialog{width:min(920px,100%)}
+.network-profile-modal-body{overflow:auto;padding:0 20px 20px}
 .network-profile-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .network-profile-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:11px}
 .network-profile-title{font-size:15px;font-weight:900;color:var(--purple-dark)}
@@ -173,7 +180,12 @@ body.modal-open{overflow:hidden}
 .network-profile-more{display:block;width:100%;margin-top:10px;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff;color:var(--purple-dark);font-size:11px;font-weight:800}
 .network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:11.5px}
 .network-profile-privacy{margin-top:9px;color:var(--mute);font-size:10px;line-height:1.55}
-@media(max-width:620px){.network-profile-list{grid-template-columns:1fr}}
+@media(max-width:620px){
+  .network-profile-list{grid-template-columns:1fr}
+  .network-profile-launch{align-items:flex-start;flex-direction:column}
+  .network-profile-open-btn{width:100%}
+  .network-profile-modal-body{padding:0 16px 18px}
+}
 </style>
 </head>
 <body>
@@ -345,19 +357,34 @@ body.modal-open{overflow:hidden}
 </div>
 </div>
 
-<div class="network-profile-card" id="networkProfileCard">
-  <div class="network-profile-head">
-    <div>
-      <div class="network-profile-title">한조고 동문 네트워크</div>
-      <div class="network-profile-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
+<div class="network-profile-launch">
+  <div>
+    <div class="network-profile-launch-title">한조고 동문 네트워크</div>
+    <div class="network-profile-launch-sub" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
+  </div>
+  <button class="network-profile-open-btn" id="networkProfileOpenBtn" type="button">동문 네트워크 보기</button>
+</div>
+
+<div class="attendee-modal" id="networkProfileModal" hidden aria-hidden="true">
+  <div class="attendee-dialog network-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="networkProfileModalTitle">
+    <div class="attendee-head">
+      <div>
+        <div class="attendee-title" id="networkProfileModalTitle">한조고 동문 네트워크</div>
+        <div class="attendee-desc">공개에 동의한 동문의 정보만 표시됩니다. 각 동문이 선택한 공개 범위에 따라 내용이 다를 수 있습니다.</div>
+      </div>
+      <button type="button" class="attendee-close" id="networkProfileCloseBtn" aria-label="닫기">×</button>
+    </div>
+    <div class="attendee-tools">
+      <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="기수 · 이름 · 소속 · 활동 분야 검색">
+    </div>
+    <div class="network-profile-modal-body">
+      <div class="network-profile-list" id="networkProfileList">
+        <div class="network-profile-empty">프로필을 불러오는 중입니다.</div>
+      </div>
+      <button class="network-profile-more" id="networkProfileMore" type="button" hidden>더 보기</button>
+      <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. 이메일·연락처 등 개인정보는 공개하지 않습니다.</div>
     </div>
   </div>
-  <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="기수 · 이름 · 소속 · 활동 분야 검색">
-  <div class="network-profile-list" id="networkProfileList">
-    <div class="network-profile-empty">프로필을 불러오는 중입니다.</div>
-  </div>
-  <button class="network-profile-more" id="networkProfileMore" type="button" hidden>더 보기</button>
-  <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. 이메일·연락처 등 개인정보는 공개하지 않습니다.</div>
 </div>
 
 <div class="next-card">
@@ -1323,6 +1350,32 @@ async function loadNetworkProfiles(){
 }
 document.getElementById("networkProfileSearch")?.addEventListener("input",()=>{networkProfileLimit=30;renderNetworkProfiles();});
 document.getElementById("networkProfileMore")?.addEventListener("click",()=>{networkProfileLimit+=30;renderNetworkProfiles();});
+
+const networkProfileOpenBtn=document.getElementById("networkProfileOpenBtn");
+const networkProfileModal=document.getElementById("networkProfileModal");
+const networkProfileCloseBtn=document.getElementById("networkProfileCloseBtn");
+function openNetworkProfileModal(){
+  if(!networkProfileModal)return;
+  networkProfileLimit=30;
+  const search=document.getElementById("networkProfileSearch");
+  if(search)search.value="";
+  renderNetworkProfiles();
+  networkProfileModal.hidden=false;
+  networkProfileModal.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+  setTimeout(()=>search?.focus(),30);
+}
+function closeNetworkProfileModal(){
+  if(!networkProfileModal)return;
+  networkProfileModal.hidden=true;
+  networkProfileModal.setAttribute("aria-hidden","true");
+  document.body.classList.remove("modal-open");
+}
+networkProfileOpenBtn?.addEventListener("click",openNetworkProfileModal);
+networkProfileCloseBtn?.addEventListener("click",closeNetworkProfileModal);
+networkProfileModal?.addEventListener("click",e=>{if(e.target===networkProfileModal)closeNetworkProfileModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&networkProfileModal&&!networkProfileModal.hidden)closeNetworkProfileModal();});
+
 loadNetworkProfiles();
 setInterval(loadNetworkProfiles,60000);
 

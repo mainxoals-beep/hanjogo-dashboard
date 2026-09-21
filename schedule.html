@@ -224,7 +224,7 @@ body.modal-open{overflow:hidden}
 .network-hub-stat b{font-size:18px;color:var(--purple-dark)}
 .network-hub-stat small{font-size:9.5px;color:var(--mute)}
 .network-hub-actions{display:grid;grid-template-columns:1.35fr .65fr;gap:8px}
-.network-hub-btn{border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:900;cursor:pointer}
+.network-hub-btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:900;text-align:center;text-decoration:none;cursor:pointer}
 .network-hub-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
 .network-hub-btn:hover{transform:translateY(-1px)}
 .network-hub-meta{margin-top:8px;font-size:10px;color:var(--mute)}
@@ -503,7 +503,7 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 .site-home-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;color:var(--purple-dark)}
 .site-home-title{margin-top:7px;font-size:23px;line-height:1.25;font-weight:950;color:var(--ink)}
 .site-home-desc{margin-top:8px;font-size:12px;line-height:1.7;color:var(--sub)}
-.site-home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.site-home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .site-home-card{
   display:flex;min-height:165px;flex-direction:column;padding:17px;
   border:1px solid var(--line);border-radius:18px;background:#fff;text-align:left;cursor:pointer;
@@ -522,20 +522,20 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 .site-alumni-actions{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap}
 .site-alumni-actions a{display:inline-flex;text-decoration:none;align-items:center;justify-content:center}
 body.site-view-network #networkProfileModal,
-body.site-view-alumni #alumniDbModal{
+body.site-view-network #alumniDbModal{
   position:static!important;inset:auto!important;z-index:auto!important;padding:0!important;
   background:transparent!important;display:block!important
 }
 body.site-view-network #networkProfileModal .attendee-dialog,
-body.site-view-alumni #alumniDbModal .attendee-dialog{
+body.site-view-network #alumniDbModal .attendee-dialog{
   width:100%!important;max-width:none!important;max-height:none!important;margin:0!important;
   border-radius:18px!important;box-shadow:none!important
 }
 body.site-view-network #networkProfileModal .attendee-close,
 body.site-view-network #networkProfileModal .modal-size-btn,
-body.site-view-alumni #alumniDbModal .attendee-close{display:none!important}
-body.site-view-network.modal-open,
-body.site-view-alumni.modal-open{overflow:auto!important}
+body.site-view-network #alumniDbModal .attendee-close{display:none!important}
+body.site-view-network #alumniDbModal{margin-bottom:14px!important}
+body.site-view-network.modal-open{overflow:auto!important}
 @media(max-width:720px){
   .site-nav{overflow-x:auto;scrollbar-width:none;margin-left:-2px;margin-right:-2px}
   .site-nav::-webkit-scrollbar{display:none}
@@ -598,14 +598,13 @@ body.site-view-alumni.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="home">홈</button>
   <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
   <button class="site-nav-btn" type="button" data-site-target="network">동문 네트워크</button>
-  <button class="site-nav-btn" type="button" data-site-target="alumni">졸업생 DB</button>
 </nav>
 
 <section class="site-home site-view" id="siteHome" data-site-view="home">
   <div class="site-home-hero">
     <div class="site-home-kicker">KCAS ALUMNI NETWORK</div>
     <div class="site-home-title">졸업 이후에도 이어지는 한조고 네트워크</div>
-    <div class="site-home-desc">2026 네트워크 모임 정보부터 졸업생 DB, 공개 동문 프로필까지 한곳에서 확인할 수 있습니다.</div>
+    <div class="site-home-desc">2026 네트워크 모임 정보와 졸업생 DB·공개 동문 프로필을 한곳에서 확인할 수 있습니다.</div>
   </div>
   <div class="site-home-grid">
     <button class="site-home-card" type="button" data-site-target="event">
@@ -619,15 +618,8 @@ body.site-view-alumni.modal-open{overflow:auto!important}
       <div class="site-home-card-kicker">ALUMNI NETWORK</div>
       <div class="site-home-card-title">동문 네트워크</div>
       <div class="site-home-card-value" id="homeNetworkCount">-</div>
-      <div class="site-home-card-meta">공개에 동의한 동문 프로필을 찾아볼 수 있습니다.</div>
-      <div class="site-home-card-link">동문 찾기 →</div>
-    </button>
-    <button class="site-home-card" type="button" data-site-target="alumni">
-      <div class="site-home-card-kicker">ALUMNI DATABASE</div>
-      <div class="site-home-card-title">졸업생 DB</div>
-      <div class="site-home-card-value" id="homeAlumniCount">-</div>
-      <div class="site-home-card-meta">기수별 등록 현황을 확인하고 새로 등록할 수 있습니다.</div>
-      <div class="site-home-card-link">DB 현황 보기 →</div>
+      <div class="site-home-card-meta" id="homeNetworkMeta">졸업생 DB 현황과 공개 동문 프로필을 함께 확인할 수 있습니다.</div>
+      <div class="site-home-card-link">동문 정보 보기 →</div>
     </button>
   </div>
 </section>
@@ -652,7 +644,7 @@ body.site-view-alumni.modal-open{overflow:auto!important}
 <div class="site-page-intro site-view" data-site-view="network">
   <div class="site-page-kicker">ALUMNI NETWORK</div>
   <div class="site-page-title">동문 네트워크</div>
-  <div class="site-page-desc">기수, 이름, 소속과 활동 분야를 기준으로 동문을 찾아보세요. 공개에 동의한 정보만 표시됩니다.</div>
+  <div class="site-page-desc">졸업생 DB 등록 현황을 확인하고, 기수·이름·소속·활동 분야를 기준으로 공개 동문을 찾아보세요.</div>
 </div>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
@@ -665,8 +657,8 @@ body.site-view-alumni.modal-open{overflow:auto!important}
     <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small></div>
   </div>
   <div class="network-hub-actions">
-    <button class="network-hub-btn primary" id="networkProfileOpenBtn" type="button">동문 네트워크 보기</button>
-    <button class="network-hub-btn" id="alumniDbOpenBtn" type="button">졸업생 DB 현황</button>
+    <a class="network-hub-btn primary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+    <a class="network-hub-btn" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">프로필 등록·수정</a>
   </div>
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
 </div>
@@ -816,9 +808,9 @@ body.site-view-alumni.modal-open{overflow:auto!important}
 </div>
 </div>
 
-<div class="public-fold site-view" data-site-view="event">
+<div class="public-fold site-view" data-site-view="home">
 <button class="public-fold-head" type="button" data-fold-target="publicResourceBody" aria-expanded="false">
-  <span><span class="public-fold-title">공식 링크</span><span class="public-fold-sub">Instagram · 카카오채널 · 참가신청 등</span></span>
+  <span><span class="public-fold-title">공식 링크</span><span class="public-fold-sub">Instagram · 카카오채널</span></span>
   <span class="public-fold-icon">▾</span>
 </button>
 <div class="public-fold-body" id="publicResourceBody" hidden>
@@ -836,15 +828,6 @@ body.site-view-alumni.modal-open{overflow:auto!important}
 </div>
 </div>
 
-<div class="site-page-intro site-view" data-site-view="alumni">
-  <div class="site-page-kicker">ALUMNI DATABASE</div>
-  <div class="site-page-title">졸업생 DB</div>
-  <div class="site-page-desc">한조고 동문 네트워크의 기반이 되는 졸업생 등록 현황입니다. 개인정보는 공개하지 않고 집계 정보만 보여드립니다.</div>
-</div>
-<div class="site-alumni-actions site-view" data-site-view="alumni">
-  <a class="network-hub-btn primary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-  <a class="network-hub-btn" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">네트워크 프로필 등록하기</a>
-</div>
 <div class="attendee-modal" id="alumniDbModal" hidden aria-hidden="true">
   <div class="attendee-dialog alumni-db-dialog" role="dialog" aria-modal="true" aria-labelledby="alumniDbModalTitle">
     <div class="attendee-head">
@@ -1288,9 +1271,6 @@ function renderHeaderAndInfo(){
 
 const p=publicInfo;
 
-const g=
-getApplicationGate();
-
 heroDate.textContent=
 formatEventDate(
 p.eventDate
@@ -1388,63 +1368,6 @@ r.push(
 <div class="r-k">KakaoTalk Channel</div>
 <div class="r-v">${esc(p.kakaoName||"한조고 아카이브")}</div>
 </a>`
-);
-
-}
-
-if(p.dbFormUrl){
-
-r.push(
-`<a class="resource-item" href="${esc(p.dbFormUrl)}" target="_blank">
-<div class="r-k">졸업생 DB 등록</div>
-<div class="r-v">구글폼 바로가기</div>
-</a>`
-);
-
-}
-
-if(g.isOpen){
-
-r.push(
-`<a class="resource-item" href="${esc(g.url)}" target="_blank" rel="noopener">
-<div class="r-k">2026 행사 참가 신청</div>
-<div class="r-v">2차 참가신청 하기</div>
-</a>`
-);
-
-}
-
-else if(g.isClosed){
-
-const requestSubject="[한조고 네트워크] 추가 참가신청 요청";
-const requestBody="안녕하세요.\n\n10월 18일 한조고 네트워크 모임 추가 참가 가능 여부를 문의드립니다.\n\n이름:\n기수:\n연락처:\n\n감사합니다.";
-const requestMailto=
-"mailto:"+encodeURIComponent(p.contactEmail||"mainxoals@gmail.com")+
-"?subject="+encodeURIComponent(requestSubject)+
-"&body="+encodeURIComponent(requestBody);
-
-r.push(
-`<a class="resource-item" href="${esc(requestMailto)}">
-<div class="r-k">2026 행사 참가 신청</div>
-<div class="r-v">
-참가신청 요청하기
-<span class="ready-badge">별도 문의</span>
-</div>
-</a>`
-);
-
-}
-
-else{
-
-r.push(
-`<div class="resource-item disabled">
-<div class="r-k">2026 행사 참가 신청</div>
-<div class="r-v">
-9월 14일 오후 2시 오픈 예정
-<span class="ready-badge">준비 중</span>
-</div>
-</div>`
 );
 
 }
@@ -2009,75 +1932,25 @@ document.getElementById("networkProfileList")?.addEventListener("click",e=>{
   window.open(gmailUrl,"_blank","noopener");
 });
 
-const networkProfileOpenBtn=document.getElementById("networkProfileOpenBtn");
 const networkProfileModal=document.getElementById("networkProfileModal");
-const networkProfileCloseBtn=document.getElementById("networkProfileCloseBtn");
-function openNetworkProfileModal(){
-  if(!networkProfileModal)return;
-  networkProfileLimit=30;
-  networkGenerationFilter="none";
-  const search=document.getElementById("networkProfileSearch");
-  if(search)search.value="";
-  renderNetworkProfiles();
-  networkProfileModal.hidden=false;
-  networkProfileModal.setAttribute("aria-hidden","false");
-  document.body.classList.add("modal-open");
-  setTimeout(()=>search?.focus(),30);
-}
-function closeNetworkProfileModal(){
-  if(!networkProfileModal)return;
-  if(document.body.classList.contains("site-view-network")){
-    setSiteView("home");
-    return;
-  }
-  networkProfileModal.hidden=true;
-  networkProfileModal.setAttribute("aria-hidden","true");
-  document.body.classList.remove("modal-open");
-}
-networkProfileOpenBtn?.addEventListener("click",()=>setSiteView("network"));
-networkProfileCloseBtn?.addEventListener("click",closeNetworkProfileModal);
 document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
   const dialog=networkProfileModal?.querySelector(".network-profile-dialog");
   if(!dialog)return;
   const expanded=dialog.classList.toggle("is-expanded");
   e.currentTarget.textContent=expanded?"기본 크기":"크게 보기";
 });
-networkProfileModal?.addEventListener("click",e=>{if(e.target===networkProfileModal)closeNetworkProfileModal();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&networkProfileModal&&!networkProfileModal.hidden)closeNetworkProfileModal();});
 
-const alumniDbOpenBtn=document.getElementById("alumniDbOpenBtn");
 const alumniDbModal=document.getElementById("alumniDbModal");
-const alumniDbCloseBtn=document.getElementById("alumniDbCloseBtn");
-function openAlumniDbModal(){
-  if(!alumniDbModal)return;
-  alumniDbModal.hidden=false;
-  alumniDbModal.setAttribute("aria-hidden","false");
-  document.body.classList.add("modal-open");
-}
-function closeAlumniDbModal(){
-  if(!alumniDbModal)return;
-  if(document.body.classList.contains("site-view-alumni")){
-    setSiteView("home");
-    return;
-  }
-  alumniDbModal.hidden=true;
-  alumniDbModal.setAttribute("aria-hidden","true");
-  document.body.classList.remove("modal-open");
-}
-alumniDbOpenBtn?.addEventListener("click",()=>setSiteView("alumni"));
-alumniDbCloseBtn?.addEventListener("click",closeAlumniDbModal);
-alumniDbModal?.addEventListener("click",e=>{if(e.target===alumniDbModal)closeAlumniDbModal();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&alumniDbModal&&!alumniDbModal.hidden)closeAlumniDbModal();});
 
 
 
 
-const SITE_VIEWS=new Set(["home","event","network","alumni"]);
+const SITE_VIEWS=new Set(["home","event","network"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
   const networkCount=document.getElementById("homeNetworkCount");
-  const alumniCount=document.getElementById("homeAlumniCount");
+  const networkMeta=document.getElementById("homeNetworkMeta");
   const participant=document.getElementById("participantHighlight");
   const publicCount=document.getElementById("networkPublicCount");
   const alumniSource=document.getElementById("networkAlumniCount");
@@ -2090,16 +1963,19 @@ function syncHomeSummary(){
   }
   if(networkCount){
     const txt=String(publicCount?.textContent||"").trim();
-    networkCount.textContent=txt&&txt!=="-" ? txt+" 공개" : "-";
+    networkCount.textContent=txt&&txt!=="-" ? "공개 프로필 "+txt+"명" : "-";
   }
-  if(alumniCount){
+  if(networkMeta){
     const txt=String(alumniSource?.textContent||"").trim();
-    alumniCount.textContent=txt&&txt!=="-" ? txt+" 등록" : "-";
+    networkMeta.textContent=txt&&txt!=="-"
+      ? "졸업생 DB "+txt+"명 등록 · 공개 동문을 함께 확인할 수 있습니다."
+      : "졸업생 DB 현황과 공개 동문 프로필을 함께 확인할 수 있습니다.";
   }
 }
 
 function currentSiteView(){
   const raw=String(location.hash||"#home").replace(/^#/,"").toLowerCase();
+  if(raw==="alumni")return "network";
   return SITE_VIEWS.has(raw)?raw:"home";
 }
 
@@ -2129,7 +2005,7 @@ function setSiteView(view,{updateHash=true}={}){
   }
 
   if(alumniDbModal){
-    const on=next==="alumni";
+    const on=next==="network";
     alumniDbModal.hidden=!on;
     alumniDbModal.setAttribute("aria-hidden",on?"false":"true");
     if(on)renderAlumni();

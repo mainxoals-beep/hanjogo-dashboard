@@ -437,7 +437,7 @@ body.modal-open{overflow:hidden}
     <div class="attendee-head">
       <div>
         <div class="attendee-title" id="attendeeModalTitle">참가자 현황 · 명단</div>
-        <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 준비·운영위원은 실명, 그 외 참가자는 이름 일부를 가려 표시합니다.</div>
+        <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 동문 네트워크에서 실명 공개를 선택한 참가자는 행사 명단에도 실명으로 표시됩니다.</div>
       </div>
       <div class="modal-head-actions">
         <button type="button" class="modal-size-btn" id="attendeeSizeBtn" aria-label="팝업 크게 보기">크게 보기</button>
@@ -1535,7 +1535,8 @@ function buildPublicNetworkProfile(r){
   const email=networkGet(r,"Email Address");
   const contactConsent=networkGet(r,"동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
   const allowEmailContact=contactConsent.includes("허용합니다");
-  return {name,gen,company,work,activity,region,instagram,bio,connect,email,allowEmailContact,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
+  const fullNamePublic=mode.includes("실명 전체");
+  return {name,actualName:actual,fullNamePublic,gen,company,work,activity,region,instagram,bio,connect,email,allowEmailContact,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
 }
 function renderNetworkGenerationNav(){
   const nav=document.getElementById("networkGenerationNav");
@@ -1628,6 +1629,7 @@ async function loadNetworkProfiles(){
     networkProfiles=networkRows(parseNetworkCsv(text)).map(buildPublicNetworkProfile).filter(Boolean)
       .sort((a,b)=>a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
     renderNetworkProfiles();
+    renderPublicAttendees(document.getElementById("attendeeSearch")?.value||"");
   }catch(e){
     console.error("동문 네트워크 CSV 연동 실패",e);
     if(meta)meta.textContent="동문 프로필 연동 확인 중";
@@ -1972,6 +1974,40 @@ grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).jo
 
 let attendeeGenerationFilter=null;
 
+function attendeeNameKey(v){
+  return String(v||"").replace(/\s+/g,"").toLowerCase();
+}
+function resolveAttendeePublicName(attendee){
+  const current=String(attendee?.name||"");
+  if(!current || !current.includes("○")) return current;
+
+  const gen=Number(attendee?.generation);
+  const candidates=networkProfiles.filter(p=>{
+    if(!p?.fullNamePublic || !p?.actualName) return false;
+    if(Number(p.gen)!==gen) return false;
+    return maskNetworkName(p.actualName)===current;
+  });
+
+  if(candidates.length===1) return candidates[0].actualName;
+  if(candidates.length>1){
+    const aw=attendeeNameKey(attendee?.work);
+    const scored=candidates.map(p=>{
+      const texts=[p.company,p.work,p.activity].map(attendeeNameKey).filter(Boolean);
+      let score=0;
+      texts.forEach(t=>{
+        if(t && aw && (aw.includes(t)||t.includes(aw))) score+=4;
+        const pieces=t.split(/[\/·,()\s]+/).filter(x=>x.length>=2);
+        pieces.forEach(piece=>{ if(aw.includes(piece)) score+=1; });
+      });
+      return {p,score};
+    }).sort((a,b)=>b.score-a.score);
+    if(scored[0] && (scored.length===1 || scored[0].score>scored[1].score) && scored[0].score>0){
+      return scored[0].p.actualName;
+    }
+  }
+  return current;
+}
+
 function renderPublicAttendees(query=""){
 const list=document.getElementById("attendeeList");
 if(!list)return;
@@ -1979,7 +2015,8 @@ const q=String(query||"").trim().toLowerCase();
 const filtered=PUBLIC_ATTENDEES.filter(x=>{
   if(attendeeGenerationFilter!==null && Number(x.generation)!==Number(attendeeGenerationFilter))return false;
   if(!q)return true;
-  return [x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
+  const displayName=resolveAttendeePublicName(x);
+  return [displayName,x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
 });
 if(!filtered.length){
   list.innerHTML='<div class="attendee-empty">해당 조건의 참가자가 없습니다.</div>';
@@ -1989,7 +2026,7 @@ list.innerHTML=filtered.map(x=>`
   <div class="network-profile-item attendee-profile-item">
     <div class="network-profile-top">
       <span class="network-profile-gen">${x.generation}기</span>
-      <span class="network-profile-name">${esc(x.name)}</span>
+      <span class="network-profile-name">${esc(resolveAttendeePublicName(x))}</span>
       ${x.role?`<span class="attendee-card-role">${esc(x.role)}</span>`:""}
     </div>
     ${x.work?`<div class="network-profile-line"><span class="network-profile-label">소속 · 활동</span>${esc(x.work)}</div>`:""}

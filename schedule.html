@@ -1987,14 +1987,20 @@ function resolveAttendeePublicName(attendee){
   if(!current || !current.includes("○")) return current;
 
   const gen=Number(attendee?.generation);
+  const sameMaskedAttendees=PUBLIC_ATTENDEES.filter(x=>
+    Number(x.generation)===gen && String(x.name||"")===current
+  );
   const candidates=networkProfiles.filter(p=>{
     if(!p?.fullNamePublic || !p?.actualName) return false;
     if(Number(p.gen)!==gen) return false;
     return maskNetworkName(p.actualName)===current;
   });
 
-  if(candidates.length===1) return candidates[0].actualName;
-  if(candidates.length>1){
+  // 마스킹 이름이 참가자 명단에서 유일할 때만 단독 후보를 바로 실명으로 연결.
+  if(candidates.length===1 && sameMaskedAttendees.length===1) return candidates[0].actualName;
+
+  // 같은 기수에 동일한 마스킹 이름이 겹치면 소속/활동 정보가 실제로 맞는 경우에만 실명으로 연결.
+  if(candidates.length){
     const aw=attendeeNameKey(attendee?.work);
     const scored=candidates.map(p=>{
       const texts=[p.company,p.work,p.activity].map(attendeeNameKey).filter(Boolean);

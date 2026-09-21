@@ -470,7 +470,9 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 .access-input:focus{border-color:var(--purple)}
 .access-btn{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--purple);color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
 .access-btn.secondary{border:1px solid var(--line);background:#fff;color:var(--purple-dark)}
+.access-btn:disabled{opacity:.55;cursor:not-allowed}
 .access-status{min-height:19px;margin-top:10px;font-size:11px;line-height:1.55;color:var(--sub)}
+.access-login-help{margin-top:7px;font-size:9.8px;line-height:1.55;color:var(--mute);text-align:center}
 .access-register{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
 .access-register-title{font-size:11px;font-weight:900;color:var(--ink)}
 .access-register p{margin:5px 0 10px;font-size:10.5px;line-height:1.6;color:var(--mute)}
@@ -492,11 +494,12 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
     </div>
     <div id="accessSignedOut" hidden>
       <div class="access-title">등록된 이메일로 로그인해주세요</div>
-      <div class="access-desc">졸업생 DB에 등록된 이메일 또는 별도 승인된 이메일만 이용할 수 있습니다. 로그인 링크를 이메일로 보내드립니다.</div>
+      <div class="access-desc">졸업생 DB에 등록된 이메일 또는 별도 승인된 이메일만 이용할 수 있습니다.</div>
       <form class="access-form" id="accessLoginForm">
-        <input class="access-input" id="accessEmail" type="email" autocomplete="email" placeholder="example@email.com" required>
-        <button class="access-btn" type="submit">이메일로 로그인 링크 받기</button>
+        <input class="access-input" id="accessEmail" type="email" autocomplete="email" placeholder="등록한 이메일 주소" required>
+        <button class="access-btn" id="accessLoginBtn" type="submit">로그인</button>
       </form>
+      <div class="access-login-help">로그인 버튼을 누르면 입력한 이메일로 일회용 인증 링크가 발송됩니다.</div>
       <div class="access-status" id="accessStatus"></div>
       <div class="access-register">
         <div class="access-register-title">처음 방문하시나요?</div>
@@ -2768,20 +2771,50 @@ async function checkCurrentAccess(){
   }
 }
 
+let accessLoginCooldownTimer=null;
+function setAccessLoginCooldown(seconds=60){
+  const btn=document.getElementById("accessLoginBtn");
+  if(!btn)return;
+  clearInterval(accessLoginCooldownTimer);
+  let left=seconds;
+  btn.disabled=true;
+  btn.textContent="인증메일 발송 완료 · "+left+"초";
+  accessLoginCooldownTimer=setInterval(()=>{
+    left-=1;
+    if(left<=0){
+      clearInterval(accessLoginCooldownTimer);
+      btn.disabled=false;
+      btn.textContent="인증메일 다시 받기";
+      return;
+    }
+    btn.textContent="인증메일 발송 완료 · "+left+"초";
+  },1000);
+}
+
 document.getElementById("accessLoginForm")?.addEventListener("submit",async e=>{
   e.preventDefault();
   const email=String(document.getElementById("accessEmail")?.value||"").trim().toLowerCase();
   const status=document.getElementById("accessStatus");
-  if(!email)return;
-  status.textContent="로그인 링크를 보내는 중입니다.";
+  const btn=document.getElementById("accessLoginBtn");
+  if(!email||btn?.disabled)return;
+  if(btn){btn.disabled=true;btn.textContent="로그인 확인 중...";}
+  status.textContent="인증메일을 보내는 중입니다.";
   const redirectTo=location.origin+location.pathname+location.search;
   const {error}=await sb.auth.signInWithOtp({
     email,
     options:{emailRedirectTo:redirectTo,shouldCreateUser:true}
   });
-  status.textContent=error
-    ? "로그인 메일 발송에 실패했습니다. "+error.message
-    : "메일을 보냈습니다. 받은 편지함에서 로그인 링크를 눌러주세요.";
+  if(error){
+    const msg=String(error.message||"");
+    const rateLimited=/rate|seconds|too many|limit/i.test(msg);
+    status.textContent=rateLimited
+      ? "인증메일을 연속으로 요청했습니다. 잠시 후 다시 로그인해주세요."
+      : "로그인 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    if(btn){btn.disabled=false;btn.textContent="로그인";}
+    return;
+  }
+  status.textContent="인증메일을 보냈습니다. 메일의 로그인 링크를 눌러주세요.";
+  setAccessLoginCooldown(60);
 });
 
 async function signOutAccess(){

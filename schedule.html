@@ -442,7 +442,7 @@ body.modal-open{overflow:hidden}
     <div class="attendee-head">
       <div>
         <div class="attendee-title" id="attendeeModalTitle">참가자 현황 · 명단</div>
-        <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 동문 네트워크에서 실명 공개를 선택한 참가자는 행사 명단에도 실명으로 표시됩니다.</div>
+        <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 동문 네트워크에서 실명 공개를 선택한 참가자는 행사 명단에도 실명으로 표시됩니다. 참가자 명단 비공개를 선택한 동문은 명단에서 제외됩니다.</div>
       </div>
       <div class="modal-head-actions">
         <button type="button" class="modal-size-btn" id="attendeeSizeBtn" aria-label="팝업 크게 보기">크게 보기</button>
@@ -1460,6 +1460,7 @@ if(networkAlumniCount) networkAlumniCount.textContent=Number(alumniStats.total||
 const NETWORK_PROFILE_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQm2qyYr9BAEm-fyZvNyExxiPS9lcRBPi06n__Qq__WlRPvGF_Iou7x1lIjsmBgqpoqHo4M2syaFVxc/pub?gid=648141668&single=true&output=csv";
 const NETWORK_PROFILE_CSV_FALLBACK="https://docs.google.com/spreadsheets/d/1tCtxM55yxwdqayihB56qsxFI8qWNzliB6N8wRxIJrQk/gviz/tq?tqx=out:csv&gid=648141668";
 let networkProfiles=[];
+let networkProfileRows=[];
 let networkProfileLimit=30;
 let networkGenerationFilter="none";
 function parseNetworkCsv(text){
@@ -1625,7 +1626,8 @@ async function loadNetworkProfiles(){
   const meta=document.getElementById("networkProfileMeta");
   try{
     const text=await fetchNetworkCsv();
-    networkProfiles=networkRows(parseNetworkCsv(text)).map(buildPublicNetworkProfile).filter(Boolean)
+    networkProfileRows=networkRows(parseNetworkCsv(text));
+    networkProfiles=networkProfileRows.map(buildPublicNetworkProfile).filter(Boolean)
       .sort((a,b)=>a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
     renderNetworkProfiles();
     renderPublicAttendees(document.getElementById("attendeeSearch")?.value||"");
@@ -2032,6 +2034,58 @@ let attendeeGenerationFilter=null;
 function attendeeNameKey(v){
   return String(v||"").replace(/\s+/g,"").toLowerCase();
 }
+function profileAttendeeVisibility(row){
+  const v=networkGet(row,"행사 참가자 명단에 표시해도 될까요?");
+  if(!v)return null;
+  if(v.includes("표시하지"))return false;
+  if(v.includes("표시"))return true;
+  return null;
+}
+function attendeeProfileMatchScore(attendee,row){
+  const actual=networkGet(row,"이름");
+  const gen=Number(networkGet(row,"졸업 기수"));
+  if(!actual || gen!==Number(attendee?.generation))return -1;
+
+  const current=String(attendee?.name||"");
+  if(current && !current.includes("○") && attendeeNameKey(current)===attendeeNameKey(actual))return 100;
+  if(maskNetworkName(actual)!==current)return -1;
+
+  const aw=attendeeNameKey(attendee?.work);
+  const texts=[
+    networkGet(row,"현재 소속 / 직장 / 사업체·브랜드"),
+    networkGet(row,"현재 하는 일"),
+    networkGet(row,"활동 분야")
+  ].map(attendeeNameKey).filter(Boolean);
+  let score=1;
+  texts.forEach(t=>{
+    if(t && aw && (aw.includes(t)||t.includes(aw)))score+=10;
+    const pieces=t.split(/[\/·,()\s]+/).filter(x=>x.length>=2);
+    pieces.forEach(piece=>{if(aw.includes(piece))score+=1;});
+  });
+  return score;
+}
+function matchingProfileRowForAttendee(attendee){
+  const candidates=networkProfileRows
+    .map(row=>({row,score:attendeeProfileMatchScore(attendee,row)}))
+    .filter(x=>x.score>=0)
+    .sort((a,b)=>b.score-a.score);
+  if(!candidates.length)return null;
+
+  // If a masked name collides within the same generation, require a meaningful
+  // affiliation/activity match before applying a privacy choice to that card.
+  const sameMaskedCount=PUBLIC_ATTENDEES.filter(x=>
+    Number(x.generation)===Number(attendee?.generation) &&
+    String(x.name||"")===String(attendee?.name||"")
+  ).length;
+  if(sameMaskedCount>1 && candidates[0].score<=1)return null;
+  if(candidates.length>1 && candidates[0].score===candidates[1].score)return null;
+  return candidates[0].row;
+}
+function attendeeAllowedByProfile(attendee){
+  const row=matchingProfileRowForAttendee(attendee);
+  if(!row)return true;
+  return profileAttendeeVisibility(row)!==false;
+}
 function resolveAttendeePublicName(attendee){
   const current=String(attendee?.name||"");
   if(!current || !current.includes("○")) return current;
@@ -2082,6 +2136,7 @@ const list=document.getElementById("attendeeList");
 if(!list)return;
 const q=String(query||"").trim().toLowerCase();
 const filtered=PUBLIC_ATTENDEES.filter(x=>{
+  if(!attendeeAllowedByProfile(x))return false;
   if(attendeeGenerationFilter!==null && Number(x.generation)!==Number(attendeeGenerationFilter))return false;
   if(!q)return true;
   const displayName=resolveAttendeePublicName(x);

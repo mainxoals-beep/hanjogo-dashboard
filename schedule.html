@@ -313,6 +313,47 @@ body.modal-open{overflow:hidden}
   #attendeeModal .attendee-search{font-size:16px}
   #attendeeModal .attendee-list{grid-template-columns:1fr;padding:10px 16px 18px}
 }
+
+/* compact generation navigation + expandable modals */
+.modal-head-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.modal-size-btn{height:34px;border:1px solid var(--line);border-radius:9px;padding:0 10px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:800;cursor:pointer}
+.modal-size-btn:hover{background:var(--purple-light);border-color:var(--purple)}
+.attendee-dialog.is-expanded{width:min(1180px,calc(100vw - 28px));max-height:94vh}
+.attendee-summary{padding:10px 20px!important;background:#fff!important}
+.attendee-summary-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.attendee-summary-title{margin:0!important;font-size:11px!important}
+.generation-all-btn{border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:#fff;color:var(--sub);font-size:9.5px;font-weight:800;white-space:nowrap;cursor:pointer}
+.generation-all-btn.active,.generation-all-btn:hover{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+#attendeeModal .attendee-generation-grid{display:flex;gap:5px;overflow-x:auto;padding:0 0 2px!important;scrollbar-width:none}
+#attendeeModal .attendee-generation-grid::-webkit-scrollbar{display:none}
+#attendeeModal .attendee-generation-grid .generation-item{flex:0 0 auto;min-width:auto;padding:4px 7px!important;border-radius:999px!important;font-size:9.5px!important;line-height:1.1;cursor:pointer;display:flex;align-items:center;gap:4px;background:#F8F7F4!important}
+#attendeeModal .attendee-generation-grid .generation-item b{display:inline!important;margin:0!important;font-size:10px!important}
+#attendeeModal .attendee-generation-grid .generation-item.active{border-color:var(--purple);background:var(--purple-light)!important;color:var(--purple-dark)}
+#attendeeModal .attendee-list{align-content:start}
+
+.network-generation-nav{padding:12px 20px 10px;border-bottom:1px solid var(--line);background:#FCFBFE}
+.network-generation-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.network-generation-title{font-size:11.5px;font-weight:900;color:var(--purple-dark)}
+.network-generation-sub{margin-top:2px;font-size:9.5px;color:var(--mute)}
+.generation-chip-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.generation-chip-row::-webkit-scrollbar{display:none}
+.generation-chip{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:#fff;color:var(--sub);font-size:10px;font-weight:800;cursor:pointer}
+.generation-chip.active,.generation-chip:hover{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.network-profile-dialog.is-expanded .network-profile-list{grid-template-columns:repeat(3,1fr)}
+.network-profile-dialog.is-expanded{width:min(1180px,calc(100vw - 28px));max-height:94vh}
+
+@media(max-width:620px){
+  .modal-size-btn{height:32px;padding:0 8px;font-size:10px}
+  .attendee-summary{padding:9px 16px!important}
+  .network-generation-nav{padding:11px 16px 9px}
+  .network-generation-head{align-items:flex-start}
+  .network-generation-sub{display:none}
+  .generation-all-btn{font-size:9px;padding:4px 8px}
+  #attendeeModal .attendee-generation-grid .generation-item{font-size:9px!important;padding:4px 6px!important}
+  #attendeeModal .attendee-generation-grid .generation-item b{font-size:9.5px!important}
+  .network-profile-dialog.is-expanded .network-profile-list{grid-template-columns:1fr}
+  .attendee-dialog.is-expanded,.network-profile-dialog.is-expanded{width:100%;max-height:96vh}
+}
 </style>
 </head>
 <body>
@@ -391,14 +432,20 @@ body.modal-open{overflow:hidden}
         <div class="attendee-title" id="attendeeModalTitle">참가자 현황 · 명단</div>
         <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 준비·운영위원은 실명, 그 외 참가자는 이름 일부를 가려 표시합니다.</div>
       </div>
-      <button type="button" class="attendee-close" id="attendeeCloseBtn" aria-label="닫기">×</button>
+      <div class="modal-head-actions">
+        <button type="button" class="modal-size-btn" id="attendeeSizeBtn" aria-label="팝업 크게 보기">크게 보기</button>
+        <button type="button" class="attendee-close" id="attendeeCloseBtn" aria-label="닫기">×</button>
+      </div>
     </div>
     <div class="attendee-summary">
-      <div class="attendee-summary-title">기수별 참가 현황</div>
+      <div class="attendee-summary-top">
+        <div class="attendee-summary-title">기수별 참가 현황</div>
+        <button type="button" class="generation-all-btn active" id="attendeeAllGenBtn">전체 보기</button>
+      </div>
       <div class="generation-grid attendee-generation-grid" id="generationGrid"></div>
     </div>
     <div class="attendee-tools">
-      <input class="attendee-search" id="attendeeSearch" type="search" placeholder="기수 · 이름 · 소속/하는 일 검색">
+      <input class="attendee-search" id="attendeeSearch" type="search" placeholder="이름 · 소속/활동 검색">
     </div>
     <div class="attendee-list" id="attendeeList"></div>
   </div>
@@ -539,14 +586,27 @@ body.modal-open{overflow:hidden}
         <div class="attendee-title" id="networkProfileModalTitle">한조고 동문 네트워크</div>
         <div class="attendee-desc">공개에 동의한 동문의 정보만 표시됩니다. 각 동문이 선택한 공개 범위에 따라 내용이 다를 수 있습니다.</div>
       </div>
-      <button type="button" class="attendee-close" id="networkProfileCloseBtn" aria-label="닫기">×</button>
+      <div class="modal-head-actions">
+        <button type="button" class="modal-size-btn" id="networkProfileSizeBtn" aria-label="팝업 크게 보기">크게 보기</button>
+        <button type="button" class="attendee-close" id="networkProfileCloseBtn" aria-label="닫기">×</button>
+      </div>
+    </div>
+    <div class="network-generation-nav">
+      <div class="network-generation-head">
+        <div>
+          <div class="network-generation-title">기수로 찾기</div>
+          <div class="network-generation-sub">기수를 선택하면 해당 동문만 볼 수 있습니다.</div>
+        </div>
+        <button type="button" class="generation-all-btn" id="networkAllGenBtn">전체 기수 보기</button>
+      </div>
+      <div class="generation-chip-row" id="networkGenerationNav"></div>
     </div>
     <div class="attendee-tools">
-      <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="기수 · 이름 · 소속 · 활동 분야 검색">
+      <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="이름 · 소속 · 활동 분야 검색">
     </div>
     <div class="network-profile-modal-body">
       <div class="network-profile-list" id="networkProfileList">
-        <div class="network-profile-empty">프로필을 불러오는 중입니다.</div>
+        <div class="network-profile-empty">기수를 선택하거나 전체 기수 보기를 눌러주세요.</div>
       </div>
       <button class="network-profile-more" id="networkProfileMore" type="button" hidden>더 보기</button>
       <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. 이메일·연락처 등 개인정보는 공개하지 않습니다.</div>
@@ -1389,6 +1449,7 @@ const NETWORK_PROFILE_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1v
 const NETWORK_PROFILE_CSV_FALLBACK="https://docs.google.com/spreadsheets/d/1tCtxM55yxwdqayihB56qsxFI8qWNzliB6N8wRxIJrQk/gviz/tq?tqx=out:csv&gid=648141668";
 let networkProfiles=[];
 let networkProfileLimit=30;
+let networkGenerationFilter="none";
 function parseNetworkCsv(text){
   const rows=[]; let row=[],cell="",q=false;
   for(let i=0;i<text.length;i++){
@@ -1466,20 +1527,42 @@ function buildPublicNetworkProfile(r){
   const connect=networkAllowed(fields,"연결 희망 분야")?networkGet(r,"동문들과 어떤 분야로 연결되고 싶나요?"):"";
   return {name,gen,company,work,activity,region,instagram,bio,connect,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
 }
+function renderNetworkGenerationNav(){
+  const nav=document.getElementById("networkGenerationNav");
+  if(!nav)return;
+  const counts=new Map();
+  networkProfiles.forEach(p=>{
+    const g=Number(p.gen);
+    if(Number.isFinite(g)&&g>0)counts.set(g,(counts.get(g)||0)+1);
+  });
+  nav.innerHTML=[...counts.entries()].sort((a,b)=>a[0]-b[0]).map(([g,count])=>`
+    <button type="button" class="generation-chip ${networkGenerationFilter===g?"active":""}" data-generation="${g}">${g}기 · ${count}</button>
+  `).join("");
+  document.getElementById("networkAllGenBtn")?.classList.toggle("active",networkGenerationFilter==="all");
+}
 function renderNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
   const search=document.getElementById("networkProfileSearch");
   const more=document.getElementById("networkProfileMore");
   if(!list)return;
-  const q=networkNorm(search?.value||"");
-  const filtered=networkProfiles.filter(p=>{
-    if(!q)return true;
-    return networkNorm([p.gen,p.name,p.company,p.work,p.activity,p.region,p.bio,p.connect,p.instagram?.label].join(" ")).includes(q);
-  });
+  renderNetworkGenerationNav();
   if(meta)meta.textContent=`공개 동의 ${networkProfiles.length}명 · 구글폼 응답 자동 연동`;
   const networkPublicCount=document.getElementById("networkPublicCount");
   if(networkPublicCount)networkPublicCount.textContent=networkProfiles.length.toLocaleString()+"명";
+
+  const q=networkNorm(search?.value||"");
+  if(networkGenerationFilter==="none"&&!q){
+    list.innerHTML='<div class="network-profile-empty">기수를 선택하거나 <b>전체 기수 보기</b>를 눌러주세요.</div>';
+    if(more)more.hidden=true;
+    return;
+  }
+
+  const filtered=networkProfiles.filter(p=>{
+    if(typeof networkGenerationFilter==="number" && Number(p.gen)!==networkGenerationFilter)return false;
+    if(!q)return true;
+    return networkNorm([p.name,p.company,p.work,p.activity,p.region,p.bio,p.connect,p.instagram?.label].join(" ")).includes(q);
+  });
   if(!filtered.length){
     list.innerHTML='<div class="network-profile-empty">검색 결과가 없습니다.</div>';
     if(more)more.hidden=true;
@@ -1511,6 +1594,15 @@ function renderNetworkProfiles(){
     more.textContent=`더 보기 (${filtered.length-visible.length}명)`;
   }
 }
+function selectNetworkGeneration(gen){
+  networkGenerationFilter=gen;
+  networkProfileLimit=30;
+  const search=document.getElementById("networkProfileSearch");
+  if(search)search.value="";
+  renderNetworkProfiles();
+  document.querySelector(".network-profile-modal-body")?.scrollTo({top:0,behavior:"smooth"});
+}
+
 async function loadNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
@@ -1525,8 +1617,17 @@ async function loadNetworkProfiles(){
     if(list)list.innerHTML='<div class="network-profile-empty">프로필을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>';
   }
 }
-document.getElementById("networkProfileSearch")?.addEventListener("input",()=>{networkProfileLimit=30;renderNetworkProfiles();});
+document.getElementById("networkProfileSearch")?.addEventListener("input",()=>{
+  networkProfileLimit=30;
+  if(document.getElementById("networkProfileSearch")?.value.trim() && networkGenerationFilter==="none") networkGenerationFilter="all";
+  renderNetworkProfiles();
+});
 document.getElementById("networkProfileMore")?.addEventListener("click",()=>{networkProfileLimit+=30;renderNetworkProfiles();});
+document.getElementById("networkGenerationNav")?.addEventListener("click",e=>{
+  const btn=e.target.closest(".generation-chip[data-generation]");
+  if(btn)selectNetworkGeneration(Number(btn.dataset.generation));
+});
+document.getElementById("networkAllGenBtn")?.addEventListener("click",()=>selectNetworkGeneration("all"));
 
 const networkProfileOpenBtn=document.getElementById("networkProfileOpenBtn");
 const networkProfileModal=document.getElementById("networkProfileModal");
@@ -1534,6 +1635,7 @@ const networkProfileCloseBtn=document.getElementById("networkProfileCloseBtn");
 function openNetworkProfileModal(){
   if(!networkProfileModal)return;
   networkProfileLimit=30;
+  networkGenerationFilter="none";
   const search=document.getElementById("networkProfileSearch");
   if(search)search.value="";
   renderNetworkProfiles();
@@ -1550,6 +1652,12 @@ function closeNetworkProfileModal(){
 }
 networkProfileOpenBtn?.addEventListener("click",openNetworkProfileModal);
 networkProfileCloseBtn?.addEventListener("click",closeNetworkProfileModal);
+document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
+  const dialog=networkProfileModal?.querySelector(".network-profile-dialog");
+  if(!dialog)return;
+  const expanded=dialog.classList.toggle("is-expanded");
+  e.currentTarget.textContent=expanded?"기본 크기":"크게 보기";
+});
 networkProfileModal?.addEventListener("click",e=>{if(e.target===networkProfileModal)closeNetworkProfileModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&networkProfileModal&&!networkProfileModal.hidden)closeNetworkProfileModal();});
 
@@ -1818,7 +1926,7 @@ if(generationGrid){
     const g=Number(row?.generation);
     const count=Number(row?.count||0);
     if(!Number.isFinite(g)||!count)return "";
-    return `<div class="generation-item">${g}기<b>${count.toLocaleString()}명</b></div>`;
+    return `<button type="button" class="generation-item" data-generation="${g}">${g}기 <b>${count.toLocaleString()}명</b></button>`;
   }).join("");
 }
 
@@ -1845,16 +1953,19 @@ card.hidden=!brands.length;
 grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).join("");
 }
 
+let attendeeGenerationFilter=null;
+
 function renderPublicAttendees(query=""){
 const list=document.getElementById("attendeeList");
 if(!list)return;
 const q=String(query||"").trim().toLowerCase();
 const filtered=PUBLIC_ATTENDEES.filter(x=>{
+  if(attendeeGenerationFilter!==null && Number(x.generation)!==Number(attendeeGenerationFilter))return false;
   if(!q)return true;
-  return [x.generation+"기",x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
+  return [x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
 });
 if(!filtered.length){
-  list.innerHTML='<div class="attendee-empty">검색 결과가 없습니다.</div>';
+  list.innerHTML='<div class="attendee-empty">해당 조건의 참가자가 없습니다.</div>';
   return;
 }
 list.innerHTML=filtered.map(x=>`
@@ -1867,6 +1978,17 @@ list.innerHTML=filtered.map(x=>`
     ${x.work?`<div class="network-profile-line"><span class="network-profile-label">소속 · 활동</span>${esc(x.work)}</div>`:""}
   </div>
 `).join("");
+}
+function selectAttendeeGeneration(gen){
+  attendeeGenerationFilter=gen===null?null:Number(gen);
+  document.getElementById("attendeeAllGenBtn")?.classList.toggle("active",attendeeGenerationFilter===null);
+  document.querySelectorAll("#generationGrid .generation-item").forEach(el=>{
+    el.classList.toggle("active",Number(el.dataset.generation)===attendeeGenerationFilter);
+  });
+  const search=document.getElementById("attendeeSearch");
+  if(search)search.value="";
+  renderPublicAttendees("");
+  document.getElementById("attendeeList")?.scrollTo({top:0,behavior:"smooth"});
 }
 
 function renderPaymentAccount(){
@@ -2140,8 +2262,11 @@ const attendeeCloseBtn=document.getElementById("attendeeCloseBtn");
 const attendeeSearch=document.getElementById("attendeeSearch");
 function openAttendeeModal(){
   if(!attendeeModal)return;
-  renderPublicAttendees("");
+  attendeeGenerationFilter=null;
   if(attendeeSearch)attendeeSearch.value="";
+  renderPublicAttendees("");
+  document.getElementById("attendeeAllGenBtn")?.classList.add("active");
+  document.querySelectorAll("#generationGrid .generation-item").forEach(el=>el.classList.remove("active"));
   attendeeModal.hidden=false;
   attendeeModal.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
@@ -2155,6 +2280,17 @@ function closeAttendeeModal(){
 }
 attendeeOpenBtn?.addEventListener("click",openAttendeeModal);
 attendeeCloseBtn?.addEventListener("click",closeAttendeeModal);
+document.getElementById("attendeeAllGenBtn")?.addEventListener("click",()=>selectAttendeeGeneration(null));
+document.getElementById("generationGrid")?.addEventListener("click",e=>{
+  const btn=e.target.closest(".generation-item[data-generation]");
+  if(btn)selectAttendeeGeneration(Number(btn.dataset.generation));
+});
+document.getElementById("attendeeSizeBtn")?.addEventListener("click",e=>{
+  const dialog=attendeeModal?.querySelector(".attendee-dialog");
+  if(!dialog)return;
+  const expanded=dialog.classList.toggle("is-expanded");
+  e.currentTarget.textContent=expanded?"기본 크기":"크게 보기";
+});
 
 // 리플렛 QR 등에서 ?attendees=1 로 접속하면 참가자 명단을 바로 엽니다.
 const attendeeParams=new URLSearchParams(location.search);

@@ -445,9 +445,63 @@ body.modal-open{overflow:hidden}
   .head-title-row{gap:8px}
   .head-logo{width:36px;height:36px}
 }
+
+/* alumni access gate */
+body.access-pending{overflow:hidden}
+body.access-pending>.wrap{visibility:hidden;pointer-events:none}
+.access-gate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--ivory)}
+.access-gate[hidden]{display:none}
+.access-card{width:min(430px,100%);padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 18px 55px rgba(30,28,26,.12)}
+.access-brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.access-brand img{width:42px;height:42px;object-fit:contain}
+.access-brand-title{font-size:17px;font-weight:900;color:var(--ink)}
+.access-brand-sub{font-size:10px;color:var(--mute)}
+.access-title{font-size:19px;font-weight:900;color:var(--ink)}
+.access-desc{margin-top:7px;font-size:12px;line-height:1.65;color:var(--sub)}
+.access-form{display:grid;gap:8px;margin-top:17px}
+.access-input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:14px;outline:none}
+.access-input:focus{border-color:var(--purple)}
+.access-btn{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--purple);color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.access-btn.secondary{border:1px solid var(--line);background:#fff;color:var(--purple-dark)}
+.access-status{min-height:19px;margin-top:10px;font-size:11px;line-height:1.55;color:var(--sub)}
+.access-register{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
+.access-register-title{font-size:11px;font-weight:900;color:var(--ink)}
+.access-register p{margin:5px 0 10px;font-size:10.5px;line-height:1.6;color:var(--mute)}
+.access-session{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:10px;color:var(--mute)}
+.access-logout{border:0;background:transparent;color:var(--purple-dark);font-size:10px;font-weight:800;cursor:pointer}
 </style>
 </head>
-<body>
+<body class="access-pending">
+<div class="access-gate" id="accessGate">
+  <div class="access-card">
+    <div class="access-brand">
+      <img src="./assets/hanjogo-logo.svg" alt="KCAS 로고">
+      <div><div class="access-brand-title">한조고 네트워크</div><div class="access-brand-sub">한국조리과학고등학교 졸업생 네트워크</div></div>
+    </div>
+    <div id="accessSignedOut">
+      <div class="access-title">등록된 이메일로 로그인해주세요</div>
+      <div class="access-desc">졸업생 DB에 등록된 이메일 또는 별도 승인된 이메일만 이용할 수 있습니다. 로그인 링크를 이메일로 보내드립니다.</div>
+      <form class="access-form" id="accessLoginForm">
+        <input class="access-input" id="accessEmail" type="email" autocomplete="email" placeholder="example@email.com" required>
+        <button class="access-btn" type="submit">이메일로 로그인 링크 받기</button>
+      </form>
+      <div class="access-status" id="accessStatus"></div>
+      <div class="access-register">
+        <div class="access-register-title">처음 방문하시나요?</div>
+        <p>먼저 한조고 졸업생 DB를 작성한 뒤, 등록한 이메일로 다시 로그인해주세요.</p>
+        <a class="access-btn secondary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+      </div>
+    </div>
+    <div id="accessDenied" hidden>
+      <div class="access-title">등록 확인이 필요합니다</div>
+      <div class="access-desc">현재 로그인한 이메일은 졸업생 DB 또는 별도 승인 명단에서 확인되지 않습니다.</div>
+      <div class="access-session"><span id="accessDeniedEmail"></span><button class="access-logout" id="accessSwitchEmail" type="button">다른 이메일 사용</button></div>
+      <div class="access-register">
+        <a class="access-btn" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="wrap">
 
 <div class="head">
@@ -469,6 +523,7 @@ body.modal-open{overflow:hidden}
 
 <div class="top-actions">
 <button class="top-action primary" id="shareBtn">공유하기</button>
+<button class="top-action" id="accessLogoutBtn" type="button">로그아웃</button>
 </div>
 
 <div class="visitor-counter" id="visitorCounter">
@@ -1839,8 +1894,7 @@ alumniDbCloseBtn?.addEventListener("click",closeAlumniDbModal);
 alumniDbModal?.addEventListener("click",e=>{if(e.target===alumniDbModal)closeAlumniDbModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&alumniDbModal&&!alumniDbModal.hidden)closeAlumniDbModal();});
 
-loadNetworkProfiles();
-setInterval(loadNetworkProfiles,60000);
+
 
 function renderTimeline(){
 
@@ -2559,9 +2613,7 @@ document.getElementById("attendeeSizeBtn")?.addEventListener("click",e=>{
 
 // 리플렛 QR 등에서 ?attendees=1 로 접속하면 참가자 명단을 바로 엽니다.
 const attendeeParams=new URLSearchParams(location.search);
-if(attendeeParams.get("attendees")==="1"){
-  setTimeout(openAttendeeModal,120);
-}
+const openAttendeesAfterAuth=attendeeParams.get("attendees")==="1";
 attendeeSearch?.addEventListener("input",e=>renderPublicAttendees(e.target.value));
 attendeeModal?.addEventListener("click",e=>{if(e.target===attendeeModal)closeAttendeeModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&attendeeModal&&!attendeeModal.hidden)closeAttendeeModal();});
@@ -2617,44 +2669,108 @@ function setupPublicFolds(){
 }
 setupPublicFolds();
 
-loadPublicInfo();
+let protectedAppStarted=false;
+function startProtectedApp(){
+  if(protectedAppStarted)return;
+  protectedAppStarted=true;
 
-recordAndShowVisit();
+  loadPublicInfo();
+  loadNetworkProfiles();
+  recordAndShowVisit();
 
-sb
-.channel(
-"hanjogo-public-page"
-)
-.on(
-"postgres_changes",
-{
-event:"*",
-schema:"public",
-table:"dashboard_state",
-filter:"id=eq.main"
-},
-()=>
-loadPublicInfo()
-)
-.subscribe();
+  sb
+  .channel("hanjogo-public-page")
+  .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},()=>loadPublicInfo())
+  .subscribe();
 
-setInterval(
-()=>{
+  setInterval(()=>{
+    renderApplication();
+    renderHeaderAndInfo();
+    renderParticipantStats();
+  },30000);
 
-renderApplication();
+  setInterval(loadPublicInfo,15000);
 
-renderHeaderAndInfo();
+  if(openAttendeesAfterAuth)setTimeout(openAttendeeModal,180);
+}
 
-renderParticipantStats();
+async function verifyHanjogoAccess(session){
+  if(!session?.access_token)return false;
+  const {data,error}=await sb.functions.invoke("hanjogo-access",{
+    body:{action:"verify"},
+    headers:{Authorization:"Bearer "+session.access_token}
+  });
+  if(error)throw error;
+  return !!data?.allowed;
+}
 
-},
-30000
-);
+async function showSignedOutGate(message=""){
+  document.body.classList.add("access-pending");
+  document.getElementById("accessGate").hidden=false;
+  document.getElementById("accessSignedOut").hidden=false;
+  document.getElementById("accessDenied").hidden=true;
+  document.getElementById("accessStatus").textContent=message;
+}
 
-setInterval(
-loadPublicInfo,
-15000
-);
+async function showDeniedGate(email){
+  document.body.classList.add("access-pending");
+  document.getElementById("accessGate").hidden=false;
+  document.getElementById("accessSignedOut").hidden=true;
+  document.getElementById("accessDenied").hidden=false;
+  document.getElementById("accessDeniedEmail").textContent=email||"";
+}
+
+function unlockDashboard(){
+  document.getElementById("accessGate").hidden=true;
+  document.body.classList.remove("access-pending");
+  startProtectedApp();
+}
+
+async function checkCurrentAccess(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){
+    await showSignedOutGate();
+    return;
+  }
+  try{
+    const ok=await verifyHanjogoAccess(session);
+    if(ok)unlockDashboard();
+    else await showDeniedGate(session.user?.email||"");
+  }catch(e){
+    console.error("접근 권한 확인 실패",e);
+    await showSignedOutGate("접근 권한을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.");
+  }
+}
+
+document.getElementById("accessLoginForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const email=String(document.getElementById("accessEmail")?.value||"").trim().toLowerCase();
+  const status=document.getElementById("accessStatus");
+  if(!email)return;
+  status.textContent="로그인 링크를 보내는 중입니다.";
+  const redirectTo=location.origin+location.pathname+location.search;
+  const {error}=await sb.auth.signInWithOtp({
+    email,
+    options:{emailRedirectTo:redirectTo,shouldCreateUser:true}
+  });
+  status.textContent=error
+    ? "로그인 메일 발송에 실패했습니다. "+error.message
+    : "메일을 보냈습니다. 받은 편지함에서 로그인 링크를 눌러주세요.";
+});
+
+async function signOutAccess(){
+  await sb.auth.signOut();
+  protectedAppStarted=false;
+  location.reload();
+}
+document.getElementById("accessLogoutBtn")?.addEventListener("click",signOutAccess);
+document.getElementById("accessSwitchEmail")?.addEventListener("click",signOutAccess);
+
+sb.auth.onAuthStateChange((_event,session)=>{
+  if(session)setTimeout(checkCurrentAccess,0);
+});
+
+checkCurrentAccess();
 
 </script>
 

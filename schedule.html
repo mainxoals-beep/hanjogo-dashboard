@@ -495,6 +495,7 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 .site-nav-btn:hover{border-color:#cfc8e9;color:var(--purple-dark)}
 .site-nav-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
 .site-view[hidden]{display:none!important}
+body:not(.site-view-event) #brandCard{display:none!important}
 .site-home{display:grid;gap:14px}
 .site-home-hero{
   padding:24px;border:1px solid var(--line);border-radius:22px;background:#fff;
@@ -2303,7 +2304,7 @@ const brands=[...new Set([
     : []),
   "렁팡스"
 ])];
-card.hidden=!brands.length;
+card.hidden=!brands.length || currentSiteView()!=="event";
 grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).join("");
 }
 

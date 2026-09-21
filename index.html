@@ -975,6 +975,24 @@
 .network-sync-privacy-badge.public{background:#f2faf4;color:#2f6b3d;border-color:#cce4d1}
 .network-sync-privacy-badge.pending{background:#f6f6f6;color:var(--ink-mute)}
 @media(max-width:900px){.network-sync-row{min-width:1150px}}
+
+/* external dashboard access admin */
+.access-admin-card{padding:16px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.access-admin-title{font-size:13px;font-weight:900;color:var(--ink)}
+.access-admin-sub{margin-top:3px;font-size:10.5px;line-height:1.55;color:var(--ink-mute)}
+.access-admin-form,.access-admin-add{display:grid;grid-template-columns:1.2fr auto;gap:8px;margin-top:12px}
+.access-admin-add{grid-template-columns:1.2fr .8fr 1.2fr auto}
+.access-admin-form input,.access-admin-add input{min-width:0;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-size:11px}
+.access-admin-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.special-access-list{margin-top:12px;border-top:1px solid var(--line)}
+.special-access-row{display:grid;grid-template-columns:1.3fr .7fr 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:11px}
+.special-access-email{font-weight:800;color:var(--ink)}
+.special-access-meta{font-size:10px;color:var(--ink-mute)}
+@media(max-width:760px){
+  .access-admin-form,.access-admin-add{grid-template-columns:1fr}
+  .special-access-row{grid-template-columns:1fr auto}
+  .special-access-row .special-access-note{grid-column:1 / -1}
+}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -1180,6 +1198,49 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         </div>
         <div class="network-sync-list" id="networkSyncList">
           <div class="network-sync-empty">응답을 불러오는 중입니다.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 외부 대시보드 접근 권한 ===== -->
+  <section id="section-access-control">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title">외부 대시보드 접근 권한</div>
+        <div class="sec-note">졸업생 DB 이메일은 자동 허용 · 선생님/외부 관계자는 아래에서 별도 등록</div>
+      </div>
+      <div class="sec-head-right">
+        <button class="collapse-btn" data-target="body-access-control"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+      </div>
+    </div>
+    <div class="sec-body" id="body-access-control">
+      <div class="access-admin-card">
+        <div class="access-admin-login" id="accessAdminLogin">
+          <div class="access-admin-title">관리자 인증</div>
+          <div class="access-admin-sub">별도 접근 이메일 등록/삭제는 김태민 관리자 이메일 인증 후 사용할 수 있습니다.</div>
+          <div class="access-admin-form">
+            <input id="accessAdminEmail" type="email" value="mainxoals@gmail.com" readonly>
+            <button type="button" class="mini-btn primary" id="accessAdminLoginBtn">관리자 로그인 링크 받기</button>
+          </div>
+          <div class="sec-note" id="accessAdminStatus"></div>
+        </div>
+        <div id="accessAdminPanel" hidden>
+          <div class="access-admin-panel-head">
+            <div>
+              <div class="access-admin-title">별도 허용 이메일</div>
+              <div class="access-admin-sub">한조고 선생님, 행사 관계자 등 졸업생 DB에 없는 이메일을 등록합니다.</div>
+            </div>
+            <button type="button" class="mini-btn" id="accessAdminLogoutBtn">관리자 로그아웃</button>
+          </div>
+          <div class="access-admin-add">
+            <input id="specialAccessEmail" type="email" placeholder="이메일">
+            <input id="specialAccessName" type="text" placeholder="이름">
+            <input id="specialAccessNote" type="text" placeholder="구분/메모 (예: 한조고 선생님)">
+            <button type="button" class="mini-btn primary" id="specialAccessAddBtn">등록</button>
+          </div>
+          <div class="sec-note" id="specialAccessStatus"></div>
+          <div class="special-access-list" id="specialAccessList"></div>
         </div>
       </div>
     </div>
@@ -5499,6 +5560,91 @@ async function loadNetworkProfileResponses(){
 document.getElementById("networkSyncSearch")?.addEventListener("input",renderNetworkSync);
 loadNetworkProfileResponses();
 setInterval(loadNetworkProfileResponses,60000);
+
+
+async function accessAdminInvoke(action,payload={}){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)throw new Error("관리자 로그인이 필요합니다.");
+  const {data,error}=await sb.functions.invoke("hanjogo-access",{
+    body:{action,...payload},
+    headers:{Authorization:"Bearer "+session.access_token}
+  });
+  if(error)throw error;
+  return data;
+}
+async function renderSpecialAccess(){
+  const login=document.getElementById("accessAdminLogin");
+  const panel=document.getElementById("accessAdminPanel");
+  const status=document.getElementById("accessAdminStatus");
+  if(!login||!panel)return;
+  const {data:{session}}=await sb.auth.getSession();
+  const email=String(session?.user?.email||"").toLowerCase();
+  const admin=email==="mainxoals@gmail.com";
+  login.hidden=admin;
+  panel.hidden=!admin;
+  if(!admin){
+    if(session&&status)status.textContent="현재 로그인: "+email+" · 관리자 계정이 아닙니다.";
+    return;
+  }
+  try{
+    const result=await accessAdminInvoke("list_special");
+    const list=document.getElementById("specialAccessList");
+    const items=Array.isArray(result?.items)?result.items:[];
+    list.innerHTML=items.length?items.map(x=>`
+      <div class="special-access-row">
+        <div><div class="special-access-email">${escapeHtml(x.email||"")}</div><div class="special-access-meta">${escapeHtml(x.created_at?new Date(x.created_at).toLocaleDateString("ko-KR"):"")}</div></div>
+        <div>${escapeHtml(x.name||"-")}</div>
+        <div class="special-access-note">${escapeHtml(x.note||"-")}</div>
+        <button type="button" class="mini-btn danger special-access-remove" data-id="${x.id}" ${String(x.email).toLowerCase()==="mainxoals@gmail.com"?"disabled":""}>삭제</button>
+      </div>`
+    ).join(""):'<div class="fee-empty">별도 등록된 이메일이 없습니다.</div>';
+  }catch(e){
+    document.getElementById("specialAccessStatus").textContent="목록을 불러오지 못했습니다.";
+  }
+}
+document.getElementById("accessAdminLoginBtn")?.addEventListener("click",async()=>{
+  const status=document.getElementById("accessAdminStatus");
+  status.textContent="로그인 링크를 보내는 중입니다.";
+  const redirectTo=location.origin+location.pathname;
+  const {error}=await sb.auth.signInWithOtp({
+    email:"mainxoals@gmail.com",
+    options:{emailRedirectTo:redirectTo,shouldCreateUser:true}
+  });
+  status.textContent=error?"발송 실패: "+error.message:"메일을 보냈습니다. 로그인 링크를 눌러주세요.";
+});
+document.getElementById("accessAdminLogoutBtn")?.addEventListener("click",async()=>{
+  await sb.auth.signOut();
+  renderSpecialAccess();
+});
+document.getElementById("specialAccessAddBtn")?.addEventListener("click",async()=>{
+  const email=String(document.getElementById("specialAccessEmail")?.value||"").trim();
+  const name=String(document.getElementById("specialAccessName")?.value||"").trim();
+  const note=String(document.getElementById("specialAccessNote")?.value||"").trim();
+  const status=document.getElementById("specialAccessStatus");
+  if(!email){status.textContent="이메일을 입력해주세요.";return;}
+  status.textContent="등록 중...";
+  try{
+    await accessAdminInvoke("add_special",{email,name,note});
+    document.getElementById("specialAccessEmail").value="";
+    document.getElementById("specialAccessName").value="";
+    document.getElementById("specialAccessNote").value="";
+    status.textContent="등록했습니다.";
+    await renderSpecialAccess();
+  }catch(e){status.textContent="등록 실패: "+(e?.message||e);}
+});
+document.getElementById("specialAccessList")?.addEventListener("click",async e=>{
+  const btn=e.target.closest(".special-access-remove");
+  if(!btn||btn.disabled)return;
+  if(!confirm("이 이메일의 외부 대시보드 접근 권한을 삭제할까요?"))return;
+  const status=document.getElementById("specialAccessStatus");
+  try{
+    await accessAdminInvoke("remove_special",{id:Number(btn.dataset.id)});
+    status.textContent="삭제했습니다.";
+    await renderSpecialAccess();
+  }catch(err){status.textContent="삭제 실패: "+(err?.message||err);}
+});
+sb.auth.onAuthStateChange(()=>setTimeout(renderSpecialAccess,0));
+renderSpecialAccess();
 
 checkInitialPasswordState();
 

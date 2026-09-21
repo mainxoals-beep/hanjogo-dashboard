@@ -359,7 +359,7 @@ body.modal-open{overflow:hidden}
 }
 
 /* consent-based direct alumni email */
-.network-profile-contact{text-decoration:none;display:block;box-sizing:border-box;text-align:center;margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:8px 9px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:900;cursor:pointer}
+.network-profile-contact{text-decoration:none;display:block;box-sizing:border-box;text-align:center;margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:8px 9px;background:#fff;color:var(--purple-dark);font:inherit;font-size:10.5px;font-weight:900;cursor:pointer}
 .network-profile-contact:hover{background:var(--purple-light)}
 
 /* attendee masked-name collision aid */
@@ -1603,13 +1603,7 @@ function renderNetworkProfiles(){
       </div>
       ${lines.join("")}
       ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>`:""}
-      ${p.allowEmailContact&&p.email?(()=>{
-        const target=[p.gen?p.gen+"기":"",p.name].filter(Boolean).join(" ");
-        const subject="[한조고 네트워크] "+target+" 동문께 연락드립니다";
-        const body=["안녕하세요.","","한조고 네트워크를 통해 연락드립니다.","","간단한 자기소개와 연락 내용을 작성해주세요.","","감사합니다."].join("\n");
-        const gmailUrl="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(p.email)+"&su="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
-        return `<a class="network-profile-contact" href="${esc(gmailUrl)}" target="_blank" rel="noopener">이메일로 연락하기</a>`;
-      })():""}
+      ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
     </div>`;
   }).join("");
   if(more){
@@ -1652,6 +1646,62 @@ document.getElementById("networkGenerationNav")?.addEventListener("click",e=>{
   if(btn)selectNetworkGeneration(Number(btn.dataset.generation));
 });
 document.getElementById("networkAllGenBtn")?.addEventListener("click",()=>selectNetworkGeneration("all"));
+
+function getNetworkSenderIdentity(){
+  let name="",gen="";
+  try{
+    name=localStorage.getItem("hanjogo_contact_sender_name")||"";
+    gen=localStorage.getItem("hanjogo_contact_sender_gen")||"";
+  }catch(e){}
+  if(!name){
+    name=window.prompt("보내는 분의 이름을 입력해주세요.")||"";
+    name=name.trim();
+    if(!name)return null;
+  }
+  if(!gen){
+    gen=window.prompt("보내는 분의 기수를 숫자로 입력해주세요.\n예: 2")||"";
+    gen=gen.replace(/[^0-9]/g,"").trim();
+    if(!gen)return null;
+  }
+  try{
+    localStorage.setItem("hanjogo_contact_sender_name",name);
+    localStorage.setItem("hanjogo_contact_sender_gen",gen);
+  }catch(e){}
+  return {name,gen};
+}
+
+document.getElementById("networkProfileList")?.addEventListener("click",e=>{
+  const btn=e.target.closest(".network-profile-contact[data-contact-email]");
+  if(!btn)return;
+
+  const sender=getNetworkSenderIdentity();
+  if(!sender)return;
+
+  const email=String(btn.dataset.contactEmail||"").trim();
+  const targetName=String(btn.dataset.contactName||"").trim();
+  const targetGen=String(btn.dataset.contactGen||"").trim();
+  if(!email)return;
+
+  const senderLabel=sender.gen+"기 "+sender.name;
+  const targetLabel=[targetGen?targetGen+"기":"",targetName].filter(Boolean).join(" ");
+
+  const subject="[한조고 네트워크] "+senderLabel+" → "+targetLabel+" 동문 연락";
+  const body=[
+    targetLabel+" 동문님 안녕하세요.",
+    "",
+    "한조고 네트워크를 통해 연락드립니다.",
+    "저는 "+sender.gen+"기 "+sender.name+"입니다.",
+    "",
+    "연락드리는 내용:",
+    "",
+    "",
+    "감사합니다.",
+    sender.gen+"기 "+sender.name
+  ].join("\n");
+
+  const gmailUrl="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(email)+"&su="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+  window.open(gmailUrl,"_blank","noopener");
+});
 
 const networkProfileOpenBtn=document.getElementById("networkProfileOpenBtn");
 const networkProfileModal=document.getElementById("networkProfileModal");

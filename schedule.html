@@ -126,6 +126,35 @@ button,a{font:inherit} button{cursor:pointer}
 .application-invitation{text-align:center;font-size:16px;font-weight:700;line-height:1.8;margin:18px 0;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
 .recruitment-note{font-size:12px;line-height:1.7;color:var(--sub);margin:12px 0 0;text-align:center;word-break:keep-all}
 .first-round-note{font-size:11.5px;line-height:1.65;color:var(--sub);margin:6px 0 0;text-align:center;word-break:keep-all}
+.attendee-open-btn{width:100%;margin:10px 0 12px;border:1px solid var(--purple);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:900;cursor:pointer}
+.attendee-open-btn:hover{background:var(--purple-light)}
+.attendee-modal[hidden]{display:none}
+.attendee-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(24,18,28,.56);backdrop-filter:blur(3px)}
+.attendee-dialog{width:min(860px,100%);max-height:86vh;display:flex;flex-direction:column;background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.25);overflow:hidden}
+.attendee-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 20px 14px;border-bottom:1px solid var(--line)}
+.attendee-title{font-size:18px;font-weight:900;color:var(--ink)}
+.attendee-desc{margin-top:5px;color:var(--sub);font-size:11px;line-height:1.6}
+.attendee-close{flex:0 0 auto;width:34px;height:34px;border:0;border-radius:50%;background:#f3f0f5;color:var(--ink);font-size:20px;cursor:pointer}
+.attendee-tools{padding:12px 20px;border-bottom:1px solid var(--line)}
+.attendee-search{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;outline:none}
+.attendee-search:focus{border-color:var(--purple)}
+.attendee-list{overflow:auto;padding:8px 20px 20px}
+.attendee-gen{margin-top:12px}
+.attendee-gen-title{position:sticky;top:-8px;z-index:1;padding:9px 0 6px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:900}
+.attendee-row{display:grid;grid-template-columns:56px 110px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #f0edf1}
+.attendee-g{color:var(--sub);font-size:11px;font-weight:800}
+.attendee-n{color:var(--ink);font-size:12px;font-weight:900}
+.attendee-w{color:var(--sub);font-size:11.5px;line-height:1.45;word-break:keep-all}
+.attendee-role{white-space:nowrap;border-radius:999px;padding:4px 7px;background:var(--purple-light);color:var(--purple-dark);font-size:9.5px;font-weight:900}
+.attendee-empty{padding:30px 0;text-align:center;color:var(--mute);font-size:12px}
+body.modal-open{overflow:hidden}
+@media(max-width:600px){
+.attendee-modal{padding:0;align-items:flex-end}
+.attendee-dialog{width:100%;max-height:91vh;border-radius:18px 18px 0 0}
+.attendee-head{padding:17px 16px 12px}.attendee-tools{padding:10px 16px}.attendee-list{padding:6px 16px 18px}
+.attendee-row{grid-template-columns:44px 86px 1fr;gap:8px}
+.attendee-role{grid-column:2 / 4;justify-self:start;margin-top:-3px}
+}
 </style>
 </head>
 <body>
@@ -171,6 +200,7 @@ button,a{font:inherit} button{cursor:pointer}
   <summary>기수별 참석 인원 보기</summary>
   <div class="generation-grid" id="generationGrid"></div>
 </details>
+<button type="button" class="attendee-open-btn" id="attendeeOpenBtn">참가자 명단 보기</button>
 <a id="applicationBtn" class="application-btn disabled">참가신청 준비 중</a>
 <div class="application-cta-sub" id="applicationSub"></div>
 <button type="button" class="payment-account-btn" id="paymentAccountBtn">참가비 입금 계좌 확인</button>
@@ -181,6 +211,22 @@ button,a{font:inherit} button{cursor:pointer}
   <button type="button" class="payment-account-copy" id="copyPaymentAccount">계좌번호 복사</button>
 </div>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
+</div>
+
+<div class="attendee-modal" id="attendeeModal" hidden aria-hidden="true">
+  <div class="attendee-dialog" role="dialog" aria-modal="true" aria-labelledby="attendeeModalTitle">
+    <div class="attendee-head">
+      <div>
+        <div class="attendee-title" id="attendeeModalTitle">참가자 명단</div>
+        <div class="attendee-desc">1·2차 참가 확정자와 준비·운영위원 기준 · 준비·운영위원은 실명, 일반 참가자는 이름 일부를 가려 표시합니다.</div>
+      </div>
+      <button type="button" class="attendee-close" id="attendeeCloseBtn" aria-label="닫기">×</button>
+    </div>
+    <div class="attendee-tools">
+      <input class="attendee-search" id="attendeeSearch" type="search" placeholder="기수 · 이름 · 소속/하는 일 검색">
+    </div>
+    <div class="attendee-list" id="attendeeList"></div>
+  </div>
 </div>
 
 <div class="brand-card" id="brandCard" hidden>
@@ -415,6 +461,8 @@ let alumniStats=null;
 let participantApplicationStats=null;
 
 let relatedBrands=[];
+
+const PUBLIC_ATTENDEES=[{"generation":2,"name":"김○현","work":"대한체육회 국가대표선수촌","role":""},{"generation":2,"name":"김태민","work":"렁팡스","role":"준비위원"},{"generation":2,"name":"이○대","work":"오부이용 / 부요네뜨","role":""},{"generation":3,"name":"김○곤","work":"통의동 국빈관 / 원기옥","role":""},{"generation":3,"name":"김○호","work":"정식당","role":""},{"generation":3,"name":"이○혁","work":"파브란트","role":""},{"generation":3,"name":"장○원","work":"보보식당","role":""},{"generation":4,"name":"김○운","work":"스시시미즈 / 카와세미 / 스시우미 / 코끼리초밥 / 국빈관 / 원기옥","role":""},{"generation":4,"name":"이○민","work":"주식회사 상창","role":""},{"generation":5,"name":"안○준","work":"미국 라스베가스 · 메뉴개발 / 교육","role":""},{"generation":5,"name":"함○재","work":"인스파이어 엔터테인먼트 리조트","role":""},{"generation":6,"name":"위○섭","work":"사조푸디스트","role":""},{"generation":7,"name":"김미주","work":"동원F&B","role":"운영위원"},{"generation":7,"name":"박혜림","work":"바카디 코리아","role":"준비위원"},{"generation":7,"name":"손○지","work":"철은인터내셔날(주) / 쥬네스디저트","role":""},{"generation":7,"name":"신○상","work":"마시오름","role":""},{"generation":7,"name":"이○","work":"Corvina","role":""},{"generation":7,"name":"이○희","work":"정희의 식탁","role":""},{"generation":7,"name":"임○솔","work":"철은인터내셔날(주) / 쥬네스디저트","role":""},{"generation":8,"name":"김○연","work":"온하루","role":""},{"generation":8,"name":"김○연","work":"리트하우스","role":""},{"generation":8,"name":"이○진","work":"대한항공 · 기내식 메뉴 관리","role":""},{"generation":9,"name":"김○민","work":"모리 & 히게 · 광양 일식","role":""},{"generation":9,"name":"김○준","work":"서울정양평해장","role":""},{"generation":9,"name":"문○국","work":"와인루트 주식회사","role":""},{"generation":9,"name":"안지현","work":"쿠움 / 한국관광대 겸임교수","role":"운영위원"},{"generation":9,"name":"장○혜","work":"안다즈 서울 강남","role":""},{"generation":9,"name":"정○석","work":"삼성웰스토리","role":""},{"generation":9,"name":"정지원","work":"아뜰리에콩포트 효창","role":"운영위원"},{"generation":9,"name":"최○호","work":"하츠베이커리 생산부 부장","role":""},{"generation":10,"name":"김동욱","work":"체인로지스","role":"운영위원"},{"generation":10,"name":"이민주","work":"극단 아트솔루스","role":"준비위원"},{"generation":10,"name":"전○호","work":"르프리크","role":""},{"generation":11,"name":"유○현(임○현)","work":"샤콘느 / 소믈리에","role":""},{"generation":11,"name":"이○하","work":"을지김치찜","role":""},{"generation":11,"name":"이해리","work":"dul dih 덜더 / 동원대학교 K-Food 강의","role":"운영위원"},{"generation":12,"name":"윤○름","work":"비스트로 앤트로","role":""},{"generation":12,"name":"이○후","work":"주쥬베","role":""},{"generation":12,"name":"천○","work":"스튜디오 피오레","role":""},{"generation":12,"name":"홍○영","work":"Trattoria Patata","role":""},{"generation":13,"name":"김○희","work":"참사랑 · 농업","role":""},{"generation":15,"name":"김○영","work":"프랜차이즈 본사 운영팀","role":""},{"generation":16,"name":"신○아","work":"원앤원","role":""},{"generation":16,"name":"양○빈","work":"쿠캣 · 상품기획 MD","role":""},{"generation":17,"name":"이○주","work":"줄리엣","role":""},{"generation":17,"name":"장○웅","work":"NH투자증권","role":""},{"generation":18,"name":"김○빈","work":"치바과학대학 약학부","role":""},{"generation":18,"name":"김○준","work":"마이무","role":""},{"generation":18,"name":"박○규","work":"그랜드인터컨티넨탈서울파르나스 / 스시 카네사카","role":""},{"generation":18,"name":"이○연","work":"제이피 앳 루이비통 · 디저트","role":""},{"generation":18,"name":"이예린","work":"예쿡쿠킹클래스 / 요리교육 브랜드","role":"운영위원"},{"generation":18,"name":"정○","work":"Daily FnB(데프브) · BM / 에디터","role":""},{"generation":18,"name":"정○민","work":"콘피에르 셀렉션 광화문점 · CDP","role":""},{"generation":18,"name":"정○정","work":"CJ제일제당 · PM","role":""},{"generation":19,"name":"이○현","work":"마이무","role":""},{"generation":20,"name":"김○지","work":"(주)조흥","role":""},{"generation":20,"name":"김○진","work":"워커힐","role":""},{"generation":20,"name":"김○형","work":"워커힐 더부페","role":""},{"generation":20,"name":"남○○은","work":"워홀 후 복귀","role":""},{"generation":20,"name":"엄○성","work":"서담해물","role":""},{"generation":20,"name":"이○진","work":"학생 · 파인다이닝","role":""},{"generation":20,"name":"이○호","work":"선박조리사","role":""},{"generation":20,"name":"정○원","work":"삼육보건대학교 영양사 / 코브하우스","role":""},{"generation":20,"name":"주보근","work":"유학 준비 중","role":"준비위원"},{"generation":22,"name":"김○호","work":"복구이집 근무","role":""},{"generation":22,"name":"문○","work":"JW메리어트 제주 리조트&스파","role":""},{"generation":22,"name":"신○민","work":"군인","role":""},{"generation":22,"name":"이○림","work":"이자카야 주방","role":""},{"generation":22,"name":"이○진","work":"학생 · 관광/MICE","role":""},{"generation":22,"name":"조재영","work":"학생 / 교육","role":"운영위원"},{"generation":23,"name":"권능","work":"베수비오","role":"운영위원"},{"generation":23,"name":"김○빈","work":"성신여자대학교 식품영양학과","role":""},{"generation":23,"name":"박○규","work":"군 복무 중 / 전 라이즈 호텔 조리부","role":""},{"generation":23,"name":"박○석","work":"군 복무 중 / 그랜드 인터컨티넨탈 재입사 예정","role":""},{"generation":23,"name":"윤여창","work":"학생 / 교육","role":"운영위원"},{"generation":24,"name":"강○선","work":"학생 · 제과·제빵·카페","role":""},{"generation":24,"name":"강○슬","work":"그래비티 조선 서울","role":""},{"generation":24,"name":"김○담","work":"경원재 바이 워커힐","role":""},{"generation":24,"name":"김○진","work":"연성대학교 · 식품영양학과","role":""},{"generation":24,"name":"박○원","work":"구직 중 · 제과","role":""},{"generation":24,"name":"손○윤","work":"대입 준비 중 · 일식","role":""},{"generation":24,"name":"윤○환","work":"스페인 유학 예정","role":""},{"generation":24,"name":"조○원","work":"코코스키","role":""},{"generation":24,"name":"황○현","work":"대학생 · 식품영양학과","role":""},{"generation":25,"name":"권○성","work":"모수","role":""},{"generation":25,"name":"박○빈","work":"학생 · 교육","role":""},{"generation":25,"name":"서○빈","work":"유학 준비","role":""},{"generation":25,"name":"송유진","work":"휴직·이직 준비 / 제과·제빵·카페","role":"운영위원"},{"generation":25,"name":"유○서","work":"우송대학교 외식조리전공","role":""},{"generation":25,"name":"이○진","work":"오리지널팬케이크하우스","role":""},{"generation":25,"name":"최○진","work":"몬드리안 서울 이태원","role":""}];
 
 let publicPaymentAccount={
 bankName:"",
@@ -1371,6 +1419,38 @@ card.hidden=!brands.length;
 grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).join("");
 }
 
+function renderPublicAttendees(query=""){
+const list=document.getElementById("attendeeList");
+if(!list)return;
+const q=String(query||"").trim().toLowerCase();
+const filtered=PUBLIC_ATTENDEES.filter(x=>{
+  if(!q)return true;
+  return [x.generation+"기",x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
+});
+if(!filtered.length){
+  list.innerHTML='<div class="attendee-empty">검색 결과가 없습니다.</div>';
+  return;
+}
+const groups=new Map();
+filtered.forEach(x=>{
+  if(!groups.has(x.generation))groups.set(x.generation,[]);
+  groups.get(x.generation).push(x);
+});
+list.innerHTML=[...groups.entries()].map(([g,rows])=>`
+  <div class="attendee-gen">
+    <div class="attendee-gen-title">${g}기 · ${rows.length}명</div>
+    ${rows.map(x=>`
+      <div class="attendee-row">
+        <div class="attendee-g">${x.generation}기</div>
+        <div class="attendee-n">${esc(x.name)}</div>
+        <div class="attendee-w">${esc(x.work)}</div>
+        ${x.role?`<div class="attendee-role">${esc(x.role)}</div>`:""}
+      </div>
+    `).join("")}
+  </div>
+`).join("");
+}
+
 function renderPaymentAccount(){
 const numberEl=document.getElementById("paymentAccountNumber");
 const metaEl=document.getElementById("paymentAccountMeta");
@@ -1635,6 +1715,31 @@ copyText(
 publicInfo.parkingAddress||"",
 "주차장 주소를 복사했습니다."
 );
+
+const attendeeOpenBtn=document.getElementById("attendeeOpenBtn");
+const attendeeModal=document.getElementById("attendeeModal");
+const attendeeCloseBtn=document.getElementById("attendeeCloseBtn");
+const attendeeSearch=document.getElementById("attendeeSearch");
+function openAttendeeModal(){
+  if(!attendeeModal)return;
+  renderPublicAttendees("");
+  if(attendeeSearch)attendeeSearch.value="";
+  attendeeModal.hidden=false;
+  attendeeModal.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+  setTimeout(()=>attendeeSearch?.focus(),30);
+}
+function closeAttendeeModal(){
+  if(!attendeeModal)return;
+  attendeeModal.hidden=true;
+  attendeeModal.setAttribute("aria-hidden","true");
+  document.body.classList.remove("modal-open");
+}
+attendeeOpenBtn?.addEventListener("click",openAttendeeModal);
+attendeeCloseBtn?.addEventListener("click",closeAttendeeModal);
+attendeeSearch?.addEventListener("input",e=>renderPublicAttendees(e.target.value));
+attendeeModal?.addEventListener("click",e=>{if(e.target===attendeeModal)closeAttendeeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&attendeeModal&&!attendeeModal.hidden)closeAttendeeModal();});
 
 const paymentAccountBtn=document.getElementById("paymentAccountBtn");
 const paymentAccountBox=document.getElementById("paymentAccountBox");

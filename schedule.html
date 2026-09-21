@@ -2736,6 +2736,7 @@ async function showSignedOutGate(message=""){
   document.getElementById("accessSignedOut").hidden=false;
   document.getElementById("accessDenied").hidden=true;
   document.getElementById("accessStatus").textContent=message;
+  restoreAccessLoginCooldown();
 }
 
 async function showDeniedGate(email){
@@ -2772,23 +2773,50 @@ async function checkCurrentAccess(){
 }
 
 let accessLoginCooldownTimer=null;
-function setAccessLoginCooldown(seconds=60){
+const ACCESS_LOGIN_COOLDOWN_KEY="hanjogo_login_cooldown_until";
+
+function getAccessCooldownLeft(){
+  const until=Number(localStorage.getItem(ACCESS_LOGIN_COOLDOWN_KEY)||0);
+  if(!until)return 0;
+  return Math.max(0,Math.ceil((until-Date.now())/1000));
+}
+
+function clearAccessCooldown(){
+  localStorage.removeItem(ACCESS_LOGIN_COOLDOWN_KEY);
+}
+
+function setAccessLoginCooldown(seconds=60,persist=true){
   const btn=document.getElementById("accessLoginBtn");
+  const status=document.getElementById("accessStatus");
   if(!btn)return;
   clearInterval(accessLoginCooldownTimer);
-  let left=seconds;
-  btn.disabled=true;
-  btn.textContent="인증메일 발송 완료 · "+left+"초";
-  accessLoginCooldownTimer=setInterval(()=>{
-    left-=1;
+
+  if(persist){
+    localStorage.setItem(ACCESS_LOGIN_COOLDOWN_KEY,String(Date.now()+seconds*1000));
+  }
+
+  const tick=()=>{
+    const left=getAccessCooldownLeft();
     if(left<=0){
       clearInterval(accessLoginCooldownTimer);
+      clearAccessCooldown();
       btn.disabled=false;
       btn.textContent="인증메일 다시 받기";
+      if(status&&/후 다시/.test(status.textContent||"")) status.textContent="지금 다시 인증메일을 받을 수 있습니다.";
       return;
     }
-    btn.textContent="인증메일 발송 완료 · "+left+"초";
-  },1000);
+    btn.disabled=true;
+    btn.textContent="다시 받기까지 "+left+"초";
+    if(status)status.textContent="인증메일을 다시 받으려면 "+left+"초 기다려주세요.";
+  };
+
+  tick();
+  accessLoginCooldownTimer=setInterval(tick,1000);
+}
+
+function restoreAccessLoginCooldown(){
+  const left=getAccessCooldownLeft();
+  if(left>0)setAccessLoginCooldown(left,false);
 }
 
 document.getElementById("accessLoginForm")?.addEventListener("submit",async e=>{
@@ -2807,10 +2835,15 @@ document.getElementById("accessLoginForm")?.addEventListener("submit",async e=>{
   if(error){
     const msg=String(error.message||"");
     const rateLimited=/rate|seconds|too many|limit/i.test(msg);
-    status.textContent=rateLimited
-      ? "인증메일을 연속으로 요청했습니다. 잠시 후 다시 로그인해주세요."
-      : "로그인 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
-    if(btn){btn.disabled=false;btn.textContent="로그인";}
+    if(rateLimited){
+      const secMatch=msg.match(/(\d+)\s*(?:seconds?|초)/i);
+      const waitSeconds=secMatch?Math.max(1,Number(secMatch[1])):60;
+      localStorage.setItem(ACCESS_LOGIN_COOLDOWN_KEY,String(Date.now()+waitSeconds*1000));
+      setAccessLoginCooldown(waitSeconds,false);
+    }else{
+      status.textContent="로그인 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
+      if(btn){btn.disabled=false;btn.textContent="로그인";}
+    }
     return;
   }
   status.textContent="인증메일을 보냈습니다. 메일의 로그인 링크를 눌러주세요.";

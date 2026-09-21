@@ -186,6 +186,22 @@ body.modal-open{overflow:hidden}
   .network-profile-open-btn{width:100%}
   .network-profile-modal-body{padding:0 16px 18px}
 }
+
+.public-fold{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;overflow:hidden}
+.public-fold-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:14px 16px;border:0;background:#fff;text-align:left;cursor:pointer}
+.public-fold-head:hover{background:#FDFCFB}
+.public-fold-title{font-size:13px;font-weight:900;color:var(--ink)}
+.public-fold-sub{margin-top:2px;font-size:10.5px;color:var(--mute);font-weight:500}
+.public-fold-icon{flex:0 0 auto;color:var(--purple-dark);font-size:14px;font-weight:900}
+.public-fold-body{padding:0 16px 16px}
+.public-fold-body[hidden]{display:none}
+.public-fold .program-card,.public-fold .resource-card,.public-fold .alumni-card,.public-fold .info-grid,.public-fold .section{margin:0;border:0;border-radius:0;padding:0;background:transparent}
+.public-fold .program-card{padding-top:2px}
+.public-fold .info-grid{margin-bottom:0}
+.public-fold .resource-card{padding:0}
+.public-fold .alumni-card{padding:0}
+.public-fold .section{margin:0}
+@media(max-width:700px){.public-fold-body{padding:0 13px 13px}.public-fold-head{padding:13px}}
 </style>
 </head>
 <body>
@@ -265,18 +281,31 @@ body.modal-open{overflow:hidden}
   <div class="brand-grid" id="brandGrid"></div>
 </div>
 
-<div class="program-card">
-<div class="program-title">행사 프로그램</div>
-<div class="program-list">
-<div class="program-item">입장 및<br>자유 네트워킹</div>
-<div class="program-item">행사·협찬사<br>소개</div>
-<div class="program-item">동문<br>스포트라이트</div>
-<div class="program-item">경품 추첨</div>
-<div class="program-item">자유 교류 및<br>마무리</div>
+<div class="public-fold">
+<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="false">
+  <span><span class="public-fold-title">행사 프로그램</span><span class="public-fold-sub">프로그램 순서와 주요 구성 보기</span></span>
+  <span class="public-fold-icon">▾</span>
+</button>
+<div class="public-fold-body" id="publicProgramBody" hidden>
+  <div class="program-card">
+  <div class="program-list">
+  <div class="program-item">입장 및<br>자유 네트워킹</div>
+  <div class="program-item">행사·협찬사<br>소개</div>
+  <div class="program-item">동문<br>스포트라이트</div>
+  <div class="program-item">경품 추첨</div>
+  <div class="program-item">자유 교류 및<br>마무리</div>
+  </div>
+  <div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
+  </div>
 </div>
-<div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
 </div>
 
+<div class="public-fold">
+<button class="public-fold-head" type="button" data-fold-target="publicEventInfoBody" aria-expanded="true">
+  <span><span class="public-fold-title">행사 장소 · 문의</span><span class="public-fold-sub">장소, 주차, 준비위원 및 문의 정보</span></span>
+  <span class="public-fold-icon">▴</span>
+</button>
+<div class="public-fold-body" id="publicEventInfoBody">
 <div class="info-grid" id="eventInfo">
 <div class="info-card">
 <div class="info-label">행사 장소</div>
@@ -334,6 +363,8 @@ body.modal-open{overflow:hidden}
 </div>
 </div>
 
+</div>
+</div>
 </div>
 </div>
 
@@ -2008,6 +2039,26 @@ if(timelineToggle && timelineWrap){
     timelineWrap.hidden=!next;
   });
 }
+
+
+function setupPublicFolds(){
+  document.querySelectorAll(".public-fold-head[data-fold-target]").forEach(btn=>{
+    const body=document.getElementById(btn.dataset.foldTarget);
+    const icon=btn.querySelector(".public-fold-icon");
+    if(!body)return;
+    const sync=()=>{
+      const open=!body.hidden;
+      btn.setAttribute("aria-expanded",open?"true":"false");
+      if(icon)icon.textContent=open?"▴":"▾";
+    };
+    sync();
+    btn.addEventListener("click",()=>{
+      body.hidden=!body.hidden;
+      sync();
+    });
+  });
+}
+setupPublicFolds();
 
 loadPublicInfo();
 

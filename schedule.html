@@ -427,15 +427,23 @@ body.modal-open{overflow:hidden}
 }
 
 /* official KCAS logo */
+.head-title-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+.head-title-row h1{margin:0!important}
 .head-logo{
   display:block;
-  width:88px;
-  height:88px;
+  width:42px;
+  height:42px;
   object-fit:contain;
-  margin:0 auto 10px;
+  flex:0 0 auto;
 }
 @media(max-width:620px){
-  .head-logo{width:76px;height:76px;margin-bottom:9px}
+  .head-title-row{gap:8px}
+  .head-logo{width:36px;height:36px}
 }
 </style>
 </head>
@@ -443,10 +451,12 @@ body.modal-open{overflow:hidden}
 <div class="wrap">
 
 <div class="head">
-<img class="head-logo" src="./assets/hanjogo-logo.svg" alt="한국조리과학고등학교 KCAS 로고">
-<p class="eyebrow">한국조리과학고등학교</p>
-<h1>한조고 네트워크</h1>
-<p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
+  <p class="eyebrow">한국조리과학고등학교</p>
+  <div class="head-title-row">
+    <h1>한조고 네트워크</h1>
+    <img class="head-logo" src="./assets/hanjogo-logo.svg" alt="한국조리과학고등학교 KCAS 로고">
+  </div>
+  <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
 </div>
 
 <div class="hero">

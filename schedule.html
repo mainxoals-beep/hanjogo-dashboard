@@ -1361,9 +1361,12 @@ function renderRelatedBrands(){
 const card=document.getElementById("brandCard");
 const grid=document.getElementById("brandGrid");
 if(!card||!grid)return;
-const brands=Array.isArray(relatedBrands)
-  ? relatedBrands.map(v=>String(v||"").trim()).filter(Boolean)
-  : [];
+const brands=[...new Set([
+  ...(Array.isArray(relatedBrands)
+    ? relatedBrands.map(v=>String(v||"").trim()).filter(Boolean)
+    : []),
+  "렁팡스"
+])];
 card.hidden=!brands.length;
 grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).join("");
 }

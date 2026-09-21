@@ -538,7 +538,7 @@ body.access-pending>.wrap{visibility:hidden;pointer-events:none}
 
 <div class="top-actions">
 <button class="top-action primary" id="shareBtn">공유하기</button>
-<button class="top-action" id="accessLogoutBtn" type="button">로그아웃</button>
+<button class="top-action" id="accessLogoutBtn" type="button" hidden>로그아웃</button>
 </div>
 
 <div class="visitor-counter" id="visitorCounter">
@@ -2756,20 +2756,7 @@ function unlockDashboard(){
 }
 
 async function checkCurrentAccess(){
-  showAccessLoading();
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){
-    await showSignedOutGate();
-    return;
-  }
-  try{
-    const ok=await verifyHanjogoAccess(session);
-    if(ok)unlockDashboard();
-    else await showDeniedGate(session.user?.email||"");
-  }catch(e){
-    console.error("접근 권한 확인 실패",e);
-    await showSignedOutGate("접근 권한을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.");
-  }
+  unlockDashboard();
 }
 
 let accessLoginCooldownTimer=null;
@@ -2858,9 +2845,7 @@ async function signOutAccess(){
 document.getElementById("accessLogoutBtn")?.addEventListener("click",signOutAccess);
 document.getElementById("accessSwitchEmail")?.addEventListener("click",signOutAccess);
 
-sb.auth.onAuthStateChange((_event,session)=>{
-  if(session)setTimeout(checkCurrentAccess,0);
-});
+sb.auth.onAuthStateChange(()=>{});
 
 checkCurrentAccess();
 

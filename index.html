@@ -966,6 +966,15 @@
     .system-source-row{grid-template-columns:1fr auto;}
     .system-source-meta{grid-column:1/-1;}
   }
+
+/* 내부용 참가자 명단 공개 여부 */
+.network-sync-row{grid-template-columns:72px minmax(130px,1fr) minmax(170px,1.2fr) minmax(190px,1.4fr) minmax(150px,1fr) minmax(120px,.9fr) minmax(150px,1fr)!important}
+.network-sync-row.network-sync-private{background:#fff8f6}
+.network-sync-privacy-badge{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:800;border:1px solid var(--line)}
+.network-sync-privacy-badge.private{background:#fff0ed;color:#9b3b2e;border-color:#f0c4ba}
+.network-sync-privacy-badge.public{background:#f2faf4;color:#2f6b3d;border-color:#cce4d1}
+.network-sync-privacy-badge.pending{background:#f6f6f6;color:var(--ink-mute)}
+@media(max-width:900px){.network-sync-row{min-width:1150px}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -1153,7 +1162,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
     <div class="sec-head">
       <div>
         <div class="sec-title">동문 프로필 응답</div>
-        <div class="sec-note">공개 동의 폼 CSV 자동 연동 · 내부 확인용 전체 응답</div>
+        <div class="sec-note">공개 동의 폼 CSV 자동 연동 · 내부 확인용 전체 응답 · 참가자 명단 비공개 선택도 표시</div>
       </div>
       <div class="sec-head-right">
         <span class="network-sync-badge">자동 연동</span>
@@ -5432,11 +5441,13 @@ function renderNetworkSync(){
   const consent=networkProfileRows.filter(r=>networkGet(r,"작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?").includes("동의합니다")).length;
   const event=networkProfileRows.filter(r=>networkGet(r,"2026년 10월 18일 한조고 네트워크 모임에 참가 신청하셨나요?").includes("참가 신청함")).length;
   const masked=networkProfileRows.filter(r=>networkGet(r,"사이트에서 이름을 어떻게 표시할까요?").includes("마스킹")).length;
+  const attendeeHidden=networkProfileRows.filter(r=>networkGet(r,"행사 참가자 명단에 표시해도 될까요?").includes("표시하지")).length;
   stats.innerHTML=`
     <div class="network-sync-stat"><div class="k">총 응답</div><div class="v">${networkProfileRows.length}명</div></div>
     <div class="network-sync-stat"><div class="k">사이트 공개 동의</div><div class="v">${consent}명</div></div>
     <div class="network-sync-stat"><div class="k">행사 참가 신청</div><div class="v">${event}명</div></div>
-    <div class="network-sync-stat"><div class="k">이름 마스킹 선택</div><div class="v">${masked}명</div></div>`;
+    <div class="network-sync-stat"><div class="k">이름 마스킹 선택</div><div class="v">${masked}명</div></div>
+    <div class="network-sync-stat"><div class="k">참가자 명단 비공개</div><div class="v">${attendeeHidden}명</div></div>`;
   const filtered=networkProfileRows.filter(r=>{
     if(!q)return true;
     return networkNorm([
@@ -5447,7 +5458,7 @@ function renderNetworkSync(){
   });
   if(!filtered.length){list.innerHTML='<div class="network-sync-empty">검색 결과가 없습니다.</div>';return;}
   list.innerHTML=`
-    <div class="network-sync-row head"><div>기수</div><div>이름</div><div>이메일</div><div>현재 활동</div><div>사이트 공개</div><div>행사</div></div>
+    <div class="network-sync-row head"><div>기수</div><div>이름</div><div>이메일</div><div>현재 활동</div><div>사이트 공개</div><div>행사</div><div>참가자 명단</div></div>
     ${filtered.map(r=>{
       const gen=networkGet(r,"졸업 기수");
       const name=networkGet(r,"이름");
@@ -5458,13 +5469,17 @@ function renderNetworkSync(){
       const publicOk=networkGet(r,"작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
       const nameMode=networkGet(r,"사이트에서 이름을 어떻게 표시할까요?");
       const eventStatus=networkGet(r,"2026년 10월 18일 한조고 네트워크 모임에 참가 신청하셨나요?");
-      return `<div class="network-sync-row">
+      const attendeeConsent=networkGet(r,"행사 참가자 명단에 표시해도 될까요?");
+      const attendeeHidden=attendeeConsent.includes("표시하지");
+      const attendeeLabel=attendeeHidden?"비공개":attendeeConsent?"공개 허용":"미응답";
+      return `<div class="network-sync-row ${attendeeHidden?"network-sync-private":""}">
         <div>${escapeHtml(gen?gen+"기":"-")}</div>
         <div><div class="network-sync-name">${escapeHtml(name||"-")}</div><div class="network-sync-sub">${escapeHtml(status)}</div></div>
         <div class="network-sync-sub">${escapeHtml(email)}</div>
         <div><div>${escapeHtml(aff||"-")}</div><div class="network-sync-sub">${escapeHtml(work)}</div></div>
         <div><div>${escapeHtml(publicOk||"-")}</div><div class="network-sync-sub">${escapeHtml(nameMode)}</div></div>
         <div>${escapeHtml(eventStatus||"-")}</div>
+        <div><span class="network-sync-privacy-badge ${attendeeHidden?"private":attendeeConsent?"public":"pending"}">${escapeHtml(attendeeLabel)}</span><div class="network-sync-sub">${escapeHtml(attendeeConsent||"")}</div></div>
       </div>`;
     }).join("")}`;
   if(updated)updated.textContent="최근 동기화 "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});

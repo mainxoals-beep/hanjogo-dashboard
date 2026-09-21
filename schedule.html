@@ -355,25 +355,12 @@ body.modal-open{overflow:hidden}
   .attendee-dialog.is-expanded,.network-profile-dialog.is-expanded{width:100%;max-height:96vh}
 }
 
-/* privacy-preserving alumni contact relay */
-.network-profile-contact{margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:7px 9px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:900;cursor:pointer}
-.network-profile-contact:hover{background:var(--purple-light)}
-.network-contact-dialog{width:min(560px,100%)}
-.network-contact-body{padding:18px 20px 20px}
-.network-contact-info{padding:12px 13px;border:1px solid #DDD8F2;border-radius:11px;background:var(--purple-light);color:var(--sub);font-size:11.5px;line-height:1.65}
-.network-contact-info b{display:block;margin-bottom:3px;color:var(--purple-dark)}
-.network-contact-label{display:block;margin:15px 0 6px;font-size:11px;font-weight:900;color:var(--ink)}
-.network-contact-message{width:100%;min-height:130px;resize:vertical;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#FDFCFB;color:var(--ink);font:inherit;font-size:12px;line-height:1.65;outline:none}
-.network-contact-message:focus{border-color:var(--purple)}
-.network-contact-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
-.network-contact-send,.network-contact-cancel{border-radius:10px;padding:10px 12px;font-size:11.5px;font-weight:900;cursor:pointer}
-.network-contact-send{border:1px solid var(--purple);background:var(--purple);color:#fff}
-.network-contact-cancel{border:1px solid var(--line);background:#fff;color:var(--sub)}
-.network-contact-note{margin-top:9px;color:var(--mute);font-size:9.5px;line-height:1.55}
-@media(max-width:620px){
-  .network-contact-body{padding:16px}
   .network-contact-actions{grid-template-columns:1fr}
 }
+
+/* consent-based direct alumni email */
+.network-profile-contact{margin-top:9px;width:100%;border:1px solid var(--purple);border-radius:9px;padding:8px 9px;background:#fff;color:var(--purple-dark);font-size:10.5px;font-weight:900;cursor:pointer}
+.network-profile-contact:hover{background:var(--purple-light)}
 </style>
 </head>
 <body>
@@ -629,32 +616,7 @@ body.modal-open{overflow:hidden}
         <div class="network-profile-empty">기수를 선택하거나 전체 기수 보기를 눌러주세요.</div>
       </div>
       <button class="network-profile-more" id="networkProfileMore" type="button" hidden>더 보기</button>
-      <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. 이메일·연락처 등 개인정보는 공개하지 않습니다.</div>
-    </div>
-  </div>
-</div>
-
-<div class="attendee-modal" id="networkContactModal" hidden aria-hidden="true">
-  <div class="attendee-dialog network-contact-dialog" role="dialog" aria-modal="true" aria-labelledby="networkContactTitle">
-    <div class="attendee-head">
-      <div>
-        <div class="attendee-title" id="networkContactTitle">동문에게 연락하기</div>
-        <div class="attendee-desc" id="networkContactTarget">연락할 동문을 확인하고 있습니다.</div>
-      </div>
-      <button type="button" class="attendee-close" id="networkContactCloseBtn" aria-label="닫기">×</button>
-    </div>
-    <div class="network-contact-body">
-      <div class="network-contact-info">
-        <b>개인 이메일 주소는 공개하지 않습니다.</b>
-        연락 요청은 한조고 네트워크 준비위원 메일로 먼저 전달되며, 내용을 확인한 뒤 해당 동문에게 전달합니다.
-      </div>
-      <label class="network-contact-label" for="networkContactMessage">전달할 내용</label>
-      <textarea id="networkContactMessage" class="network-contact-message" placeholder="간단한 자기소개와 연락 목적을 적어주세요.&#10;예) 12기 김태민입니다. 메뉴 개발 관련 협업 제안으로 연락드리고 싶습니다."></textarea>
-      <div class="network-contact-actions">
-        <button type="button" class="network-contact-send" id="networkContactSendBtn">이메일로 연락 요청 보내기</button>
-        <button type="button" class="network-contact-cancel" id="networkContactCancelBtn">취소</button>
-      </div>
-      <div class="network-contact-note">메일 작성창이 열리며, 준비위원 메일(mainxoals@gmail.com)로 전달됩니다. 상대 동문의 이메일 주소는 표시되지 않습니다.</div>
+      <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. ‘이메일로 연락하기’는 이메일 연락을 허용한 동문에게만 표시됩니다.</div>
     </div>
   </div>
 </div>
@@ -1570,7 +1532,10 @@ function buildPublicNetworkProfile(r){
   const instagram=networkAllowed(fields,"Instagram")?safeInstagram(networkGet(r,"Instagram")):null;
   const bio=networkAllowed(fields,"프로필 소개")?networkGet(r,"동문들에게 소개하고 싶은 내용"):"";
   const connect=networkAllowed(fields,"연결 희망 분야")?networkGet(r,"동문들과 어떤 분야로 연결되고 싶나요?"):"";
-  return {name,gen,company,work,activity,region,instagram,bio,connect,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
+  const email=networkGet(r,"Email Address");
+  const contactConsent=networkGet(r,"동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
+  const allowEmailContact=contactConsent.includes("허용합니다");
+  return {name,gen,company,work,activity,region,instagram,bio,connect,email,allowEmailContact,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
 }
 function renderNetworkGenerationNav(){
   const nav=document.getElementById("networkGenerationNav");
@@ -1632,7 +1597,7 @@ function renderNetworkProfiles(){
       </div>
       ${lines.join("")}
       ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>`:""}
-      <button type="button" class="network-profile-contact" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">연락하기</button>
+      ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
     </div>`;
   }).join("");
   if(more){
@@ -1707,60 +1672,24 @@ document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
 networkProfileModal?.addEventListener("click",e=>{if(e.target===networkProfileModal)closeNetworkProfileModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&networkProfileModal&&!networkProfileModal.hidden)closeNetworkProfileModal();});
 
-const networkContactModal=document.getElementById("networkContactModal");
-const networkContactCloseBtn=document.getElementById("networkContactCloseBtn");
-const networkContactCancelBtn=document.getElementById("networkContactCancelBtn");
-const networkContactSendBtn=document.getElementById("networkContactSendBtn");
-const networkContactMessage=document.getElementById("networkContactMessage");
-const networkContactTarget=document.getElementById("networkContactTarget");
-let networkContactPerson={name:"",gen:""};
-
-function openNetworkContact(name,gen){
-  networkContactPerson={name:String(name||""),gen:String(gen||"")};
-  const label=[networkContactPerson.gen?networkContactPerson.gen+"기":"",networkContactPerson.name].filter(Boolean).join(" · ");
-  if(networkContactTarget)networkContactTarget.textContent=label+" 동문에게 보낼 연락 요청입니다.";
-  if(networkContactMessage)networkContactMessage.value="";
-  if(networkContactModal){
-    networkContactModal.hidden=false;
-    networkContactModal.setAttribute("aria-hidden","false");
-    document.body.classList.add("modal-open");
-    setTimeout(()=>networkContactMessage?.focus(),40);
-  }
-}
-function closeNetworkContact(){
-  if(!networkContactModal)return;
-  networkContactModal.hidden=true;
-  networkContactModal.setAttribute("aria-hidden","true");
-  if(networkProfileModal?.hidden) document.body.classList.remove("modal-open");
-}
 document.getElementById("networkProfileList")?.addEventListener("click",e=>{
-  const btn=e.target.closest(".network-profile-contact");
+  const btn=e.target.closest(".network-profile-contact[data-contact-email]");
   if(!btn)return;
-  openNetworkContact(btn.dataset.contactName,btn.dataset.contactGen);
-});
-networkContactCloseBtn?.addEventListener("click",closeNetworkContact);
-networkContactCancelBtn?.addEventListener("click",closeNetworkContact);
-networkContactModal?.addEventListener("click",e=>{if(e.target===networkContactModal)closeNetworkContact();});
-networkContactSendBtn?.addEventListener("click",()=>{
-  const message=(networkContactMessage?.value||"").trim();
-  if(!message){
-    showToast("전달할 내용을 입력해주세요.");
-    networkContactMessage?.focus();
-    return;
-  }
-  const target=[networkContactPerson.gen?networkContactPerson.gen+"기":"",networkContactPerson.name].filter(Boolean).join(" ");
-  const subject="[한조고 네트워크 연락 요청] "+target;
+  const email=String(btn.dataset.contactEmail||"").trim();
+  if(!email)return;
+  const target=[btn.dataset.contactGen?btn.dataset.contactGen+"기":"",btn.dataset.contactName||""].filter(Boolean).join(" ");
+  const subject="[한조고 네트워크] "+target+" 동문께 연락드립니다";
   const body=[
-    "안녕하세요. 한조고 네트워크를 통해 "+target+" 동문에게 연락을 요청드립니다.",
+    "안녕하세요.",
     "",
-    "[전달할 내용]",
-    message,
+    "한조고 네트워크를 통해 연락드립니다.",
     "",
-    "※ 상대 동문의 이메일 주소는 공개되지 않으며, 준비위원 확인 후 전달을 요청드립니다."
+    "간단한 자기소개와 연락 내용을 작성해주세요.",
+    "",
+    "감사합니다."
   ].join("\n");
-  location.href="mailto:mainxoals@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+  location.href="mailto:"+encodeURIComponent(email)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
 });
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&networkContactModal&&!networkContactModal.hidden)closeNetworkContact();});
 
 const alumniDbOpenBtn=document.getElementById("alumniDbOpenBtn");
 const alumniDbModal=document.getElementById("alumniDbModal");

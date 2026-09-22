@@ -33,7 +33,7 @@ button,a{font:inherit} button{cursor:pointer}
 .generation-item{padding:7px 4px;border-radius:8px;background:#fff;border:1px solid var(--line);text-align:center;font-size:10px;color:var(--sub)}
 .generation-item b{display:block;margin-top:1px;color:var(--ink);font-size:12px}
 @media(max-width:480px){.generation-grid{grid-template-columns:repeat(4,1fr);gap:5px}.generation-item{padding:6px 2px}}
-.top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}
 .top-action{flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:800;text-decoration:none;text-align:center}
 .top-action.primary{background:var(--purple);border-color:var(--purple);color:#fff}
 .status-card{padding:17px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
@@ -46,11 +46,11 @@ button,a{font:inherit} button{cursor:pointer}
 .application-cta{margin:14px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .application-status-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
 .application-status-row .status-pill{flex:0 0 auto;margin-top:0}
-.application-btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:12px;font-weight:900;background:var(--purple);color:#fff}
+.application-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:900;background:var(--purple);color:#fff}
 .application-btn.disabled{background:#D8D2D9;color:#777;pointer-events:none}
 .application-countdown{margin-top:9px;padding:8px 10px;border-radius:9px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:900}
 .application-cta-sub{font-size:10.5px;color:var(--mute);text-align:center;margin-top:7px}
-.payment-account-btn{display:block;width:100%;margin-top:8px;text-align:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:#FDFCFB;color:var(--purple-dark);font-size:11.5px;font-weight:800;cursor:pointer}
+.payment-account-btn{display:flex;align-items:center;justify-content:center;width:auto;min-height:38px;margin:9px auto 0;text-align:center;border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:#FDFCFB;color:var(--purple-dark);font-size:12.5px;font-weight:800;cursor:pointer}
 .payment-account-btn:hover{background:var(--purple-light)}
 .payment-account-box{margin-top:8px;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:#FAF8F5;text-align:center}
 .payment-account-box[hidden]{display:none}
@@ -58,10 +58,10 @@ button,a{font:inherit} button{cursor:pointer}
 .payment-account-number{font-size:18px;font-weight:900;letter-spacing:.02em;color:var(--ink)}
 .payment-account-meta{margin-top:4px;font-size:11.5px;color:var(--sub);line-height:1.6}
 .payment-account-copy{margin-top:9px;border:0;border-radius:9px;padding:8px 12px;background:var(--purple);color:#fff;font-size:11px;font-weight:800;cursor:pointer}
-.brand-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.brand-card{margin:0 0 18px;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .brand-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
-.brand-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.brand-item{display:flex;align-items:center;justify-content:center;min-height:42px;padding:9px 8px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB;text-align:center;color:var(--ink);font-size:11px;font-weight:800;line-height:1.35}
+.brand-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.brand-item{display:flex;align-items:center;justify-content:center;min-height:38px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB;text-align:center;color:var(--ink);font-size:12px;font-weight:800;line-height:1.35}
 @media(max-width:520px){.brand-grid{grid-template-columns:repeat(2,1fr)}}
 .program-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .program-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
@@ -126,7 +126,7 @@ button,a{font:inherit} button{cursor:pointer}
 .application-invitation{text-align:center;font-size:16px;font-weight:700;line-height:1.8;margin:18px 0;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
 .recruitment-note{font-size:12px;line-height:1.7;color:var(--sub);margin:12px 0 0;text-align:center;word-break:keep-all}
 .first-round-note{font-size:11.5px;line-height:1.65;color:var(--sub);margin:6px 0 0;text-align:center;word-break:keep-all}
-.attendee-open-btn{width:100%;margin:10px 0 12px;border:1px solid var(--purple);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:900;cursor:pointer}
+.attendee-open-btn{width:100%;min-height:42px;margin:10px 0 12px;border:1px solid var(--purple);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:13px;font-weight:900;cursor:pointer}
 .attendee-open-btn:hover{background:var(--purple-light)}
 .attendee-modal[hidden]{display:none}
 .attendee-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(24,18,28,.56);backdrop-filter:blur(3px)}
@@ -168,19 +168,21 @@ body.modal-open{overflow:hidden}
 .network-profile-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:11px}
 .network-profile-title{font-size:15px;font-weight:900;color:var(--purple-dark)}
 .network-profile-meta{font-size:10.5px;color:var(--mute)}
-.network-profile-search{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font-size:12px;background:#FDFCFB;color:var(--ink)}
+.network-profile-search{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;background:#FDFCFB;color:var(--ink)}
 .network-profile-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
-.network-profile-item{padding:12px;border:1px solid var(--line);border-radius:11px;background:#FDFCFB;min-width:0}
+.network-profile-item{padding:14px;border:1px solid var(--line);border-radius:12px;background:#FDFCFB;min-width:0}
 .network-profile-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
-.network-profile-name{font-size:13px;font-weight:900;color:var(--ink)}
-.network-profile-gen{font-size:10px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 6px;border-radius:999px}
-.network-profile-line{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--sub);line-height:1.6;word-break:keep-all}
-.network-profile-label{font-size:9.5px;font-weight:800;color:var(--mute)}
+.network-profile-name{font-size:15px;font-weight:900;color:var(--ink)}
+.network-profile-gen{font-size:11px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 7px;border-radius:999px}
+.network-profile-line{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--sub);line-height:1.6;word-break:keep-all}
+.network-profile-label{font-size:11.5px;font-weight:800;color:var(--mute)}
 .network-profile-value{min-width:0;overflow-wrap:anywhere}
-.network-profile-bio{margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font-size:11px;color:var(--sub);line-height:1.55}
-.network-profile-more{display:block;width:100%;margin-top:10px;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff;color:var(--purple-dark);font-size:11px;font-weight:800}
-.network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:11.5px}
-.network-profile-privacy{margin-top:9px;color:var(--mute);font-size:10px;line-height:1.55}
+.network-profile-bio{display:-webkit-box;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:13px;color:var(--sub);line-height:1.6;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.network-profile-bio.expanded{display:block;overflow:visible;-webkit-line-clamp:unset}
+.network-profile-bio-toggle{margin-top:5px;padding:0;border:0;background:transparent;color:var(--purple-dark);font-size:12px;font-weight:800;cursor:pointer}
+.network-profile-more{display:block;width:100%;min-height:42px;margin-top:12px;border:1px solid var(--line);border-radius:9px;padding:9px;background:#fff;color:var(--purple-dark);font-size:13px;font-weight:800}
+.network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:13px}
+.network-profile-privacy{margin-top:10px;color:var(--mute);font-size:12px;line-height:1.6}
 @media(max-width:620px){
   .network-profile-list{grid-template-columns:1fr}
   .network-profile-launch{align-items:flex-start;flex-direction:column}
@@ -191,8 +193,8 @@ body.modal-open{overflow:hidden}
 .public-fold{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;overflow:hidden}
 .public-fold-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:14px 16px;border:0;background:#fff;text-align:left;cursor:pointer}
 .public-fold-head:hover{background:#FDFCFB}
-.public-fold-title{font-size:13px;font-weight:900;color:var(--ink)}
-.public-fold-sub{margin-top:2px;font-size:10.5px;color:var(--mute);font-weight:500}
+.public-fold-title{font-size:14px;font-weight:900;color:var(--ink)}
+.public-fold-sub{margin-top:2px;font-size:12px;color:var(--mute);font-weight:500}
 .public-fold-icon{flex:0 0 auto;color:var(--purple-dark);font-size:14px;font-weight:900}
 .public-fold-body{padding:0 16px 16px}
 .public-fold-body[hidden]{display:none}
@@ -208,8 +210,10 @@ body.modal-open{overflow:hidden}
 .head{margin-bottom:14px}
 .head h1{letter-spacing:-.035em}
 .hero{margin-bottom:10px}
-.top-actions{margin-bottom:8px}
-.visitor-counter{margin:8px 0 14px;padding:7px 10px;background:transparent;border:0;text-align:right;opacity:.72}
+.top-actions{margin:16px 0 0}
+.top-action.primary{min-height:44px;border-color:#D9D3F5;background:#F0EEFC;color:var(--purple-dark)}
+.top-action.primary:hover{border-color:var(--purple);background:#E9E5FA}
+.visitor-counter{margin:8px 0 14px;padding:7px 10px;background:transparent;border:0;text-align:right;font-size:12px;opacity:.78}
 
 .network-hub{
   margin:0 0 18px;padding:20px;border:1px solid #DCD6F5;border-radius:18px;
@@ -218,17 +222,19 @@ body.modal-open{overflow:hidden}
 }
 .network-hub-kicker{font-size:9.5px;letter-spacing:.12em;font-weight:900;color:var(--purple-dark);margin-bottom:5px}
 .network-hub-title{font-size:20px;font-weight:900;letter-spacing:-.025em;color:var(--ink)}
-.network-hub-desc{margin-top:6px;max-width:640px;font-size:12px;line-height:1.65;color:var(--sub)}
+.network-hub-desc{margin-top:6px;max-width:640px;font-size:13px;line-height:1.65;color:var(--sub)}
 .network-hub-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:15px 0 12px}
 .network-hub-stat{display:flex;align-items:baseline;gap:5px;padding:11px 12px;border:1px solid rgba(110,95,203,.13);border-radius:11px;background:rgba(255,255,255,.78)}
-.network-hub-stat span{margin-right:auto;font-size:10.5px;color:var(--sub);font-weight:700}
+.network-hub-stat-btn{width:100%;font:inherit;text-align:left;cursor:pointer;transition:.18s ease}
+.network-hub-stat-btn:hover{border-color:var(--purple);background:#fff}
+.network-hub-stat span{margin-right:auto;font-size:12px;color:var(--sub);font-weight:700}
 .network-hub-stat b{font-size:18px;color:var(--purple-dark)}
-.network-hub-stat small{font-size:9.5px;color:var(--mute)}
+.network-hub-stat small{font-size:11px;color:var(--mute)}
 .network-hub-actions{display:grid;grid-template-columns:1.35fr .65fr;gap:8px}
-.network-hub-btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:12px;font-weight:900;text-align:center;text-decoration:none;cursor:pointer}
+.network-hub-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:13px;font-weight:900;text-align:center;text-decoration:none;cursor:pointer}
 .network-hub-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
 .network-hub-btn:hover{transform:translateY(-1px)}
-.network-hub-meta{margin-top:8px;font-size:10px;color:var(--mute)}
+.network-hub-meta{margin-top:8px;font-size:12px;color:var(--mute)}
 
 .application-cta,.brand-card,.next-card,.public-fold{box-shadow:0 5px 18px rgba(30,28,26,.035)}
 .application-cta{border-color:#E2DDF5}
@@ -322,7 +328,7 @@ body.modal-open{overflow:hidden}
 .attendee-summary{padding:10px 20px!important;background:#fff!important}
 .attendee-summary-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
 .attendee-summary-title{margin:0!important;font-size:11px!important}
-.generation-all-btn{border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:#fff;color:var(--sub);font-size:9.5px;font-weight:800;white-space:nowrap;cursor:pointer}
+.generation-all-btn{min-height:36px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:#fff;color:var(--sub);font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
 .generation-all-btn.active,.generation-all-btn:hover{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
 #attendeeModal .attendee-generation-grid{display:flex;gap:5px;overflow-x:auto;padding:0 0 2px!important;scrollbar-width:none}
 #attendeeModal .attendee-generation-grid::-webkit-scrollbar{display:none}
@@ -333,11 +339,11 @@ body.modal-open{overflow:hidden}
 
 .network-generation-nav{padding:12px 20px 10px;border-bottom:1px solid var(--line);background:#FCFBFE}
 .network-generation-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
-.network-generation-title{font-size:11.5px;font-weight:900;color:var(--purple-dark)}
-.network-generation-sub{margin-top:2px;font-size:9.5px;color:var(--mute)}
+.network-generation-title{font-size:13px;font-weight:900;color:var(--purple-dark)}
+.network-generation-sub{margin-top:2px;font-size:12px;color:var(--mute)}
 .generation-chip-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .generation-chip-row::-webkit-scrollbar{display:none}
-.generation-chip{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:#fff;color:var(--sub);font-size:10px;font-weight:800;cursor:pointer}
+.generation-chip{flex:0 0 auto;min-height:34px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:#fff;color:var(--sub);font-size:12px;font-weight:800;cursor:pointer}
 .generation-chip.active,.generation-chip:hover{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
 .network-profile-dialog.is-expanded .network-profile-list{grid-template-columns:repeat(3,1fr)}
 .network-profile-dialog.is-expanded{width:min(1180px,calc(100vw - 28px));max-height:94vh}
@@ -348,14 +354,13 @@ body.modal-open{overflow:hidden}
   .network-generation-nav{padding:11px 16px 9px}
   .network-generation-head{align-items:flex-start}
   .network-generation-sub{display:none}
-  .generation-all-btn{font-size:9px;padding:4px 8px}
+  .generation-all-btn{font-size:11.5px;padding:6px 9px}
   #attendeeModal .attendee-generation-grid .generation-item{font-size:9px!important;padding:4px 6px!important}
   #attendeeModal .attendee-generation-grid .generation-item b{font-size:9.5px!important}
   .network-profile-dialog.is-expanded .network-profile-list{grid-template-columns:1fr}
   .attendee-dialog.is-expanded,.network-profile-dialog.is-expanded{width:100%;max-height:96vh}
-}
-
-  .network-contact-actions{grid-template-columns:1fr}
+  .network-profile-search{font-size:16px}
+  .network-profile-contact{width:100%}
 }
 
 /* consent-based direct alumni email */
@@ -365,14 +370,15 @@ body.modal-open{overflow:hidden}
   justify-content:center;
   box-sizing:border-box;
   width:auto;
+  min-height:38px;
   margin-top:9px;
-  padding:6px 9px;
-  border:0;
+  padding:8px 11px;
+  border:1px solid #D8D1F6;
   border-radius:8px;
   background:var(--purple-light);
   color:var(--purple-dark);
   font-family:inherit;
-  font-size:9.5px;
+  font-size:12.5px;
   font-weight:800;
   line-height:1.2;
   cursor:pointer;
@@ -456,7 +462,7 @@ body.modal-open{overflow:hidden}
 }
 .site-nav-btn{
   appearance:none;border:1px solid var(--line);background:#fff;color:var(--sub);
-  border-radius:999px;padding:9px 13px;font:inherit;font-size:11px;font-weight:800;
+  min-height:42px;border-radius:999px;padding:10px 14px;font:inherit;font-size:12px;font-weight:800;
   white-space:nowrap;cursor:pointer;transition:.18s ease;
 }
 .site-nav-btn:hover{border-color:#cfc8e9;color:var(--purple-dark)}
@@ -470,7 +476,7 @@ body:not(.site-view-event) #brandCard{display:none!important}
 }
 .site-home-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;color:var(--purple-dark)}
 .site-home-title{margin-top:7px;font-size:23px;line-height:1.25;font-weight:950;color:var(--ink)}
-.site-home-desc{margin-top:8px;font-size:12px;line-height:1.7;color:var(--sub)}
+.site-home-desc{margin-top:8px;font-size:13px;line-height:1.7;color:var(--sub)}
 .site-home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .site-home-card{
   display:flex;min-height:165px;flex-direction:column;padding:17px;
@@ -481,8 +487,8 @@ body:not(.site-view-event) #brandCard{display:none!important}
 .site-home-card-kicker{font-size:9.5px;font-weight:900;letter-spacing:.08em;color:var(--purple-dark)}
 .site-home-card-title{margin-top:7px;font-size:16px;font-weight:950;color:var(--ink)}
 .site-home-card-value{margin-top:14px;font-size:21px;font-weight:950;color:var(--ink)}
-.site-home-card-meta{margin-top:5px;font-size:10.5px;line-height:1.55;color:var(--mute)}
-.site-home-card-link{margin-top:auto;padding-top:14px;font-size:10.5px;font-weight:900;color:var(--purple-dark)}
+.site-home-card-meta{margin-top:5px;font-size:12px;line-height:1.6;color:var(--mute)}
+.site-home-card-link{margin-top:auto;padding-top:14px;font-size:12px;font-weight:900;color:var(--purple-dark)}
 .site-page-intro{margin:2px 0 13px}
 .site-page-kicker{font-size:9.5px;font-weight:900;letter-spacing:.1em;color:var(--purple-dark)}
 .site-page-title{margin-top:5px;font-size:22px;font-weight:950;color:var(--ink)}
@@ -510,6 +516,8 @@ body.site-view-network.modal-open{overflow:auto!important}
   .site-home-grid{grid-template-columns:1fr}
   .site-home-card{min-height:132px}
   .site-home-title{font-size:21px}
+  .top-actions{margin-top:14px}
+  .brand-item{font-size:11.5px}
 }
 
 </style>
@@ -579,7 +587,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="network-hub-desc">기수, 소속, 활동 분야를 기준으로 동문을 찾아보고 서로의 현재 활동을 확인해보세요.</div>
   </div>
   <div class="network-hub-stats">
-    <div class="network-hub-stat"><span>졸업생 DB</span><b id="networkAlumniCount">-</b><small>등록</small></div>
+    <button type="button" class="network-hub-stat network-hub-stat-btn" id="networkAlumniStatBtn" aria-controls="alumniDbModalBody" aria-expanded="false"><span>졸업생 DB</span><b id="networkAlumniCount">-</b><small>현황 보기</small></button>
     <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small></div>
   </div>
   <div class="network-hub-actions">
@@ -665,11 +673,11 @@ body.site-view-network.modal-open{overflow:auto!important}
 </div>
 
 <div class="public-fold site-view" data-site-view="event">
-<button class="public-fold-head" type="button" data-fold-target="publicEventInfoBody" aria-expanded="true">
+<button class="public-fold-head" type="button" data-fold-target="publicEventInfoBody" aria-expanded="false">
   <span><span class="public-fold-title">행사 장소 · 문의</span><span class="public-fold-sub">장소, 주차, 준비위원 및 문의 정보</span></span>
-  <span class="public-fold-icon">▴</span>
+  <span class="public-fold-icon">▾</span>
 </button>
-<div class="public-fold-body" id="publicEventInfoBody">
+<div class="public-fold-body" id="publicEventInfoBody" hidden>
 <div class="info-grid" id="eventInfo">
 <div class="info-card">
 <div class="info-label">행사 장소</div>
@@ -1602,7 +1610,8 @@ const NETWORK_PROFILE_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1v
 const NETWORK_PROFILE_CSV_FALLBACK="https://docs.google.com/spreadsheets/d/1tCtxM55yxwdqayihB56qsxFI8qWNzliB6N8wRxIJrQk/gviz/tq?tqx=out:csv&gid=648141668";
 let networkProfiles=[];
 let networkProfileRows=[];
-let networkProfileLimit=30;
+const NETWORK_PROFILE_PAGE_SIZE=12;
+let networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
 let networkGenerationFilter="none";
 function parseNetworkCsv(text){
   const rows=[]; let row=[],cell="",q=false;
@@ -1669,6 +1678,12 @@ function safeInstagram(value){
   if(!/^[A-Za-z0-9._]+$/.test(h))return null;
   return {label:"@"+h,url:"https://www.instagram.com/"+h+"/"};
 }
+function cleanNetworkNarrative(value){
+  const text=String(value||"").trim();
+  if(!text)return "";
+  if(/^(없음|없어요|없습니다|해당\s*없음|현재\s*프로젝트|사업체\s*[-·/]?\s*브랜드(?:\s*소개)?|x|-)\.?$/i.test(text))return "";
+  return text;
+}
 function buildPublicNetworkProfile(r){
   const consent=networkGet(r,"작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
   if(!consent.includes("동의합니다"))return null;
@@ -1682,7 +1697,7 @@ function buildPublicNetworkProfile(r){
   const activity=networkAllowed(fields,"활동 분야")?networkGet(r,"활동 분야"):"";
   const region=networkAllowed(fields,"활동 지역")?networkGet(r,"활동 지역"):"";
   const instagram=networkAllowed(fields,"Instagram")?safeInstagram(networkGet(r,"Instagram")):null;
-  const bio=networkAllowed(fields,"프로필 소개")?networkGet(r,"동문들에게 소개하고 싶은 내용"):"";
+  const bio=networkAllowed(fields,"프로필 소개")?cleanNetworkNarrative(networkGet(r,"동문들에게 소개하고 싶은 내용")):"";
   const connect=networkAllowed(fields,"연결 희망 분야")?networkGet(r,"동문들과 어떤 분야로 연결되고 싶나요?"):"";
   const email=networkGet(r,"Email Address");
   const contactConsent=networkGet(r,"동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
@@ -1710,7 +1725,7 @@ function renderNetworkProfiles(){
   const more=document.getElementById("networkProfileMore");
   if(!list)return;
   renderNetworkGenerationNav();
-  if(meta)meta.textContent=`공개 동의 ${networkProfiles.length}명 · 구글폼 응답 자동 연동`;
+  if(meta)meta.textContent=`공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
   const networkPublicCount=document.getElementById("networkPublicCount");
   if(networkPublicCount)networkPublicCount.textContent=networkProfiles.length.toLocaleString()+"명";
 
@@ -1749,7 +1764,7 @@ function renderNetworkProfiles(){
         <span class="network-profile-name">${esc(p.name)}</span>
       </div>
       ${lines.join("")}
-      ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>`:""}
+      ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>${p.bio.length>80?'<button type="button" class="network-profile-bio-toggle" aria-expanded="false">소개 더 보기</button>':""}`:""}
       ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
     </div>`;
   }).join("");
@@ -1760,7 +1775,7 @@ function renderNetworkProfiles(){
 }
 function selectNetworkGeneration(gen){
   networkGenerationFilter=gen;
-  networkProfileLimit=30;
+  networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
   const search=document.getElementById("networkProfileSearch");
   if(search)search.value="";
   renderNetworkProfiles();
@@ -1784,11 +1799,11 @@ async function loadNetworkProfiles(){
   }
 }
 document.getElementById("networkProfileSearch")?.addEventListener("input",()=>{
-  networkProfileLimit=30;
+  networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
   if(document.getElementById("networkProfileSearch")?.value.trim() && networkGenerationFilter==="none") networkGenerationFilter="all";
   renderNetworkProfiles();
 });
-document.getElementById("networkProfileMore")?.addEventListener("click",()=>{networkProfileLimit+=30;renderNetworkProfiles();});
+document.getElementById("networkProfileMore")?.addEventListener("click",()=>{networkProfileLimit+=NETWORK_PROFILE_PAGE_SIZE;renderNetworkProfiles();});
 document.getElementById("networkGenerationNav")?.addEventListener("click",e=>{
   const btn=e.target.closest(".generation-chip[data-generation]");
   if(btn)selectNetworkGeneration(Number(btn.dataset.generation));
@@ -1819,6 +1834,14 @@ function getNetworkSenderIdentity(){
 }
 
 document.getElementById("networkProfileList")?.addEventListener("click",e=>{
+  const bioToggle=e.target.closest(".network-profile-bio-toggle");
+  if(bioToggle){
+    const bio=bioToggle.previousElementSibling;
+    const expanded=bio?.classList.toggle("expanded");
+    bioToggle.setAttribute("aria-expanded",expanded?"true":"false");
+    bioToggle.textContent=expanded?"소개 접기":"소개 더 보기";
+    return;
+  }
   const btn=e.target.closest(".network-profile-contact[data-contact-email]");
   if(!btn)return;
 
@@ -1860,9 +1883,6 @@ document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
 });
 
 const alumniDbModal=document.getElementById("alumniDbModal");
-if(networkProfileModal && alumniDbModal && alumniDbModal.parentNode){
-  alumniDbModal.parentNode.insertBefore(networkProfileModal,alumniDbModal);
-}
 
 const SITE_VIEWS=new Set(["home","event","network"]);
 
@@ -1917,7 +1937,7 @@ function setSiteView(view,{updateHash=true}={}){
     networkProfileModal.hidden=!on;
     networkProfileModal.setAttribute("aria-hidden",on?"false":"true");
     if(on){
-      networkProfileLimit=30;
+      networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
       if(networkGenerationFilter==="none") networkGenerationFilter="all";
       renderNetworkProfiles();
     }
@@ -2706,6 +2726,7 @@ function setupPublicFolds(){
       const open=!body.hidden;
       btn.setAttribute("aria-expanded",open?"true":"false");
       if(icon)icon.textContent=open?"▴":"▾";
+      if(body.id==="alumniDbModalBody") document.getElementById("networkAlumniStatBtn")?.setAttribute("aria-expanded",open?"true":"false");
     };
     sync();
     btn.addEventListener("click",()=>{
@@ -2715,6 +2736,12 @@ function setupPublicFolds(){
   });
 }
 setupPublicFolds();
+document.getElementById("networkAlumniStatBtn")?.addEventListener("click",()=>{
+  const body=document.getElementById("alumniDbModalBody");
+  const fold=document.querySelector('[data-fold-target="alumniDbModalBody"]');
+  if(body?.hidden) fold?.click();
+  setTimeout(()=>alumniDbModal?.scrollIntoView({behavior:"smooth",block:"start"}),40);
+});
 
 let publicAppStarted=false;
 function startPublicApp(){

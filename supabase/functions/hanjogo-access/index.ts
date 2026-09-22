@@ -66,6 +66,20 @@ function rowsAsObjects(rows: string[][]) {
   });
 }
 
+function latestProfileRowsByEmail(rows: Record<string, string>[]) {
+  const latest = new Map<string, Record<string, string>>();
+  const withoutEmail: Record<string, string>[] = [];
+  rows.forEach((row) => {
+    const email = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
+    if (!email) {
+      withoutEmail.push(row);
+      return;
+    }
+    latest.set(email, row);
+  });
+  return [...latest.values(), ...withoutEmail];
+}
+
 function getField(row: Record<string, string>, label: string) {
   const key = Object.keys(row).find((candidate) => normalizeKey(candidate) === normalizeKey(label));
   return key ? row[key] : "";
@@ -191,7 +205,7 @@ Deno.serve(async (req: Request) => {
   if (action === "profiles") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
     try {
-      const rows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
+      const rows = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)));
       const profiles = rows.map(buildProfile).filter(Boolean);
       return json({ allowed: true, profiles, count: profiles.length });
     } catch {

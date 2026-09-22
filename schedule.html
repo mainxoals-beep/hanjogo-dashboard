@@ -183,11 +183,35 @@ body.modal-open{overflow:hidden}
 .network-profile-more{display:block;width:100%;min-height:42px;margin-top:12px;border:1px solid var(--line);border-radius:9px;padding:9px;background:#fff;color:var(--purple-dark);font-size:13px;font-weight:800}
 .network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:13px}
 .network-profile-privacy{margin-top:10px;color:var(--mute);font-size:12px;line-height:1.6}
+.network-access-panel{padding:20px;border-top:1px solid var(--line);background:#FCFBFE}
+.network-access-panel[hidden],.network-profile-protected[hidden]{display:none!important}
+.network-access-card{max-width:480px;margin:0 auto;padding:22px;border:1px solid #DDD7F4;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(30,28,26,.05)}
+.network-access-kicker{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--purple-dark)}
+.network-access-title{margin-top:7px;font-size:19px;font-weight:900;color:var(--ink)}
+.network-access-desc{margin-top:7px;font-size:14px;line-height:1.65;color:var(--sub);word-break:keep-all}
+.network-access-form{display:grid;gap:9px;margin-top:17px}
+.network-access-input{width:100%;min-height:46px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:16px;outline:none}
+.network-access-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(110,95,203,.1)}
+.network-access-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 13px;border:0;border-radius:10px;background:var(--purple);color:#fff;font:inherit;font-size:14px;font-weight:900;text-decoration:none;cursor:pointer}
+.network-access-btn.secondary{border:1px solid var(--line);background:#fff;color:var(--purple-dark)}
+.network-access-btn:disabled{opacity:.58;cursor:not-allowed}
+.network-access-status{min-height:21px;margin-top:10px;font-size:13px;line-height:1.55;color:var(--sub)}
+.network-access-register{display:grid;gap:9px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.network-access-register p{margin:0;font-size:13px;line-height:1.6;color:var(--mute)}
+.network-access-loading{display:flex;align-items:center;justify-content:center;gap:10px;min-height:120px;color:var(--sub);font-size:14px;font-weight:800}
+.network-access-spinner{width:22px;height:22px;border:3px solid #E8E4F6;border-top-color:var(--purple);border-radius:50%;animation:networkAccessSpin .8s linear infinite}
+@keyframes networkAccessSpin{to{transform:rotate(360deg)}}
+.network-access-session{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 20px;border-bottom:1px solid var(--line);background:#F7F5FC;color:var(--sub);font-size:13px}
+.network-access-session strong{color:var(--purple-dark)}
+.network-access-logout{flex:0 0 auto;min-height:34px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--purple-dark);font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 @media(max-width:620px){
   .network-profile-list{grid-template-columns:1fr}
   .network-profile-launch{align-items:flex-start;flex-direction:column}
   .network-profile-open-btn{width:100%}
   .network-profile-modal-body{padding:0 16px 18px}
+  .network-access-panel{padding:14px}
+  .network-access-card{padding:18px 16px}
+  .network-access-session{align-items:flex-start;padding:10px 16px}
 }
 
 .public-fold{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;overflow:hidden}
@@ -785,6 +809,43 @@ body.site-view-network.modal-open{overflow:auto!important}
         <button type="button" class="attendee-close" id="networkProfileCloseBtn" aria-label="닫기">×</button>
       </div>
     </div>
+    <div class="network-access-panel" id="networkAccessPanel">
+      <div class="network-access-loading" id="networkAccessLoading">
+        <span class="network-access-spinner" aria-hidden="true"></span>
+        <span>동문 인증 상태를 확인하고 있습니다.</span>
+      </div>
+      <div class="network-access-card" id="networkAccessSignedOut" hidden>
+        <div class="network-access-kicker">ALUMNI VERIFICATION</div>
+        <div class="network-access-title">등록한 이메일로 동문 인증</div>
+        <div class="network-access-desc">졸업생 DB에 등록된 이메일로 인증하면 운영자 승인 없이 바로 공개 프로필을 볼 수 있습니다.</div>
+        <form class="network-access-form" id="networkAccessForm">
+          <input class="network-access-input" id="networkAccessEmail" type="email" inputmode="email" autocomplete="email" placeholder="졸업생 DB에 등록한 이메일" required>
+          <button class="network-access-btn" id="networkAccessSubmit" type="submit">인증메일 받기</button>
+        </form>
+        <div class="network-access-status" id="networkAccessStatus" aria-live="polite"></div>
+        <div class="network-access-register">
+          <p>등록한 이메일이 없거나 변경되었다면 졸업생 DB를 먼저 수정해주세요.</p>
+          <a class="network-access-btn secondary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록·수정</a>
+        </div>
+      </div>
+      <div class="network-access-card" id="networkAccessDenied" hidden>
+        <div class="network-access-kicker">EMAIL NOT FOUND</div>
+        <div class="network-access-title">등록된 이메일을 확인해주세요</div>
+        <div class="network-access-desc">인증한 이메일이 졸업생 DB에서 확인되지 않습니다. DB에 이메일을 등록하거나 수정한 뒤 다시 인증해주세요.</div>
+        <div class="network-access-status" id="networkAccessDeniedEmail"></div>
+        <div class="network-access-register">
+          <a class="network-access-btn" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록·수정</a>
+          <button class="network-access-btn secondary" id="networkAccessSwitch" type="button">다른 이메일로 인증</button>
+        </div>
+      </div>
+      <div class="network-access-card" id="networkAccessError" hidden>
+        <div class="network-access-title">인증 확인이 지연되고 있습니다</div>
+        <div class="network-access-desc">잠시 후 다시 시도해주세요. 홈과 2026 모임 정보는 계속 이용할 수 있습니다.</div>
+        <button class="network-access-btn secondary" id="networkAccessRetry" type="button" style="width:100%;margin-top:16px">다시 확인</button>
+      </div>
+    </div>
+    <div class="network-profile-protected" id="networkProfileProtected" hidden>
+      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></div>
     <div class="network-generation-nav">
       <div class="network-generation-head">
         <div>
@@ -804,6 +865,7 @@ body.site-view-network.modal-open{overflow:auto!important}
       </div>
       <button class="network-profile-more" id="networkProfileMore" type="button" hidden>더 보기</button>
       <div class="network-profile-privacy">본인이 공개에 동의하고 선택한 항목만 표시됩니다. ‘이메일로 연락하기’는 이메일 연락을 허용한 동문에게만 표시됩니다.</div>
+    </div>
     </div>
   </div>
 </div>
@@ -1606,105 +1668,14 @@ if(networkAlumniCount) networkAlumniCount.textContent=Number(alumniStats.total||
 }
 
 
-const NETWORK_PROFILE_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQm2qyYr9BAEm-fyZvNyExxiPS9lcRBPi06n__Qq__WlRPvGF_Iou7x1lIjsmBgqpoqHo4M2syaFVxc/pub?gid=648141668&single=true&output=csv";
-const NETWORK_PROFILE_CSV_FALLBACK="https://docs.google.com/spreadsheets/d/1tCtxM55yxwdqayihB56qsxFI8qWNzliB6N8wRxIJrQk/gviz/tq?tqx=out:csv&gid=648141668";
 let networkProfiles=[];
-let networkProfileRows=[];
 const NETWORK_PROFILE_PAGE_SIZE=12;
 let networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
 let networkGenerationFilter="none";
-function parseNetworkCsv(text){
-  const rows=[]; let row=[],cell="",q=false;
-  for(let i=0;i<text.length;i++){
-    const ch=text[i],n=text[i+1];
-    if(q){
-      if(ch==='"'&&n==='"'){cell+='"';i++;}
-      else if(ch==='"'){q=false;}
-      else cell+=ch;
-    }else{
-      if(ch==='"')q=true;
-      else if(ch===','){row.push(cell);cell="";}
-      else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell="";}
-      else if(ch!=='\r')cell+=ch;
-    }
-  }
-  row.push(cell); if(row.some(v=>v!==""))rows.push(row);
-  return rows;
-}
+let networkAccessState="loading";
+let networkAccessEmail="";
+let networkProfilesLoaded=false;
 function networkNorm(v){return String(v||"").replace(/\s+/g,"").toLowerCase();}
-function networkRows(csvRows){
-  if(csvRows.length<2)return [];
-  const headers=csvRows[0].map(v=>String(v||"").trim());
-  return csvRows.slice(1).filter(r=>r.some(v=>String(v||"").trim())).map(r=>{
-    const o={}; headers.forEach((h,i)=>o[h]=String(r[i]??"").trim()); return o;
-  });
-}
-function networkGet(row,label){
-  const key=Object.keys(row).find(k=>networkNorm(k)===networkNorm(label));
-  return key?row[key]:"";
-}
-async function fetchNetworkCsv(){
-  let lastErr;
-  for(const url of [NETWORK_PROFILE_CSV_URL,NETWORK_PROFILE_CSV_FALLBACK]){
-    try{
-      const res=await fetch(url+(url.includes("?")?"&":"?")+"_="+Date.now(),{cache:"no-store"});
-      if(!res.ok)throw new Error("HTTP "+res.status);
-      return await res.text();
-    }catch(e){lastErr=e;}
-  }
-  throw lastErr||new Error("CSV load failed");
-}
-function maskNetworkName(name){
-  const s=String(name||"").trim();
-  if(!s)return "이름 비공개";
-  if(s.length===1)return "○";
-  if(s.length===2)return s[0]+"○";
-  return s[0]+"○".repeat(Math.max(1,s.length-2))+s[s.length-1];
-}
-function networkFieldSet(row){
-  return new Set(networkGet(row,"사이트에 공개해도 되는 정보를 모두 선택해주세요").split(",").map(v=>v.trim()).filter(Boolean));
-}
-function networkAllowed(set,label){return [...set].some(v=>networkNorm(v)===networkNorm(label));}
-function safeInstagram(value){
-  const raw=String(value||"").trim();
-  if(!raw)return null;
-  if(/^(없음|없어요|없습니다|해당\s*없음|-|x)$/i.test(raw))return null;
-  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw))return null;
-  if(/^https?:\/\/([\w-]+\.)?instagram\.com\//i.test(raw)){
-    const url=raw.replace(/^http:\/\//i,"https://");
-    return {label:url.replace(/^https?:\/\/(www\.)?instagram\.com\//i,"@").replace(/\/$/,""),url};
-  }
-  const h=raw.replace(/^@/,"").trim();
-  if(!/^[A-Za-z0-9._]+$/.test(h))return null;
-  return {label:"@"+h,url:"https://www.instagram.com/"+h+"/"};
-}
-function cleanNetworkNarrative(value){
-  const text=String(value||"").trim();
-  if(!text)return "";
-  if(/^(없음|없어요|없습니다|해당\s*없음|현재\s*프로젝트|사업체\s*[-·/]?\s*브랜드(?:\s*소개)?|x|-)\.?$/i.test(text))return "";
-  return text;
-}
-function buildPublicNetworkProfile(r){
-  const consent=networkGet(r,"작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
-  if(!consent.includes("동의합니다"))return null;
-  const fields=networkFieldSet(r);
-  const mode=networkGet(r,"사이트에서 이름을 어떻게 표시할까요?");
-  const actual=networkGet(r,"이름");
-  const name=mode.includes("실명 전체")?actual:mode.includes("마스킹")?maskNetworkName(actual):"이름 비공개";
-  const gen=networkAllowed(fields,"졸업 기수")?networkGet(r,"졸업 기수"):"";
-  const company=networkAllowed(fields,"현재 소속 / 직장 / 사업체·브랜드")?networkGet(r,"현재 소속 / 직장 / 사업체·브랜드"):"";
-  const work=networkAllowed(fields,"현재 하는 일")?networkGet(r,"현재 하는 일"):"";
-  const activity=networkAllowed(fields,"활동 분야")?networkGet(r,"활동 분야"):"";
-  const region=networkAllowed(fields,"활동 지역")?networkGet(r,"활동 지역"):"";
-  const instagram=networkAllowed(fields,"Instagram")?safeInstagram(networkGet(r,"Instagram")):null;
-  const bio=networkAllowed(fields,"프로필 소개")?cleanNetworkNarrative(networkGet(r,"동문들에게 소개하고 싶은 내용")):"";
-  const connect=networkAllowed(fields,"연결 희망 분야")?networkGet(r,"동문들과 어떤 분야로 연결되고 싶나요?"):"";
-  const email=networkGet(r,"Email Address");
-  const contactConsent=networkGet(r,"동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
-  const allowEmailContact=contactConsent.includes("허용합니다");
-  const fullNamePublic=mode.includes("실명 전체");
-  return {name,actualName:actual,fullNamePublic,gen,company,work,activity,region,instagram,bio,connect,email,allowEmailContact,sortGen:Number(networkGet(r,"졸업 기수"))||999,sortName:actual};
-}
 function renderNetworkGenerationNav(){
   const nav=document.getElementById("networkGenerationNav");
   if(!nav)return;
@@ -1724,6 +1695,7 @@ function renderNetworkProfiles(){
   const search=document.getElementById("networkProfileSearch");
   const more=document.getElementById("networkProfileMore");
   if(!list)return;
+  if(networkAccessState!=="verified")return;
   renderNetworkGenerationNav();
   if(meta)meta.textContent=`공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
   const networkPublicCount=document.getElementById("networkPublicCount");
@@ -1782,22 +1754,147 @@ function selectNetworkGeneration(gen){
   document.querySelector(".network-profile-modal-body")?.scrollTo({top:0,behavior:"smooth"});
 }
 
-async function loadNetworkProfiles(){
+async function loadNetworkProfiles(session){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
+  if(!session?.access_token||networkAccessState!=="verified")return;
+  if(networkProfilesLoaded){renderNetworkProfiles();return;}
   try{
-    const text=await fetchNetworkCsv();
-    networkProfileRows=networkRows(parseNetworkCsv(text));
-    networkProfiles=networkProfileRows.map(buildPublicNetworkProfile).filter(Boolean)
+    if(list)list.innerHTML='<div class="network-profile-empty">동문 프로필을 불러오는 중입니다.</div>';
+    const {data,error}=await sb.functions.invoke("hanjogo-access",{
+      body:{action:"profiles"},
+      headers:{Authorization:"Bearer "+session.access_token}
+    });
+    if(error)throw error;
+    if(!data?.allowed)throw new Error("access_denied");
+    networkProfiles=(Array.isArray(data.profiles)?data.profiles:[])
       .sort((a,b)=>a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
+    networkProfilesLoaded=true;
+    networkGenerationFilter="all";
     renderNetworkProfiles();
     renderPublicAttendees(document.getElementById("attendeeSearch")?.value||"");
   }catch(e){
-    console.error("동문 네트워크 CSV 연동 실패",e);
-    if(meta)meta.textContent="동문 프로필 연동 확인 중";
+    console.error("동문 프로필 불러오기 실패",e);
+    if(meta)meta.textContent="동문 프로필을 불러오지 못했습니다.";
     if(list)list.innerHTML='<div class="network-profile-empty">프로필을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>';
   }
 }
+
+function setNetworkAccessView(state,{email="",message=""}={}){
+  networkAccessState=state;
+  networkAccessEmail=email;
+  const panel=document.getElementById("networkAccessPanel");
+  const protectedArea=document.getElementById("networkProfileProtected");
+  const loading=document.getElementById("networkAccessLoading");
+  const signedOut=document.getElementById("networkAccessSignedOut");
+  const denied=document.getElementById("networkAccessDenied");
+  const errorBox=document.getElementById("networkAccessError");
+  const meta=document.getElementById("networkProfileMeta");
+  const count=document.getElementById("networkPublicCount");
+  if(loading)loading.hidden=state!=="loading";
+  if(signedOut)signedOut.hidden=state!=="signed-out";
+  if(denied)denied.hidden=state!=="denied";
+  if(errorBox)errorBox.hidden=state!=="error";
+  if(panel)panel.hidden=state==="verified";
+  if(protectedArea)protectedArea.hidden=state!=="verified";
+  const status=document.getElementById("networkAccessStatus");
+  if(status&&message)status.textContent=message;
+  const deniedEmail=document.getElementById("networkAccessDeniedEmail");
+  if(deniedEmail)deniedEmail.textContent=email?"인증한 이메일 · "+email:"";
+  const verifiedEmail=document.getElementById("networkAccessVerifiedEmail");
+  if(verifiedEmail)verifiedEmail.textContent=email;
+  if(state!=="verified"){
+    if(count)count.textContent="인증 필요";
+    if(meta)meta.textContent="졸업생 DB 이메일 인증 후 공개 동문 프로필을 볼 수 있습니다.";
+  }
+  syncHomeSummary();
+}
+
+async function verifyNetworkAccess(session){
+  const {data,error}=await sb.functions.invoke("hanjogo-access",{
+    body:{action:"verify"},
+    headers:{Authorization:"Bearer "+session.access_token}
+  });
+  if(error)throw error;
+  return data||{};
+}
+
+async function initializeNetworkAccess(){
+  setNetworkAccessView("loading");
+  try{
+    const {data,error}=await sb.auth.getSession();
+    if(error)throw error;
+    const session=data?.session;
+    if(!session){setNetworkAccessView("signed-out");return;}
+    const result=await verifyNetworkAccess(session);
+    const email=String(session.user?.email||"").trim().toLowerCase();
+    if(!result.allowed){setNetworkAccessView("denied",{email});return;}
+    setNetworkAccessView("verified",{email});
+    await loadNetworkProfiles(session);
+  }catch(e){
+    console.error("동문 인증 확인 실패",e);
+    setNetworkAccessView("error");
+  }
+}
+
+let networkAccessCooldownTimer=null;
+function startNetworkAccessCooldown(seconds=60){
+  const btn=document.getElementById("networkAccessSubmit");
+  if(!btn)return;
+  clearInterval(networkAccessCooldownTimer);
+  let left=seconds;
+  const tick=()=>{
+    if(left<=0){
+      clearInterval(networkAccessCooldownTimer);
+      btn.disabled=false;
+      btn.textContent="인증메일 다시 받기";
+      return;
+    }
+    btn.disabled=true;
+    btn.textContent="다시 받기까지 "+left+"초";
+    left-=1;
+  };
+  tick();
+  networkAccessCooldownTimer=setInterval(tick,1000);
+}
+
+document.getElementById("networkAccessForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const email=String(document.getElementById("networkAccessEmail")?.value||"").trim().toLowerCase();
+  const status=document.getElementById("networkAccessStatus");
+  const btn=document.getElementById("networkAccessSubmit");
+  if(!email||btn?.disabled)return;
+  if(btn){btn.disabled=true;btn.textContent="인증메일 보내는 중...";}
+  if(status)status.textContent="인증메일을 보내고 있습니다.";
+  const redirectUrl=new URL(location.origin+location.pathname);
+  redirectUrl.searchParams.set("view","network");
+  const {error}=await sb.auth.signInWithOtp({
+    email,
+    options:{emailRedirectTo:redirectUrl.toString(),shouldCreateUser:true}
+  });
+  if(error){
+    console.error("인증메일 발송 실패",error);
+    if(status)status.textContent=/rate|limit|seconds|too many/i.test(String(error.message||""))
+      ?"요청이 많습니다. 잠시 후 다시 시도해주세요."
+      :"인증메일을 보내지 못했습니다. 이메일 주소를 확인해주세요.";
+    if(btn){btn.disabled=false;btn.textContent="인증메일 받기";}
+    return;
+  }
+  if(status)status.textContent="인증메일을 보냈습니다. 메일 안의 로그인 링크를 눌러주세요.";
+  startNetworkAccessCooldown(60);
+});
+
+async function resetNetworkAccess(){
+  await sb.auth.signOut();
+  networkProfiles=[];
+  networkProfilesLoaded=false;
+  networkGenerationFilter="none";
+  setNetworkAccessView("signed-out");
+}
+document.getElementById("networkAccessLogout")?.addEventListener("click",resetNetworkAccess);
+document.getElementById("networkAccessSwitch")?.addEventListener("click",resetNetworkAccess);
+document.getElementById("networkAccessRetry")?.addEventListener("click",initializeNetworkAccess);
+
 document.getElementById("networkProfileSearch")?.addEventListener("input",()=>{
   networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
   if(document.getElementById("networkProfileSearch")?.value.trim() && networkGenerationFilter==="none") networkGenerationFilter="all";
@@ -1913,6 +2010,8 @@ function syncHomeSummary(){
 }
 
 function currentSiteView(){
+  const queryView=String(new URLSearchParams(location.search).get("view")||"").toLowerCase();
+  if(SITE_VIEWS.has(queryView))return queryView;
   const raw=String(location.hash||"#home").replace(/^#/,"").toLowerCase();
   if(raw==="alumni")return "network";
   return SITE_VIEWS.has(raw)?raw:"home";
@@ -2251,28 +2350,14 @@ let attendeeGenerationFilter=null;
 function attendeeNameKey(v){
   return String(v||"").replace(/\s+/g,"").toLowerCase();
 }
-function profileAttendeeVisibility(row){
-  const v=networkGet(row,"행사 참가자 명단에 표시해도 될까요?");
-  if(!v)return null;
-  if(v.includes("표시하지"))return false;
-  if(v.includes("표시"))return true;
-  return null;
-}
-function attendeeProfileMatchScore(attendee,row){
-  const actual=networkGet(row,"이름");
-  const gen=Number(networkGet(row,"졸업 기수"));
-  if(!actual || gen!==Number(attendee?.generation))return -1;
-
+function attendeeProfileMatchScore(attendee,profile){
+  if(Number(profile?.sortGen)!==Number(attendee?.generation))return -1;
   const current=String(attendee?.name||"");
-  if(current && !current.includes("○") && attendeeNameKey(current)===attendeeNameKey(actual))return 100;
-  if(maskNetworkName(actual)!==current)return -1;
+  if(current && !current.includes("○") && attendeeNameKey(current)===attendeeNameKey(profile?.actualName))return 100;
+  if(String(profile?.attendeeMaskedName||"")!==current)return -1;
 
   const aw=attendeeNameKey(attendee?.work);
-  const texts=[
-    networkGet(row,"현재 소속 / 직장 / 사업체·브랜드"),
-    networkGet(row,"현재 하는 일"),
-    networkGet(row,"활동 분야")
-  ].map(attendeeNameKey).filter(Boolean);
+  const texts=[profile?.company,profile?.work,profile?.activity].map(attendeeNameKey).filter(Boolean);
   let score=1;
   texts.forEach(t=>{
     if(t && aw && (aw.includes(t)||t.includes(aw)))score+=10;
@@ -2281,9 +2366,9 @@ function attendeeProfileMatchScore(attendee,row){
   });
   return score;
 }
-function matchingProfileRowForAttendee(attendee){
-  const candidates=networkProfileRows
-    .map(row=>({row,score:attendeeProfileMatchScore(attendee,row)}))
+function matchingProfileForAttendee(attendee){
+  const candidates=networkProfiles
+    .map(profile=>({profile,score:attendeeProfileMatchScore(attendee,profile)}))
     .filter(x=>x.score>=0)
     .sort((a,b)=>b.score-a.score);
   if(!candidates.length)return null;
@@ -2296,12 +2381,12 @@ function matchingProfileRowForAttendee(attendee){
   ).length;
   if(sameMaskedCount>1 && candidates[0].score<=1)return null;
   if(candidates.length>1 && candidates[0].score===candidates[1].score)return null;
-  return candidates[0].row;
+  return candidates[0].profile;
 }
 function attendeeAllowedByProfile(attendee){
-  const row=matchingProfileRowForAttendee(attendee);
-  if(!row)return true;
-  return profileAttendeeVisibility(row)!==false;
+  const profile=matchingProfileForAttendee(attendee);
+  if(!profile)return true;
+  return profile.attendeeVisible!==false;
 }
 function resolveAttendeePublicName(attendee){
   const current=String(attendee?.name||"");
@@ -2314,7 +2399,7 @@ function resolveAttendeePublicName(attendee){
   const candidates=networkProfiles.filter(p=>{
     if(!p?.fullNamePublic || !p?.actualName) return false;
     if(Number(p.gen)!==gen) return false;
-    return maskNetworkName(p.actualName)===current;
+    return p.attendeeMaskedName===current;
   });
 
   // 마스킹 이름이 참가자 명단에서 유일할 때만 단독 후보를 바로 실명으로 연결.
@@ -2749,7 +2834,6 @@ function startPublicApp(){
   publicAppStarted=true;
 
   loadPublicInfo();
-  loadNetworkProfiles();
   recordAndShowVisit();
 
   sb
@@ -2770,6 +2854,15 @@ function startPublicApp(){
 
 startPublicApp();
 setSiteView(currentSiteView(),{updateHash:false});
+initializeNetworkAccess().finally(()=>{
+  if(new URLSearchParams(location.search).has("view")){
+    history.replaceState(null,"",location.pathname+"#network");
+  }
+});
+sb.auth.onAuthStateChange((event)=>{
+  if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED")setTimeout(initializeNetworkAccess,0);
+  if(event==="SIGNED_OUT")setTimeout(()=>setNetworkAccessView("signed-out"),0);
+});
 
 </script>
 

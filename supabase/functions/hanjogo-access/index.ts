@@ -101,15 +101,31 @@ function koreaDateKey() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-function priorPublicProfileEmails(rows: Record<string, string>[], todayKey: string) {
-  const emails = new Set<string>();
+function firstPublicProfileDates(rows: Record<string, string>[]) {
+  const dates = new Map<string, string>();
   rows.forEach((row) => {
     const email = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
     const consent = getField(row, "작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
     const dateKey = profileDateKey(row);
-    if (email && consent.includes("동의합니다") && dateKey && dateKey !== todayKey) emails.add(email);
+    const current = dates.get(email);
+    if (email && consent.includes("동의합니다") && dateKey && (!current || dateKey < current)) {
+      dates.set(email, dateKey);
+    }
   });
-  return emails;
+  return dates;
+}
+
+function dateKeyWithinDays(dateKey: string, todayKey: string, days: number) {
+  const date = Date.parse(dateKey + "T00:00:00Z");
+  const today = Date.parse(todayKey + "T00:00:00Z");
+  if (!Number.isFinite(date) || !Number.isFinite(today)) return false;
+  const difference = Math.floor((today - date) / 86400000);
+  return difference >= 0 && difference < days;
+}
+
+async function stableProfileId(value: string) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+  return [...digest.slice(0, 12)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function getField(row: Record<string, string>, label: string) {
@@ -161,11 +177,12 @@ function cleanNarrative(value: string) {
   return text;
 }
 
-function buildProfile(
+async function buildProfile(
   row: Record<string, string>,
   contactOverrides: Map<string, boolean>,
-  priorPublicEmails: Set<string>,
+  firstPublicDates: Map<string, string>,
   todayKey: string,
+  viewerEmail: string,
 ) {
   const consent = getField(row, "작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
   if (!consent.includes("동의합니다")) return null;
@@ -183,6 +200,8 @@ function buildProfile(
     ? Boolean(contactOverrides.get(normalizedEmail))
     : formAllowsEmailContact;
   const attendeePreference = getField(row, "행사 참가자 명단에 표시해도 될까요?");
+  const firstPublicDate = firstPublicDates.get(normalizedEmail) || "";
+  const profileId = await stableProfileId(normalizedEmail || `${generation}|${actualName}|${profileDateKey(row)}`);
   return {
     name,
     actualName: fullNamePublic ? actualName : "",
@@ -199,7 +218,10 @@ function buildProfile(
     allowEmailContact,
     attendeeVisible: !attendeePreference.includes("표시하지"),
     attendeeMaskedName: maskName(actualName),
-    isNew: Boolean(normalizedEmail) && profileDateKey(row) === todayKey && !priorPublicEmails.has(normalizedEmail),
+    profileId,
+    isOwnProfile: Boolean(normalizedEmail) && normalizedEmail === viewerEmail,
+    isNew: Boolean(firstPublicDate) && firstPublicDate === todayKey,
+    isRecent: dateKeyWithinDays(firstPublicDate, todayKey, 7),
     sortGen: Number(generation) || 999,
     sortName: name,
   };
@@ -256,11 +278,11 @@ Deno.serve(async (req: Request) => {
       );
       const allRows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
       const todayKey = koreaDateKey();
-      const priorPublicEmails = priorPublicProfileEmails(allRows, todayKey);
+      const firstPublicDates = firstPublicProfileDates(allRows);
       const rows = latestProfileRowsByEmail(allRows);
-      const profiles = rows
-        .map((row) => buildProfile(row, contactOverrides, priorPublicEmails, todayKey))
-        .filter(Boolean);
+      const profiles = (await Promise.all(
+        rows.map((row) => buildProfile(row, contactOverrides, firstPublicDates, todayKey, email)),
+      )).filter(Boolean);
       return json({ allowed: true, profiles, count: profiles.length });
     } catch {
       return json({ allowed: true, error: "profiles_unavailable" }, 503);

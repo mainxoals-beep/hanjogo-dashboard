@@ -174,6 +174,7 @@ body.modal-open{overflow:hidden}
 .network-profile-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
 .network-profile-name{font-size:15px;font-weight:900;color:var(--ink)}
 .network-profile-gen{font-size:11px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:2px 7px;border-radius:999px}
+.network-profile-new{display:inline-flex;align-items:center;padding:2px 6px;border-radius:999px;background:#E95D4E;color:#fff;font-size:9.5px;font-weight:950;letter-spacing:.06em;line-height:1.35}
 .network-profile-line{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--sub);line-height:1.6;word-break:keep-all}
 .network-profile-label{font-size:11.5px;font-weight:800;color:var(--mute)}
 .network-profile-value{min-width:0;overflow-wrap:anywhere}
@@ -255,6 +256,8 @@ body.modal-open{overflow:hidden}
 .network-hub-stat span{margin-right:auto;font-size:12px;color:var(--sub);font-weight:700}
 .network-hub-stat b{font-size:18px;color:var(--purple-dark)}
 .network-hub-stat small{font-size:11px;color:var(--mute)}
+.network-hub-stat .network-new-count{margin-left:2px;padding:2px 6px;border-radius:999px;background:#FFF0ED;color:#C63E31;font-size:9.5px;font-weight:900;letter-spacing:.01em;white-space:nowrap}
+.network-hub-stat .network-new-count[hidden]{display:none}
 .network-hub-actions{display:grid;grid-template-columns:1.35fr .65fr;gap:8px}
 .network-hub-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:13px;font-weight:900;text-align:center;text-decoration:none;cursor:pointer}
 .network-hub-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
@@ -613,7 +616,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   </div>
   <div class="network-hub-stats">
     <button type="button" class="network-hub-stat network-hub-stat-btn" id="networkAlumniStatBtn" aria-controls="alumniDbModalBody" aria-expanded="false"><span>졸업생 DB</span><b id="networkAlumniCount">-</b><small>현황 보기</small></button>
-    <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small></div>
+    <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><small class="network-new-count" id="networkNewCount" hidden></small></div>
   </div>
   <div class="network-hub-actions">
     <a class="network-hub-btn primary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
@@ -1698,9 +1701,17 @@ function renderNetworkProfiles(){
   if(!list)return;
   if(networkAccessState!=="verified")return;
   renderNetworkGenerationNav();
-  if(meta)meta.textContent=`공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
+  const todayNewCount=networkProfiles.filter(p=>p.isNew).length;
+  if(meta)meta.textContent=todayNewCount
+    ? `공개 동의 ${networkProfiles.length}명 · 오늘 새로 등록 ${todayNewCount}명 · 이름과 활동 분야로 검색할 수 있습니다.`
+    : `공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
   const networkPublicCount=document.getElementById("networkPublicCount");
   if(networkPublicCount)networkPublicCount.textContent=networkProfiles.length.toLocaleString()+"명";
+  const networkNewCount=document.getElementById("networkNewCount");
+  if(networkNewCount){
+    networkNewCount.hidden=todayNewCount===0;
+    networkNewCount.textContent=todayNewCount?`오늘 NEW ${todayNewCount}`:"";
+  }
 
   const q=networkNorm(search?.value||"");
   if(networkGenerationFilter==="none"&&!q){
@@ -1735,6 +1746,7 @@ function renderNetworkProfiles(){
       <div class="network-profile-top">
         ${p.gen?`<span class="network-profile-gen">${esc(p.gen)}기</span>`:""}
         <span class="network-profile-name">${esc(p.name)}</span>
+        ${p.isNew?'<span class="network-profile-new" aria-label="오늘 새로 등록된 프로필">NEW</span>':""}
       </div>
       ${lines.join("")}
       ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>${p.bio.length>80?'<button type="button" class="network-profile-bio-toggle" aria-expanded="false">소개 더 보기</button>':""}`:""}

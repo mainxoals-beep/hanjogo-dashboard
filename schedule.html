@@ -1009,10 +1009,12 @@ const PUBLIC_BUILD_VERSION="2026-09-09-second-application-v1";
 
 const SUPABASE_URL="https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY="sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
+const NETWORK_ADMIN_EMAIL="mainxoals@gmail.com";
 
 const sb=window.supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_KEY
+  SUPABASE_KEY,
+  {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
 );
 
 const DEFAULT_PUBLIC_INFO={
@@ -2016,12 +2018,18 @@ async function initializeNetworkAccess(){
     const session=data?.session;
     networkCurrentSession=session||null;
     if(!session){networkIsAdmin=false;setNetworkAccessView("signed-out");return;}
-    const result=await verifyNetworkAccess(session);
     const email=String(session.user?.email||"").trim().toLowerCase();
+    if(email===NETWORK_ADMIN_EMAIL){
+      networkIsAdmin=true;
+      setNetworkAccessView("verified",{email});
+      if(currentSiteView()==="network")void loadNetworkProfiles(session);
+      return;
+    }
+    const result=await verifyNetworkAccess(session);
     networkIsAdmin=Boolean(result.isAdmin);
     if(!result.allowed){setNetworkAccessView("denied",{email});return;}
     setNetworkAccessView("verified",{email});
-    await loadNetworkProfiles(session);
+    if(currentSiteView()==="network")void loadNetworkProfiles(session);
   }catch(e){
     console.error("동문 인증 확인 실패",e);
     setNetworkAccessView("error");
@@ -2209,12 +2217,16 @@ const alumniDbModal=document.getElementById("alumniDbModal");
 
 const BOARD_CATEGORY_LABELS={free:"자유",jobs:"구인·구직",collab:"협업·도움",business:"업체·행사",notice:"공지"};
 const BOARD_REACTIONS=[{key:"like",emoji:"👍",label:"좋아요"},{key:"heart",emoji:"❤️",label:"응원"},{key:"clap",emoji:"👏",label:"박수"},{key:"useful",emoji:"💡",label:"유용해요"}];
+const BOARD_CACHE_TTL=5*60*1000;
 let boardPosts=[],boardFilter="all",boardLoaded=false,boardSelectedId=null;
 function boardDate(value){const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleDateString("ko-KR",{year:"numeric",month:"short",day:"numeric"});}
 async function boardCall(action,payload={}){const session=networkCurrentSession||(await sb.auth.getSession()).data?.session;if(!session?.access_token)throw new Error("auth_required");const {data,error}=await sb.functions.invoke("hanjogo-access",{body:{action,...payload},headers:{Authorization:"Bearer "+session.access_token}});if(error)throw error;if(data?.error)throw new Error(data.error);return data||{};}
+function boardCacheKey(){return "hanjogo-board-v2:"+String(networkCurrentSession?.user?.id||"");}
+function readBoardCache(){try{const raw=sessionStorage.getItem(boardCacheKey());if(!raw)return null;const cached=JSON.parse(raw);return Array.isArray(cached?.items)?cached:null;}catch{return null;}}
+function writeBoardCache(items,isAdmin){try{sessionStorage.setItem(boardCacheKey(),JSON.stringify({items,isAdmin:Boolean(isAdmin),savedAt:Date.now()}));}catch{}}
 function syncBoardAccess(){const ok=networkAccessState==="verified";const gate=document.getElementById("boardGate"),content=document.getElementById("boardContent"),notice=document.getElementById("boardNoticeOption");if(gate)gate.hidden=ok;if(content)content.hidden=!ok;if(notice)notice.hidden=!networkIsAdmin;if(ok&&currentSiteView()==="board")loadBoard();}
 function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(p=>boardFilter==="all"||p.category===boardFilter);document.querySelectorAll(".board-filter").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}</span><span class="board-row-meta">${esc(author)} · ${esc(boardDate(p.createdAt))}</span></span><span class="board-comment-count">반응 ${reactionTotal} · 조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
-async function loadBoard(force=false){if(networkAccessState!=="verified")return;if(boardLoaded&&!force){renderBoardList();return;}const list=document.getElementById("boardList");if(list)list.innerHTML='<div class="board-list-empty">게시글을 불러오는 중입니다.</div>';try{const r=await boardCall("board_list");boardPosts=Array.isArray(r.items)?r.items:[];boardLoaded=true;networkIsAdmin=Boolean(r.isAdmin);const n=document.getElementById("boardNoticeOption");if(n)n.hidden=!networkIsAdmin;renderBoardList();if(boardSelectedId&&!document.getElementById("boardDetailModal")?.hidden)renderBoardDetail();}catch(e){console.error("게시판 불러오기 실패",e);if(list)list.innerHTML='<div class="board-list-empty">게시글을 불러오지 못했습니다.<br>잠시 후 다시 확인해주세요.</div>';}}
+async function loadBoard(force=false){if(networkAccessState!=="verified")return;let cached=null;if(!boardLoaded){cached=readBoardCache();if(cached){boardPosts=cached.items;boardLoaded=true;networkIsAdmin=Boolean(cached.isAdmin);renderBoardList();}}if(boardLoaded&&!force&&cached&&Date.now()-Number(cached.savedAt||0)<BOARD_CACHE_TTL)return;if(boardLoaded&&!force&&!cached){renderBoardList();return;}const list=document.getElementById("boardList");if(list&&!boardLoaded)list.innerHTML='<div class="board-list-empty">게시글을 불러오는 중입니다.</div>';try{const r=await boardCall("board_list");boardPosts=Array.isArray(r.items)?r.items:[];boardLoaded=true;networkIsAdmin=Boolean(r.isAdmin);writeBoardCache(boardPosts,networkIsAdmin);const n=document.getElementById("boardNoticeOption");if(n)n.hidden=!networkIsAdmin;renderBoardList();if(boardSelectedId&&!document.getElementById("boardDetailModal")?.hidden)renderBoardDetail();}catch(e){console.error("게시판 불러오기 실패",e);if(list&&!boardLoaded)list.innerHTML='<div class="board-list-empty">게시글을 불러오지 못했습니다.<br>잠시 후 다시 확인해주세요.</div>';}}
 function openBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=false;m.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");}
 function closeBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=true;m.setAttribute("aria-hidden","true");if(!document.querySelector(".board-modal:not([hidden])"))document.body.classList.remove("modal-open");}
 function openBoardWrite(p=null){document.getElementById("boardEditId").value=p?.id||"";document.getElementById("boardCategory").value=p?.category||"free";document.getElementById("boardTitle").value=p?.title||"";document.getElementById("boardBody").value=p?.content||"";document.getElementById("boardWriteTitle").textContent=p?"게시글 수정":"게시글 작성";document.getElementById("boardSubmitBtn").textContent=p?"수정하기":"등록하기";document.getElementById("boardFormStatus").textContent="";openBoardModal("boardWriteModal");setTimeout(()=>document.getElementById("boardTitle")?.focus(),30);}
@@ -2285,6 +2297,7 @@ function setSiteView(view,{updateHash=true}={}){
       networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
       if(networkGenerationFilter==="none") networkGenerationFilter="all";
       renderNetworkProfiles();
+      if(networkAccessState==="verified"&&networkCurrentSession)void loadNetworkProfiles(networkCurrentSession);
     }
   }
 

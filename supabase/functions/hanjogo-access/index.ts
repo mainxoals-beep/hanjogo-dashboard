@@ -214,12 +214,27 @@ async function boardIdentity(email: string, special: Record<string, unknown> | n
   return { name: specialName || email.split("@")[0], generation: null };
 }
 
-function publicBoardPost(row: Record<string, unknown>, comments: Record<string, unknown>[], userId: string, isAdmin: boolean) {
+function publicBoardPost(
+  row: Record<string, unknown>,
+  comments: Record<string, unknown>[],
+  reactions: Record<string, unknown>[],
+  viewCount: number,
+  userId: string,
+  isAdmin: boolean,
+) {
+  const reactionCounts = { like: 0, heart: 0, clap: 0, useful: 0 };
+  reactions.forEach((item) => {
+    const key = String(item.reaction || "") as keyof typeof reactionCounts;
+    if (key in reactionCounts) reactionCounts[key] += 1;
+  });
   return {
     id: row.id, category: row.category, title: row.title, content: row.content,
     authorName: row.author_name, authorGeneration: row.author_generation,
     isNotice: Boolean(row.is_notice), createdAt: row.created_at, updatedAt: row.updated_at,
     canEdit: isAdmin || row.author_id === userId,
+    viewCount,
+    reactionCounts,
+    ownReactions: reactions.filter((item) => item.user_id === userId).map((item) => item.reaction),
     comments: comments.map((comment) => ({
       id: comment.id, content: comment.content, authorName: comment.author_name,
       authorGeneration: comment.author_generation, createdAt: comment.created_at,
@@ -351,16 +366,65 @@ Deno.serve(async (req: Request) => {
       if (postsError) return json({ error: postsError.message }, 500);
       const postIds = (posts || []).map((post) => post.id);
       let comments: Record<string, unknown>[] = [];
+      let reactions: Record<string, unknown>[] = [];
+      let views: Record<string, unknown>[] = [];
       if (postIds.length) {
-        const { data, error } = await adminClient.from("hanjogo_board_comments")
-          .select("id,post_id,author_id,author_name,author_generation,content,created_at")
-          .in("post_id", postIds).eq("is_hidden", false).order("created_at", { ascending: true });
-        if (error) return json({ error: error.message }, 500);
-        comments = data || [];
+        const [commentResult, reactionResult, viewResult] = await Promise.all([
+          adminClient.from("hanjogo_board_comments")
+            .select("id,post_id,author_id,author_name,author_generation,content,created_at")
+            .in("post_id", postIds).eq("is_hidden", false).order("created_at", { ascending: true }),
+          adminClient.from("hanjogo_board_reactions").select("post_id,user_id,reaction").in("post_id", postIds),
+          adminClient.from("hanjogo_board_views").select("post_id").in("post_id", postIds),
+        ]);
+        if (commentResult.error) return json({ error: commentResult.error.message }, 500);
+        if (reactionResult.error) return json({ error: reactionResult.error.message }, 500);
+        if (viewResult.error) return json({ error: viewResult.error.message }, 500);
+        comments = commentResult.data || [];
+        reactions = reactionResult.data || [];
+        views = viewResult.data || [];
       }
       return json({ allowed: true, isAdmin, items: (posts || []).map((post) => publicBoardPost(
-        post, comments.filter((comment) => comment.post_id === post.id), userId, isAdmin,
+        post,
+        comments.filter((comment) => comment.post_id === post.id),
+        reactions.filter((reaction) => reaction.post_id === post.id),
+        views.filter((view) => view.post_id === post.id).length,
+        userId,
+        isAdmin,
       )) });
+    }
+    if (action === "board_view") {
+      const postId = Number(body.postId);
+      if (!Number.isFinite(postId)) return json({ error: "invalid_post" }, 400);
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      if (postError) return json({ error: postError.message }, 500);
+      if (!post) return json({ error: "post_not_found" }, 404);
+      const { error } = await adminClient.from("hanjogo_board_views").upsert(
+        { post_id: postId, user_id: userId },
+        { onConflict: "post_id,user_id", ignoreDuplicates: true },
+      );
+      if (error) return json({ error: error.message }, 500);
+      const { count, error: countError } = await adminClient.from("hanjogo_board_views").select("post_id", { count: "exact", head: true }).eq("post_id", postId);
+      if (countError) return json({ error: countError.message }, 500);
+      return json({ ok: true, viewCount: count || 0 });
+    }
+    if (action === "board_react") {
+      const postId = Number(body.postId);
+      const reaction = cleanBoardText(body.reaction, 20);
+      if (!Number.isFinite(postId) || !["like", "heart", "clap", "useful"].includes(reaction)) return json({ error: "invalid_reaction" }, 400);
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      if (postError) return json({ error: postError.message }, 500);
+      if (!post) return json({ error: "post_not_found" }, 404);
+      const { data: existing, error: lookupError } = await adminClient.from("hanjogo_board_reactions")
+        .select("post_id").eq("post_id", postId).eq("user_id", userId).eq("reaction", reaction).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (existing) {
+        const { error } = await adminClient.from("hanjogo_board_reactions").delete().eq("post_id", postId).eq("user_id", userId).eq("reaction", reaction);
+        if (error) return json({ error: error.message }, 500);
+      } else {
+        const { error } = await adminClient.from("hanjogo_board_reactions").insert({ post_id: postId, user_id: userId, reaction });
+        if (error) return json({ error: error.message }, 500);
+      }
+      return json({ ok: true, active: !existing });
     }
     if (action === "board_create") {
       const category = cleanBoardText(body.category, 20);

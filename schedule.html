@@ -2601,7 +2601,7 @@ if(!card||!grid)return;
 const committeeBrands=["렁팡스","쿠움","극단 아트솔루스","예쿡쿠킹클래스"];
 const brands=[...new Set([
   ...(Array.isArray(relatedBrands)
-    ? relatedBrands.map(v=>String(v||"").trim()).filter(Boolean)
+    ? relatedBrands.map(v=>String(v||"").trim()).filter(v=>v&&v!=="바카디 코리아")
     : []),
   ...committeeBrands
 ])];

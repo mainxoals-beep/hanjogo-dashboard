@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>한조고 네트워크 · 모임과 동문 연결</title>
+<title>한조고 졸업생 네트워크 · 모임과 동문 연결</title>
 <meta name="description" content="2026 한조고 네트워크 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -525,7 +525,7 @@ body:not(.site-view-event) #brandCard{display:none!important}
 .site-home-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;color:var(--purple-dark)}
 .site-home-title{margin-top:7px;font-size:23px;line-height:1.25;font-weight:950;color:var(--ink)}
 .site-home-desc{margin-top:8px;font-size:13px;line-height:1.7;color:var(--sub)}
-.site-home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.site-home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .site-home-card{
   display:flex;min-height:165px;flex-direction:column;padding:17px;
   border:1px solid var(--line);border-radius:18px;background:#fff;text-align:left;cursor:pointer;
@@ -558,6 +558,34 @@ body.site-view-network #networkProfileModal .modal-size-btn,
 body.site-view-network #alumniDbModal .attendee-close{display:none!important}
 body.site-view-network #alumniDbModal{margin-bottom:14px!important}
 body.site-view-network.modal-open{overflow:auto!important}
+
+/* alumni board */
+.board-page{display:grid;gap:12px}.board-shell{overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#fff}
+.board-gate{padding:28px 20px;text-align:center}.board-gate-title{font-size:18px;font-weight:950;color:var(--ink)}
+.board-gate-desc{max-width:520px;margin:7px auto 16px;font-size:13px;line-height:1.65;color:var(--sub)}
+.board-gate-btn,.board-write-btn,.board-primary-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:0;border-radius:10px;padding:10px 14px;background:var(--purple);color:#fff;font:inherit;font-size:13px;font-weight:900;text-decoration:none;cursor:pointer}
+.board-content[hidden],.board-gate[hidden],.board-modal[hidden]{display:none!important}
+.board-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line)}
+.board-toolbar-copy strong{display:block;font-size:15px;color:var(--ink)}.board-toolbar-copy span{display:block;margin-top:3px;font-size:12px;color:var(--mute)}
+.board-filters{display:flex;gap:6px;overflow-x:auto;padding:12px 16px;border-bottom:1px solid var(--line);scrollbar-width:none}.board-filters::-webkit-scrollbar{display:none}
+.board-filter{flex:0 0 auto;min-height:34px;border:1px solid var(--line);border-radius:999px;padding:7px 11px;background:#fff;color:var(--sub);font:inherit;font-size:12px;font-weight:800}.board-filter.active{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.board-list{min-height:180px}.board-list-empty{padding:40px 18px;text-align:center;color:var(--mute);font-size:13px;line-height:1.6}
+.board-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;width:100%;padding:14px 16px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;cursor:pointer}.board-row:last-child{border-bottom:0}.board-row:hover{background:#FCFBFE}
+.board-category{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:5px 7px;border-radius:999px;background:#F3F1EE;color:var(--sub);font-size:10.5px;font-weight:900}.board-category.notice{background:var(--purple-light);color:var(--purple-dark)}
+.board-row-main{min-width:0}.board-row-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:900;color:var(--ink)}.board-row-meta{display:block;margin-top:4px;font-size:11.5px;color:var(--mute)}.board-comment-count{font-size:11.5px;font-weight:800;color:var(--purple-dark)}
+.board-modal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(24,18,28,.56);backdrop-filter:blur(3px)}
+.board-dialog{width:min(680px,100%);max-height:92vh;overflow:auto;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(25,20,30,.24)}
+.board-dialog-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid var(--line);background:#fff}.board-dialog-title{font-size:16px;font-weight:950;color:var(--ink)}
+.board-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--sub);font-size:20px}
+.board-form{display:grid;gap:12px;padding:17px}.board-field{display:grid;gap:6px}.board-field label{font-size:12px;font-weight:900;color:var(--sub)}
+.board-input,.board-select,.board-textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink);font:inherit;font-size:14px;outline:none}.board-input:focus,.board-select:focus,.board-textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(110,95,203,.1)}
+.board-textarea{min-height:190px;resize:vertical;line-height:1.65}.board-form-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}.board-form-status{font-size:12px;color:var(--mute)}
+.board-detail{padding:19px}.board-detail-category{margin-bottom:8px}.board-detail-title{font-size:21px;line-height:1.35;font-weight:950;color:var(--ink)}.board-detail-meta{margin-top:7px;font-size:12px;color:var(--mute)}
+.board-detail-body{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-size:14px;line-height:1.8;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}.board-detail-actions{display:flex;gap:7px;margin-top:16px}
+.board-secondary-btn,.board-danger-btn{min-height:36px;border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;color:var(--purple-dark);font:inherit;font-size:12px;font-weight:800}.board-danger-btn{color:#A44336}
+.board-comments{padding:0 19px 19px}.board-comments-title{padding-top:17px;border-top:1px solid var(--line);font-size:14px;font-weight:950;color:var(--ink)}.board-comment{padding:12px 0;border-bottom:1px solid var(--line)}
+.board-comment-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--mute)}.board-comment-author{font-weight:900;color:var(--sub)}.board-comment-body{margin-top:5px;font-size:13px;line-height:1.65;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}.board-comment-delete{border:0;background:transparent;color:#A44336;font:inherit;font-size:11px;font-weight:800}
+.board-comment-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:14px}.board-comment-form .board-input{min-height:42px}.board-comment-empty{padding:14px 0;color:var(--mute);font-size:12px}
 @media(max-width:720px){
   .site-nav{overflow-x:auto;scrollbar-width:none;margin-left:-2px;margin-right:-2px}
   .site-nav::-webkit-scrollbar{display:none}
@@ -566,6 +594,9 @@ body.site-view-network.modal-open{overflow:auto!important}
   .site-home-title{font-size:21px}
   .top-actions{margin-top:14px}
   .brand-item{font-size:11.5px}
+  .site-home-grid{grid-template-columns:1fr}.board-row{grid-template-columns:auto minmax(0,1fr);gap:9px}.board-comment-count{grid-column:2}
+  .board-toolbar{align-items:flex-start}.board-toolbar-copy span{max-width:210px}.board-dialog{max-height:96vh;border-radius:16px}.board-modal{padding:8px}
+  .board-comment-form{grid-template-columns:1fr}.board-comment-form .board-primary-btn{width:100%}
 }
 
 </style>
@@ -576,16 +607,17 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="head">
   <p class="eyebrow">한국조리과학고등학교</p>
   <div class="head-title-row">
-    <h1>한조고 네트워크</h1>
+    <h1>한조고 졸업생 네트워크</h1>
     <img class="head-logo" src="./assets/hanjogo-logo.svg" alt="한국조리과학고등학교 KCAS 로고">
   </div>
   <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
 </div>
 
-<nav class="site-nav" id="siteNav" aria-label="한조고 네트워크 메뉴">
+<nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
   <button class="site-nav-btn" type="button" data-site-target="home">홈</button>
   <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
   <button class="site-nav-btn" type="button" data-site-target="network">동문 네트워크</button>
+  <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
 </nav>
 
 <section class="site-home site-view" id="siteHome" data-site-view="home">
@@ -609,6 +641,23 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="site-home-card-meta" id="homeNetworkMeta">졸업생 DB 현황과 공개 동문 프로필을 함께 확인할 수 있습니다.</div>
       <div class="site-home-card-link">동문 정보 보기 →</div>
     </button>
+    <button class="site-home-card" type="button" data-site-target="board">
+      <div class="site-home-card-kicker">ALUMNI BOARD</div><div class="site-home-card-title">동문 게시판</div>
+      <div class="site-home-card-value" id="homeBoardCount">새로운 소식</div>
+      <div class="site-home-card-meta">자유글, 구인·구직, 협업과 업체 소식을 나눌 수 있습니다.</div><div class="site-home-card-link">게시판 보기 →</div>
+    </button>
+  </div>
+</section>
+
+<section class="board-page site-view" id="boardPage" data-site-view="board" hidden>
+  <div class="site-page-intro"><div class="site-page-kicker">ALUMNI BOARD</div><div class="site-page-title">동문 게시판</div><div class="site-page-desc">인증된 졸업생이 자유롭게 소식과 정보, 구인·구직 및 협업 기회를 나누는 공간입니다.</div></div>
+  <div class="board-shell">
+    <div class="board-gate" id="boardGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 게시글과 댓글을 확인하고 직접 작성할 수 있습니다.</div><button class="board-gate-btn" id="boardVerifyBtn" type="button">동문 이메일 인증하기</button></div>
+    <div class="board-content" id="boardContent" hidden>
+      <div class="board-toolbar"><div class="board-toolbar-copy"><strong>최근 게시글</strong><span>작성자 이름과 기수는 인증 정보로 표시됩니다.</span></div><button class="board-write-btn" id="boardWriteBtn" type="button">글쓰기</button></div>
+      <div class="board-filters" id="boardFilters" aria-label="게시글 분류"><button class="board-filter active" type="button" data-board-filter="all">전체</button><button class="board-filter" type="button" data-board-filter="free">자유</button><button class="board-filter" type="button" data-board-filter="jobs">구인·구직</button><button class="board-filter" type="button" data-board-filter="collab">협업·도움</button><button class="board-filter" type="button" data-board-filter="business">업체·행사</button></div>
+      <div class="board-list" id="boardList"><div class="board-list-empty">게시글을 불러오는 중입니다.</div></div>
+    </div>
   </div>
 </section>
 
@@ -943,6 +992,10 @@ body.site-view-network.modal-open{overflow:auto!important}
 </div>
 
 </div>
+
+<div class="board-modal" id="boardWriteModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardWriteTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="boardWriteTitle">게시글 작성</div><button class="board-close" type="button" data-board-close="boardWriteModal" aria-label="닫기">×</button></div><form class="board-form" id="boardForm"><input type="hidden" id="boardEditId"><div class="board-field"><label for="boardCategory">분류</label><select class="board-select" id="boardCategory" required><option value="free">자유</option><option value="jobs">구인·구직</option><option value="collab">협업·도움</option><option value="business">업체·행사</option><option value="notice" id="boardNoticeOption" hidden>공지</option></select></div><div class="board-field"><label for="boardTitle">제목</label><input class="board-input" id="boardTitle" maxlength="120" placeholder="제목을 입력해주세요" required></div><div class="board-field"><label for="boardBody">내용</label><textarea class="board-textarea" id="boardBody" maxlength="5000" placeholder="동문들과 나눌 내용을 입력해주세요" required></textarea></div><div class="board-form-foot"><div class="board-form-status" id="boardFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="boardSubmitBtn" type="submit">등록하기</button></div></form></div></div>
+
+<div class="board-modal" id="boardDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardDetailTitle"><div class="board-dialog-head"><div class="board-dialog-title">게시글</div><button class="board-close" type="button" data-board-close="boardDetailModal" aria-label="닫기">×</button></div><article class="board-detail" id="boardDetail"></article><div class="board-comments"><div class="board-comments-title" id="boardCommentsTitle">댓글</div><div id="boardComments"></div><form class="board-comment-form" id="boardCommentForm"><input class="board-input" id="boardCommentInput" maxlength="1000" placeholder="댓글을 입력해주세요" required><button class="board-primary-btn" id="boardCommentSubmit" type="submit">댓글 등록</button></form></div></div></div>
 
 <div class="toast" id="toast">복사되었습니다.</div>
 
@@ -1714,6 +1767,8 @@ let networkFavoriteIds=new Set();
 let networkAccessState="loading";
 let networkAccessEmail="";
 let networkProfilesLoaded=false;
+let networkCurrentSession=null;
+let networkIsAdmin=false;
 function networkNorm(v){return String(v||"").replace(/\s+/g,"").toLowerCase();}
 function splitConnectTags(value){
   return String(value||"").split(/[,;\n]+/).map(tag=>tag.trim()).filter(Boolean);
@@ -1937,6 +1992,7 @@ function setNetworkAccessView(state,{email="",message=""}={}){
     if(meta)meta.textContent="졸업생 DB 이메일 인증 후 공개 동문 프로필을 볼 수 있습니다.";
   }
   syncHomeSummary();
+  syncBoardAccess();
 }
 
 async function verifyNetworkAccess(session){
@@ -1954,9 +2010,11 @@ async function initializeNetworkAccess(){
     const {data,error}=await sb.auth.getSession();
     if(error)throw error;
     const session=data?.session;
-    if(!session){setNetworkAccessView("signed-out");return;}
+    networkCurrentSession=session||null;
+    if(!session){networkIsAdmin=false;setNetworkAccessView("signed-out");return;}
     const result=await verifyNetworkAccess(session);
     const email=String(session.user?.email||"").trim().toLowerCase();
+    networkIsAdmin=Boolean(result.isAdmin);
     if(!result.allowed){setNetworkAccessView("denied",{email});return;}
     setNetworkAccessView("verified",{email});
     await loadNetworkProfiles(session);
@@ -2015,6 +2073,7 @@ document.getElementById("networkAccessForm")?.addEventListener("submit",async e=
 
 async function resetNetworkAccess(){
   await sb.auth.signOut();
+  networkCurrentSession=null;networkIsAdmin=false;
   networkProfiles=[];
   networkProfilesLoaded=false;
   networkGenerationFilter="none";
@@ -2144,7 +2203,26 @@ document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
 
 const alumniDbModal=document.getElementById("alumniDbModal");
 
-const SITE_VIEWS=new Set(["home","event","network"]);
+const BOARD_CATEGORY_LABELS={free:"자유",jobs:"구인·구직",collab:"협업·도움",business:"업체·행사",notice:"공지"};
+let boardPosts=[],boardFilter="all",boardLoaded=false,boardSelectedId=null;
+function boardDate(value){const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleDateString("ko-KR",{year:"numeric",month:"short",day:"numeric"});}
+async function boardCall(action,payload={}){const session=networkCurrentSession||(await sb.auth.getSession()).data?.session;if(!session?.access_token)throw new Error("auth_required");const {data,error}=await sb.functions.invoke("hanjogo-access",{body:{action,...payload},headers:{Authorization:"Bearer "+session.access_token}});if(error)throw error;if(data?.error)throw new Error(data.error);return data||{};}
+function syncBoardAccess(){const ok=networkAccessState==="verified";const gate=document.getElementById("boardGate"),content=document.getElementById("boardContent"),notice=document.getElementById("boardNoticeOption");if(gate)gate.hidden=ok;if(content)content.hidden=!ok;if(notice)notice.hidden=!networkIsAdmin;if(ok&&currentSiteView()==="board")loadBoard();}
+function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(p=>boardFilter==="all"||p.category===boardFilter);document.querySelectorAll(".board-filter").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · ");return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}</span><span class="board-row-meta">${esc(author)} · ${esc(boardDate(p.createdAt))}</span></span><span class="board-comment-count">댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
+async function loadBoard(force=false){if(networkAccessState!=="verified")return;if(boardLoaded&&!force){renderBoardList();return;}const list=document.getElementById("boardList");if(list)list.innerHTML='<div class="board-list-empty">게시글을 불러오는 중입니다.</div>';try{const r=await boardCall("board_list");boardPosts=Array.isArray(r.items)?r.items:[];boardLoaded=true;networkIsAdmin=Boolean(r.isAdmin);const n=document.getElementById("boardNoticeOption");if(n)n.hidden=!networkIsAdmin;renderBoardList();if(boardSelectedId&&!document.getElementById("boardDetailModal")?.hidden)renderBoardDetail();}catch(e){console.error("게시판 불러오기 실패",e);if(list)list.innerHTML='<div class="board-list-empty">게시글을 불러오지 못했습니다.<br>잠시 후 다시 확인해주세요.</div>';}}
+function openBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=false;m.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");}
+function closeBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=true;m.setAttribute("aria-hidden","true");if(!document.querySelector(".board-modal:not([hidden])"))document.body.classList.remove("modal-open");}
+function openBoardWrite(p=null){document.getElementById("boardEditId").value=p?.id||"";document.getElementById("boardCategory").value=p?.category||"free";document.getElementById("boardTitle").value=p?.title||"";document.getElementById("boardBody").value=p?.content||"";document.getElementById("boardWriteTitle").textContent=p?"게시글 수정":"게시글 작성";document.getElementById("boardSubmitBtn").textContent=p?"수정하기":"등록하기";document.getElementById("boardFormStatus").textContent="";openBoardModal("boardWriteModal");setTimeout(()=>document.getElementById("boardTitle")?.focus(),30);}
+function renderBoardDetail(){const p=boardPosts.find(x=>String(x.id)===String(boardSelectedId)),detail=document.getElementById("boardDetail"),comments=document.getElementById("boardComments");if(!p||!detail||!comments)return;const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · ");detail.innerHTML=`<div class="board-detail-category"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span></div><div class="board-detail-title" id="boardDetailTitle">${esc(p.title)}</div><div class="board-detail-meta">${esc(author)} · ${esc(boardDate(p.createdAt))}${p.updatedAt!==p.createdAt?" · 수정됨":""}</div><div class="board-detail-body">${esc(p.content)}</div>${p.canEdit?'<div class="board-detail-actions"><button class="board-secondary-btn" type="button" data-board-action="edit">수정</button><button class="board-danger-btn" type="button" data-board-action="delete">삭제</button></div>':""}`;const items=Array.isArray(p.comments)?p.comments:[];document.getElementById("boardCommentsTitle").textContent="댓글 "+items.length;comments.innerHTML=items.length?items.map(c=>{const name=[c.authorGeneration?c.authorGeneration+"기":"",c.authorName].filter(Boolean).join(" · ");return `<div class="board-comment"><div class="board-comment-head"><span class="board-comment-author">${esc(name)} · ${esc(boardDate(c.createdAt))}</span>${c.canDelete?`<button class="board-comment-delete" type="button" data-comment-delete="${esc(c.id)}">삭제</button>`:""}</div><div class="board-comment-body">${esc(c.content)}</div></div>`;}).join(""):'<div class="board-comment-empty">첫 댓글을 남겨보세요.</div>';}
+function openBoardDetail(id){boardSelectedId=Number(id);renderBoardDetail();openBoardModal("boardDetailModal");}
+document.getElementById("boardVerifyBtn")?.addEventListener("click",()=>setSiteView("network"));document.getElementById("boardWriteBtn")?.addEventListener("click",()=>openBoardWrite());
+document.getElementById("boardFilters")?.addEventListener("click",e=>{const b=e.target.closest("[data-board-filter]");if(b){boardFilter=b.dataset.boardFilter;renderBoardList();}});document.getElementById("boardList")?.addEventListener("click",e=>{const r=e.target.closest("[data-board-id]");if(r)openBoardDetail(r.dataset.boardId);});document.querySelectorAll("[data-board-close]").forEach(b=>b.addEventListener("click",()=>closeBoardModal(b.dataset.boardClose)));document.querySelectorAll(".board-modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeBoardModal(m.id);}));
+document.getElementById("boardForm")?.addEventListener("submit",async e=>{e.preventDefault();const id=Number(document.getElementById("boardEditId")?.value||0),category=document.getElementById("boardCategory")?.value||"free",title=document.getElementById("boardTitle")?.value.trim()||"",content=document.getElementById("boardBody")?.value.trim()||"",status=document.getElementById("boardFormStatus"),submit=document.getElementById("boardSubmitBtn");if(!title||!content)return;submit.disabled=true;status.textContent="저장 중입니다.";try{const r=await boardCall(id?"board_update":"board_create",{id,category,title,content});await loadBoard(true);closeBoardModal("boardWriteModal");openBoardDetail(id||r.id);}catch(err){console.error(err);status.textContent="저장하지 못했습니다. 잠시 후 다시 시도해주세요.";}finally{submit.disabled=false;}});
+document.getElementById("boardDetail")?.addEventListener("click",async e=>{const action=e.target.closest("[data-board-action]")?.dataset.boardAction,p=boardPosts.find(x=>String(x.id)===String(boardSelectedId));if(!action||!p)return;if(action==="edit"){closeBoardModal("boardDetailModal");openBoardWrite(p);return;}if(action==="delete"&&confirm("이 게시글을 삭제할까요?")){try{await boardCall("board_delete",{id:p.id});closeBoardModal("boardDetailModal");boardSelectedId=null;await loadBoard(true);}catch(err){alert("삭제하지 못했습니다.");}}});
+document.getElementById("boardCommentForm")?.addEventListener("submit",async e=>{e.preventDefault();const input=document.getElementById("boardCommentInput"),button=document.getElementById("boardCommentSubmit"),content=input?.value.trim()||"";if(!content||!boardSelectedId)return;button.disabled=true;try{await boardCall("board_comment_create",{postId:boardSelectedId,content});input.value="";await loadBoard(true);renderBoardDetail();}catch(err){alert("댓글을 등록하지 못했습니다.");}finally{button.disabled=false;}});
+document.getElementById("boardComments")?.addEventListener("click",async e=>{const b=e.target.closest("[data-comment-delete]");if(!b||!confirm("이 댓글을 삭제할까요?"))return;try{await boardCall("board_comment_delete",{id:Number(b.dataset.commentDelete)});await loadBoard(true);renderBoardDetail();}catch(err){alert("댓글을 삭제하지 못했습니다.");}});
+
+const SITE_VIEWS=new Set(["home","event","network","board"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
@@ -2183,7 +2261,7 @@ function currentSiteView(){
 function setSiteView(view,{updateHash=true}={}){
   const next=SITE_VIEWS.has(view)?view:"home";
 
-  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-alumni","modal-open");
+  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-alumni","modal-open");
   document.body.classList.add("site-view-"+next);
 
   document.querySelectorAll(".site-view").forEach(el=>{
@@ -2216,6 +2294,10 @@ function setSiteView(view,{updateHash=true}={}){
     attendeeModal.hidden=true;
     attendeeModal.setAttribute("aria-hidden","true");
   }
+
+  if(next!=="board"){
+    ["boardWriteModal","boardDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
+  }else syncBoardAccess();
 
   syncHomeSummary();
 
@@ -3024,7 +3106,7 @@ initializeNetworkAccess().finally(()=>{
 });
 sb.auth.onAuthStateChange((event)=>{
   if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED")setTimeout(initializeNetworkAccess,0);
-  if(event==="SIGNED_OUT")setTimeout(()=>setNetworkAccessView("signed-out"),0);
+  if(event==="SIGNED_OUT")setTimeout(()=>{networkCurrentSession=null;networkIsAdmin=false;boardPosts=[];boardLoaded=false;setNetworkAccessView("signed-out");},0);
 });
 
 </script>

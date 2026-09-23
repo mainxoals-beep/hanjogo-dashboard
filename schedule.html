@@ -256,7 +256,9 @@ body.modal-open{overflow:hidden}
 .network-hub-stat span{margin-right:auto;font-size:12px;color:var(--sub);font-weight:700}
 .network-hub-stat b{font-size:18px;color:var(--purple-dark)}
 .network-hub-stat small{font-size:11px;color:var(--mute)}
-.network-hub-stat .network-new-count{margin-left:2px;padding:2px 6px;border-radius:999px;background:#FFF0ED;color:#C63E31;font-size:9.5px;font-weight:900;letter-spacing:.01em;white-space:nowrap}
+.network-hub-stat .network-new-count{margin-left:2px;padding:3px 7px;border:0;border-radius:999px;background:#FFF0ED;color:#C63E31;font:inherit;font-size:9.5px;font-weight:900;letter-spacing:.01em;line-height:1.35;white-space:nowrap;cursor:pointer;transition:.16s ease}
+.network-hub-stat .network-new-count:hover,.network-hub-stat .network-new-count.active{background:#E95D4E;color:#fff;transform:translateY(-1px)}
+.network-hub-stat .network-new-count:focus-visible{outline:2px solid var(--purple);outline-offset:2px}
 .network-hub-stat .network-new-count[hidden]{display:none}
 .network-hub-actions{display:grid;grid-template-columns:1.35fr .65fr;gap:8px}
 .network-hub-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--purple-dark);font-size:13px;font-weight:900;text-align:center;text-decoration:none;cursor:pointer}
@@ -616,7 +618,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   </div>
   <div class="network-hub-stats">
     <button type="button" class="network-hub-stat network-hub-stat-btn" id="networkAlumniStatBtn" aria-controls="alumniDbModalBody" aria-expanded="false"><span>졸업생 DB</span><b id="networkAlumniCount">-</b><small>현황 보기</small></button>
-    <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><small class="network-new-count" id="networkNewCount" hidden></small></div>
+    <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="오늘 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
   </div>
   <div class="network-hub-actions">
     <a class="network-hub-btn primary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
@@ -1676,6 +1678,7 @@ let networkProfiles=[];
 const NETWORK_PROFILE_PAGE_SIZE=12;
 let networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
 let networkGenerationFilter="none";
+let networkNewOnly=false;
 let networkAccessState="loading";
 let networkAccessEmail="";
 let networkProfilesLoaded=false;
@@ -1691,7 +1694,7 @@ function renderNetworkGenerationNav(){
   nav.innerHTML=[...counts.entries()].sort((a,b)=>a[0]-b[0]).map(([g,count])=>`
     <button type="button" class="generation-chip ${networkGenerationFilter===g?"active":""}" data-generation="${g}">${g}기 · ${count}</button>
   `).join("");
-  document.getElementById("networkAllGenBtn")?.classList.toggle("active",networkGenerationFilter==="all");
+  document.getElementById("networkAllGenBtn")?.classList.toggle("active",networkGenerationFilter==="all"&&!networkNewOnly);
 }
 function renderNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
@@ -1711,6 +1714,8 @@ function renderNetworkProfiles(){
   if(networkNewCount){
     networkNewCount.hidden=todayNewCount===0;
     networkNewCount.textContent=todayNewCount?`오늘 NEW ${todayNewCount}`:"";
+    networkNewCount.classList.toggle("active",networkNewOnly);
+    networkNewCount.setAttribute("aria-pressed",networkNewOnly?"true":"false");
   }
 
   const q=networkNorm(search?.value||"");
@@ -1721,6 +1726,7 @@ function renderNetworkProfiles(){
   }
 
   const filtered=networkProfiles.filter(p=>{
+    if(networkNewOnly&&!p.isNew)return false;
     if(typeof networkGenerationFilter==="number" && Number(p.gen)!==networkGenerationFilter)return false;
     if(!q)return true;
     return networkNorm([p.name,p.company,p.work,p.activity,p.region,p.bio,p.connect,p.instagram?.label].join(" ")).includes(q);
@@ -1759,6 +1765,7 @@ function renderNetworkProfiles(){
   }
 }
 function selectNetworkGeneration(gen){
+  networkNewOnly=false;
   networkGenerationFilter=gen;
   networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
   const search=document.getElementById("networkProfileSearch");
@@ -1919,6 +1926,17 @@ document.getElementById("networkGenerationNav")?.addEventListener("click",e=>{
   if(btn)selectNetworkGeneration(Number(btn.dataset.generation));
 });
 document.getElementById("networkAllGenBtn")?.addEventListener("click",()=>selectNetworkGeneration("all"));
+document.getElementById("networkNewCount")?.addEventListener("click",()=>{
+  networkNewOnly=true;
+  networkGenerationFilter="all";
+  networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
+  const search=document.getElementById("networkProfileSearch");
+  if(search)search.value="";
+  renderNetworkProfiles();
+  setTimeout(()=>{
+    document.querySelector(".network-generation-nav")?.scrollIntoView({behavior:"smooth",block:"start"});
+  },80);
+});
 
 function getNetworkSenderIdentity(){
   let name="",gen="";

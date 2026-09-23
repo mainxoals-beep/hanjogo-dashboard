@@ -177,6 +177,57 @@ function cleanNarrative(value: string) {
   return text;
 }
 
+function cleanBoardText(value: unknown, maxLength: number) {
+  return String(value ?? "").replace(/\r\n/g, "\n").trim().slice(0, maxLength);
+}
+
+function numberFromText(value: unknown) {
+  const match = String(value ?? "").match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+async function boardIdentity(email: string, special: Record<string, unknown> | null) {
+  try {
+    const rows = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)));
+    const row = rows.find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
+    if (row) {
+      const name = cleanBoardText(getField(row, "이름"), 40);
+      const generation = numberFromText(getField(row, "졸업 기수"));
+      if (name) return { name, generation };
+    }
+  } catch {}
+  try {
+    const rows = rowsAsObjects(await fetchCsv(ALUMNI_CSV_URL));
+    const row = rows.find((item) => {
+      const emailKey = Object.keys(item).find((key) => /이메일|email/i.test(key));
+      return emailKey ? normalizeEmail(item[emailKey]) === email : false;
+    });
+    if (row) {
+      const nameKey = Object.keys(row).find((key) => /(^|\s)이름(\s|$)|성명/.test(key));
+      const genKey = Object.keys(row).find((key) => /기수/.test(key));
+      const name = cleanBoardText(nameKey ? row[nameKey] : "", 40);
+      const generation = numberFromText(genKey ? row[genKey] : "");
+      if (name) return { name, generation };
+    }
+  } catch {}
+  const specialName = cleanBoardText(special?.name, 40);
+  return { name: specialName || email.split("@")[0], generation: null };
+}
+
+function publicBoardPost(row: Record<string, unknown>, comments: Record<string, unknown>[], userId: string, isAdmin: boolean) {
+  return {
+    id: row.id, category: row.category, title: row.title, content: row.content,
+    authorName: row.author_name, authorGeneration: row.author_generation,
+    isNotice: Boolean(row.is_notice), createdAt: row.created_at, updatedAt: row.updated_at,
+    canEdit: isAdmin || row.author_id === userId,
+    comments: comments.map((comment) => ({
+      id: comment.id, content: comment.content, authorName: comment.author_name,
+      authorGeneration: comment.author_generation, createdAt: comment.created_at,
+      canDelete: isAdmin || comment.author_id === userId,
+    })),
+  };
+}
+
 async function buildProfile(
   row: Record<string, string>,
   contactOverrides: Map<string, boolean>,
@@ -243,6 +294,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: userData, error: userError } = await authClient.auth.getUser(jwt);
   const email = normalizeEmail(userData?.user?.email);
+  const userId = String(userData?.user?.id || "");
   if (userError || !email) return json({ error: "unauthorized" }, 401);
 
   let body: Record<string, unknown> = {};
@@ -263,7 +315,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (action === "verify") {
-    return json({ allowed: inAlumniDb, source: special ? "special" : inAlumniDb ? "alumni_db" : null });
+    return json({ allowed: inAlumniDb, source: special ? "special" : inAlumniDb ? "alumni_db" : null, isAdmin: email === ADMIN_EMAIL });
   }
 
   if (action === "profiles") {
@@ -286,6 +338,95 @@ Deno.serve(async (req: Request) => {
       return json({ allowed: true, profiles, count: profiles.length });
     } catch {
       return json({ allowed: true, error: "profiles_unavailable" }, 503);
+    }
+  }
+
+  if (action.startsWith("board_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const isAdmin = email === ADMIN_EMAIL;
+    if (action === "board_list") {
+      const { data: posts, error: postsError } = await adminClient.from("hanjogo_board_posts")
+        .select("id,author_id,author_name,author_generation,category,title,content,is_notice,created_at,updated_at")
+        .eq("is_hidden", false).order("is_notice", { ascending: false }).order("created_at", { ascending: false }).limit(100);
+      if (postsError) return json({ error: postsError.message }, 500);
+      const postIds = (posts || []).map((post) => post.id);
+      let comments: Record<string, unknown>[] = [];
+      if (postIds.length) {
+        const { data, error } = await adminClient.from("hanjogo_board_comments")
+          .select("id,post_id,author_id,author_name,author_generation,content,created_at")
+          .in("post_id", postIds).eq("is_hidden", false).order("created_at", { ascending: true });
+        if (error) return json({ error: error.message }, 500);
+        comments = data || [];
+      }
+      return json({ allowed: true, isAdmin, items: (posts || []).map((post) => publicBoardPost(
+        post, comments.filter((comment) => comment.post_id === post.id), userId, isAdmin,
+      )) });
+    }
+    if (action === "board_create") {
+      const category = cleanBoardText(body.category, 20);
+      const title = cleanBoardText(body.title, 120);
+      const content = cleanBoardText(body.content, 5000);
+      if (!["free", "jobs", "collab", "business", "notice"].includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
+      if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
+      const identity = await boardIdentity(email, special);
+      const { data, error } = await adminClient.from("hanjogo_board_posts").insert({
+        author_id: userId, author_email: email, author_name: identity.name,
+        author_generation: identity.generation, category, title, content, is_notice: category === "notice",
+      }).select("id").single();
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, id: data.id });
+    }
+    if (action === "board_update") {
+      const id = Number(body.id);
+      const category = cleanBoardText(body.category, 20);
+      const title = cleanBoardText(body.title, 120);
+      const content = cleanBoardText(body.content, 5000);
+      if (!Number.isFinite(id) || !["free", "jobs", "collab", "business", "notice"].includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
+      if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id").eq("id", id).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target) return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_board_posts").update({ category, title, content, is_notice: category === "notice", updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+    if (action === "board_delete") {
+      const id = Number(body.id);
+      if (!Number.isFinite(id)) return json({ error: "invalid_post" }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id").eq("id", id).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target) return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_board_posts").update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+    if (action === "board_comment_create") {
+      const postId = Number(body.postId);
+      const content = cleanBoardText(body.content, 1000);
+      if (!Number.isFinite(postId) || !content) return json({ error: "invalid_comment" }, 400);
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      if (postError) return json({ error: postError.message }, 500);
+      if (!post) return json({ error: "post_not_found" }, 404);
+      const identity = await boardIdentity(email, special);
+      const { error } = await adminClient.from("hanjogo_board_comments").insert({
+        post_id: postId, author_id: userId, author_email: email, author_name: identity.name,
+        author_generation: identity.generation, content,
+      });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+    if (action === "board_comment_delete") {
+      const id = Number(body.id);
+      if (!Number.isFinite(id)) return json({ error: "invalid_comment" }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_comments").select("id,author_id").eq("id", id).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target) return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_board_comments").update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
     }
   }
 

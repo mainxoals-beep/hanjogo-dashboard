@@ -323,10 +323,10 @@ Deno.serve(async (req: Request) => {
   const authClient = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
   const adminClient = createClient(url, serviceKey);
 
-  const { data: userData, error: userError } = await authClient.auth.getUser(jwt);
-  const email = normalizeEmail(userData?.user?.email);
-  const userId = String(userData?.user?.id || "");
-  if (userError || !email) return json({ error: "unauthorized" }, 401);
+  const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(jwt);
+  const email = normalizeEmail(claimsData?.claims?.email);
+  const userId = String(claimsData?.claims?.sub || "");
+  if (claimsError || !email || !userId) return json({ error: "unauthorized" }, 401);
   const isAdmin = email === ADMIN_EMAIL;
 
   let body: Record<string, unknown> = {};

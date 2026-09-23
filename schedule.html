@@ -375,6 +375,21 @@ body.modal-open{overflow:hidden}
 .generation-chip-row::-webkit-scrollbar{display:none}
 .generation-chip{flex:0 0 auto;min-height:34px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:#fff;color:var(--sub);font-size:12px;font-weight:800;cursor:pointer}
 .generation-chip.active,.generation-chip:hover{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.network-connect-nav{padding:10px 20px;border-bottom:1px solid var(--line);background:#fff}
+.network-connect-nav[hidden]{display:none}
+.network-connect-title{margin-bottom:7px;font-size:12px;font-weight:900;color:var(--purple-dark)}
+.network-connect-chips,.network-quick-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.network-connect-chips::-webkit-scrollbar,.network-quick-filters::-webkit-scrollbar{display:none}
+.network-connect-chip,.network-quick-btn{flex:0 0 auto;min-height:32px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--sub);font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
+.network-connect-chip.active,.network-connect-chip:hover,.network-quick-btn.active,.network-quick-btn:hover{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.network-quick-filters{margin-bottom:8px}
+.network-profile-own{display:inline-flex;align-items:center;padding:2px 6px;border-radius:999px;background:#E8F4FF;color:#26689A;font-size:9.5px;font-weight:950;letter-spacing:.03em}
+.network-favorite-btn{margin-left:auto;width:30px;height:30px;border:1px solid var(--line);border-radius:999px;background:#fff;color:#8A8491;font-size:17px;line-height:1;cursor:pointer}
+.network-favorite-btn.active,.network-favorite-btn:hover{border-color:#E4B640;background:#FFF8DF;color:#B37A00}
+.network-profile-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}
+.network-profile-actions .network-profile-contact{margin-top:0}
+.network-own-edit{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--purple-dark);font-size:12.5px;font-weight:800;text-decoration:none}
+.network-own-edit:hover{border-color:var(--purple);background:#FBFAFF}
 .network-profile-dialog.is-expanded .network-profile-list{grid-template-columns:repeat(3,1fr)}
 .network-profile-dialog.is-expanded{width:min(1180px,calc(100vw - 28px));max-height:94vh}
 
@@ -390,6 +405,9 @@ body.modal-open{overflow:hidden}
   .network-profile-dialog.is-expanded .network-profile-list{grid-template-columns:1fr}
   .attendee-dialog.is-expanded,.network-profile-dialog.is-expanded{width:100%;max-height:96vh}
   .network-profile-search{font-size:16px}
+  .network-connect-nav{padding:9px 16px}
+  .network-profile-actions{display:grid;grid-template-columns:1fr}
+  .network-profile-actions .network-profile-contact,.network-own-edit{width:100%;box-sizing:border-box}
   .network-profile-contact{width:100%}
 }
 
@@ -862,7 +880,16 @@ body.site-view-network.modal-open{overflow:auto!important}
       </div>
       <div class="generation-chip-row" id="networkGenerationNav"></div>
     </div>
+    <div class="network-connect-nav" id="networkConnectNav" hidden>
+      <div class="network-connect-title">연결 희망 분야로 찾기</div>
+      <div class="network-connect-chips" id="networkConnectChips"></div>
+    </div>
     <div class="attendee-tools">
+      <div class="network-quick-filters">
+        <button type="button" class="network-quick-btn" id="networkRecentBtn">최근 7일</button>
+        <button type="button" class="network-quick-btn" id="networkFavoritesBtn">관심 동문 0</button>
+        <button type="button" class="network-quick-btn" id="networkOwnBtn" hidden>내 프로필</button>
+      </div>
       <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="이름 · 소속 · 활동 분야 검색">
     </div>
     <div class="network-profile-modal-body">
@@ -1679,10 +1706,70 @@ const NETWORK_PROFILE_PAGE_SIZE=12;
 let networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
 let networkGenerationFilter="none";
 let networkNewOnly=false;
+let networkRecentOnly=false;
+let networkFavoritesOnly=false;
+let networkOwnOnly=false;
+let networkConnectFilter="";
+let networkFavoriteIds=new Set();
 let networkAccessState="loading";
 let networkAccessEmail="";
 let networkProfilesLoaded=false;
 function networkNorm(v){return String(v||"").replace(/\s+/g,"").toLowerCase();}
+function splitConnectTags(value){
+  return String(value||"").split(/[,;\n]+/).map(tag=>tag.trim()).filter(Boolean);
+}
+function clearNetworkQuickFilters(){
+  networkNewOnly=false;
+  networkRecentOnly=false;
+  networkFavoritesOnly=false;
+  networkOwnOnly=false;
+  networkConnectFilter="";
+}
+function networkFavoritesKey(){
+  return "hanjogo_profile_favorites:"+networkNorm(networkAccessEmail||"guest");
+}
+function loadNetworkFavorites(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(networkFavoritesKey())||"[]");
+    networkFavoriteIds=new Set(Array.isArray(saved)?saved.map(String):[]);
+  }catch(e){networkFavoriteIds=new Set();}
+}
+function saveNetworkFavorites(){
+  try{localStorage.setItem(networkFavoritesKey(),JSON.stringify([...networkFavoriteIds]));}catch(e){}
+}
+function renderNetworkConnectNav(){
+  const wrap=document.getElementById("networkConnectNav");
+  const chips=document.getElementById("networkConnectChips");
+  if(!wrap||!chips)return;
+  const counts=new Map();
+  networkProfiles.forEach(profile=>{
+    splitConnectTags(profile.connect).forEach(tag=>counts.set(tag,(counts.get(tag)||0)+1));
+  });
+  const entries=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"ko"));
+  wrap.hidden=entries.length===0;
+  chips.innerHTML=entries.map(([tag,count])=>`
+    <button type="button" class="network-connect-chip ${networkConnectFilter===tag?"active":""}" data-connect-tag="${esc(tag)}">${esc(tag)} · ${count}</button>
+  `).join("");
+}
+function updateNetworkQuickFilters(){
+  const recentCount=networkProfiles.filter(profile=>profile.isRecent).length;
+  const recent=document.getElementById("networkRecentBtn");
+  const favorites=document.getElementById("networkFavoritesBtn");
+  const own=document.getElementById("networkOwnBtn");
+  if(recent){
+    recent.hidden=recentCount===0;
+    recent.textContent=`최근 7일 ${recentCount}`;
+    recent.classList.toggle("active",networkRecentOnly);
+  }
+  if(favorites){
+    favorites.textContent=`관심 동문 ${networkFavoriteIds.size}`;
+    favorites.classList.toggle("active",networkFavoritesOnly);
+  }
+  if(own){
+    own.hidden=!networkProfiles.some(profile=>profile.isOwnProfile);
+    own.classList.toggle("active",networkOwnOnly);
+  }
+}
 function renderNetworkGenerationNav(){
   const nav=document.getElementById("networkGenerationNav");
   if(!nav)return;
@@ -1694,7 +1781,12 @@ function renderNetworkGenerationNav(){
   nav.innerHTML=[...counts.entries()].sort((a,b)=>a[0]-b[0]).map(([g,count])=>`
     <button type="button" class="generation-chip ${networkGenerationFilter===g?"active":""}" data-generation="${g}">${g}기 · ${count}</button>
   `).join("");
-  document.getElementById("networkAllGenBtn")?.classList.toggle("active",networkGenerationFilter==="all"&&!networkNewOnly);
+  document.getElementById("networkAllGenBtn")?.classList.toggle(
+    "active",
+    networkGenerationFilter==="all"&&!networkNewOnly&&!networkRecentOnly&&!networkFavoritesOnly&&!networkOwnOnly&&!networkConnectFilter,
+  );
+  renderNetworkConnectNav();
+  updateNetworkQuickFilters();
 }
 function renderNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
@@ -1705,9 +1797,16 @@ function renderNetworkProfiles(){
   if(networkAccessState!=="verified")return;
   renderNetworkGenerationNav();
   const todayNewCount=networkProfiles.filter(p=>p.isNew).length;
-  if(meta)meta.textContent=todayNewCount
-    ? `공개 동의 ${networkProfiles.length}명 · 오늘 새로 등록 ${todayNewCount}명 · 이름과 활동 분야로 검색할 수 있습니다.`
-    : `공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
+  if(meta){
+    if(networkNewOnly)meta.textContent=`오늘 새로 등록된 프로필 ${todayNewCount}명`;
+    else if(networkRecentOnly)meta.textContent=`최근 7일 안에 등록된 프로필 ${networkProfiles.filter(p=>p.isRecent).length}명`;
+    else if(networkFavoritesOnly)meta.textContent=`내가 저장한 관심 동문 ${networkFavoriteIds.size}명`;
+    else if(networkOwnOnly)meta.textContent="내 공개 프로필을 확인하고 수정할 수 있습니다.";
+    else if(networkConnectFilter)meta.textContent=`${networkConnectFilter} 분야로 연결을 희망하는 동문`;
+    else meta.textContent=todayNewCount
+      ? `공개 동의 ${networkProfiles.length}명 · 오늘 새로 등록 ${todayNewCount}명 · 이름과 활동 분야로 검색할 수 있습니다.`
+      : `공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
+  }
   const networkPublicCount=document.getElementById("networkPublicCount");
   if(networkPublicCount)networkPublicCount.textContent=networkProfiles.length.toLocaleString()+"명";
   const networkNewCount=document.getElementById("networkNewCount");
@@ -1727,6 +1826,10 @@ function renderNetworkProfiles(){
 
   const filtered=networkProfiles.filter(p=>{
     if(networkNewOnly&&!p.isNew)return false;
+    if(networkRecentOnly&&!p.isRecent)return false;
+    if(networkFavoritesOnly&&!networkFavoriteIds.has(String(p.profileId||"")))return false;
+    if(networkOwnOnly&&!p.isOwnProfile)return false;
+    if(networkConnectFilter&&!splitConnectTags(p.connect).includes(networkConnectFilter))return false;
     if(typeof networkGenerationFilter==="number" && Number(p.gen)!==networkGenerationFilter)return false;
     if(!q)return true;
     return networkNorm([p.name,p.company,p.work,p.activity,p.region,p.bio,p.connect,p.instagram?.label].join(" ")).includes(q);
@@ -1748,15 +1851,20 @@ function renderNetworkProfiles(){
       lines.push(`<div class="network-profile-line"><span class="network-profile-label">Instagram</span><span class="network-profile-value"><a href="${esc(p.instagram.url)}" target="_blank" rel="noopener">${v}</a></span></div>`);
     }
     if(p.connect)lines.push(`<div class="network-profile-line"><span class="network-profile-label">연결 희망</span><span class="network-profile-value">${esc(p.connect)}</span></div>`);
-    return `<div class="network-profile-item">
+    return `<div class="network-profile-item${p.isOwnProfile?" network-profile-is-own":""}">
       <div class="network-profile-top">
         ${p.gen?`<span class="network-profile-gen">${esc(p.gen)}기</span>`:""}
         <span class="network-profile-name">${esc(p.name)}</span>
+        ${p.isOwnProfile?'<span class="network-profile-own">내 프로필</span>':""}
         ${p.isNew?'<span class="network-profile-new" aria-label="오늘 새로 등록된 프로필">NEW</span>':""}
+        <button type="button" class="network-favorite-btn ${networkFavoriteIds.has(String(p.profileId||""))?"active":""}" data-favorite-id="${esc(p.profileId||"")}" aria-label="${esc(p.name)} 관심 동문 저장" aria-pressed="${networkFavoriteIds.has(String(p.profileId||""))?"true":"false"}">${networkFavoriteIds.has(String(p.profileId||""))?"★":"☆"}</button>
       </div>
       ${lines.join("")}
       ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>${p.bio.length>80?'<button type="button" class="network-profile-bio-toggle" aria-expanded="false">소개 더 보기</button>':""}`:""}
-      ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
+      ${(p.allowEmailContact&&p.email)||p.isOwnProfile?`<div class="network-profile-actions">
+        ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
+        ${p.isOwnProfile?'<a class="network-own-edit" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">내 프로필 수정</a>':""}
+      </div>`:""}
     </div>`;
   }).join("");
   if(more){
@@ -1765,7 +1873,7 @@ function renderNetworkProfiles(){
   }
 }
 function selectNetworkGeneration(gen){
-  networkNewOnly=false;
+  clearNetworkQuickFilters();
   networkGenerationFilter=gen;
   networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
   const search=document.getElementById("networkProfileSearch");
@@ -1788,7 +1896,8 @@ async function loadNetworkProfiles(session){
     if(error)throw error;
     if(!data?.allowed)throw new Error("access_denied");
     networkProfiles=(Array.isArray(data.profiles)?data.profiles:[])
-      .sort((a,b)=>a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
+      .sort((a,b)=>Number(Boolean(b.isOwnProfile))-Number(Boolean(a.isOwnProfile))||Number(Boolean(b.isNew))-Number(Boolean(a.isNew))||a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
+    loadNetworkFavorites();
     networkProfilesLoaded=true;
     networkGenerationFilter="all";
     renderNetworkProfiles();
@@ -1926,8 +2035,13 @@ document.getElementById("networkGenerationNav")?.addEventListener("click",e=>{
   if(btn)selectNetworkGeneration(Number(btn.dataset.generation));
 });
 document.getElementById("networkAllGenBtn")?.addEventListener("click",()=>selectNetworkGeneration("all"));
-document.getElementById("networkNewCount")?.addEventListener("click",()=>{
-  networkNewOnly=true;
+function activateNetworkQuickFilter(type,value=""){
+  clearNetworkQuickFilters();
+  if(type==="new")networkNewOnly=true;
+  if(type==="recent")networkRecentOnly=true;
+  if(type==="favorites")networkFavoritesOnly=true;
+  if(type==="own")networkOwnOnly=true;
+  if(type==="connect")networkConnectFilter=value;
   networkGenerationFilter="all";
   networkProfileLimit=NETWORK_PROFILE_PAGE_SIZE;
   const search=document.getElementById("networkProfileSearch");
@@ -1936,6 +2050,14 @@ document.getElementById("networkNewCount")?.addEventListener("click",()=>{
   setTimeout(()=>{
     document.querySelector(".network-generation-nav")?.scrollIntoView({behavior:"smooth",block:"start"});
   },80);
+}
+document.getElementById("networkNewCount")?.addEventListener("click",()=>activateNetworkQuickFilter("new"));
+document.getElementById("networkRecentBtn")?.addEventListener("click",()=>activateNetworkQuickFilter("recent"));
+document.getElementById("networkFavoritesBtn")?.addEventListener("click",()=>activateNetworkQuickFilter("favorites"));
+document.getElementById("networkOwnBtn")?.addEventListener("click",()=>activateNetworkQuickFilter("own"));
+document.getElementById("networkConnectChips")?.addEventListener("click",e=>{
+  const btn=e.target.closest(".network-connect-chip[data-connect-tag]");
+  if(btn)activateNetworkQuickFilter("connect",btn.dataset.connectTag||"");
 });
 
 function getNetworkSenderIdentity(){
@@ -1962,6 +2084,16 @@ function getNetworkSenderIdentity(){
 }
 
 document.getElementById("networkProfileList")?.addEventListener("click",e=>{
+  const favoriteBtn=e.target.closest(".network-favorite-btn[data-favorite-id]");
+  if(favoriteBtn){
+    const id=String(favoriteBtn.dataset.favoriteId||"");
+    if(!id)return;
+    if(networkFavoriteIds.has(id))networkFavoriteIds.delete(id);
+    else networkFavoriteIds.add(id);
+    saveNetworkFavorites();
+    renderNetworkProfiles();
+    return;
+  }
   const bioToggle=e.target.closest(".network-profile-bio-toggle");
   if(bioToggle){
     const bio=bioToggle.previousElementSibling;

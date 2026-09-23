@@ -4,6 +4,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
 const PROFILE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm2qyYr9BAEm-fyZvNyExxiPS9lcRBPi06n__Qq__WlRPvGF_Iou7x1lIjsmBgqpoqHo4M2syaFVxc/pub?gid=648141668&single=true&output=csv";
 const ADMIN_EMAIL = "mainxoals@gmail.com";
+const ALUMNI_EMAIL_CACHE_TTL = 5 * 60 * 1000;
+let alumniEmailCache: { expiresAt: number; emails: Set<string> } | null = null;
+let alumniEmailCachePromise: Promise<Set<string>> | null = null;
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -134,12 +137,24 @@ function getField(row: Record<string, string>, label: string) {
 }
 
 async function alumniEmailExists(email: string) {
-  const rows = await fetchCsv(ALUMNI_CSV_URL);
-  if (!rows.length) return false;
-  const headers = rows[0].map((value) => value.trim().toLowerCase());
-  const emailIndex = headers.findIndex((header) => header.includes("이메일") || header === "email" || header.includes("email address"));
-  if (emailIndex < 0) throw new Error("alumni_email_column_missing");
-  return rows.slice(1).some((row) => normalizeEmail(row[emailIndex]) === email);
+  if (alumniEmailCache && alumniEmailCache.expiresAt > Date.now()) return alumniEmailCache.emails.has(email);
+  if (!alumniEmailCachePromise) {
+    alumniEmailCachePromise = (async () => {
+      const rows = await fetchCsv(ALUMNI_CSV_URL);
+      if (!rows.length) return new Set<string>();
+      const headers = rows[0].map((value) => value.trim().toLowerCase());
+      const emailIndex = headers.findIndex((header) => header.includes("이메일") || header === "email" || header.includes("email address"));
+      if (emailIndex < 0) throw new Error("alumni_email_column_missing");
+      return new Set(rows.slice(1).map((row) => normalizeEmail(row[emailIndex])).filter(Boolean));
+    })();
+  }
+  try {
+    const emails = await alumniEmailCachePromise;
+    alumniEmailCache = { emails, expiresAt: Date.now() + ALUMNI_EMAIL_CACHE_TTL };
+    return emails.has(email);
+  } finally {
+    alumniEmailCachePromise = null;
+  }
 }
 
 function maskName(name: string) {
@@ -187,6 +202,7 @@ function numberFromText(value: unknown) {
 }
 
 async function boardIdentity(email: string, special: Record<string, unknown> | null) {
+  if (email === ADMIN_EMAIL) return { name: "김태민", generation: 2 };
   try {
     const rows = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)));
     const row = rows.find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
@@ -311,26 +327,32 @@ Deno.serve(async (req: Request) => {
   const email = normalizeEmail(userData?.user?.email);
   const userId = String(userData?.user?.id || "");
   if (userError || !email) return json({ error: "unauthorized" }, 401);
+  const isAdmin = email === ADMIN_EMAIL;
 
   let body: Record<string, unknown> = {};
   try { body = await req.json(); } catch {}
   const action = String(body.action || "verify");
 
-  const { data: special } = await adminClient
-    .from("hanjogo_special_access")
-    .select("id,email,name,note")
-    .eq("email", email)
-    .maybeSingle();
+  let special: Record<string, unknown> | null = null;
+  if (!isAdmin) {
+    const { data, error: specialError } = await adminClient
+      .from("hanjogo_special_access")
+      .select("id,email,name,note")
+      .eq("email", email)
+      .maybeSingle();
+    if (specialError) return json({ error: specialError.message }, 500);
+    special = data;
+  }
 
   let inAlumniDb = false;
   try {
-    inAlumniDb = Boolean(special) || await alumniEmailExists(email);
+    inAlumniDb = isAdmin || Boolean(special) || await alumniEmailExists(email);
   } catch {
     return json({ allowed: false, error: "access_check_unavailable" }, 503);
   }
 
   if (action === "verify") {
-    return json({ allowed: inAlumniDb, source: special ? "special" : inAlumniDb ? "alumni_db" : null, isAdmin: email === ADMIN_EMAIL });
+    return json({ allowed: inAlumniDb, source: isAdmin ? "admin" : special ? "special" : inAlumniDb ? "alumni_db" : null, isAdmin });
   }
 
   if (action === "profiles") {
@@ -358,7 +380,6 @@ Deno.serve(async (req: Request) => {
 
   if (action.startsWith("board_")) {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
-    const isAdmin = email === ADMIN_EMAIL;
     if (action === "board_list") {
       const { data: posts, error: postsError } = await adminClient.from("hanjogo_board_posts")
         .select("id,author_id,author_name,author_generation,category,title,content,is_notice,created_at,updated_at")

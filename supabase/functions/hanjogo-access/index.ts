@@ -129,7 +129,7 @@ function cleanNarrative(value: string) {
   return text;
 }
 
-function buildProfile(row: Record<string, string>) {
+function buildProfile(row: Record<string, string>, contactOverrides: Map<string, boolean>) {
   const consent = getField(row, "작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
   if (!consent.includes("동의합니다")) return null;
   const fields = fieldSet(row);
@@ -140,7 +140,11 @@ function buildProfile(row: Record<string, string>) {
   const generation = getField(row, "졸업 기수");
   const email = getField(row, "Email Address");
   const contactConsent = getField(row, "동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
-  const allowEmailContact = contactConsent.includes("허용합니다");
+  const normalizedEmail = normalizeEmail(email);
+  const formAllowsEmailContact = contactConsent.includes("허용합니다");
+  const allowEmailContact = contactOverrides.has(normalizedEmail)
+    ? Boolean(contactOverrides.get(normalizedEmail))
+    : formAllowsEmailContact;
   const attendeePreference = getField(row, "행사 참가자 명단에 표시해도 될까요?");
   return {
     name,
@@ -205,8 +209,15 @@ Deno.serve(async (req: Request) => {
   if (action === "profiles") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
     try {
+      const { data: contactOverrideRows, error: contactOverrideError } = await adminClient
+        .from("hanjogo_email_contact_consent")
+        .select("email,allow_email_contact");
+      if (contactOverrideError) throw contactOverrideError;
+      const contactOverrides = new Map(
+        (contactOverrideRows || []).map((row) => [normalizeEmail(row.email), Boolean(row.allow_email_contact)]),
+      );
       const rows = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)));
-      const profiles = rows.map(buildProfile).filter(Boolean);
+      const profiles = rows.map((row) => buildProfile(row, contactOverrides)).filter(Boolean);
       return json({ allowed: true, profiles, count: profiles.length });
     } catch {
       return json({ allowed: true, error: "profiles_unavailable" }, 503);

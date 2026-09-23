@@ -2598,11 +2598,12 @@ function renderRelatedBrands(){
 const card=document.getElementById("brandCard");
 const grid=document.getElementById("brandGrid");
 if(!card||!grid)return;
+const committeeBrands=["렁팡스","쿠움","극단 아트솔루스","예쿡쿠킹클래스"];
 const brands=[...new Set([
   ...(Array.isArray(relatedBrands)
     ? relatedBrands.map(v=>String(v||"").trim()).filter(Boolean)
     : []),
-  "렁팡스"
+  ...committeeBrands
 ])];
 card.hidden=!brands.length || currentSiteView()!=="event";
 grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).join("");

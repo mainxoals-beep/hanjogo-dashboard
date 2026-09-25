@@ -991,10 +991,35 @@
 .special-access-email{font-weight:800;color:var(--ink)}
 .special-access-meta{font-size:10px;color:var(--ink-mute)}
 .special-access-protected{font-size:9.5px;font-weight:800;color:var(--purple-dark);background:var(--purple-light);padding:5px 7px;border-radius:999px;white-space:nowrap}
+.raffle-admin-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px}
+.raffle-admin-box{padding:16px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.raffle-admin-title{font-size:14px;font-weight:900;color:var(--ink)}
+.raffle-admin-sub{margin-top:4px;font-size:11px;line-height:1.6;color:var(--ink-mute)}
+.raffle-entry-form{display:grid;grid-template-columns:minmax(0,1fr) 92px auto;gap:8px;margin-top:13px}
+.raffle-entry-form input,.raffle-draw-controls input,.raffle-draw-controls select{width:100%;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:#fff;color:var(--ink);font:inherit;font-size:13px}
+.raffle-entry-form button,.raffle-draw-btn,.raffle-display-btn{min-height:40px;border:0;border-radius:9px;padding:9px 13px;background:var(--purple);color:#fff;font:inherit;font-size:12.5px;font-weight:900;cursor:pointer}
+.raffle-entry-list{display:grid;gap:7px;max-height:280px;margin-top:12px;overflow:auto}
+.raffle-entry-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#FCFBFE;font-size:12.5px}
+.raffle-entry-row strong{font-size:13px}.raffle-entry-row span{color:var(--ink-mute)}
+.raffle-entry-row button{margin-left:auto;border:0;background:transparent;color:#B24A3C;font-weight:800;cursor:pointer}
+.raffle-draw-controls{display:grid;gap:9px;margin-top:13px}
+.raffle-control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.raffle-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-mute)}
+.raffle-check input{width:auto;min-height:auto}
+.raffle-draw-btn{min-height:48px;background:linear-gradient(135deg,var(--purple),#8B72DC);font-size:14px}
+.raffle-display-btn{display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;color:var(--purple-dark);text-decoration:none}
+.raffle-admin-status{min-height:22px;margin-top:10px;font-size:12px;font-weight:800;color:var(--purple-dark)}
+.raffle-history{display:grid;gap:7px;margin-top:12px}
+.raffle-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:12px}
+.raffle-history-row strong{display:block;font-size:13px}.raffle-history-row span{color:var(--ink-mute)}
+.raffle-history-row button{border:0;background:transparent;color:#B24A3C;font-weight:800;cursor:pointer}
 @media(max-width:760px){
   .access-admin-form,.access-admin-add{grid-template-columns:1fr}
   .special-access-row{grid-template-columns:1fr auto}
   .special-access-row .special-access-note{grid-column:1 / -1}
+  .raffle-admin-grid{grid-template-columns:1fr}
+  .raffle-entry-form{grid-template-columns:1fr 84px}.raffle-entry-form button{grid-column:1 / -1}
+  .raffle-control-row{grid-template-columns:1fr}
 }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
@@ -1466,6 +1491,54 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         </table>
         <div class="empty-hint" id="dayProgramEmpty" style="display:none;">등록된 프로그램이 없습니다.</div>
         <button class="add-row-btn lockable" id="addDayProgram">+ 프로그램 추가</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 현장 통합 경품 추첨 ===== -->
+  <section id="section-raffle-center">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title">현장 통합 경품 추첨</div>
+        <div class="sec-note">일반 참가자·인스타 스토리 참여자를 같은 실시간 추첨 화면에서 운영합니다</div>
+      </div>
+      <div class="sec-head-right">
+        <div class="sec-note" id="raffleEntrySummary">스토리 참여 0명 · 당첨 0명</div>
+        <button class="collapse-btn" data-target="body-raffle-center"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
+      </div>
+    </div>
+    <div class="sec-body" id="body-raffle-center">
+      <div class="raffle-admin-grid">
+        <div class="raffle-admin-box">
+          <div class="raffle-admin-title">스토리 참여자 등록</div>
+          <div class="raffle-admin-sub">@kcas_archived 태그와 DM을 확인한 뒤 이름과 기수를 등록해주세요. 중복은 자동으로 막습니다.</div>
+          <form class="raffle-entry-form" id="raffleEntryForm">
+            <input class="lockable" id="raffleEntryName" maxlength="30" placeholder="이름" required>
+            <input class="lockable" id="raffleEntryGeneration" type="number" min="1" max="99" placeholder="기수" required>
+            <button class="lockable" type="submit">등록</button>
+          </form>
+          <div class="raffle-entry-list" id="raffleStoryEntries"></div>
+        </div>
+        <div class="raffle-admin-box">
+          <div class="raffle-admin-title">실시간 추첨</div>
+          <div class="raffle-admin-sub">경품명을 입력하고 대상을 선택하면 외부 대시보드에 동일한 추첨 화면이 표시됩니다.</div>
+          <div class="raffle-draw-controls">
+            <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품명 또는 협찬사명 · 예: 삼성웰스토리 경품">
+            <div class="raffle-control-row">
+              <select class="lockable" id="rafflePoolSelect">
+                <option value="confirmed">전체 참가 확정자</option>
+                <option value="story">인스타 스토리 참여자</option>
+              </select>
+              <label class="raffle-check"><input class="lockable" id="raffleExcludeWinners" type="checkbox" checked> 이전 당첨자 제외</label>
+            </div>
+            <button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실시간 추첨 시작</button>
+            <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기</button>
+            <a class="raffle-display-btn" href="./assets/hanjogo-live-raffle-qr.png" download="한조고_실시간경품추첨_QR.png">안내용 QR 이미지 저장</a>
+            <button class="raffle-display-btn lockable" id="raffleResetDisplayBtn" type="button">외부 화면을 대기 상태로 전환</button>
+          </div>
+          <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
+          <div class="raffle-history" id="raffleHistory"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -1956,6 +2029,13 @@ const DEFAULT_TRANSACTIONS = {
   importedAt:""
 };
 
+const DEFAULT_RAFFLE_CENTER = {
+  instagramHandle:"@kcas_archived",
+  storyEntries:[],
+  history:[],
+  live:{status:"idle",drawId:"",prize:"",pool:"",poolLabel:"",startedAt:"",revealAt:"",winner:null,candidates:[]}
+};
+
 const DEFAULT_SHARED_FILES = [];
 const DEFAULT_NOTICES = [];
 
@@ -1994,6 +2074,7 @@ let state = {
   eventAccount: {...DEFAULT_EVENT_ACCOUNT},
   transactions: {...DEFAULT_TRANSACTIONS},
   participantPayments: [...DEFAULT_PARTICIPANT_PAYMENTS],
+  raffleCenter: JSON.parse(JSON.stringify(DEFAULT_RAFFLE_CENTER)),
   sectionCollapse: {},
 };
 
@@ -2225,7 +2306,7 @@ async function initializeRemoteIfNeeded(){
     phases: state.phases, phaseStatus: state.phaseStatus, phaseOwner: state.phaseOwner, subtasks: state.subtasks,
     participants: state.participants, waitlist: state.waitlist, sponsors: state.sponsors, donations: state.donations, production: state.production,
     committee: state.committee, links: state.links, formSync: state.formSync, participantApplySync: state.participantApplySync, secondParticipantApplySync: state.secondParticipantApplySync, dayProgram: state.dayProgram,
-    publicInfo: state.publicInfo, notices: state.notices, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments
+    publicInfo: state.publicInfo, notices: state.notices, sharedFiles: state.sharedFiles, budget: state.budget, eventAccount: state.eventAccount, transactions: state.transactions, participantPayments: state.participantPayments, raffleCenter: state.raffleCenter
   };
   await saveRemoteState();
 }
@@ -2331,6 +2412,16 @@ async function loadAll(){
   state.eventAccount = await dGet("eventAccount", {...DEFAULT_EVENT_ACCOUNT});
   state.transactions = await dGet("transactions", {...DEFAULT_TRANSACTIONS});
   state.participantPayments = await dGet("participantPayments", [...DEFAULT_PARTICIPANT_PAYMENTS]);
+  {
+    const savedRaffle = await dGet("raffleCenter", null);
+    state.raffleCenter = {
+      ...JSON.parse(JSON.stringify(DEFAULT_RAFFLE_CENTER)),
+      ...(savedRaffle && typeof savedRaffle === "object" ? savedRaffle : {}),
+      storyEntries:Array.isArray(savedRaffle?.storyEntries)?savedRaffle.storyEntries:[],
+      history:Array.isArray(savedRaffle?.history)?savedRaffle.history:[],
+      live:{...DEFAULT_RAFFLE_CENTER.live,...(savedRaffle?.live||{})}
+    };
+  }
 
   state.sectionCollapse = await storageGet("sectionCollapse", {}, false); // UI pref: this browser only
   state.shareMode = true; // shared dashboard is always on
@@ -2412,8 +2503,15 @@ document.getElementById("editModeBtn").addEventListener("click", () => {
 
 function applyRemoteDataToState(remote){
   if(!remote || typeof remote !== "object") return;
-  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","participantApplySync","secondParticipantApplySync","dayProgram","publicInfo","notices","sharedFiles","budget","eventAccount","transactions","participantPayments"];
+  const keys = ["phases","phaseStatus","phaseOwner","subtasks","participants","waitlist","sponsors","production","committee","links","formSync","participantApplySync","secondParticipantApplySync","dayProgram","publicInfo","notices","sharedFiles","budget","eventAccount","transactions","participantPayments","raffleCenter"];
   keys.forEach(k => { if(Object.prototype.hasOwnProperty.call(remote,k)) state[k] = remote[k]; });
+  state.raffleCenter={
+    ...JSON.parse(JSON.stringify(DEFAULT_RAFFLE_CENTER)),
+    ...(state.raffleCenter&&typeof state.raffleCenter==="object"?state.raffleCenter:{}),
+    storyEntries:Array.isArray(state.raffleCenter?.storyEntries)?state.raffleCenter.storyEntries:[],
+    history:Array.isArray(state.raffleCenter?.history)?state.raffleCenter.history:[],
+    live:{...DEFAULT_RAFFLE_CENTER.live,...(state.raffleCenter?.live||{})}
+  };
   if(Array.isArray(state.phases)) state.phases.forEach(p => { if(!p.priority) p.priority = IMPORTANT_IDS.includes(p.id) ? "important" : "normal"; });
   if(Array.isArray(state.sponsors)) state.sponsors.forEach(s => {
     if(SPONSOR_STATUS_MIGRATE[s.status] && !SPONSOR_STATUSES.includes(s.status)) s.status = SPONSOR_STATUS_MIGRATE[s.status];
@@ -3588,6 +3686,133 @@ document.getElementById("addDayProgram").addEventListener("click", async () => {
   renderDayProgram();
 });
 
+// ---------- on-site raffle center ----------
+function raffleGeneration(value){
+  const m=String(value??"").match(/\d+/);
+  return m?Number(m[0]):null;
+}
+function rafflePersonKey(person){
+  const name=String(person?.name||"").replace(/\s+/g,"").toLowerCase();
+  return `${name}|${raffleGeneration(person?.generation)||""}`;
+}
+function confirmedRaffleEntries(){
+  const seen=new Set();
+  return (Array.isArray(state.participantPayments)?state.participantPayments:[])
+    .filter(row=>["paid","exempt"].includes(row.status)&&String(row.name||"").trim())
+    .map(row=>({name:String(row.name).trim(),generation:raffleGeneration(row.generation)}))
+    .filter(person=>{const key=rafflePersonKey(person);if(seen.has(key))return false;seen.add(key);return true;});
+}
+function rafflePoolEntries(pool){
+  if(pool==="story") return (state.raffleCenter.storyEntries||[]).map(x=>({id:x.id,name:x.name,generation:raffleGeneration(x.generation)}));
+  return confirmedRaffleEntries();
+}
+function secureRandomIndex(length){
+  if(length<1)return -1;
+  const max=0x100000000;
+  const limit=max-(max%length);
+  const buf=new Uint32Array(1);
+  do{crypto.getRandomValues(buf);}while(buf[0]>=limit);
+  return buf[0]%length;
+}
+function renderRaffleCenter(){
+  const center=state.raffleCenter||DEFAULT_RAFFLE_CENTER;
+  const entries=Array.isArray(center.storyEntries)?center.storyEntries:[];
+  const history=Array.isArray(center.history)?center.history:[];
+  const list=document.getElementById("raffleStoryEntries");
+  if(list){
+    list.innerHTML=entries.length?entries.map(row=>`
+      <div class="raffle-entry-row" data-raffle-entry="${escapeHtml(row.id)}">
+        <strong>${escapeHtml(row.name)}</strong><span>${escapeHtml(row.generation)}기</span>
+        <button class="lockable" type="button" data-raffle-remove="${escapeHtml(row.id)}">삭제</button>
+      </div>`).join(""):'<div class="empty-hint">아직 등록된 스토리 참여자가 없습니다.</div>';
+    list.querySelectorAll("[data-raffle-remove]").forEach(btn=>btn.addEventListener("click",async()=>{
+      if(!state.editMode)return;
+      state.raffleCenter.storyEntries=entries.filter(x=>x.id!==btn.dataset.raffleRemove);
+      await dSet("raffleCenter",state.raffleCenter);
+      renderRaffleCenter();
+    }));
+  }
+  const historyEl=document.getElementById("raffleHistory");
+  if(historyEl){
+    historyEl.innerHTML=history.length?history.slice().reverse().map(item=>`
+      <div class="raffle-history-row">
+        <div><strong>${escapeHtml(item.winner?.name||"")} · ${escapeHtml(item.winner?.generation||"")}기</strong><span>${escapeHtml(item.prize||"경품")} · ${escapeHtml(item.poolLabel||"")}</span></div>
+        <span>${item.drawnAt?new Date(item.drawnAt).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}):""}</span>
+        <button class="lockable" type="button" data-raffle-history-remove="${escapeHtml(item.id)}">취소</button>
+      </div>`).join(""):'<div class="empty-hint">아직 추첨 기록이 없습니다.</div>';
+    historyEl.querySelectorAll("[data-raffle-history-remove]").forEach(btn=>btn.addEventListener("click",async()=>{
+      if(!state.editMode)return;
+      if(!await customConfirm("이 당첨 기록을 취소할까요? 취소한 사람은 다시 추첨 대상이 됩니다."))return;
+      state.raffleCenter.history=history.filter(x=>x.id!==btn.dataset.raffleHistoryRemove);
+      await dSet("raffleCenter",state.raffleCenter);
+      renderRaffleCenter();
+    }));
+  }
+  const summary=document.getElementById("raffleEntrySummary");
+  if(summary)summary.textContent=`스토리 참여 ${entries.length}명 · 당첨 ${history.length}명`;
+  const status=document.getElementById("raffleAdminStatus");
+  const live=center.live||{};
+  if(status){
+    if(live.status==="drawing"&&Number(live.revealAt||0)>Date.now()) status.textContent=`${live.prize||"경품"} 추첨 중… 외부 화면에 표시되고 있습니다.`;
+    else if(live.winner) status.textContent=`최근 당첨: ${live.winner.name} · ${live.winner.generation}기 (${live.prize||"경품"})`;
+    else status.textContent=`전체 참가 확정 ${confirmedRaffleEntries().length}명 · 추첨 대기 중`;
+  }
+  applyEditLock();
+}
+document.getElementById("raffleEntryForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!state.editMode)return;
+  const name=document.getElementById("raffleEntryName")?.value.trim()||"";
+  const generation=raffleGeneration(document.getElementById("raffleEntryGeneration")?.value);
+  if(!name||!generation)return;
+  const person={name,generation};
+  if((state.raffleCenter.storyEntries||[]).some(x=>rafflePersonKey(x)===rafflePersonKey(person))){
+    document.getElementById("raffleAdminStatus").textContent="이미 등록된 참여자입니다.";
+    return;
+  }
+  state.raffleCenter.storyEntries.push({id:`story-${Date.now()}-${uid()}`,name,generation,createdAt:new Date().toISOString()});
+  await dSet("raffleCenter",state.raffleCenter);
+  e.currentTarget.reset();
+  document.getElementById("raffleEntryName")?.focus();
+  renderRaffleCenter();
+});
+document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
+  if(!state.editMode)return;
+  const prize=document.getElementById("rafflePrizeName")?.value.trim()||"";
+  const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
+  const exclude=document.getElementById("raffleExcludeWinners")?.checked!==false;
+  const status=document.getElementById("raffleAdminStatus");
+  if(!prize){if(status)status.textContent="먼저 경품명을 입력해주세요.";document.getElementById("rafflePrizeName")?.focus();return;}
+  const currentReveal=Number(state.raffleCenter.live?.revealAt||0);
+  if(state.raffleCenter.live?.status==="drawing"&&currentReveal>Date.now()){
+    if(status)status.textContent="현재 추첨이 진행 중입니다. 결과가 나온 뒤 다시 눌러주세요.";
+    return;
+  }
+  const previous=new Set((state.raffleCenter.history||[]).map(item=>rafflePersonKey(item.winner)));
+  const all=rafflePoolEntries(pool);
+  const eligible=exclude?all.filter(person=>!previous.has(rafflePersonKey(person))):all;
+  if(!eligible.length){if(status)status.textContent="선택한 대상에 추첨 가능한 사람이 없습니다.";return;}
+  const winner={...eligible[secureRandomIndex(eligible.length)]};
+  const drawId=`draw-${Date.now()}-${uid()}`;
+  const startedAt=Date.now();
+  const poolLabel=pool==="story"?"인스타 스토리 참여자":"전체 참가 확정자";
+  const historyItem={id:drawId,prize,pool,poolLabel,winner,drawnAt:new Date(startedAt).toISOString()};
+  state.raffleCenter.history.push(historyItem);
+  state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+5200,winner,candidates:eligible.map(x=>({name:x.name,generation:x.generation}))};
+  await dSet("raffleCenter",state.raffleCenter);
+  renderRaffleCenter();
+  setTimeout(renderRaffleCenter,5400);
+});
+document.getElementById("raffleResetDisplayBtn")?.addEventListener("click",async()=>{
+  if(!state.editMode)return;
+  state.raffleCenter.live={...DEFAULT_RAFFLE_CENTER.live,status:"idle",drawId:`idle-${Date.now()}`};
+  await dSet("raffleCenter",state.raffleCenter);
+  renderRaffleCenter();
+});
+document.getElementById("raffleOpenPublicBtn")?.addEventListener("click",()=>{
+  window.open("https://mainxoals-beep.github.io/hanjogo-dashboard/schedule.html?raffle=1","_blank","noopener");
+});
+
 // ---------- committee ----------
 function renderCommittee(){
   const grid = document.getElementById("committeeGrid");
@@ -4302,6 +4527,7 @@ function setupMainTabs(){
   // 행사 운영
   moveSectionByBody("body-phases", operations);
   moveSectionByBody("body-dayprogram", operations);
+  move("#section-raffle-center", operations);
   moveSectionByBody("body-production", operations);
 
   // 협찬 · 재정
@@ -5359,6 +5585,7 @@ function renderAll(){
   renderEventAccount();
   renderTransactions();
   renderParticipantPayments();
+  renderRaffleCenter();
   applyEditLock();
 }
 

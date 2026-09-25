@@ -605,6 +605,35 @@ body.site-view-network.modal-open{overflow:auto!important}
   .board-comment-form{grid-template-columns:1fr}.board-comment-form .board-primary-btn{width:100%}
 }
 
+/* live raffle */
+.raffle-public-card{margin:14px 0;padding:20px;border:1px solid #DDD7F4;border-radius:18px;background:linear-gradient(145deg,#FBFAFF,#F4F0FF);box-shadow:0 10px 28px rgba(45,35,92,.06)}
+.raffle-public-kicker{font-size:10px;font-weight:950;letter-spacing:.12em;color:var(--purple-dark)}
+.raffle-public-title{margin-top:6px;font-size:20px;font-weight:950;color:var(--ink)}
+.raffle-public-desc{margin-top:7px;font-size:13px;line-height:1.7;color:var(--sub)}
+.raffle-public-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.raffle-public-step{padding:11px 10px;border:1px solid rgba(110,95,203,.14);border-radius:11px;background:rgba(255,255,255,.8);font-size:12px;line-height:1.55;color:var(--sub)}
+.raffle-public-step b{display:block;margin-bottom:3px;color:var(--purple-dark)}
+.raffle-public-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;padding-top:13px;border-top:1px solid rgba(110,95,203,.14);font-size:12px;color:var(--mute)}
+.raffle-public-meta strong{color:var(--purple-dark)}
+.raffle-watch-btn{flex:0 0 auto;min-height:38px;border:0;border-radius:9px;padding:8px 12px;background:var(--purple);color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.raffle-live-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at top,#6E5FCB,#2C245C 70%);color:#fff;text-align:center}
+.raffle-live-overlay[hidden]{display:none!important}
+.raffle-live-panel{width:min(760px,100%);padding:34px 24px;border:1px solid rgba(255,255,255,.2);border-radius:26px;background:rgba(255,255,255,.1);box-shadow:0 30px 80px rgba(0,0,0,.28);backdrop-filter:blur(12px)}
+.raffle-live-kicker{font-size:12px;font-weight:900;letter-spacing:.17em;color:#DDD7FF}
+.raffle-live-prize{margin-top:10px;font-size:clamp(22px,5vw,38px);font-weight:950;line-height:1.25;word-break:keep-all}
+.raffle-live-pool{margin-top:7px;font-size:13px;color:#D6D0F2}
+.raffle-live-name{display:flex;align-items:center;justify-content:center;min-height:150px;margin:28px 0 14px;padding:22px;border:1px solid rgba(255,255,255,.24);border-radius:20px;background:rgba(255,255,255,.12);font-size:clamp(31px,9vw,64px);font-weight:950;letter-spacing:-.04em;text-shadow:0 5px 20px rgba(0,0,0,.18)}
+.raffle-live-name.winner{background:#fff;color:#4A3EA0;text-shadow:none;animation:raffleWinnerPop .48s cubic-bezier(.2,.8,.2,1)}
+.raffle-live-foot{font-size:13px;color:#D6D0F2}
+.raffle-live-close{position:absolute;top:18px;right:18px;width:42px;height:42px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font-size:24px;cursor:pointer}
+@keyframes raffleWinnerPop{0%{transform:scale(.72);opacity:.35}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@media(max-width:620px){
+  .raffle-public-steps{grid-template-columns:1fr}
+  .raffle-public-meta{align-items:flex-start;flex-direction:column}
+  .raffle-watch-btn{width:100%}
+  .raffle-live-panel{padding:30px 16px}.raffle-live-name{min-height:125px}
+}
+
 </style>
 </head>
 <body>
@@ -724,6 +753,21 @@ body.site-view-network.modal-open{overflow:auto!important}
 </div>
 <div class="application-countdown" id="applicationCountdown" hidden></div>
 </div>
+
+<section class="raffle-public-card site-view" id="rafflePublicCard" data-site-view="event">
+  <div class="raffle-public-kicker">LIVE RAFFLE · INSTAGRAM STORY</div>
+  <div class="raffle-public-title">현장 실시간 경품 추첨</div>
+  <div class="raffle-public-desc">행사 사진을 인스타그램 스토리에 올리고 <strong>@kcas_archived</strong>를 태그한 뒤, 같은 DM창에 <strong>이름 / 기수</strong>를 보내주세요. 스토리 참여자 경품과 일반 경품 추첨 결과가 이 화면에 실시간으로 공개됩니다.</div>
+  <div class="raffle-public-steps">
+    <div class="raffle-public-step"><b>01 · 스토리 게시</b>행사 사진과 @kcas_archived 태그</div>
+    <div class="raffle-public-step"><b>02 · DM 전송</b>이름 / 기수 보내기</div>
+    <div class="raffle-public-step"><b>03 · 실시간 확인</b>현장 화면에서 당첨자 확인</div>
+  </div>
+  <div class="raffle-public-meta">
+    <span><strong id="rafflePublicCount">스토리 참여 0명</strong> · 참여 마감 21:40 · 1인 1회</span>
+    <button class="raffle-watch-btn" id="raffleWatchBtn" type="button">추첨 화면 열기</button>
+  </div>
+</section>
 
 <div class="attendee-modal" id="attendeeModal" hidden aria-hidden="true">
   <div class="attendee-dialog" role="dialog" aria-modal="true" aria-labelledby="attendeeModalTitle">
@@ -1003,6 +1047,17 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 <div class="board-modal" id="boardDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardDetailTitle"><div class="board-dialog-head"><div class="board-dialog-title">게시글</div><button class="board-close" type="button" data-board-close="boardDetailModal" aria-label="닫기">×</button></div><article class="board-detail" id="boardDetail"></article><div class="board-comments"><div class="board-comments-title" id="boardCommentsTitle">댓글</div><div id="boardComments"></div><form class="board-comment-form" id="boardCommentForm"><input class="board-input" id="boardCommentInput" maxlength="1000" placeholder="댓글을 입력해주세요" required><button class="board-primary-btn" id="boardCommentSubmit" type="submit">댓글 등록</button></form></div></div></div>
 
+<div class="raffle-live-overlay" id="raffleLiveOverlay" hidden aria-hidden="true">
+  <button class="raffle-live-close" id="raffleLiveClose" type="button" aria-label="추첨 화면 닫기">×</button>
+  <div class="raffle-live-panel" role="dialog" aria-modal="true" aria-labelledby="raffleLivePrize">
+    <div class="raffle-live-kicker">HANJOGO LIVE RAFFLE</div>
+    <div class="raffle-live-prize" id="raffleLivePrize">현장 경품 추첨</div>
+    <div class="raffle-live-pool" id="raffleLivePool">추첨 대기 중</div>
+    <div class="raffle-live-name" id="raffleLiveName">잠시 후 시작합니다</div>
+    <div class="raffle-live-foot" id="raffleLiveFoot">모든 화면에 같은 결과가 표시됩니다.</div>
+  </div>
+</div>
+
 <div class="toast" id="toast">복사되었습니다.</div>
 
 <script>
@@ -1097,6 +1152,11 @@ let alumniStats=null;
 let participantApplicationStats=null;
 
 let relatedBrands=[];
+
+let publicRaffleCenter={storyEntries:[],history:[],live:{status:"idle",drawId:"",winner:null,candidates:[]}};
+let raffleAnimationTimer=null;
+let raffleRevealTimer=null;
+let lastAutoOpenedRaffleId="";
 
 const PUBLIC_ATTENDEES=[{"generation":2,"name":"김○현","work":"대한체육회 국가대표선수촌","role":""},{"generation":2,"name":"김태민","work":"렁팡스","role":"준비위원"},{"generation":2,"name":"이○대","work":"오부이용 / 부요네뜨","role":""},{"generation":3,"name":"김○곤","work":"통의동 국빈관 / 원기옥","role":""},{"generation":3,"name":"김○호","work":"정식당","role":""},{"generation":3,"name":"이○혁","work":"파브란트","role":""},{"generation":3,"name":"장○원","work":"보보식당","role":""},{"generation":4,"name":"김○운","work":"스시시미즈 / 카와세미 / 스시우미 / 코끼리초밥 / 국빈관 / 원기옥","role":""},{"generation":4,"name":"이○민","work":"주식회사 상창","role":""},{"generation":5,"name":"안○준","work":"미국 라스베가스 · 메뉴개발 / 교육","role":""},{"generation":5,"name":"함○재","work":"인스파이어 엔터테인먼트 리조트","role":""},{"generation":6,"name":"위○섭","work":"사조푸디스트","role":""},{"generation":7,"name":"김미주","work":"동원F&B","role":"운영위원"},{"generation":7,"name":"박혜림","work":"바카디 코리아","role":"준비위원 · 협찬"},{"generation":7,"name":"손○지","work":"철은인터내셔날(주) / 쥬네스디저트","role":"협찬"},{"generation":7,"name":"신○상","work":"마시오름","role":""},{"generation":7,"name":"이○","work":"Corvina","role":""},{"generation":7,"name":"이○희","work":"정희의 식탁","role":""},{"generation":7,"name":"임○솔","work":"철은인터내셔날(주) / 쥬네스디저트","role":""},{"generation":8,"name":"김○연","work":"온하루","role":"협찬"},{"generation":8,"name":"김○연","work":"리트하우스","role":""},{"generation":8,"name":"김○윤","work":"브랜드 비공개","role":"협찬"},{"generation":8,"name":"이○진","work":"대한항공 · 기내식 메뉴 관리","role":""},{"generation":9,"name":"김○민","work":"모리 & 히게 · 광양 일식","role":"협찬"},{"generation":9,"name":"김○운","work":"Alice Project","role":"협찬"},{"generation":9,"name":"김○준","work":"서울정양평해장","role":""},{"generation":9,"name":"문○국","work":"와인루트 주식회사","role":""},{"generation":9,"name":"안지현","work":"쿠움 / 한국관광대 겸임교수","role":"운영위원"},{"generation":9,"name":"장○혜","work":"안다즈 서울 강남","role":""},{"generation":9,"name":"정○석","work":"삼성웰스토리","role":"협찬"},{"generation":9,"name":"정지원","work":"아뜰리에콩포트 효창","role":"운영위원"},{"generation":9,"name":"최○호","work":"하츠베이커리 생산부 부장","role":""},{"generation":10,"name":"김동욱","work":"체인로지스","role":"운영위원"},{"generation":10,"name":"손○울","work":"에어룸 푸드서비스","role":"협찬"},{"generation":10,"name":"이민주","work":"극단 아트솔루스","role":"준비위원"},{"generation":10,"name":"전○호","work":"르프리크","role":""},{"generation":11,"name":"유○현(임○현)","work":"샤콘느 / 소믈리에","role":""},{"generation":11,"name":"이○하","work":"을지김치찜","role":""},{"generation":11,"name":"이해리","work":"dul dih 덜더 / 동원대학교 K-Food 강의","role":"운영위원"},{"generation":12,"name":"윤○름","work":"비스트로 앤트로","role":"협찬"},{"generation":12,"name":"이○후","work":"주쥬베","role":""},{"generation":12,"name":"조○름","work":"학화호도과자","role":"협찬"},{"generation":12,"name":"천○","work":"스튜디오 피오레","role":""},{"generation":12,"name":"홍○영","work":"Trattoria Patata","role":"협찬"},{"generation":13,"name":"김○희","work":"참사랑 · 농업","role":""},{"generation":15,"name":"김○영","work":"프랜차이즈 본사 운영팀","role":""},{"generation":15,"name":"최○욱","work":"엔터컴","role":"협찬"},{"generation":16,"name":"신○아","work":"원앤원","role":""},{"generation":16,"name":"양○빈","work":"쿠캣 · 상품기획 MD","role":""},{"generation":16,"name":"이○훈","work":"내추럴프랑스","role":"협찬"},{"generation":17,"name":"이○주","work":"줄리엣","role":""},{"generation":17,"name":"장○웅","work":"NH투자증권","role":""},{"generation":18,"name":"김○빈","work":"치바과학대학 약학부","role":""},{"generation":18,"name":"김○준","work":"마이무","role":""},{"generation":18,"name":"박○규","work":"그랜드인터컨티넨탈서울파르나스 / 스시 카네사카","role":""},{"generation":18,"name":"이○연","work":"제이피 앳 루이비통 · 디저트","role":""},{"generation":18,"name":"이예린","work":"예쿡쿠킹클래스 / 요리교육 브랜드","role":"운영위원"},{"generation":18,"name":"정○","work":"Daily FnB(데프브) · BM / 에디터","role":""},{"generation":18,"name":"정○민","work":"콘피에르 셀렉션 광화문점 · CDP","role":""},{"generation":18,"name":"정○정","work":"CJ제일제당 · PM","role":"협찬"},{"generation":19,"name":"이○현","work":"마이무","role":"협찬"},{"generation":19,"name":"이○화","work":"엘리스파이","role":"협찬"},{"generation":20,"name":"김○지","work":"(주)조흥","role":""},{"generation":20,"name":"김○진","work":"워커힐","role":""},{"generation":20,"name":"김○형","work":"워커힐 더부페","role":""},{"generation":20,"name":"남○○은","work":"워홀 후 복귀","role":""},{"generation":20,"name":"엄○성","work":"서담해물","role":""},{"generation":20,"name":"이○진","work":"학생 · 파인다이닝","role":""},{"generation":20,"name":"이○호","work":"선박조리사","role":""},{"generation":20,"name":"정○원","work":"삼육보건대학교 영양사 / 코브하우스","role":""},{"generation":20,"name":"주보근","work":"유학 준비 중","role":"준비위원"},{"generation":22,"name":"김○호","work":"복구이집 근무","role":""},{"generation":22,"name":"문○","work":"JW메리어트 제주 리조트&스파","role":""},{"generation":22,"name":"신○민","work":"군인","role":""},{"generation":22,"name":"이○림","work":"이자카야 주방","role":""},{"generation":22,"name":"이○진","work":"학생 · 관광/MICE","role":""},{"generation":22,"name":"조재영","work":"학생 / 교육","role":"운영위원"},{"generation":23,"name":"권능","work":"베수비오","role":"운영위원"},{"generation":23,"name":"김○빈","work":"성신여자대학교 식품영양학과","role":""},{"generation":23,"name":"박○규","work":"군 복무 중 / 전 라이즈 호텔 조리부","role":""},{"generation":23,"name":"박○석","work":"군 복무 중 / 그랜드 인터컨티넨탈 재입사 예정","role":""},{"generation":23,"name":"윤여창","work":"학생 / 교육","role":"운영위원"},{"generation":24,"name":"강○선","work":"학생 · 제과·제빵·카페","role":""},{"generation":24,"name":"강○슬","work":"그래비티 조선 서울","role":""},{"generation":24,"name":"김○담","work":"경원재 바이 워커힐","role":""},{"generation":24,"name":"김○진","work":"연성대학교 · 식품영양학과","role":""},{"generation":24,"name":"박○원","work":"구직 중 · 제과","role":""},{"generation":24,"name":"손○윤","work":"대입 준비 중 · 일식","role":""},{"generation":24,"name":"윤○환","work":"스페인 유학 예정","role":""},{"generation":24,"name":"조○원","work":"코코스키","role":""},{"generation":24,"name":"황○현","work":"대학생 · 식품영양학과","role":""},{"generation":25,"name":"권○성","work":"모수","role":""},{"generation":25,"name":"박○빈","work":"학생 · 교육","role":""},{"generation":25,"name":"서○빈","work":"유학 준비","role":""},{"generation":25,"name":"송유진","work":"휴직·이직 준비 / 제과·제빵·카페","role":"운영위원"},{"generation":25,"name":"유○서","work":"우송대학교 외식조리전공","role":""},{"generation":25,"name":"이○진","work":"오리지널팬케이크하우스","role":""},{"generation":25,"name":"최○진","work":"몬드리안 서울 이태원","role":""}];
 
@@ -2827,7 +2887,81 @@ renderRelatedBrands();
 
 renderPaymentAccount();
 
+renderPublicRaffle();
+
 }
+
+function closeRaffleOverlay(){
+  clearInterval(raffleAnimationTimer);clearTimeout(raffleRevealTimer);
+  raffleAnimationTimer=null;raffleRevealTimer=null;
+  const overlay=document.getElementById("raffleLiveOverlay");
+  if(overlay){overlay.hidden=true;overlay.setAttribute("aria-hidden","true");}
+}
+function showRaffleWinner(live){
+  clearInterval(raffleAnimationTimer);raffleAnimationTimer=null;
+  const name=document.getElementById("raffleLiveName");
+  if(!name)return;
+  const winner=live?.winner;
+  name.textContent=winner?`${winner.name} · ${winner.generation}기`:"추첨 결과를 확인해주세요";
+  name.classList.add("winner");
+  const foot=document.getElementById("raffleLiveFoot");
+  if(foot)foot.textContent="축하합니다! 현장에서 경품을 받아주세요.";
+}
+function openRaffleOverlay(forceWaiting=false){
+  const overlay=document.getElementById("raffleLiveOverlay");
+  const prize=document.getElementById("raffleLivePrize");
+  const pool=document.getElementById("raffleLivePool");
+  const name=document.getElementById("raffleLiveName");
+  const foot=document.getElementById("raffleLiveFoot");
+  if(!overlay||!name)return;
+  clearInterval(raffleAnimationTimer);clearTimeout(raffleRevealTimer);
+  raffleAnimationTimer=null;raffleRevealTimer=null;
+  const live=publicRaffleCenter?.live||{};
+  overlay.hidden=false;overlay.setAttribute("aria-hidden","false");
+  name.classList.remove("winner");
+  if(prize)prize.textContent=live.prize||"현장 경품 추첨";
+  if(pool)pool.textContent=live.poolLabel||"추첨 대기 중";
+  if(live.status!=="drawing"||!live.winner){
+    name.textContent=live.winner?`${live.winner.name} · ${live.winner.generation}기`:"잠시 후 시작합니다";
+    if(live.winner)name.classList.add("winner");
+    if(foot)foot.textContent=live.winner?"최근 당첨 결과입니다.":"추첨이 시작되면 이 화면이 자동으로 바뀝니다.";
+    return;
+  }
+  const candidates=Array.isArray(live.candidates)&&live.candidates.length?live.candidates:[live.winner];
+  const revealAt=Number(live.revealAt||0);
+  const spin=()=>{
+    const person=candidates[Math.floor(Math.random()*candidates.length)]||live.winner;
+    name.textContent=person?`${person.name} · ${person.generation}기`:"추첨 중…";
+  };
+  if(revealAt>Date.now()){
+    if(foot)foot.textContent="당첨자를 무작위로 선정하고 있습니다…";
+    spin();raffleAnimationTimer=setInterval(spin,85);
+    raffleRevealTimer=setTimeout(()=>showRaffleWinner(live),Math.max(0,revealAt-Date.now()));
+  }else showRaffleWinner(live);
+}
+function renderPublicRaffle(){
+  const count=document.getElementById("rafflePublicCount");
+  const entries=Array.isArray(publicRaffleCenter?.storyEntries)?publicRaffleCenter.storyEntries:[];
+  if(count)count.textContent=`스토리 참여 ${entries.length}명`;
+  const live=publicRaffleCenter?.live||{};
+  const freshDraw=Number(live.revealAt||0)>Date.now()-(10*60*1000);
+  if(live.status==="drawing"&&freshDraw&&live.drawId&&live.drawId!==lastAutoOpenedRaffleId){
+    lastAutoOpenedRaffleId=live.drawId;
+    openRaffleOverlay(false);
+  }
+}
+async function loadPublicRaffle(){
+  try{
+    const {data,error}=await sb.rpc("get_hanjogo_story_raffle");
+    if(error)throw error;
+    const payload=(data&&typeof data==="object")?data:{};
+    publicRaffleCenter={storyEntries:[],history:[],live:{status:"idle",drawId:"",winner:null,candidates:[]},...(payload.storyRaffle||{})};
+    renderPublicRaffle();
+  }catch(e){console.error("경품 추첨 정보를 불러오지 못했습니다.",e);}
+}
+
+document.getElementById("raffleWatchBtn")?.addEventListener("click",()=>openRaffleOverlay(true));
+document.getElementById("raffleLiveClose")?.addEventListener("click",closeRaffleOverlay);
 
 async function loadPublicInfo(){
 
@@ -3149,11 +3283,12 @@ function startPublicApp(){
   publicAppStarted=true;
 
   loadPublicInfo();
+  loadPublicRaffle();
   recordAndShowVisit();
 
   sb
   .channel("hanjogo-public-page")
-  .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},()=>loadPublicInfo())
+  .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},()=>{loadPublicInfo();loadPublicRaffle();})
   .subscribe();
 
   setInterval(()=>{
@@ -3163,12 +3298,17 @@ function startPublicApp(){
   },30000);
 
   setInterval(loadPublicInfo,60000);
+  setInterval(loadPublicRaffle,60000);
 
   if(openAttendeesAfterAuth)setTimeout(openAttendeeModal,180);
 }
 
 startPublicApp();
 setSiteView(currentSiteView(),{updateHash:false});
+if(new URLSearchParams(location.search).get("raffle")==="1"){
+  setSiteView("event",{updateHash:false});
+  setTimeout(()=>document.getElementById("rafflePublicCard")?.scrollIntoView({behavior:"smooth",block:"center"}),250);
+}
 initializeNetworkAccess().finally(()=>{
   if(new URLSearchParams(location.search).has("view")){
     history.replaceState(null,"",location.pathname+"#network");

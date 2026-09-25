@@ -755,17 +755,17 @@ body.site-view-network.modal-open{overflow:auto!important}
 </div>
 
 <section class="raffle-public-card site-view" id="rafflePublicCard" data-site-view="event">
-  <div class="raffle-public-kicker">LIVE RAFFLE · INSTAGRAM STORY</div>
-  <div class="raffle-public-title">현장 실시간 경품 추첨</div>
-  <div class="raffle-public-desc">행사 사진을 인스타그램 스토리에 올리고 <strong>@kcas_archived</strong>를 태그한 뒤, 같은 DM창에 <strong>이름 / 기수</strong>를 보내주세요. 스토리 참여자 경품과 일반 경품 추첨 결과가 이 화면에 실시간으로 공개됩니다.</div>
+  <div class="raffle-public-kicker">2026 HANJOGO · EVENT RAFFLE</div>
+  <div class="raffle-public-title">행사 경품 추첨 안내</div>
+  <div class="raffle-public-desc">10월 18일 행사에서 여러 경품을 현장 추첨합니다. <strong>참가가 확정된 동문 대상 추첨</strong>과 <strong>인스타그램 스토리 참여자 대상 추첨</strong>을 이 화면에서 진행하며, 당첨 결과도 실시간으로 확인할 수 있습니다. 스토리 참여 방법은 행사 당일 안내합니다.</div>
   <div class="raffle-public-steps">
-    <div class="raffle-public-step"><b>01 · 스토리 게시</b>행사 사진과 @kcas_archived 태그</div>
-    <div class="raffle-public-step"><b>02 · DM 전송</b>이름 / 기수 보내기</div>
-    <div class="raffle-public-step"><b>03 · 실시간 확인</b>현장 화면에서 당첨자 확인</div>
+    <div class="raffle-public-step"><b>전체 참가자 추첨</b>참가 확정 동문을 대상으로 진행</div>
+    <div class="raffle-public-step"><b>스토리 참여 추첨</b>행사 사진에 @kcas_archived 태그 후 DM으로 이름·기수 전송</div>
+    <div class="raffle-public-step"><b>현장 실시간 확인</b>경품별 추첨과 당첨 결과를 이 화면에서 확인</div>
   </div>
   <div class="raffle-public-meta">
-    <span><strong id="rafflePublicCount">스토리 참여 0명</strong> · 참여 마감 21:40 · 1인 1회</span>
-    <button class="raffle-watch-btn" id="raffleWatchBtn" type="button">추첨 화면 열기</button>
+    <span><strong id="rafflePublicStatus">10월 18일 행사 현장에서 진행 예정</strong></span>
+    <button class="raffle-watch-btn" id="raffleWatchBtn" type="button">추첨 화면 미리보기</button>
   </div>
 </section>
 
@@ -1053,7 +1053,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="raffle-live-kicker">HANJOGO LIVE RAFFLE</div>
     <div class="raffle-live-prize" id="raffleLivePrize">현장 경품 추첨</div>
     <div class="raffle-live-pool" id="raffleLivePool">추첨 대기 중</div>
-    <div class="raffle-live-name" id="raffleLiveName">잠시 후 시작합니다</div>
+    <div class="raffle-live-name" id="raffleLiveName">10월 18일 현장에서 만나요</div>
     <div class="raffle-live-foot" id="raffleLiveFoot">모든 화면에 같은 결과가 표시됩니다.</div>
   </div>
 </div>
@@ -2922,9 +2922,9 @@ function openRaffleOverlay(forceWaiting=false){
   if(prize)prize.textContent=live.prize||"현장 경품 추첨";
   if(pool)pool.textContent=live.poolLabel||"추첨 대기 중";
   if(live.status!=="drawing"||!live.winner){
-    name.textContent=live.winner?`${live.winner.name} · ${live.winner.generation}기`:"잠시 후 시작합니다";
+    name.textContent=live.winner?`${live.winner.name} · ${live.winner.generation}기`:(raffleEventStarted()?"추첨을 기다리고 있습니다":"10월 18일 현장에서 만나요");
     if(live.winner)name.classList.add("winner");
-    if(foot)foot.textContent=live.winner?"최근 당첨 결과입니다.":"추첨이 시작되면 이 화면이 자동으로 바뀝니다.";
+    if(foot)foot.textContent=live.winner?"최근 당첨 결과입니다.":(raffleEventStarted()?"현장 추첨이 시작되면 이 화면이 자동으로 바뀝니다.":"여러 경품의 추첨 결과가 행사 당일 여기에 표시됩니다.");
     return;
   }
   const candidates=Array.isArray(live.candidates)&&live.candidates.length?live.candidates:[live.winner];
@@ -2939,10 +2939,21 @@ function openRaffleOverlay(forceWaiting=false){
     raffleRevealTimer=setTimeout(()=>showRaffleWinner(live),Math.max(0,revealAt-Date.now()));
   }else showRaffleWinner(live);
 }
+function raffleEventStarted(){
+  return raffleEventDate()>="2026-10-18";
+}
+function raffleEventDate(){
+  const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const values=Object.fromEntries(parts.map(({type,value})=>[type,value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
 function renderPublicRaffle(){
-  const count=document.getElementById("rafflePublicCount");
-  const entries=Array.isArray(publicRaffleCenter?.storyEntries)?publicRaffleCenter.storyEntries:[];
-  if(count)count.textContent=`스토리 참여 ${entries.length}명`;
+  const date=raffleEventDate();
+  const started=date>="2026-10-18";
+  const status=document.getElementById("rafflePublicStatus");
+  if(status)status.textContent=date>"2026-10-18"?"행사 경품 추첨 결과 확인":started?"행사 경품 추첨 · 현장 진행":"10월 18일 행사 현장에서 진행 예정";
+  const button=document.getElementById("raffleWatchBtn");
+  if(button)button.textContent=date>"2026-10-18"?"추첨 결과 보기":started?"실시간 추첨 화면 보기":"추첨 화면 미리보기";
   const live=publicRaffleCenter?.live||{};
   const freshDraw=Number(live.revealAt||0)>Date.now()-(10*60*1000);
   if(live.status==="drawing"&&freshDraw&&live.drawId&&live.drawId!==lastAutoOpenedRaffleId){

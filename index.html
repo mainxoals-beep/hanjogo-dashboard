@@ -1045,7 +1045,7 @@
   @media print{.dashboard-finder,.home-task-grid,.section-jumps,.tab-panel-tools{display:none!important}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
-  <script src="./assets/raffle-roster.js?v=20260926-fair"></script>
+  <script src="./assets/raffle-roster.js?v=20260926-generation-exclude"></script>
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -3851,7 +3851,7 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
   const drawId=`draw-${Date.now()}-${uid()}`;
   const startedAt=Date.now();
   const poolLabel=pool==="story"?"인스타 스토리 참여자":"전체 참여자 · 위원·후원·협찬 포함";
-  const historyItem={id:drawId,prize,pool,poolLabel,winner,drawRule:"generation-equal-v1",eligibleCount:eligible.length,totalWeight:eligible.reduce((n,x)=>n+x.weight,0),drawnAt:new Date(startedAt).toISOString()};
+  const historyItem={id:drawId,prize,pool,poolLabel,winner,drawRule:"person-weighted-generation-exclusion-v1",eligibleCount:eligible.length,totalWeight:eligible.reduce((n,x)=>n+x.weight,0),drawnAt:new Date(startedAt).toISOString()};
   state.raffleCenter.winnerKeys=[...new Set([...HanjogoRaffle.winnerKeys(state.raffleCenter),rafflePersonKey(winner)])];
   state.raffleCenter.history.push(historyItem);
   state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+5200,winner,candidates:eligible.map(x=>({name:x.name,generation:x.generation}))};

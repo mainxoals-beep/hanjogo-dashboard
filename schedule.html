@@ -774,7 +774,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="attendee-head">
       <div>
         <div class="attendee-title" id="attendeeModalTitle">참가자 현황 · 명단</div>
-        <div class="attendee-desc">기수별 참가 인원과 참가자 명단을 함께 확인할 수 있습니다. 동문 네트워크에서 실명 공개를 선택한 참가자는 행사 명단에도 실명으로 표시됩니다. 참가자 명단 비공개를 선택한 동문은 명단에서 제외됩니다.</div>
+        <div class="attendee-desc">참가 확정 현황을 기준으로 정리한 명단입니다. 이름·기수·소속은 프로필 공개 설정을 반영하며, 프로필 또는 참가자 명단 비공개를 요청한 동문은 제외합니다. 공개 설정이 없는 기존 참가자는 기존 마스킹 기준을 유지합니다. 전체 참가 인원과 공개 명단 인원은 다를 수 있습니다. (명단 검토: 2026. 9. 26.)</div>
       </div>
       <div class="modal-head-actions">
         <button type="button" class="modal-size-btn" id="attendeeSizeBtn" aria-label="팝업 크게 보기">크게 보기</button>
@@ -1158,7 +1158,8 @@ let raffleAnimationTimer=null;
 let raffleRevealTimer=null;
 let lastAutoOpenedRaffleId="";
 
-const PUBLIC_ATTENDEES=[{"generation":2,"name":"김○현","work":"대한체육회 국가대표선수촌","role":""},{"generation":2,"name":"김태민","work":"렁팡스","role":"준비위원"},{"generation":2,"name":"이○대","work":"오부이용 / 부요네뜨","role":""},{"generation":3,"name":"김○곤","work":"통의동 국빈관 / 원기옥","role":""},{"generation":3,"name":"김○호","work":"정식당","role":""},{"generation":3,"name":"이○혁","work":"파브란트","role":""},{"generation":3,"name":"장○원","work":"보보식당","role":""},{"generation":4,"name":"김○운","work":"스시시미즈 / 카와세미 / 스시우미 / 코끼리초밥 / 국빈관 / 원기옥","role":""},{"generation":4,"name":"이○민","work":"주식회사 상창","role":""},{"generation":5,"name":"안○준","work":"미국 라스베가스 · 메뉴개발 / 교육","role":""},{"generation":5,"name":"함○재","work":"인스파이어 엔터테인먼트 리조트","role":""},{"generation":6,"name":"위○섭","work":"사조푸디스트","role":""},{"generation":7,"name":"김미주","work":"동원F&B","role":"운영위원"},{"generation":7,"name":"박혜림","work":"바카디 코리아","role":"준비위원 · 협찬"},{"generation":7,"name":"손○지","work":"철은인터내셔날(주) / 쥬네스디저트","role":"협찬"},{"generation":7,"name":"신○상","work":"마시오름","role":""},{"generation":7,"name":"이○","work":"Corvina","role":""},{"generation":7,"name":"이○희","work":"정희의 식탁","role":""},{"generation":7,"name":"임○솔","work":"철은인터내셔날(주) / 쥬네스디저트","role":""},{"generation":8,"name":"김○연","work":"온하루","role":"협찬"},{"generation":8,"name":"김○연","work":"리트하우스","role":""},{"generation":8,"name":"김○윤","work":"브랜드 비공개","role":"협찬"},{"generation":8,"name":"이○진","work":"대한항공 · 기내식 메뉴 관리","role":""},{"generation":9,"name":"김○민","work":"모리 & 히게 · 광양 일식","role":"협찬"},{"generation":9,"name":"김○운","work":"Alice Project","role":"협찬"},{"generation":9,"name":"김○준","work":"서울정양평해장","role":""},{"generation":9,"name":"문○국","work":"와인루트 주식회사","role":""},{"generation":9,"name":"안지현","work":"쿠움 / 한국관광대 겸임교수","role":"운영위원"},{"generation":9,"name":"장○혜","work":"안다즈 서울 강남","role":""},{"generation":9,"name":"정○석","work":"삼성웰스토리","role":"협찬"},{"generation":9,"name":"정지원","work":"아뜰리에콩포트 효창","role":"운영위원"},{"generation":9,"name":"최○호","work":"하츠베이커리 생산부 부장","role":""},{"generation":10,"name":"김동욱","work":"체인로지스","role":"운영위원"},{"generation":10,"name":"손○울","work":"에어룸 푸드서비스","role":"협찬"},{"generation":10,"name":"이민주","work":"극단 아트솔루스","role":"준비위원"},{"generation":10,"name":"전○호","work":"르프리크","role":""},{"generation":11,"name":"유○현(임○현)","work":"샤콘느 / 소믈리에","role":""},{"generation":11,"name":"이○하","work":"을지김치찜","role":""},{"generation":11,"name":"이해리","work":"dul dih 덜더 / 동원대학교 K-Food 강의","role":"운영위원"},{"generation":12,"name":"윤○름","work":"비스트로 앤트로","role":"협찬"},{"generation":12,"name":"이○후","work":"주쥬베","role":""},{"generation":12,"name":"조○름","work":"학화호도과자","role":"협찬"},{"generation":12,"name":"천○","work":"스튜디오 피오레","role":""},{"generation":12,"name":"홍○영","work":"Trattoria Patata","role":"협찬"},{"generation":13,"name":"김○희","work":"참사랑 · 농업","role":""},{"generation":15,"name":"김○영","work":"프랜차이즈 본사 운영팀","role":""},{"generation":15,"name":"최○욱","work":"엔터컴","role":"협찬"},{"generation":16,"name":"신○아","work":"원앤원","role":""},{"generation":16,"name":"양○빈","work":"쿠캣 · 상품기획 MD","role":""},{"generation":16,"name":"이○훈","work":"내추럴프랑스","role":"협찬"},{"generation":17,"name":"이○주","work":"줄리엣","role":""},{"generation":17,"name":"장○웅","work":"NH투자증권","role":""},{"generation":18,"name":"김○빈","work":"치바과학대학 약학부","role":""},{"generation":18,"name":"김○준","work":"마이무","role":""},{"generation":18,"name":"박○규","work":"그랜드인터컨티넨탈서울파르나스 / 스시 카네사카","role":""},{"generation":18,"name":"이○연","work":"제이피 앳 루이비통 · 디저트","role":""},{"generation":18,"name":"이예린","work":"예쿡쿠킹클래스 / 요리교육 브랜드","role":"운영위원"},{"generation":18,"name":"정○","work":"Daily FnB(데프브) · BM / 에디터","role":""},{"generation":18,"name":"정○민","work":"콘피에르 셀렉션 광화문점 · CDP","role":""},{"generation":18,"name":"정○정","work":"CJ제일제당 · PM","role":"협찬"},{"generation":19,"name":"이○현","work":"마이무","role":"협찬"},{"generation":19,"name":"이○화","work":"엘리스파이","role":"협찬"},{"generation":20,"name":"김○지","work":"(주)조흥","role":""},{"generation":20,"name":"김○진","work":"워커힐","role":""},{"generation":20,"name":"김○형","work":"워커힐 더부페","role":""},{"generation":20,"name":"남○○은","work":"워홀 후 복귀","role":""},{"generation":20,"name":"엄○성","work":"서담해물","role":""},{"generation":20,"name":"이○진","work":"학생 · 파인다이닝","role":""},{"generation":20,"name":"이○호","work":"선박조리사","role":""},{"generation":20,"name":"정○원","work":"삼육보건대학교 영양사 / 코브하우스","role":""},{"generation":20,"name":"주보근","work":"유학 준비 중","role":"준비위원"},{"generation":22,"name":"김○호","work":"복구이집 근무","role":""},{"generation":22,"name":"문○","work":"JW메리어트 제주 리조트&스파","role":""},{"generation":22,"name":"신○민","work":"군인","role":""},{"generation":22,"name":"이○림","work":"이자카야 주방","role":""},{"generation":22,"name":"이○진","work":"학생 · 관광/MICE","role":""},{"generation":22,"name":"조재영","work":"학생 / 교육","role":"운영위원"},{"generation":23,"name":"권능","work":"베수비오","role":"운영위원"},{"generation":23,"name":"김○빈","work":"성신여자대학교 식품영양학과","role":""},{"generation":23,"name":"박○규","work":"군 복무 중 / 전 라이즈 호텔 조리부","role":""},{"generation":23,"name":"박○석","work":"군 복무 중 / 그랜드 인터컨티넨탈 재입사 예정","role":""},{"generation":23,"name":"윤여창","work":"학생 / 교육","role":"운영위원"},{"generation":24,"name":"강○선","work":"학생 · 제과·제빵·카페","role":""},{"generation":24,"name":"강○슬","work":"그래비티 조선 서울","role":""},{"generation":24,"name":"김○담","work":"경원재 바이 워커힐","role":""},{"generation":24,"name":"김○진","work":"연성대학교 · 식품영양학과","role":""},{"generation":24,"name":"박○원","work":"구직 중 · 제과","role":""},{"generation":24,"name":"손○윤","work":"대입 준비 중 · 일식","role":""},{"generation":24,"name":"윤○환","work":"스페인 유학 예정","role":""},{"generation":24,"name":"조○원","work":"코코스키","role":""},{"generation":24,"name":"황○현","work":"대학생 · 식품영양학과","role":""},{"generation":25,"name":"권○성","work":"모수","role":""},{"generation":25,"name":"박○빈","work":"학생 · 교육","role":""},{"generation":25,"name":"서○빈","work":"유학 준비","role":""},{"generation":25,"name":"송유진","work":"휴직·이직 준비 / 제과·제빵·카페","role":"운영위원"},{"generation":25,"name":"유○서","work":"우송대학교 외식조리전공","role":""},{"generation":25,"name":"이○진","work":"오리지널팬케이크하우스","role":""},{"generation":25,"name":"최○진","work":"몬드리안 서울 이태원","role":""}];
+// Reviewed against confirmed payments, committee/sponsors and profile consent on 2026-09-26 (KST).
+const PUBLIC_ATTENDEES=[{"generation":2,"name":"김중현","work":"대한체육회 / 대한체육회 국가대표선수촌 선수식당 총괄 조리장 / 급식 / 단체급식","role":"","profileId":"81d69c3582e210fecf377713"},{"generation":2,"name":"김태민","work":"렁팡스 / 회사로 이직 준비중. / 레스토랑 / 외식업, 식품 / F&B 기업, 메뉴개발 / R&D, 기획 / 마케팅","role":"준비위원","profileId":"3ee0bd879a13c6b7bc1eca79"},{"generation":2,"name":"이성대","work":"오부이용/부요네뜨 / 프렌치 비스트로 / 레스토랑 / 외식업, 베이커리 / 카페","role":"","profileId":"7a5ab4cb872e7ac0851c0181"},{"generation":3,"name":"김윤곤","work":"통의동 국빈관, 원기옥 운영 / 외식업 대표이사 / 레스토랑 / 외식업","role":"","profileId":"01dd09f2d3d7766419d0dc13"},{"generation":3,"name":"김○호","work":"정식당","role":""},{"generation":3,"name":"이상혁","work":"레스토랑 / 파브란트 / 회사 사내 이사/ 총괄 쉐프 / 회사 브랜드 총괄 쉐프 / 레스토랑 / 외식업, 베이커리 / 카페, 식품 / F&B 기업, 메뉴개발 / R&D, 교육 / 강의","role":"","profileId":"20b2d2afe59c4b7a365ec74d"},{"generation":3,"name":"장○원","work":"보보식당","role":""},{"generation":4,"name":"김다운","work":"(주)드미트리, 비엘디 컴패니, 스시시미즈, 스시우미, 카와세미, 코끼리초밥, 국빈관, 원기옥 / Ceo / 레스토랑 / 외식업","role":"","profileId":"dddbb4aee17bcb0422a0016c"},{"generation":4,"name":"이○민","work":"주식회사 상창","role":""},{"generation":5,"name":"안○준","work":"미국 라스베가스 · 메뉴개발 / 교육","role":""},{"generation":5,"name":"함○재","work":"인스파이어 엔터테인먼트 리조트","role":""},{"generation":6,"name":"위○섭","work":"사조푸디스트","role":""},{"generation":7,"name":"김미주","work":"동원F&B","role":"운영위원"},{"generation":7,"name":"박혜림","work":"바카디 코리아","role":"준비위원 · 협찬"},{"generation":7,"name":"손○지","work":"철은인터내셔날(주) / 쥬네스디저트","role":"협찬"},{"generation":7,"name":"신○상","work":"마시오름","role":""},{"generation":7,"name":"이○","work":"Corvina","role":""},{"generation":7,"name":"이○희","work":"정희의 식탁","role":""},{"generation":7,"name":"임○솔","work":"철은인터내셔날(주) / 쥬네스디저트","role":""},{"generation":8,"name":"김○윤","work":"브랜드 비공개","role":"협찬"},{"generation":8,"name":"김시연","work":"온하루 / 브랜드 운영 및 기획 / 식품 / F&B 기업, 유통 / 제조","role":"협찬","profileId":"3e60e15672080d7581710e68"},{"generation":8,"name":"김○연","work":"리트하우스","role":""},{"generation":9,"name":"김○운","work":"Alice Project","role":"협찬"},{"generation":9,"name":"김○민","work":"모리 & 히게 · 광양 일식","role":"협찬"},{"generation":9,"name":"김○준","work":"서울정양평해장","role":""},{"generation":9,"name":"문○국","work":"와인루트 주식회사","role":""},{"generation":9,"name":"안지현","work":"쿠움 / 한국관광대 겸임교수","role":"운영위원"},{"generation":9,"name":"장○혜","work":"안다즈 서울 강남","role":""},{"generation":9,"name":"정○석","work":"삼성웰스토리","role":"협찬"},{"generation":9,"name":"정지원","work":"아뜰리에콩포트 효창","role":"운영위원"},{"generation":9,"name":"최○호","work":"하츠베이커리 생산부 부장","role":""},{"generation":10,"name":"김동욱","work":"체인로지스","role":"운영위원"},{"generation":10,"name":"손바울","work":"에어룸 푸드서비스 / PCO 사 운영 / 케이터링/ 대관 / 급식 / 급식 / 단체급식, 기획 / 마케팅, 관광 / MICE","role":"협찬","profileId":"1d61ca90c8b9772d5579470c"},{"generation":10,"name":"이민주","work":"극단 아트솔루스","role":"준비위원"},{"generation":10,"name":"전명호","work":"르프리크 / F&B 운영 / 레스토랑 / 외식업, 식품 / F&B 기업","role":"","profileId":"71c5668e8e3f600fa962073d"},{"generation":11,"name":"유○현(임○현)","work":"샤콘느 / 소믈리에","role":""},{"generation":11,"name":"이○하","work":"을지김치찜","role":""},{"generation":11,"name":"이해리","work":"동원대학교, 덜더(2026년 하반기 창업예정 리빙기업)","role":"운영위원","profileId":"4434ba944446b52a97c62979"},{"generation":12,"name":"윤○름","work":"비스트로 앤트로","role":"협찬"},{"generation":12,"name":"이○후","work":"주쥬베","role":""},{"generation":12,"name":"조아름","work":"할머니 학화 호도과자 / 상품개발, 기획, 마케팅 / 식품 / F&B 기업, 메뉴개발 / R&D, 기획 / 마케팅","role":"협찬","profileId":"da81b90c897e9b0da41a0bc2"},{"generation":12,"name":"천란","work":"스튜디오 피오레 / 케이터링 업체 운영 / 레스토랑 / 외식업","role":"","profileId":"9ff2121f95dfd28264847409"},{"generation":12,"name":"홍○영","work":"Trattoria Patata (뜨라또리아 파타타) ,오너셰프 / 이탈리안 레스토랑 브랜드 운영 / 레스토랑 / 외식업, 호텔, 와인 / 주류, 메뉴개발 / R&D, 기획 / 마케팅","role":"협찬","profileId":"d8ceaf2f8943044469651b41"},{"generation":13,"name":"김○희","work":"참사랑 · 농업","role":""},{"generation":15,"name":"김나영","work":"외식 프란차이즈 브랜드관리팀(운영팀) 팀장 / 식품 / F&B 기업","role":"","profileId":"d71f36c294259e6bf84d29d5"},{"generation":15,"name":"최○욱","work":"엔터컴","role":"협찬"},{"generation":16,"name":"신○아","work":"원앤원(원할머니보쌈 본사) / 메뉴개발R&D","role":"","profileId":"d02b685ab305eba06e9434cf"},{"generation":16,"name":"양수빈","work":"쿠캣 / 상품기획 MD / 유통 / 제조, 메뉴개발 / R&D","role":"","profileId":"b9cec945b9d03038d5351d02"},{"generation":16,"name":"이○훈","work":"내추럴프랑스","role":"협찬"},{"generation":17,"name":"이○주","work":"줄리엣","role":""},{"generation":17,"name":"장○웅","work":"NH투자증권","role":""},{"generation":18,"name":"김○준","work":"마이무","role":""},{"generation":18,"name":"김○빈","work":"치바과학대학 약학부","role":""},{"generation":18,"name":"박○진","work":"","role":""},{"generation":18,"name":"박○규","work":"그랜드인터컨티넨탈서울파르나스 / 스시 카네사카","role":""},{"generation":18,"name":"백○준","work":"애스엔씨코리아 치폴레 / MIT","role":"","profileId":"d3ee44fc5bd7e3642d9b831e"},{"generation":18,"name":"이소연","work":"레스토랑 / 외식업","role":"","profileId":"b824fd011c4b8cb2400ccf82"},{"generation":18,"name":"이예린","work":"예쿡쿠킹클래스 / 요리교육 브랜드","role":"운영위원"},{"generation":18,"name":"정○","work":"Daily FnB(데프브) · BM / 에디터","role":""},{"generation":18,"name":"정○정","work":"CJ제일제당 · PM","role":"협찬"},{"generation":19,"name":"이○현","work":"마이무","role":"협찬"},{"generation":19,"name":"이○화","work":"엘리스파이","role":"협찬"},{"generation":19,"name":"이○은","work":"","role":""},{"generation":20,"name":"김○진","work":"워커힐","role":""},{"generation":20,"name":"김○지","work":"(주)조흥","role":""},{"generation":20,"name":"김○형","work":"워커힐 더부페","role":""},{"generation":20,"name":"남○○은","work":"워홀 후 복귀","role":""},{"generation":20,"name":"엄○성","work":"서담해물","role":""},{"generation":20,"name":"이○진","work":"학생 · 파인다이닝","role":""},{"generation":20,"name":"이○호","work":"선박조리사","role":""},{"generation":20,"name":"정○원","work":"삼육보건대학교 영양사 / 코브하우스","role":""},{"generation":20,"name":"주○근","work":"","role":"준비위원","profileId":"4f58881de956ba6c24faf2ae"},{"generation":22,"name":"김○호","work":"복구이집 근무","role":""},{"generation":22,"name":"문○","work":"JW메리어트 제주 리조트&스파","role":""},{"generation":22,"name":"신○민","work":"군인","role":""},{"generation":22,"name":"이○림","work":"이자카야 주방","role":""},{"generation":22,"name":"이○진","work":"호텔, 관광 / MICE","role":"","profileId":"6427f7b8c4ad1bb8511379bb"},{"generation":22,"name":"조재영","work":"학생 / 교육","role":"운영위원"},{"generation":23,"name":"권능","work":"베수비오","role":"운영위원"},{"generation":23,"name":"김○빈","work":"성신여자대학교 식품영양학과","role":""},{"generation":23,"name":"박○규","work":"","role":"","profileId":"7a7177947ce1c84bd29346fe"},{"generation":23,"name":"박○석","work":"군 복무 중 / 그랜드 인터컨티넨탈 재입사 예정","role":""},{"generation":23,"name":"윤여창","work":"학생 / 교육","role":"운영위원"},{"generation":24,"name":"강○슬","work":"그래비티 조선 서울","role":""},{"generation":24,"name":"김○진","work":"","role":"","profileId":"540da14e57a392aba7e64b79"},{"generation":24,"name":"김○담","work":"경원재 바이 워커힐","role":""},{"generation":24,"name":"박○원","work":"구직 중 · 제과","role":""},{"generation":24,"name":"손○윤","work":"대입 준비 중 · 일식","role":""},{"generation":24,"name":"윤○환","work":"스페인 유학 예정","role":""},{"generation":24,"name":"조○원","work":"코코스키","role":""},{"generation":24,"name":"황○현","work":"대학생 · 식품영양학과","role":""},{"generation":25,"name":"권○성","work":"모수","role":""},{"generation":25,"name":"김○우","work":"","role":""},{"generation":25,"name":"박○민","work":"","role":""},{"generation":25,"name":"박○빈","work":"학생 · 교육","role":""},{"generation":25,"name":"서○빈","work":"유학 준비","role":""},{"generation":25,"name":"송유진","work":"","role":"운영위원","profileId":"d15e80ae2faff33bf2aac651"},{"generation":25,"name":"유○서","work":"우송대학교 외식조리전공","role":""},{"generation":25,"name":"이○진","work":"오리지널팬케이크하우스","role":""},{"generation":25,"name":"최○진","work":"몬드리안 서울 이태원","role":""}];
 
 let publicPaymentAccount={
 bankName:"",
@@ -2722,115 +2723,45 @@ grid.innerHTML=brands.map(name=>`<div class="brand-item">${esc(name)}</div>`).jo
 
 let attendeeGenerationFilter=null;
 
-function attendeeNameKey(v){
-  return String(v||"").replace(/\s+/g,"").toLowerCase();
-}
-function attendeeProfileMatchScore(attendee,profile){
-  if(Number(profile?.sortGen)!==Number(attendee?.generation))return -1;
-  const current=String(attendee?.name||"");
-  if(current && !current.includes("○") && attendeeNameKey(current)===attendeeNameKey(profile?.actualName))return 100;
-  if(String(profile?.attendeeMaskedName||"")!==current)return -1;
-
-  const aw=attendeeNameKey(attendee?.work);
-  const texts=[profile?.company,profile?.work,profile?.activity].map(attendeeNameKey).filter(Boolean);
-  let score=1;
-  texts.forEach(t=>{
-    if(t && aw && (aw.includes(t)||t.includes(aw)))score+=10;
-    const pieces=t.split(/[\/·,()\s]+/).filter(x=>x.length>=2);
-    pieces.forEach(piece=>{if(aw.includes(piece))score+=1;});
-  });
-  return score;
-}
-function matchingProfileForAttendee(attendee){
-  const candidates=networkProfiles
-    .map(profile=>({profile,score:attendeeProfileMatchScore(attendee,profile)}))
-    .filter(x=>x.score>=0)
-    .sort((a,b)=>b.score-a.score);
-  if(!candidates.length)return null;
-
-  // If a masked name collides within the same generation, require a meaningful
-  // affiliation/activity match before applying a privacy choice to that card.
-  const sameMaskedCount=PUBLIC_ATTENDEES.filter(x=>
-    Number(x.generation)===Number(attendee?.generation) &&
-    String(x.name||"")===String(attendee?.name||"")
-  ).length;
-  if(sameMaskedCount>1 && candidates[0].score<=1)return null;
-  if(candidates.length>1 && candidates[0].score===candidates[1].score)return null;
-  return candidates[0].profile;
-}
-function attendeeAllowedByProfile(attendee){
-  const profile=matchingProfileForAttendee(attendee);
-  if(!profile)return true;
-  return profile.attendeeVisible!==false;
-}
-function resolveAttendeePublicName(attendee){
-  const current=String(attendee?.name||"");
-  if(!current || !current.includes("○")) return current;
-
-  const gen=Number(attendee?.generation);
-  const sameMaskedAttendees=PUBLIC_ATTENDEES.filter(x=>
-    Number(x.generation)===gen && String(x.name||"")===current
-  );
-  const candidates=networkProfiles.filter(p=>{
-    if(!p?.fullNamePublic || !p?.actualName) return false;
-    if(Number(p.gen)!==gen) return false;
-    return p.attendeeMaskedName===current;
-  });
-
-  // 마스킹 이름이 참가자 명단에서 유일할 때만 단독 후보를 바로 실명으로 연결.
-  if(candidates.length===1 && sameMaskedAttendees.length===1) return candidates[0].actualName;
-
-  // 같은 기수에 동일한 마스킹 이름이 겹치면 소속/활동 정보가 실제로 맞는 경우에만 실명으로 연결.
-  if(candidates.length){
-    const aw=attendeeNameKey(attendee?.work);
-    const scored=candidates.map(p=>{
-      const texts=[p.company,p.work,p.activity].map(attendeeNameKey).filter(Boolean);
-      let score=0;
-      texts.forEach(t=>{
-        if(t && aw && (aw.includes(t)||t.includes(aw))) score+=4;
-        const pieces=t.split(/[\/·,()\s]+/).filter(x=>x.length>=2);
-        pieces.forEach(piece=>{ if(aw.includes(piece)) score+=1; });
-      });
-      return {p,score};
-    }).sort((a,b)=>b.score-a.score);
-    if(scored[0] && (scored.length===1 || scored[0].score>scored[1].score) && scored[0].score>0){
-      return scored[0].p.actualName;
-    }
-  }
-  return current;
+// Consent is associated with the exact profile ID; masked names are not identities.
+function publicAttendeeView(attendee){
+  if(!attendee.profileId)return {...attendee};
+  if(!networkProfilesLoaded)return {...attendee};
+  const profile=networkProfiles.find(p=>p.profileId===attendee.profileId);
+  // A missing profile may have withdrawn publication consent.
+  if(!profile || profile.attendeeVisible===false)return null;
+  return {
+    ...attendee,
+    name:profile.name||"이름 비공개",
+    generation:profile.gen ? attendee.generation : null,
+    work:[...new Set([profile.company,profile.work,profile.activity].filter(Boolean))].join(" / ")
+  };
 }
 
-function attendeeMaskedCollisionSet(){
-  const counts=new Map();
-  PUBLIC_ATTENDEES.forEach(x=>{
-    const key=String(x.generation)+"|"+String(x.name||"");
-    counts.set(key,(counts.get(key)||0)+1);
-  });
-  return new Set([...counts.entries()].filter(([,n])=>n>1).map(([k])=>k));
-}
 function renderPublicAttendees(query=""){
 const list=document.getElementById("attendeeList");
 if(!list)return;
 const q=String(query||"").trim().toLowerCase();
-const filtered=PUBLIC_ATTENDEES.filter(x=>{
-  if(!attendeeAllowedByProfile(x))return false;
+const visible=PUBLIC_ATTENDEES.map(publicAttendeeView).filter(Boolean);
+const filtered=visible.filter(x=>{
   if(attendeeGenerationFilter!==null && Number(x.generation)!==Number(attendeeGenerationFilter))return false;
   if(!q)return true;
-  const displayName=resolveAttendeePublicName(x);
-  return [displayName,x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
+  return [x.name,x.work,x.role].join(" ").toLowerCase().includes(q);
 });
 if(!filtered.length){
   list.innerHTML='<div class="attendee-empty">해당 조건의 참가자가 없습니다.</div>';
   return;
 }
-const collisions=attendeeMaskedCollisionSet();
+const nameCounts=new Map();
+visible.forEach(x=>{const key=String(x.generation)+"|"+x.name;nameCounts.set(key,(nameCounts.get(key)||0)+1);});
+const collisions=new Set([...nameCounts].filter(([,count])=>count>1).map(([key])=>key));
 list.innerHTML=filtered.map(x=>{
-  const displayName=resolveAttendeePublicName(x);
+  const displayName=x.name;
   const collision=collisions.has(String(x.generation)+"|"+String(x.name||"")) && displayName===x.name;
   return `
   <div class="network-profile-item attendee-profile-item ${collision?"attendee-name-collision":""}">
     <div class="network-profile-top">
-      <span class="network-profile-gen">${x.generation}기</span>
+      <span class="network-profile-gen">${x.generation===null?"기수 비공개":esc(x.generation)+"기"}</span>
       <span class="network-profile-name">${esc(displayName)}</span>
       ${collision?'<span class="attendee-collision-badge">동명이름 구분</span>':""}
       ${x.role?`<span class="attendee-card-role">${esc(x.role)}</span>`:""}

@@ -1132,7 +1132,7 @@ formUrl:"https://forms.gle/ayrigW2hSvhubo1VA",
 
 openAt:"2026-09-14T14:00",
 
-closeAt:"2026-09-25T23:59:00+09:00",
+closeAt:"2026-09-27T00:00:00+09:00",
 
 beforeLabel:"2차 참가신청 · 9월 14일 오후 2시 오픈 예정",
 
@@ -1697,10 +1697,10 @@ return;
 if(g.isOpen){
 
 applyStatusTitle.textContent=
-"2차 참가 신청 진행 중";
+"2차 참가신청 · 오늘 하루 추가 접수";
 
 applyStatusSub.textContent=
-"추가 참가 신청을 받고 있습니다.";
+"참가를 고민하셨던 동문들을 위해 9월 26일(토) 밤 11시 59분까지 하루 더 신청을 받습니다.";
 
 p.textContent=
 "신청 중";
@@ -1725,14 +1725,14 @@ applicationBtn.target=
 if(g.close){
   applicationCountdown.hidden=false;
   applicationCountdown.textContent=
-  "2차 참가신청 마감까지 "+formatRemainingTime(g.close,g.now)+" · 9월 25일 오후 11:59 마감";
+  "2차 참가신청 마감까지 "+formatRemainingTime(g.close,g.now)+" · 9월 26일 밤 11시 59분 마감";
 }else{
   applicationCountdown.hidden=true;
   applicationCountdown.textContent="";
 }
 
 applicationSub.textContent=
-"신청 후 참가비 입금 확인 시 최종 참가가 확정됩니다.";
+"신청서 제출 후 안내된 계좌로 참가비 8만원을 입금해주세요. 입금 확인 시 참가가 확정됩니다.";
 
 return;
 

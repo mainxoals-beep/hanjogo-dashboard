@@ -1,0 +1,17 @@
+--- a/index.ts
++++ b/index.ts
+@@ -37,12 +37,12 @@
+ 
+     const { data: dashboard, error: readError } = await sb
+       .from("dashboard_state")
+-      .select("data")
++      .select("csvUrl:data->participantApplySync->>csvUrl")
+       .eq("id", "main")
+       .single();
+     if (readError) throw readError;
+ 
+-    const csvUrl = dashboard?.data?.participantApplySync?.csvUrl;
++    const csvUrl = dashboard?.csvUrl;
+     if (!csvUrl) throw new Error("Participant CSV URL is missing");
+ 
+     const csvResponse = await fetch(csvUrl + (csvUrl.includes("?") ? "&" : "?") + "_=" + Date.now(), {

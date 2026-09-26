@@ -1021,6 +1021,28 @@
   .raffle-entry-form{grid-template-columns:1fr 84px}.raffle-entry-form button{grid-column:1 / -1}
   .raffle-control-row{grid-template-columns:1fr}
 }
+
+  /* Task navigation: existing sections and controls are moved, never copied. */
+  .dashboard-finder{margin:0 0 16px;position:relative}
+  .dashboard-finder label{display:block;font-size:12px;font-weight:800;margin-bottom:6px;color:var(--ink-sub)}
+  .dashboard-finder input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:13px}
+  .dashboard-results{margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:280px;overflow:auto}
+  .dashboard-results[hidden]{display:none}
+  .dashboard-results button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:10px;border-radius:8px;font:inherit;font-size:13px;cursor:pointer}
+  .dashboard-results button:hover,.dashboard-results button:focus-visible{background:var(--purple-light)}
+  .section-jumps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
+  .section-jumps button,.home-task-grid button{border:1px solid var(--line);background:white;color:var(--ink-sub);font:inherit;cursor:pointer}
+  .section-jumps button{border-radius:999px;padding:7px 11px;font-size:12px}
+  .section-jumps button:hover,.home-task-grid button:hover{border-color:var(--purple);color:var(--purple-dark)}
+  .home-task-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 18px}
+  .home-task-grid button{text-align:left;border-radius:12px;padding:14px;font-size:13px;font-weight:800}
+  .home-task-grid small{display:block;margin-top:5px;font-size:11px;font-weight:400;color:var(--ink-mute)}
+  .tab-panel section,.tab-panel .settings-group{scroll-margin-top:80px}
+  .tab-panel .sec-head{gap:12px;flex-wrap:wrap}
+  .tab-panel .sec-note{line-height:1.6}
+  .tab-panel .sec-head-right{margin-left:auto}
+  @media(max-width:640px){.home-task-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.main-tab{padding:9px 10px;font-size:12px}.tab-panel .sec-head-right{flex-wrap:wrap}.section-jumps{gap:5px}.section-jumps button{font-size:11px}}
+  @media print{.dashboard-finder,.home-task-grid,.section-jumps,.tab-panel-tools{display:none!important}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script>
@@ -1095,10 +1117,10 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
 
   <nav class="main-tabs" id="mainTabs" aria-label="대시보드 메뉴">
     <button class="main-tab active" data-tab="home">홈</button>
-    <button class="main-tab" data-tab="people">참가 · 졸업생</button>
+    <button class="main-tab" data-tab="people">참가 · 입금</button>
     <button class="main-tab" data-tab="operations">행사 운영</button>
     <button class="main-tab" data-tab="finance">협찬 · 재정</button>
-    <button class="main-tab" data-tab="public">홍보 · 외부페이지</button>
+    <button class="main-tab" data-tab="public">공지 · 홍보</button>
     <button class="main-tab" data-tab="system">시스템 설정</button>
   </nav>
 
@@ -4414,6 +4436,8 @@ function applyCollapseState(){
     if(chevron) chevron.textContent = collapsed ? "▾" : "▴";
     if(label) label.textContent = collapsed ? "펼치기" : "접기";
     btn.setAttribute("aria-label", collapsed ? "펼치기" : "접기");
+    btn.setAttribute("aria-expanded", String(!collapsed));
+    btn.setAttribute("aria-controls", id);
   });
 }
 let collapseSaveTimer = null;
@@ -4456,8 +4480,8 @@ function setupMainTabs(){
   const system = makePanel("system","DB 연동과 공동 저장 등 평소 자주 변경하지 않는 시스템 설정입니다.");
   const publicPanel = makePanel("public","외부에 공개되는 공지·파일·행사 정보와 공식 링크를 한곳에서 관리합니다.");
   const finance = makePanel("finance","협찬·제작비·수입·지출 등 비용과 지원 관련 업무를 관리합니다.");
-  const operations = makePanel("operations","준비 일정과 세부 할 일을 한 화면에서 확인하고, 제작물과 행사 당일 운영을 관리합니다.");
-  const people = makePanel("people","참가신청, 졸업생 DB, 참가자·대기자·준비위원을 관리합니다.");
+  const operations = makePanel("operations","준비 일정, 현장 프로그램·추첨, 제작물과 운영진을 관리합니다.");
+  const people = makePanel("people","참가·입금 현황을 먼저 확인하고, 신청 연동과 동문 정보를 관리합니다.");
   const home = makePanel("home","현재 준비 상황에서 중요한 내용만 빠르게 확인합니다.");
 
   // 시스템 탭 상단: 연동/저장 상태와 자주 쓰는 관리 기능을 한곳에 모음
@@ -4515,20 +4539,21 @@ function setupMainTabs(){
   home.appendChild(visitorCard);
   visitorCard.querySelector("#refreshVisitorStats")?.addEventListener("click",loadVisitorStats);
 
-  // 참가 · 졸업생
-  move("#section-alumni-db", people);
-  move("#section-network-profiles", people);
-  move("#section-participant-apply-sync", people);
+  // 참가·입금 업무를 먼저 배치하고 동문 정보는 아래에 모음
   moveSectionByBody("body-participants", people);
   moveSectionByBody("body-waitlist", people);
-  moveSectionByBody("body-committee", people);
-  move("#section-operations-committee", people);
+  move("#section-participant-apply-sync", people);
+  move("#section-network-profiles", people);
+  move("#section-alumni-db", people);
 
   // 행사 운영
   moveSectionByBody("body-phases", operations);
   moveSectionByBody("body-dayprogram", operations);
   move("#section-raffle-center", operations);
   moveSectionByBody("body-production", operations);
+  moveSectionByBody("body-committee", operations);
+  move("#section-operations-committee", operations);
+  move("#section-access-control", system);
 
   // 협찬 · 재정
   moveSectionByBody("body-sponsors", finance);
@@ -4589,10 +4614,95 @@ function setupMainTabs(){
   });
 
   nav.querySelectorAll(".main-tab").forEach(btn=>btn.addEventListener("click",()=>activate(btn.dataset.tab)));
+  setupDashboardNavigation(activate);
   activate(current);
   dashboardTabsReady = true;
 }
 
+
+function setupDashboardNavigation(activate){
+  const nav=document.getElementById("mainTabs");
+  const items=[];
+  const aliases={
+    "body-participants":"입금 참가비 1차 2차 신청 명단",
+    "body-raffle-center":"경품 스토리 추첨 인스타",
+    "body-budget":"예산 거래 입출금 정산 엑셀 CSV",
+    "body-access-control":"접근 권한 인증 이메일 허용"
+  };
+  document.querySelectorAll(".tab-panel").forEach(panel=>{
+    const tab=panel.id.replace("tab-","");
+    const tabName=nav.querySelector(`[data-tab="${tab}"]`)?.textContent||tab;
+    const jumps=document.createElement("nav");
+    jumps.className="section-jumps";
+    jumps.setAttribute("aria-label",`${tabName} 바로가기`);
+    panel.querySelectorAll(":scope > section, :scope > .settings-group").forEach((section,i)=>{
+      const title=section.querySelector(".sec-title,.settings-title")?.textContent.trim();
+      if(!title)return;
+      if(!section.id)section.id=`dashboard-${tab}-${i}`;
+      const target=section.querySelector(".collapse-btn[data-target]")?.dataset.target;
+      const item={tab,tabName,section,target,title};
+      items.push(item);
+      const button=document.createElement("button");
+      button.type="button";button.textContent=title;
+      button.addEventListener("click",()=>go(item));
+      jumps.appendChild(button);
+    });
+    if(jumps.children.length){
+      const intro=panel.querySelector(".tab-intro");
+      if(intro)intro.insertAdjacentElement("afterend",jumps);else panel.prepend(jumps);
+    }
+  });
+  function go(item){
+    activate(item.tab);
+    if(item.target){
+      state.sectionCollapse[item.target]=false;
+      applyCollapseState();
+      storageSet("sectionCollapse",state.sectionCollapse,false);
+    }
+    item.section.setAttribute("tabindex","-1");
+    item.section.focus({preventScroll:true});
+    item.section.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  const finder=document.createElement("div");finder.className="dashboard-finder";
+  finder.innerHTML='<label for="dashboardMenuSearch">업무 바로 찾기</label><input id="dashboardMenuSearch" type="search" placeholder="참가비, 추첨, 예산, 접근 권한…" autocomplete="off" aria-controls="dashboardMenuResults" aria-expanded="false"><div class="dashboard-results" id="dashboardMenuResults" hidden></div>';
+  nav.insertAdjacentElement("beforebegin",finder);
+  const input=finder.querySelector("input"),results=finder.querySelector(".dashboard-results");
+  const normalize=value=>value.toLowerCase().replace(/\s/g,"");
+  input.addEventListener("input",()=>{
+    const query=normalize(input.value);results.replaceChildren();
+    results.hidden=!query;input.setAttribute("aria-expanded",String(!!query));
+    if(!query)return;
+    const matches=items.filter(item=>normalize(`${item.title} ${item.tabName} ${aliases[item.target]||""}`).includes(query));
+    matches.forEach(item=>{
+      const button=document.createElement("button");button.type="button";
+      button.textContent=`${item.tabName} · ${item.title}`;
+      button.addEventListener("click",()=>{input.value="";results.hidden=true;input.setAttribute("aria-expanded","false");go(item);});
+      results.appendChild(button);
+    });
+    if(!matches.length)results.textContent="일치하는 메뉴가 없습니다. 다른 업무명으로 찾아보세요.";
+  });
+  input.addEventListener("keydown",event=>{
+    if(event.key==="Escape"){input.value="";results.hidden=true;input.setAttribute("aria-expanded","false");}
+    if(event.key==="ArrowDown"){event.preventDefault();results.querySelector("button")?.focus();}
+    if(event.key==="Enter"){event.preventDefault();results.querySelector("button")?.click();}
+  });
+  const quick=document.createElement("div");quick.className="home-task-grid";
+  const shortcuts=[
+    ["body-participants","참가·입금 확인","신청 명단과 참가비"],
+    ["body-phases","준비 일정","진행 상황과 할 일"],
+    ["body-raffle-center","경품 추첨","대상 선택과 당첨 기록"],
+    ["body-budget","예산·거래 내역","수입·지출과 정산"],
+    ["body-sponsors","협찬 관리","연락과 수령 현황"],
+    ["body-access-control","접근 권한","별도 허용 이메일"]
+  ];
+  shortcuts.forEach(([target,label,desc])=>{
+    const item=items.find(item=>item.target===target);if(!item)return;
+    const button=document.createElement("button");button.type="button";button.textContent=label;
+    const small=document.createElement("small");small.textContent=desc;button.appendChild(small);
+    button.addEventListener("click",()=>go(item));quick.appendChild(button);
+  });
+  document.querySelector("#tab-home .hero")?.insertAdjacentElement("afterend",quick);
+}
 
 function fmtSystemSyncTime(v){
   if(!v)return "아직 없음";
@@ -5199,20 +5309,20 @@ function addExportBars(){
     home:[
       {label:"현재 요약 PDF / 인쇄", action:()=>printTab("home","한조고 모임 준비 현황")}
     ],
-    schedule:[
-      {label:"일정 PDF / 인쇄", primary:true, action:()=>printTab("schedule","한조고 모임 행사 준비 일정")},
+    operations:[
+      {label:"일정 PDF / 인쇄", primary:true, action:()=>printTab("operations","한조고 모임 행사 준비 일정")},
       {label:"일정 CSV 저장", action:downloadScheduleCsv}
     ],
     people:[
       {label:"참가자 현황 PDF / 인쇄", action:()=>printTab("people","한조고 모임 참가자 · 운영 현황")}
     ],
-    notice:[
+    public:[
       {label:"공지문 TXT 저장", action:downloadNoticesTxt},
-      {label:"공지 · 협찬 PDF / 인쇄", action:()=>printTab("notice","한조고 모임 공지 · 협찬")}
+      {label:"공지 · 홍보 PDF / 인쇄", action:()=>printTab("public","한조고 모임 공지 · 홍보")}
     ],
-    budget:[
+    finance:[
       {label:"예산 CSV 저장", primary:true, action:downloadBudgetCsv},
-      {label:"예산 PDF / 인쇄", action:()=>printTab("budget","한조고 모임 예산 · 수입/지출")}
+      {label:"예산 PDF / 인쇄", action:()=>printTab("finance","한조고 모임 예산 · 수입/지출")}
     ]
   };
 

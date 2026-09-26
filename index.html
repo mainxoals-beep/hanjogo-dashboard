@@ -1045,7 +1045,8 @@
   @media print{.dashboard-finder,.home-task-grid,.section-jumps,.tab-panel-tools{display:none!important}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
-  <script>
+  <script src="./assets/raffle-roster.js?v=20260926"></script>
+<script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
   if(!top||!wrap) return;
@@ -1548,12 +1549,16 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
             <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품명 또는 협찬사명 · 예: 삼성웰스토리 경품">
             <div class="raffle-control-row">
               <select class="lockable" id="rafflePoolSelect">
-                <option value="confirmed">전체 참가 확정자</option>
+                <option value="confirmed">전체 참여자 · 위원·후원·협찬 포함</option>
                 <option value="story">인스타 스토리 참여자</option>
               </select>
               <label class="raffle-check"><input class="lockable" id="raffleExcludeWinners" type="checkbox" checked> 이전 당첨자 제외</label>
             </div>
-            <button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실시간 추첨 시작</button>
+            <div class="raffle-admin-sub">일반·후원·협찬은 가중치 2, 운영·준비위원은 1입니다. 동일 추첨에서 위원 1인의 확률은 일반 1인의 절반이며, 여러 역할이 겹쳐도 한 번만 등록됩니다.</div>
+            <button class="raffle-display-btn" id="raffleTestBtn" type="button">테스트 추첨 · 외부 송출·기록 없음</button>
+            <div class="raffle-admin-status" id="raffleTestResult" aria-live="polite">실제 당첨 기록과 분리된 테스트입니다.</div>
+            <button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작 · 외부에 송출</button>
+            <details><summary>자동 연동 명단 · 가중치 확인</summary><button class="raffle-display-btn" id="raffleSyncBtn" type="button">최신 명단 불러오기</button><div id="raffleRosterList"></div></details>
             <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기</button>
             <a class="raffle-display-btn" href="./assets/hanjogo-live-raffle-qr.png" download="한조고_실시간경품추첨_QR.png">안내용 QR 이미지 저장</a>
             <button class="raffle-display-btn lockable" id="raffleResetDisplayBtn" type="button">외부 화면을 대기 상태로 전환</button>
@@ -3717,17 +3722,24 @@ function rafflePersonKey(person){
   const name=String(person?.name||"").replace(/\s+/g,"").toLowerCase();
   return `${name}|${raffleGeneration(person?.generation)||""}`;
 }
-function confirmedRaffleEntries(){
-  const seen=new Set();
-  return (Array.isArray(state.participantPayments)?state.participantPayments:[])
-    .filter(row=>["paid","exempt"].includes(row.status)&&String(row.name||"").trim())
-    .map(row=>({name:String(row.name).trim(),generation:raffleGeneration(row.generation)}))
-    .filter(person=>{const key=rafflePersonKey(person);if(seen.has(key))return false;seen.add(key);return true;});
+function raffleOperatingMembers(){
+  return [...document.querySelectorAll("#body-operations-committee .member-card")].map(card=>({name:card.children[0].textContent.trim(),generation:raffleGeneration(card.children[1].textContent)}));
 }
-function rafflePoolEntries(pool){
-  if(pool==="story") return (state.raffleCenter.storyEntries||[]).map(x=>({id:x.id,name:x.name,generation:raffleGeneration(x.generation)}));
-  return confirmedRaffleEntries();
+function confirmedRaffleEntries(){return HanjogoRaffle.roster(state,raffleOperatingMembers()).entries;}
+function rafflePoolEntries(pool){return HanjogoRaffle.pool(state,raffleOperatingMembers(),pool);}
+function raffleEligibleEntries(pool,exclude){return HanjogoRaffle.pool(state,raffleOperatingMembers(),pool,exclude);}
+async function refreshRaffleSources(){
+  const {data,error}=await sb.from(DASHBOARD_TABLE)
+    .select("participantPayments:data->participantPayments,committee:data->committee,sponsors:data->sponsors,donations:data->donations,raffleCenter:data->raffleCenter")
+    .eq("id",DASHBOARD_ID).single();
+  if(error||!data)throw error||new Error("raffle_sources_unavailable");
+  const keys=["participantPayments","committee","sponsors","donations"];
+  if(keys.some(key=>!Array.isArray(data[key])))throw new Error("raffle_sources_invalid");
+  keys.forEach(key=>state[key]=data[key]);
+  state.raffleCenter={...DEFAULT_RAFFLE_CENTER,...(data.raffleCenter||{}),history:data.raffleCenter?.history||[],storyEntries:data.raffleCenter?.storyEntries||[]};
+  renderRaffleCenter();
 }
+let raffleActionBusy=false;
 function secureRandomIndex(length){
   if(length<1)return -1;
   const max=0x100000000;
@@ -3770,14 +3782,17 @@ function renderRaffleCenter(){
       renderRaffleCenter();
     }));
   }
+  const roster=HanjogoRaffle.roster(state,raffleOperatingMembers());
+  const rosterList=document.getElementById("raffleRosterList");
+  if(rosterList)rosterList.innerHTML=`<p>총 ${roster.entries.length}명 · 위원 ${roster.entries.filter(p=>p.weight===1).length}명 · 이름/기수 확인 필요 ${roster.skipped.length}건</p>`+roster.entries.map(p=>`<div class="raffle-entry-row"><strong>${escapeHtml(p.name)}</strong><span>${p.generation}기 · ${escapeHtml(p.roles.join(" · "))} · 가중치 ${p.weight}</span></div>`).join("");
   const summary=document.getElementById("raffleEntrySummary");
-  if(summary)summary.textContent=`참가 확정 ${confirmedRaffleEntries().length}명 · 스토리 참여 ${entries.length}명 · 추첨 ${history.length}회`;
+  if(summary)summary.textContent=`통합 대상 ${confirmedRaffleEntries().length}명 · 스토리 참여 ${entries.length}명 · 추첨 ${history.length}회`;
   const status=document.getElementById("raffleAdminStatus");
   const live=center.live||{};
   if(status){
     if(live.status==="drawing"&&Number(live.revealAt||0)>Date.now()) status.textContent=`${live.prize||"경품"} 추첨 중… 외부 화면에 표시되고 있습니다.`;
     else if(live.winner) status.textContent=`최근 당첨: ${live.winner.name} · ${live.winner.generation}기 (${live.prize||"경품"})`;
-    else status.textContent=`전체 참가 확정 ${confirmedRaffleEntries().length}명 · 추첨 대기 중`;
+    else status.textContent=`통합 대상 ${confirmedRaffleEntries().length}명 · 추첨 대기 중`;
   }
   applyEditLock();
 }
@@ -3798,8 +3813,29 @@ document.getElementById("raffleEntryForm")?.addEventListener("submit",async e=>{
   document.getElementById("raffleEntryName")?.focus();
   renderRaffleCenter();
 });
+document.getElementById("raffleSyncBtn")?.addEventListener("click",async()=>{
+  if(raffleActionBusy)return;raffleActionBusy=true;
+  try{await refreshRaffleSources();document.getElementById("raffleAdminStatus").textContent="최신 명단을 반영했습니다.";}
+  catch(e){document.getElementById("raffleAdminStatus").textContent="명단을 확인하지 못했습니다. 다시 시도해주세요.";}
+  finally{raffleActionBusy=false;}
+});
+document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
+  if(raffleActionBusy)return;raffleActionBusy=true;
+  const result=document.getElementById("raffleTestResult");
+  try{
+    result.textContent="최신 명단 확인 후 테스트 추첨 중…";
+    await refreshRaffleSources();
+    const eligible=raffleEligibleEntries(document.getElementById("rafflePoolSelect")?.value||"confirmed",document.getElementById("raffleExcludeWinners")?.checked!==false);
+    const winner=HanjogoRaffle.pick(eligible,secureRandomIndex);
+    result.textContent=winner?`[테스트 결과] ${winner.name} · ${winner.generation}기 / 대상 ${eligible.length}명 · 가중치 ${winner.weight} — 외부 송출·실제 기록 없음`:"테스트 가능한 대상이 없습니다.";
+  }catch(e){result.textContent="최신 명단을 확인하지 못해 테스트를 중단했습니다. 다시 시도해주세요.";}
+  finally{raffleActionBusy=false;}
+});
 document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
-  if(!state.editMode)return;
+  if(!state.editMode||raffleActionBusy)return;
+  raffleActionBusy=true;
+  try{
+  await refreshRaffleSources();
   const prize=document.getElementById("rafflePrizeName")?.value.trim()||"";
   const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
   const exclude=document.getElementById("raffleExcludeWinners")?.checked!==false;
@@ -3810,20 +3846,20 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
     if(status)status.textContent="현재 추첨이 진행 중입니다. 결과가 나온 뒤 다시 눌러주세요.";
     return;
   }
-  const previous=new Set((state.raffleCenter.history||[]).map(item=>rafflePersonKey(item.winner)));
-  const all=rafflePoolEntries(pool);
-  const eligible=exclude?all.filter(person=>!previous.has(rafflePersonKey(person))):all;
+  const eligible=raffleEligibleEntries(pool,exclude);
   if(!eligible.length){if(status)status.textContent="선택한 대상에 추첨 가능한 사람이 없습니다.";return;}
-  const winner={...eligible[secureRandomIndex(eligible.length)]};
+  const winner=HanjogoRaffle.pick(eligible,secureRandomIndex);
   const drawId=`draw-${Date.now()}-${uid()}`;
   const startedAt=Date.now();
-  const poolLabel=pool==="story"?"인스타 스토리 참여자":"전체 참가 확정자";
-  const historyItem={id:drawId,prize,pool,poolLabel,winner,drawnAt:new Date(startedAt).toISOString()};
+  const poolLabel=pool==="story"?"인스타 스토리 참여자":"전체 참여자 · 위원·후원·협찬 포함";
+  const historyItem={id:drawId,prize,pool,poolLabel,winner,weightRule:"일반·후원·협찬 2 / 운영·준비위원 1",eligibleCount:eligible.length,totalWeight:eligible.reduce((n,x)=>n+x.weight,0),drawnAt:new Date(startedAt).toISOString()};
   state.raffleCenter.history.push(historyItem);
   state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+5200,winner,candidates:eligible.map(x=>({name:x.name,generation:x.generation}))};
   await dSet("raffleCenter",state.raffleCenter);
   renderRaffleCenter();
   setTimeout(renderRaffleCenter,5400);
+  }catch(e){document.getElementById("raffleAdminStatus").textContent="최신 명단 확인 또는 추첨 처리에 실패했습니다. 상태를 확인한 뒤 다시 시도해주세요.";}
+  finally{raffleActionBusy=false;}
 });
 document.getElementById("raffleResetDisplayBtn")?.addEventListener("click",async()=>{
   if(!state.editMode)return;

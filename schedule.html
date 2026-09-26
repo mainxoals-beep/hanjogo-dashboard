@@ -774,6 +774,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="attendee-head">
       <div>
         <div class="attendee-title" id="attendeeModalTitle">참가자 현황 · 명단</div>
+        <div class="attendee-desc" id="attendeeSyncStatus" role="status" aria-live="polite">2026. 9. 26.에 확인한 공개 설정입니다. 동문 인증 후 명단을 열면 최신 설정을 다시 확인합니다.</div>
         <div class="attendee-desc">참가 확정 현황을 기준으로 정리한 명단입니다. 이름·기수·소속은 프로필 공개 설정을 반영하며, 프로필 또는 참가자 명단 비공개를 요청한 동문은 제외합니다. 공개 설정이 없는 기존 참가자는 기존 마스킹 기준을 유지합니다. 전체 참가 인원과 공개 명단 인원은 다를 수 있습니다. (명단 검토: 2026. 9. 26.)</div>
       </div>
       <div class="modal-head-actions">
@@ -2006,11 +2007,14 @@ function selectNetworkGeneration(gen){
   document.querySelector(".network-profile-modal-body")?.scrollTo({top:0,behavior:"smooth"});
 }
 
-async function loadNetworkProfiles(session){
+let networkProfilesRequest=null;
+async function loadNetworkProfiles(session,{refresh=false}={}){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
   if(!session?.access_token||networkAccessState!=="verified")return;
-  if(networkProfilesLoaded){renderNetworkProfiles();return;}
+  if(networkProfilesRequest)return networkProfilesRequest;
+  if(networkProfilesLoaded&&!refresh){renderNetworkProfiles();return true;}
+  networkProfilesRequest=(async()=>{
   try{
     if(list)list.innerHTML='<div class="network-profile-empty">동문 프로필을 불러오는 중입니다.</div>';
     const {data,error}=await sb.functions.invoke("hanjogo-access",{
@@ -2019,6 +2023,7 @@ async function loadNetworkProfiles(session){
     });
     if(error)throw error;
     if(!data?.allowed)throw new Error("access_denied");
+    if(!Array.isArray(data.profiles))throw new Error("profiles_unavailable");
     networkProfiles=(Array.isArray(data.profiles)?data.profiles:[])
       .sort((a,b)=>Number(Boolean(b.isOwnProfile))-Number(Boolean(a.isOwnProfile))||Number(Boolean(b.isNew))-Number(Boolean(a.isNew))||a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
     loadNetworkFavorites();
@@ -2026,11 +2031,15 @@ async function loadNetworkProfiles(session){
     networkGenerationFilter="all";
     renderNetworkProfiles();
     renderPublicAttendees(document.getElementById("attendeeSearch")?.value||"");
+    return true;
   }catch(e){
     console.error("동문 프로필 불러오기 실패",e);
     if(meta)meta.textContent="동문 프로필을 불러오지 못했습니다.";
     if(list)list.innerHTML='<div class="network-profile-empty">프로필을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>';
+    return false;
   }
+  })();
+  try{return await networkProfilesRequest;}finally{networkProfilesRequest=null;}
 }
 
 function setNetworkAccessView(state,{email="",message=""}={}){
@@ -2085,7 +2094,8 @@ async function initializeNetworkAccess(){
     if(email===NETWORK_ADMIN_EMAIL){
       networkIsAdmin=true;
       setNetworkAccessView("verified",{email});
-      if(currentSiteView()==="network")void loadNetworkProfiles(session);
+      if(!document.getElementById("attendeeModal")?.hidden)void refreshAttendeeProfiles();
+      else if(currentSiteView()==="network")void loadNetworkProfiles(session);
       if(currentSiteView()!=="board")void loadBoard();
       return;
     }
@@ -2093,7 +2103,8 @@ async function initializeNetworkAccess(){
     networkIsAdmin=Boolean(result.isAdmin);
     if(!result.allowed){setNetworkAccessView("denied",{email});return;}
     setNetworkAccessView("verified",{email});
-    if(currentSiteView()==="network")void loadNetworkProfiles(session);
+    if(!document.getElementById("attendeeModal")?.hidden)void refreshAttendeeProfiles();
+      else if(currentSiteView()==="network")void loadNetworkProfiles(session);
     if(currentSiteView()!=="board")void loadBoard();
   }catch(e){
     console.error("동문 인증 확인 실패",e);
@@ -3136,6 +3147,15 @@ const attendeeOpenBtn=document.getElementById("attendeeOpenBtn");
 const attendeeModal=document.getElementById("attendeeModal");
 const attendeeCloseBtn=document.getElementById("attendeeCloseBtn");
 const attendeeSearch=document.getElementById("attendeeSearch");
+async function refreshAttendeeProfiles(){
+  if(networkAccessState!=="verified"||!networkCurrentSession?.access_token)return;
+  const status=document.getElementById("attendeeSyncStatus");
+  if(status)status.textContent="프로필의 최신 이름·공개 설정을 확인하고 있습니다.";
+  const updated=await loadNetworkProfiles(networkCurrentSession,{refresh:true});
+  if(status)status.textContent=updated
+    ? "동문 네트워크 프로필의 최신 이름·공개 설정을 반영했습니다. 미등록자는 기존 표시 방식을 유지합니다."
+    : "최신 설정을 확인하지 못했습니다. 마지막으로 확인한 명단을 표시합니다. 잠시 후 다시 열어주세요.";
+}
 function openAttendeeModal(){
   if(!attendeeModal)return;
   attendeeGenerationFilter=null;
@@ -3145,6 +3165,7 @@ function openAttendeeModal(){
   document.querySelectorAll("#generationGrid .generation-item").forEach(el=>el.classList.remove("active"));
   attendeeModal.hidden=false;
   attendeeModal.setAttribute("aria-hidden","false");
+  void refreshAttendeeProfiles();
   document.body.classList.add("modal-open");
   setTimeout(()=>attendeeSearch?.focus(),30);
 }

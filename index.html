@@ -3749,14 +3749,15 @@ function raffleTestEntries(pool){
   return HanjogoRaffle.pool({...state,raffleCenter:center},raffleOperatingMembers(),pool);
 }
 let raffleTestPreviewSequence=0;
-function showRaffleTestPreview(winner){
+function showRaffleTestPreview(winner,eligible){
   const frame=document.getElementById("raffleTestPreview");
   if(!frame)return;
   const prize=document.getElementById("rafflePrizeName")?.value.trim()||"경품 추첨";
   frame.hidden=false;
   // Change the query, not only the fragment: load the latest renderer on every rehearsal.
   const version=Date.now()+"-"+(++raffleTestPreviewSequence);
-  frame.src="./schedule.html?raffle=1&rafflePreview=1&v="+version+"#"+encodeURIComponent(JSON.stringify({winner,prize}));
+  const candidates=eligible.filter(person=>HanjogoRaffle.key(person)!==HanjogoRaffle.key(winner)).map(person=>({name:person.name,generation:person.generation}));
+  frame.src="./schedule.html?raffle=1&rafflePreview=1&v="+version+"#"+encodeURIComponent(JSON.stringify({winner,prize,candidates}));
   frame.scrollIntoView?.({behavior:"smooth",block:"center"});
 }
 
@@ -3855,7 +3856,7 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
     const eligible=raffleTestEntries(document.getElementById("rafflePoolSelect")?.value||"confirmed");
     const winner=HanjogoRaffle.pick(eligible,secureRandomIndex);
     if(winner){
-      raffleTestWinnerKeys.push(HanjogoRaffle.key(winner));saveRaffleTestKeys();showRaffleTestPreview(winner);
+      raffleTestWinnerKeys.push(HanjogoRaffle.key(winner));saveRaffleTestKeys();showRaffleTestPreview(winner,eligible);
       result.textContent=`[테스트 결과] ${raffleTestWinnerKeys.length}회차 · 아래 화면에서 당첨자를 공개합니다. 외부 송출·실제 기록 없음`;
     }else result.textContent="테스트 가능한 대상이 없습니다. 다시 연습하려면 테스트 기록을 초기화해주세요.";
   }catch(e){result.textContent="최신 명단을 확인하지 못해 테스트를 중단했습니다. 다시 시도해주세요.";}
@@ -3884,7 +3885,7 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
   const historyItem={id:drawId,prize,pool,poolLabel,winner,drawRule:"person-weighted-generation-exclusion-v1",eligibleCount:eligible.length,totalWeight:eligible.reduce((n,x)=>n+x.weight,0),drawnAt:new Date(startedAt).toISOString()};
   state.raffleCenter.winnerKeys=[...new Set([...HanjogoRaffle.winnerKeys(state.raffleCenter),rafflePersonKey(winner)])];
   state.raffleCenter.history.push(historyItem);
-  state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+11000,winner,candidates:eligible.map(x=>({name:x.name,generation:x.generation}))};
+  state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+11000,winner,candidates:eligible.filter(x=>rafflePersonKey(x)!==rafflePersonKey(winner)).map(x=>({name:x.name,generation:x.generation}))};
   await dSet("raffleCenter",state.raffleCenter);
   renderRaffleCenter();
   setTimeout(renderRaffleCenter,11200);

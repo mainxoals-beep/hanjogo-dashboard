@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('schedule.html','utf8');let now=0,tick;const nodes=new Map();
+const node=id=>{if(!nodes.has(id)){const classes=new Set();nodes.set(id,{textContent:'',innerHTML:'',hidden:true,setAttribute(){},classList:{add:(...v)=>v.forEach(x=>classes.add(x)),remove:(...v)=>v.forEach(x=>classes.delete(x)),contains:x=>classes.has(x)}});}return nodes.get(id);};
+const ctx=vm.createContext({Date:{now:()=>now},Math,document:{getElementById:node},rafflePreviewMode:false,raffleAnimationTimer:null,raffleRevealTimer:null,publicRaffleCenter:{live:{status:'drawing',prize:'테스트 경품',winner:{name:'당첨예시',generation:2},candidates:[{name:'후보',generation:7}],revealAt:7200}},setInterval:f=>{tick=f;return 1},clearInterval(){},setTimeout:()=>2,clearTimeout(){}});
+vm.runInContext(source.slice(source.indexOf('function closeRaffleOverlay('),source.indexOf('function raffleEventStarted(')),ctx);
+ctx.openRaffleOverlay();assert.equal(node('raffleLiveName').textContent,5);assert(!node('raffleLiveName').classList.contains('winner'));
+now=1000;tick();assert.equal(node('raffleLiveName').textContent,4);now=4999;tick();assert.equal(node('raffleLiveName').textContent,1);
+now=5000;tick();assert.equal(node('raffleLiveName').textContent,'후보 · 7기');now=7200;tick();assert.equal(node('raffleLiveName').textContent,'당첨예시 · 2기');assert(node('raffleLiveName').classList.contains('winner'));assert(node('raffleConfetti').innerHTML.includes('<i '));
+ctx.rafflePreviewMode=true;ctx.showRaffleWinner(ctx.publicRaffleCenter.live);assert(node('raffleLiveFoot').textContent.includes('실제 당첨이 아닙니다'));
+vm.runInContext(source.slice(source.indexOf('async function loadPublicRaffle('),source.indexOf('document.getElementById("raffleWatchBtn")',source.indexOf('async function loadPublicRaffle('))),ctx);
+ctx.loadPublicRaffle().then(()=>console.log('PASS: 5-second countdown, 2.2-second shuffle, winner/confetti, preview label and no live raffle request'));

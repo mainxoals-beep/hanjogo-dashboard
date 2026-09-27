@@ -3881,10 +3881,10 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
   const historyItem={id:drawId,prize,pool,poolLabel,winner,drawRule:"person-weighted-generation-exclusion-v1",eligibleCount:eligible.length,totalWeight:eligible.reduce((n,x)=>n+x.weight,0),drawnAt:new Date(startedAt).toISOString()};
   state.raffleCenter.winnerKeys=[...new Set([...HanjogoRaffle.winnerKeys(state.raffleCenter),rafflePersonKey(winner)])];
   state.raffleCenter.history.push(historyItem);
-  state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+7200,winner,candidates:eligible.map(x=>({name:x.name,generation:x.generation}))};
+  state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+11000,winner,candidates:eligible.map(x=>({name:x.name,generation:x.generation}))};
   await dSet("raffleCenter",state.raffleCenter);
   renderRaffleCenter();
-  setTimeout(renderRaffleCenter,7400);
+  setTimeout(renderRaffleCenter,11200);
   }catch(e){document.getElementById("raffleAdminStatus").textContent="최신 명단 확인 또는 추첨 처리에 실패했습니다. 상태를 확인한 뒤 다시 시도해주세요.";}
   finally{raffleActionBusy=false;}
 });

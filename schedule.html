@@ -623,16 +623,22 @@ body.site-view-network.modal-open{overflow:auto!important}
 .raffle-live-prize{margin-top:10px;font-size:clamp(22px,5vw,38px);font-weight:950;line-height:1.25;word-break:keep-all}
 .raffle-live-pool{margin-top:7px;font-size:13px;color:#D6D0F2}
 .raffle-live-name{display:flex;align-items:center;justify-content:center;min-height:150px;margin:28px 0 14px;padding:22px;border:1px solid rgba(255,255,255,.24);border-radius:20px;background:rgba(255,255,255,.12);font-size:clamp(31px,9vw,64px);font-weight:950;letter-spacing:-.04em;text-shadow:0 5px 20px rgba(0,0,0,.18)}
-.raffle-live-name.winner{background:#fff;color:#4A3EA0;text-shadow:none;animation:raffleWinnerPop .48s cubic-bezier(.2,.8,.2,1)}
+.raffle-live-name.winner{background:#fff;color:#4A3EA0;text-shadow:none;animation:raffleWinnerPop .8s cubic-bezier(.2,.8,.2,1)}
 .raffle-live-name.countdown{font-size:clamp(80px,18vw,128px);animation:raffleCountBeat 1s ease-in-out infinite}
 .raffle-live-name.spinning{filter:blur(.5px);animation:raffleSpinGlow .3s ease-in-out infinite alternate}
 .raffle-live-panel{position:relative;overflow:hidden}
-.raffle-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.raffle-confetti i{position:absolute;top:-20px;left:var(--x);width:9px;height:16px;background:var(--c);animation:raffleConfettiFall 2.8s var(--d) ease-out both}
+.raffle-confetti{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.raffle-confetti i{position:absolute;top:-24px;left:var(--x);width:var(--s);height:calc(var(--s)*1.8);background:var(--c);animation:raffleConfettiFall var(--t) var(--d) cubic-bezier(.18,.55,.48,1) both}
+.raffle-confetti i:nth-child(3n){border-radius:50%;height:var(--s)}
+.raffle-confetti i:nth-child(4n){box-shadow:0 0 9px var(--c)}
+.raffle-burst{position:absolute;left:var(--x);top:var(--y);width:6px;height:6px;border-radius:50%;color:var(--c);box-shadow:0 -45px,32px -32px,45px 0,32px 32px,0 45px,-32px 32px,-45px 0,-32px -32px;animation:raffleBurst 1.7s var(--d) ease-out both}
+.raffle-live-panel.celebrating{animation:rafflePanelGlow 1.6s ease-in-out 3}
+@keyframes raffleBurst{0%{transform:scale(.1);opacity:0}20%{opacity:.9}100%{transform:scale(2.5) rotate(30deg);opacity:0}}
+@keyframes rafflePanelGlow{0%,100%{box-shadow:0 30px 80px rgba(0,0,0,.28)}45%{box-shadow:0 0 75px rgba(255,224,153,.5),0 0 140px rgba(210,180,255,.35)}}
 @keyframes raffleCountBeat{0%{transform:scale(.94);opacity:.6}35%{transform:scale(1.04);opacity:1}100%{transform:scale(1)}}
 @keyframes raffleSpinGlow{to{box-shadow:0 0 32px rgba(230,213,255,.5)}}
-@keyframes raffleConfettiFall{to{transform:translateY(620px) rotate(600deg);opacity:0}}
-@media(prefers-reduced-motion:reduce){.raffle-live-name,.raffle-live-name.winner,.raffle-confetti i{animation:none!important;filter:none!important}.raffle-confetti{display:none}}
+@keyframes raffleConfettiFall{0%{opacity:0}8%{opacity:1}85%{opacity:.95}100%{transform:translate(var(--drift),115vh) rotate(var(--r));opacity:0}}
+@media(prefers-reduced-motion:reduce){.raffle-live-name,.raffle-live-name.winner,.raffle-confetti i,.raffle-burst,.raffle-live-panel.celebrating{animation:none!important;filter:none!important}.raffle-confetti{display:none}}
 .raffle-live-foot{font-size:13px;color:#D6D0F2}
 .raffle-live-close{position:absolute;top:18px;right:18px;width:42px;height:42px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font-size:24px;cursor:pointer}
 @keyframes raffleWinnerPop{0%{transform:scale(.72);opacity:.35}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
@@ -1059,8 +1065,8 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 <div class="raffle-live-overlay" id="raffleLiveOverlay" hidden aria-hidden="true">
   <button class="raffle-live-close" id="raffleLiveClose" type="button" aria-label="추첨 화면 닫기">×</button>
-  <div class="raffle-live-panel" role="dialog" aria-modal="true" aria-labelledby="raffleLivePrize">
-    <div class="raffle-confetti" id="raffleConfetti" aria-hidden="true"></div>
+  <div class="raffle-confetti" id="raffleConfetti" aria-hidden="true"></div>
+  <div class="raffle-live-panel" id="raffleLivePanel" role="dialog" aria-modal="true" aria-labelledby="raffleLivePrize">
     <div class="raffle-live-kicker" id="raffleLiveKicker">HANJOGO LIVE RAFFLE</div>
     <div class="raffle-live-prize" id="raffleLivePrize">현장 경품 추첨</div>
     <div class="raffle-live-pool" id="raffleLivePool">추첨 대기 중</div>
@@ -2853,13 +2859,15 @@ function closeRaffleOverlay(){
 function showRaffleWinner(live){
   clearInterval(raffleAnimationTimer);raffleAnimationTimer=null;
   const name=document.getElementById("raffleLiveName");
-  if(!name)return;
+  if(!name||name.classList.contains("winner"))return;
   const winner=live?.winner;
   name.textContent=winner?`${winner.name} · ${winner.generation}기`:"추첨 결과를 확인해주세요";
   name.classList.remove("countdown","spinning");
   name.classList.add("winner");
   const confetti=document.getElementById("raffleConfetti");
-  if(confetti)confetti.innerHTML=Array.from({length:26},(_,i)=>`<i style="--x:${(i*37)%100}%;--c:${["#ffe395","#e2d7ff","#ffabc9","#b3f0e7"][i%4]};--d:${(i%7)*.08}s"></i>`).join("");
+  document.getElementById("raffleLivePanel")?.classList.add("celebrating");
+  const colors=["#ffe395","#e2d7ff","#ffabc9","#b3f0e7","#ffffff","#ffca70"];
+  if(confetti)confetti.innerHTML=Array.from({length:120},(_,i)=>`<i style="--x:${(i*37)%100}%;--c:${colors[i%6]};--s:${5+i%7}px;--t:${3.8+(i%9)*.12}s;--d:${Math.floor(i/40)*.7+(i%8)*.07}s;--drift:${(i%2?1:-1)*(25+i%65)}px;--r:${(i%2?1:-1)*(400+i*13)}deg"></i>`).join("")+Array.from({length:8},(_,i)=>`<b class="raffle-burst" style="--x:${12+(i*29)%76}%;--y:${14+(i*19)%60}%;--c:${colors[i%6]};--d:${.12+i*.24}s"></b>`).join("");
   const foot=document.getElementById("raffleLiveFoot");
   if(foot)foot.textContent=rafflePreviewMode?"화면 미리보기입니다 · 실제 당첨이 아닙니다":"축하합니다! 현장에서 경품을 받아주세요.";
 }
@@ -2875,6 +2883,7 @@ function openRaffleOverlay(forceWaiting=false){
   const live=publicRaffleCenter?.live||{};
   overlay.hidden=false;overlay.setAttribute("aria-hidden","false");
   name.classList.remove("winner","countdown","spinning");
+  document.getElementById("raffleLivePanel")?.classList.remove("celebrating");
   const confetti=document.getElementById("raffleConfetti");if(confetti)confetti.innerHTML="";
   const kicker=document.getElementById("raffleLiveKicker");if(kicker)kicker.textContent=rafflePreviewMode?"TEST PREVIEW · 실제 당첨 아님":"HANJOGO LIVE RAFFLE";
   if(prize)prize.textContent=live.prize||"현장 경품 추첨";
@@ -2887,15 +2896,19 @@ function openRaffleOverlay(forceWaiting=false){
   }
   const candidates=Array.isArray(live.candidates)&&live.candidates.length?live.candidates:[live.winner];
   const revealAt=Number(live.revealAt||0);
+  let lastSpinAt=0;
   const spin=()=>{
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
-    if(remaining>2200){
+    if(remaining>6000){
       name.classList.add("countdown");name.classList.remove("spinning");
-      name.textContent=Math.min(5,Math.ceil((remaining-2200)/1000));
+      name.textContent=Math.min(5,Math.ceil((remaining-6000)/1000));
       if(foot)foot.textContent="잠시 후 당첨자를 공개합니다";
     }else{
       name.classList.remove("countdown");name.classList.add("spinning");
+      const pace=85+Math.pow(1-remaining/6000,3)*260;
+      if(Date.now()-lastSpinAt<pace)return;
+      lastSpinAt=Date.now();
       const person=candidates[Math.floor(Math.random()*candidates.length)]||live.winner;
       name.textContent=`${person.name} · ${person.generation}기`;
       if(foot)foot.textContent="행운의 주인공은…";
@@ -3296,7 +3309,7 @@ function startRafflePreview(){
   let payload={};try{payload=JSON.parse(decodeURIComponent(location.hash.slice(1)))||{};}catch(e){}
   const winner={name:String(payload.winner?.name||"테스트 동문").slice(0,40),generation:Number(payload.winner?.generation)||2};
   const now=Date.now();
-  publicRaffleCenter={history:[],storyEntries:[],live:{status:"drawing",drawId:"preview-"+now,prize:String(payload.prize||"경품 추첨").slice(0,60),poolLabel:"당첨 화면 미리보기",winner,startedAt:now,revealAt:now+7200,candidates:[winner,{name:"참가자 A",generation:7},{name:"참가자 B",generation:18}]}};
+  publicRaffleCenter={history:[],storyEntries:[],live:{status:"drawing",drawId:"preview-"+now,prize:String(payload.prize||"경품 추첨").slice(0,60),poolLabel:"당첨 화면 미리보기",winner,startedAt:now,revealAt:now+11000,candidates:[winner,{name:"참가자 A",generation:7},{name:"참가자 B",generation:18}]}};
   openRaffleOverlay();
 }
 if(rafflePreviewMode){

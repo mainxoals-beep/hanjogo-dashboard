@@ -2894,7 +2894,7 @@ function openRaffleOverlay(forceWaiting=false){
     if(foot)foot.textContent=live.winner?"최근 당첨 결과입니다.":(raffleEventStarted()?"현장 추첨이 시작되면 이 화면이 자동으로 바뀝니다.":"여러 경품의 추첨 결과가 행사 당일 여기에 표시됩니다.");
     return;
   }
-  const candidates=Array.isArray(live.candidates)&&live.candidates.length?live.candidates:[live.winner];
+  const candidates=Array.isArray(live.candidates)?live.candidates.filter(person=>person.name!==live.winner.name||Number(person.generation)!==Number(live.winner.generation)):[];
   const revealAt=Number(live.revealAt||0);
   let lastSpinAt=0;
   const spin=()=>{
@@ -2909,8 +2909,8 @@ function openRaffleOverlay(forceWaiting=false){
       const pace=85+Math.pow(1-remaining/6000,3)*260;
       if(Date.now()-lastSpinAt<pace)return;
       lastSpinAt=Date.now();
-      const person=candidates[Math.floor(Math.random()*candidates.length)]||live.winner;
-      name.textContent=`${person.name} · ${person.generation}기`;
+      const person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
+      name.textContent=person?`${person.name} · ${person.generation}기`:"두근두근…";
       if(foot)foot.textContent="행운의 주인공은…";
     }
   };
@@ -3309,7 +3309,8 @@ function startRafflePreview(){
   let payload={};try{payload=JSON.parse(decodeURIComponent(location.hash.slice(1)))||{};}catch(e){}
   const winner={name:String(payload.winner?.name||"테스트 동문").slice(0,40),generation:Number(payload.winner?.generation)||2};
   const now=Date.now();
-  publicRaffleCenter={history:[],storyEntries:[],live:{status:"drawing",drawId:"preview-"+now,prize:String(payload.prize||"경품 추첨").slice(0,60),poolLabel:"당첨 화면 미리보기",winner,startedAt:now,revealAt:now+11000,candidates:[winner,{name:"참가자 A",generation:7},{name:"참가자 B",generation:18}]}};
+  const candidates=Array.isArray(payload.candidates)?payload.candidates.filter(person=>person&&typeof person.name==="string"&&Number.isInteger(Number(person.generation))).map(person=>({name:person.name.slice(0,40),generation:Number(person.generation)})):[];
+  publicRaffleCenter={history:[],storyEntries:[],live:{status:"drawing",drawId:"preview-"+now,prize:String(payload.prize||"경품 추첨").slice(0,60),poolLabel:"테스트 추첨",winner,startedAt:now,revealAt:now+11000,candidates}};
   openRaffleOverlay();
 }
 if(rafflePreviewMode){

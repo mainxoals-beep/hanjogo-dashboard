@@ -90,6 +90,51 @@ function latestProfileRowsByEmail(rows: Record<string, string>[]) {
   return [...latest.values(), ...withoutEmail];
 }
 
+/** Resolve repeated submissions before applying the latest privacy choices.
+ * Different emails are linked only with full name, cohort AND Instagram.
+ * Never merge on a masked display name or name/cohort alone.
+ */
+function latestPublicProfileRows(rows: Record<string, string>[], firstDates: Map<string, string>) {
+  const parents = rows.map((_, index) => index);
+  function root(index: number): number {
+    while (parents[index] !== index) {
+      parents[index] = parents[parents[index]];
+      index = parents[index];
+    }
+    return index;
+  }
+  const identities = new Map<string, number>();
+  rows.forEach((row, index) => {
+    const email = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
+    const name = normalizeKey(getField(row, "이름"));
+    const generation = numberFromText(getField(row, "졸업 기수"));
+    const instagram = safeInstagram(getField(row, "Instagram"));
+    const keys = email ? ["email:" + email] : [];
+    if (name && generation && instagram) {
+      keys.push("identity:" + JSON.stringify([name, generation, instagram.url.toLowerCase()]));
+    }
+    keys.forEach((key) => {
+      const previous = identities.get(key);
+      if (previous !== undefined) parents[root(previous)] = root(index);
+      identities.set(key, index);
+    });
+  });
+  const groups = new Map<number, Record<string, string>[]>();
+  rows.forEach((row, index) => {
+    const id = root(index);
+    const group = groups.get(id) || [];
+    group.push(row);
+    groups.set(id, group);
+  });
+  return [...groups.values()].map((group) => {
+    const emails = group.map((row) => normalizeEmail(getField(row, "Email Address") || getField(row, "이메일")));
+    const dates = emails.map((email) => firstDates.get(email)).filter((date): date is string => Boolean(date)).sort();
+    if (dates.length) emails.filter(Boolean).forEach((email) => firstDates.set(email, dates[0]));
+    // Google Forms appends responses in submission order.
+    return group[group.length - 1];
+  });
+}
+
 function profileDateKey(row: Record<string, string>) {
   const raw = String(getField(row, "Timestamp") || getField(row, "타임스탬프") || "").trim();
   if (!raw) return "";
@@ -375,7 +420,7 @@ Deno.serve(async (req: Request) => {
       const allRows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
       const todayKey = koreaDateKey();
       const firstPublicDates = firstPublicProfileDates(allRows);
-      const rows = latestProfileRowsByEmail(allRows);
+      const rows = latestPublicProfileRows(allRows, firstPublicDates);
       const profiles = (await Promise.all(
         rows.map((row) => buildProfile(row, contactOverrides, firstPublicDates, todayKey, email)),
       )).filter(Boolean);

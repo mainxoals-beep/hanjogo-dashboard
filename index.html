@@ -1549,10 +1549,12 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
           <div class="raffle-admin-title">추가 참여 방식 · 스토리 참여자 등록</div>
           <div class="raffle-admin-sub">@kcas_archived 팔로우 여부, 행사 사진 스토리의 계정 태그, 이름·기수 DM을 모두 확인한 뒤 등록해주세요. 중복은 자동으로 막습니다.</div>
           <form class="raffle-entry-form" id="raffleEntryForm">
-            <input class="lockable" id="raffleEntryName" maxlength="30" placeholder="이름" required>
+            <input class="lockable" id="raffleEntryName" list="raffleParticipantSuggestions" maxlength="60" placeholder="이름 검색 · 참가자 선택" autocomplete="off" required>
+            <datalist id="raffleParticipantSuggestions"></datalist>
             <input class="lockable" id="raffleEntryGeneration" type="number" min="1" max="99" placeholder="기수" required>
             <button class="lockable" type="submit">등록</button>
           </form>
+          <div class="raffle-admin-sub" id="raffleEntryMatchHint">참가자 이름을 선택하면 기수가 자동으로 입력됩니다.</div>
           <div class="raffle-entry-list" id="raffleStoryEntries"></div>
         </div>
         <div class="raffle-admin-box">
@@ -3844,7 +3846,42 @@ document.getElementById("rafflePartSelect").addEventListener("change",renderPriv
 document.getElementById("rafflePlanSelect").addEventListener("change",applyRafflePlanSelection);
 sb.auth.onAuthStateChange(()=>setTimeout(loadPrivateRafflePlan,0));
 
+
+function raffleParticipantSuggestions(){
+  return confirmedRaffleEntries().map(person=>({...person,label:person.name+" · "+person.generation+"기"}));
+}
+function renderRaffleParticipantSuggestions(){
+  const list=document.getElementById("raffleParticipantSuggestions");
+  if(list)list.innerHTML=raffleParticipantSuggestions().map(person=>'<option value="'+escapeHtml(person.label)+'"></option>').join("");
+}
+let raffleAutoGeneration="";
+function syncRaffleEntryPerson(){
+  const input=document.getElementById("raffleEntryName");
+  const generation=document.getElementById("raffleEntryGeneration");
+  const hint=document.getElementById("raffleEntryMatchHint");
+  const value=input.value.trim();
+  const people=raffleParticipantSuggestions();
+  const selected=people.find(person=>person.label===value);
+  const matches=selected?[selected]:people.filter(person=>person.name===value);
+  if(matches.length===1){
+    generation.value=String(matches[0].generation);
+    raffleAutoGeneration=generation.value;
+    hint.textContent=matches[0].name+" · "+matches[0].generation+"기 — 참가자 명단과 연결되었습니다.";
+    return matches[0];
+  }
+  if(raffleAutoGeneration&&generation.value===raffleAutoGeneration)generation.value="";
+  raffleAutoGeneration="";
+  hint.textContent=matches.length>1?"같은 이름의 참가자가 있습니다. 목록에서 이름과 기수를 함께 선택해주세요.":"참가자 이름을 선택하면 기수가 자동으로 입력됩니다. 목록에 없으면 직접 입력할 수 있습니다.";
+  return null;
+}
+document.getElementById("raffleEntryName").addEventListener("input",syncRaffleEntryPerson);
+document.getElementById("raffleEntryName").addEventListener("change",syncRaffleEntryPerson);
+document.getElementById("raffleEntryName").addEventListener("focus",()=>{
+  refreshRaffleSources().catch(()=>{document.getElementById("raffleEntryMatchHint").textContent="명단 새로고침에 실패했습니다. 현재 불러온 명단으로 검색할 수 있습니다.";});
+});
+
 function renderRaffleCenter(){
+  renderRaffleParticipantSuggestions();
   const center=state.raffleCenter||DEFAULT_RAFFLE_CENTER;
   const entries=Array.isArray(center.storyEntries)?center.storyEntries:[];
   const history=Array.isArray(center.history)?center.history:[];
@@ -3895,8 +3932,10 @@ function renderRaffleCenter(){
 }
 document.getElementById("raffleEntryForm")?.addEventListener("submit",async e=>{
   e.preventDefault();
+  const form=e.currentTarget;
   if(!state.editMode)return;
-  const name=document.getElementById("raffleEntryName")?.value.trim()||"";
+  const selectedPerson=syncRaffleEntryPerson();
+  const name=selectedPerson?.name||document.getElementById("raffleEntryName")?.value.trim()||"";
   const generation=raffleGeneration(document.getElementById("raffleEntryGeneration")?.value);
   if(!name||!generation)return;
   const person={name,generation};
@@ -3906,7 +3945,9 @@ document.getElementById("raffleEntryForm")?.addEventListener("submit",async e=>{
   }
   state.raffleCenter.storyEntries.push({id:`story-${Date.now()}-${uid()}`,name,generation,createdAt:new Date().toISOString()});
   await dSet("raffleCenter",state.raffleCenter);
-  e.currentTarget.reset();
+  form.reset();
+  raffleAutoGeneration="";
+  syncRaffleEntryPerson();
   document.getElementById("raffleEntryName")?.focus();
   renderRaffleCenter();
 });

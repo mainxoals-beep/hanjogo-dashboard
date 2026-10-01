@@ -579,19 +579,22 @@
   .budget-summary-card.balance .v.negative{color:var(--danger);}
   .budget-help{padding:10px 12px;margin-bottom:10px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:11.5px;line-height:1.6;}
   .budget-table-wrap{overflow-x:auto;}
-  .budget-table{min-width:1250px;table-layout:fixed;}
+  .budget-table{min-width:1530px;table-layout:fixed;}
   .budget-table th:nth-child(1),.budget-table td:nth-child(1){width:78px;}
   .budget-table th:nth-child(2),.budget-table td:nth-child(2){width:120px;}
   .budget-table th:nth-child(3),.budget-table td:nth-child(3){width:230px;}
   .budget-table th:nth-child(4),.budget-table td:nth-child(4),
-  .budget-table th:nth-child(5),.budget-table td:nth-child(5){width:115px;}
+  .budget-table th:nth-child(5),.budget-table td:nth-child(5){width:170px;}
   .budget-table th:nth-child(6),.budget-table td:nth-child(6){width:125px;}
   .budget-table th:nth-child(7),.budget-table td:nth-child(7){width:120px;}
   .budget-table th:nth-child(8),.budget-table td:nth-child(8){width:100px;}
   .budget-table th:nth-child(9),.budget-table td:nth-child(9){width:300px;}
   .budget-table th:nth-child(10),.budget-table td:nth-child(10){width:42px;}
   .budget-table td{padding:6px 7px;vertical-align:top;}
-  .budget-table input[type=number]{text-align:right;}
+  .budget-table .finance-money-input,#donationBody .finance-money-input{min-height:44px;min-width:140px;width:100%;padding:10px 12px;font-size:16px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;border:1px solid var(--line);border-radius:8px;background:#fff;}
+  .budget-table input,.budget-table select{min-height:44px;}
+  .budget-table textarea{font-size:14px;}
+  .finance-money-input:focus{outline:2px solid var(--purple);outline-offset:1px;}
   .budget-table textarea{min-height:36px;height:36px;resize:vertical;line-height:1.4;white-space:pre-wrap;overflow:hidden;}
   .budget-note-input{min-width:280px;}
   .budget-del{border:none;background:none;color:var(--ink-mute);font-size:14px;padding:5px;cursor:pointer;}
@@ -752,7 +755,7 @@
   .fee-scroll-track::-webkit-scrollbar-thumb,.fee-table-wrap::-webkit-scrollbar-thumb{background:#aaa0bf;border:2px solid #f1edf5;border-radius:8px}
   .fee-scroll-track::-webkit-scrollbar-track,.fee-table-wrap::-webkit-scrollbar-track{background:#f1edf5}
 
-  .fee-table{min-width:980px;}
+  .fee-table{width:100%;min-width:0;table-layout:fixed;}
   .fee-table td,.fee-table th{font-size:11px;}
   .fee-table input,.fee-table select{
     width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 7px;background:#fff;font-size:11px;
@@ -1067,6 +1070,34 @@
     #tab-raffle .raffle-admin-grid{grid-template-columns:minmax(0,1fr)}
     .raffle-home-shortcut{align-items:flex-start;flex-direction:column}
   }
+
+/* Participant overview: fit the available width without horizontal scrolling. */
+.fee-table-wrap{overflow:visible;}
+.fee-table td,.fee-table th{padding:7px 3px;overflow-wrap:anywhere;white-space:normal;}
+.fee-table input,.fee-table select,.fee-table textarea{width:100%;min-width:0;max-width:100%;padding:7px 4px;font-size:12px;min-height:36px;}
+.fee-table textarea{border:1px solid var(--line);border-radius:7px;background:#fff;font-family:inherit;resize:vertical;line-height:1.45;}
+.fee-table input[type=number]{appearance:textfield;-moz-appearance:textfield;}
+.fee-table input[type=number]::-webkit-inner-spin-button,.fee-table input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.fee-table th:nth-child(1){width:11%!important;}
+.fee-table th:nth-child(2){width:6%!important;}
+.fee-table th:nth-child(3),.fee-table th:nth-child(4){width:11%!important;}
+.fee-table th:nth-child(5){width:17%!important;}
+.fee-table th:nth-child(6){width:12%!important;}
+.fee-table th:nth-child(7){width:25%!important;}
+.fee-table th:nth-child(8){width:7%!important;}
+.fee-table .row-del{padding:7px 3px;min-height:36px;font-size:11px;}
+@media(max-width:760px){
+ .fee-table,.fee-table tbody{display:block;width:100%;}
+ .fee-table thead{display:none;}
+ .fee-table tbody tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;}
+ .fee-table tbody td{display:block;width:auto!important;min-width:0;padding:0;border:0;}
+ .fee-table td[data-label]::before{content:attr(data-label);display:block;font-size:11px;color:var(--ink-sub);margin-bottom:4px;}
+ .fee-table td:nth-child(7){grid-column:1/-1;}
+ .fee-table td:last-child{grid-column:1/-1;text-align:right;}
+ .fee-table input,.fee-table select,.fee-table textarea{font-size:16px;min-height:44px;}
+ .fee-table .row-del{min-width:60px;min-height:40px;}
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20260926-generation-exclude"></script>
@@ -1085,46 +1116,6 @@ function syncTopScroll(topId,wrapId){
   refresh();
 }
 
-function setupParticipantScroll(){
-  document.querySelectorAll(".fee-table-wrap").forEach((wrap,index)=>{
-    if(wrap.dataset.scrollReady)return;
-    wrap.dataset.scrollReady="1";
-    wrap.tabIndex=0;
-    wrap.setAttribute("aria-label",(index===0?"1차":"2차")+" 참가자 표 · 좌우 스크롤");
-    const controls=document.createElement("div");
-    controls.className="fee-scroll-controls";
-    controls.innerHTML='<button type="button" aria-label="참가자 표 왼쪽으로 이동">←</button><div class="fee-scroll-track" tabindex="0" aria-label="참가자 표 가로 스크롤"><div></div></div><button type="button" aria-label="참가자 표 오른쪽으로 이동">→</button>';
-    wrap.before(controls);
-    const [left,right]=controls.querySelectorAll("button");
-    const track=controls.querySelector(".fee-scroll-track");
-    const inner=track.firstElementChild;
-    const refresh=()=>{
-      const max=wrap.scrollWidth-wrap.clientWidth;
-      controls.hidden=wrap.clientWidth===0||max<=1;
-      if(controls.hidden)return;
-      inner.style.width=(track.clientWidth+max)+"px";
-      track.scrollLeft=wrap.scrollLeft;
-      left.disabled=wrap.scrollLeft<=1;
-      right.disabled=wrap.scrollLeft>=max-1;
-    };
-    track.addEventListener("scroll",()=>{
-      if(Math.abs(wrap.scrollLeft-track.scrollLeft)>1)wrap.scrollLeft=track.scrollLeft;
-      left.disabled=wrap.scrollLeft<=1;
-      right.disabled=wrap.scrollLeft>=wrap.scrollWidth-wrap.clientWidth-1;
-    },{passive:true});
-    wrap.addEventListener("scroll",refresh,{passive:true});
-    left.addEventListener("click",()=>wrap.scrollBy({left:-Math.max(180,wrap.clientWidth*.65),behavior:"smooth"}));
-    right.addEventListener("click",()=>wrap.scrollBy({left:Math.max(180,wrap.clientWidth*.65),behavior:"smooth"}));
-    if(window.ResizeObserver){
-      const observer=new ResizeObserver(()=>requestAnimationFrame(refresh));
-      observer.observe(wrap);
-      observer.observe(wrap.querySelector("table"));
-    }
-    window.addEventListener("resize",refresh);
-    refresh();
-  });
-}
-document.addEventListener("DOMContentLoaded",setupParticipantScroll);
 
 function refreshWideTableUi(){
   syncTopScroll('sponsorTop','sponsorScroll');
@@ -1853,12 +1844,12 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
 
       <div class="budget-summary">
         <div class="budget-summary-card"><div class="k">예상 수입</div><div class="v" id="budgetExpectedIncome">0원</div></div>
-        <div class="budget-summary-card"><div class="k">실제 수입 · 거래내역 연동</div><div class="v" id="budgetActualIncome">0원</div></div>
+        <div class="budget-summary-card"><div class="k">입금 합계 · 업로드 거래내역</div><div class="v" id="budgetActualIncome">0원</div></div>
         <div class="budget-summary-card"><div class="k">예상 지출</div><div class="v" id="budgetExpectedExpense">0원</div></div>
         <div class="budget-summary-card"><div class="k">실제 지출</div><div class="v" id="budgetActualExpense">0원</div></div>
         <div class="budget-summary-card balance"><div class="k">예상 잔액</div><div class="v" id="budgetBalance">0원</div></div>
       </div>
-      <div class="budget-help">예상 금액은 행사 전체 계획용입니다. <b>실제 수입은 위 계좌 거래내역의 입금 합계와 자동 연동</b>되고, 실제 지출은 아래 항목별 실제금액으로 관리합니다.</div>
+      <div class="budget-help">예상 금액은 행사 전체 계획용입니다. <b>입금 합계는 업로드한 거래내역 기준</b>이며 최신 입금·환불이 빠질 수 있습니다. 현재 통장 잔액과는 다릅니다. 실제 지출은 아래 항목별 실제금액으로 관리합니다. 금액은 원 단위로 직접 입력하세요.</div>
       <div class="card">
         <div class="top-hscroll" id="budgetTop"><div class="top-hscroll-inner"></div></div>
         <div class="budget-table-wrap" id="budgetScroll">
@@ -3354,12 +3345,12 @@ function renderPaymentGroup(phase){
         </select>
       </td>
       <td data-label="비고">
-        <input type="text" value="${escapeHtml(row.note||"")}" data-field="note" placeholder="입금자명·취소 사유 등 메모">
+        <textarea rows="2" data-field="note" placeholder="입금자명·취소 사유 등 메모">${escapeHtml(row.note||"")}</textarea>
         ${matchText}
       </td>
       <td><button class="row-del lockable" title="참가자 관리 명단에서 삭제">삭제</button></td>`;
 
-    tr.querySelectorAll("input,select").forEach(el=>{
+    tr.querySelectorAll("input,select,textarea").forEach(el=>{
       el.addEventListener("change",async e=>{
         const f=e.target.dataset.field;
         row[f]=(f==="expectedAmount"||f==="paidAmount") ? Math.max(0,Number(e.target.value)||0) : e.target.value;
@@ -3549,7 +3540,7 @@ function renderDonations(){
     tr.innerHTML=`
       <td data-label="이름"><input class="lockable" type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
       <td data-label="기수"><input class="lockable" type="text" value="${escapeHtml(row.generation||"")}" data-field="generation" placeholder="예: 2기"></td>
-      <td data-label="후원금액"><input class="lockable" type="number" min="0" step="10000" value="${amount}" data-field="amount"></td>
+      <td data-label="후원금액"><input class="lockable finance-money-input" type="text" inputmode="numeric" aria-label="후원금액 (원)" value="${amount.toLocaleString('ko-KR')}" data-field="amount"></td>
       <td data-label="상태"><select class="lockable" data-field="status">${statusOpts}</select></td>
       <td data-label="입금여부"><select class="lockable" data-field="paid"><option value="false" ${!row.paid?"selected":""}>미입금</option><option value="true" ${row.paid?"selected":""}>입금완료</option></select></td>
       <td data-label="비고"><input class="lockable" type="text" value="${escapeHtml(row.note||"")}" data-field="note"></td>
@@ -3557,11 +3548,16 @@ function renderDonations(){
     tr.querySelectorAll("[data-field]").forEach(el=>{
       el.addEventListener("change",async e=>{
         const f=e.target.dataset.field;
-        if(f==="amount") row.amount=Math.max(0,Number(e.target.value)||0);
+        if(!state.editMode)return;
+        if(f==="amount"){
+          const amount=parseFinanceAmount(e.target.value);
+          if(amount===null){alert("금액은 0 이상의 숫자로 입력해주세요.");e.target.value=Number(row.amount||0).toLocaleString("ko-KR");return;}
+          row.amount=amount;e.target.value=amount.toLocaleString("ko-KR");
+        }
         else if(f==="paid") row.paid=e.target.value==="true";
         else row[f]=e.target.value;
         await dSet("donations",state.donations);
-        renderDonations();
+        renderDonationTotals();
       });
     });
     tr.querySelector(".row-del").addEventListener("click",async()=>{
@@ -3573,6 +3569,13 @@ function renderDonations(){
     });
     body.appendChild(tr);
   });
+  renderDonationTotals();
+  applyEditLock();
+}
+function renderDonationTotals(){
+  const rows=Array.isArray(state.donations)?state.donations:[];
+  const expected=rows.filter(r=>r.status!=="보류").reduce((s,r)=>s+Number(r.amount||0),0);
+  const paidTotal=rows.filter(r=>r.paid).reduce((s,r)=>s+Number(r.amount||0),0);
   const e=document.getElementById("donationExpectedTotal"); if(e) e.textContent=money(expected);
   const p=document.getElementById("donationPaidTotal"); if(p) p.textContent=money(paidTotal);
   applyEditLock();
@@ -5484,12 +5487,18 @@ document.getElementById("clearTransactions")?.addEventListener("click",async()=>
 
 
 // ---------- budget ----------
+function parseFinanceAmount(value){
+  const cleaned=String(value).replace(/[,\s원]/g,"");
+  if(!/^\d+$/.test(cleaned))return null;
+  const amount=Number(cleaned);
+  return Number.isSafeInteger(amount)&&amount>=0?amount:null;
+}
 function money(v){ return Number(v||0).toLocaleString("ko-KR")+"원"; }
 function budgetTypeOptions(selected){
   return `<option value="income" ${selected==="income"?"selected":""}>수입</option><option value="expense" ${selected==="expense"?"selected":""}>지출</option>`;
 }
 function budgetStatusOptions(selected){
-  return ["가정","예정","거의 확정","견적중","확정","일부결제","완료"].map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("");
+  return ["가정","예정","거의 확정","견적중","확정","일부결제","완료","보류"].map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("");
 }
 function transactionIncomeTotal(){
   const rows=Array.isArray(state.transactions?.rows)?state.transactions.rows:[];
@@ -5522,8 +5531,8 @@ function renderBudget(){
       <td><select class="lockable" data-field="type">${budgetTypeOptions(r.type)}</select></td>
       <td><input class="lockable" data-field="item" value="${escapeHtml(r.item||"")}"></td>
       <td><input class="lockable" data-field="detail" value="${escapeHtml(r.detail||"")}"></td>
-      <td><input class="lockable" type="number" min="0" step="1000" data-field="expected" value="${Number(r.expected||0)}"></td>
-      <td><input class="lockable" type="number" min="0" step="1000" data-field="actual" value="${Number(r.actual||0)}"></td>
+      <td><input class="lockable finance-money-input" type="text" inputmode="numeric" aria-label="예상금액 (원)" data-field="expected" value="${Number(r.expected||0).toLocaleString('ko-KR')}"></td>
+      <td><input class="lockable finance-money-input" type="text" inputmode="numeric" aria-label="실제금액 (원)" data-field="actual" value="${Number(r.actual||0).toLocaleString('ko-KR')}"></td>
       <td><input class="lockable" type="date" data-field="date" value="${escapeHtml(r.date||"")}"></td>
       <td><input class="lockable" data-field="owner" value="${escapeHtml(r.owner||"")}"></td>
       <td><select class="lockable" data-field="status">${budgetStatusOptions(r.status)}</select></td>
@@ -5533,11 +5542,13 @@ function renderBudget(){
       el.addEventListener("change",async e=>{
         if(!state.editMode) return;
         const f=e.target.dataset.field;
-        r[f]=(f==="expected"||f==="actual")?Number(e.target.value||0):e.target.value;
+        if(f==="expected"||f==="actual"){
+          const amount=parseFinanceAmount(e.target.value);
+          if(amount===null){alert("금액은 0 이상의 숫자로 입력해주세요.");e.target.value=Number(r[f]||0).toLocaleString("ko-KR");return;}
+          r[f]=amount;e.target.value=amount.toLocaleString("ko-KR");
+        }else r[f]=e.target.value;
+        renderBudgetSummary();
         await dSet("budget",state.budget);
-        renderBudget();
-  renderEventAccount();
-  renderTransactions(); applyEditLock();
       });
     });
     tr.querySelector(".budget-del").addEventListener("click",async()=>{
@@ -5548,6 +5559,10 @@ function renderBudget(){
     });
     body.appendChild(tr);
   });
+  renderBudgetSummary();
+  applyEditLock();
+}
+function renderBudgetSummary(){
   const t=budgetTotals(), balance=t.expectedIncome-t.expectedExpense;
   document.getElementById("budgetExpectedIncome").textContent=money(t.expectedIncome);
   document.getElementById("budgetActualIncome").textContent=money(t.actualIncome);

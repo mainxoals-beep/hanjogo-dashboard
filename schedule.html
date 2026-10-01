@@ -660,7 +660,9 @@ body.site-view-network.modal-open{overflow:auto!important}
 #eventGuideDialog::backdrop{background:rgba(25,20,35,.48);backdrop-filter:blur(3px)}
 .event-guide-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 24px 18px;flex-shrink:0;border-bottom:1px solid #eeeaf3}
 .event-guide-head h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.7px;line-height:1.35}
-.event-guide-head button{display:grid;place-items:center;width:36px;height:36px;flex-shrink:0;border:0;border-radius:50%;background:#f5f3f8;color:#665d73;font-size:25px;cursor:pointer}
+.event-guide-head button{display:flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;padding:0;margin:0;flex-shrink:0;border:0;border-radius:50%;background:#f5f3f8;color:#665d73;line-height:1;cursor:pointer;appearance:none}
+#eventGuideClose svg{display:block;width:18px;height:18px;flex:none;pointer-events:none}
+#eventGuideClose:hover{background:#ebe6f2;color:#443750}
 .event-guide-body{overflow:auto;overscroll-behavior:contain;padding:20px 24px 6px}
 .event-guide-mail{margin:0;padding:14px 16px;border-radius:12px;background:#f2eff9;color:#544780;font-size:13px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
 .event-guide-details{display:grid;grid-template-columns:38px minmax(0,1fr);gap:18px 12px;margin:24px 0;font-size:15px;line-height:1.5;letter-spacing:-.25px}
@@ -1109,7 +1111,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 
 <dialog id="eventGuideDialog" aria-labelledby="eventGuideTitle">
-  <div class="event-guide-head"><h2 id="eventGuideTitle">10월 18일 행사 안내</h2><button type="button" id="eventGuideClose" aria-label="행사 안내 닫기">×</button></div>
+  <div class="event-guide-head"><h2 id="eventGuideTitle">10월 18일 행사 안내</h2><button type="button" id="eventGuideClose" aria-label="행사 안내 닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
   <div class="event-guide-body">
   <p class="event-guide-mail">참가 확정자 대상 행사 안내 이메일을 보내드렸습니다.<br>신청 시 등록한 이메일을 확인해주세요.</p>
   <dl class="event-guide-details">

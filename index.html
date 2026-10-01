@@ -1544,7 +1544,22 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         <div class="raffle-admin-box">
           <div class="raffle-admin-title">전체 경품 실시간 추첨</div>
           <div class="raffle-admin-sub">행사에서 진행할 각 경품의 이름과 추첨 대상을 선택하세요. 일반 경품과 스토리 참여 경품 모두 이 화면에서 추첨하고 기록합니다.</div>
-          <div class="raffle-draw-controls">
+          <div class="raffle-admin-box" style="margin-bottom:12px">
+  <div class="raffle-admin-title">1·2부 경품 운영표 · 관리자 전용</div>
+  <p id="rafflePlanStatus" class="raffle-admin-sub">관리자 로그인 후 비공개 경품 계획을 불러올 수 있습니다.</p>
+  <button type="button" id="rafflePlanLogin" class="mini-btn">관리자 로그인 링크 받기</button>
+  <button type="button" id="rafflePlanReload" class="mini-btn">계획 새로고침</button>
+  <div id="rafflePlanBody" hidden>
+    <div class="raffle-control-row">
+      <select id="rafflePartSelect" aria-label="추첨 부"><option value="1">1부</option><option value="2">2부</option></select>
+      <select id="rafflePlanSelect" aria-label="추첨 경품"></select>
+    </div>
+    <div id="rafflePlanSummary" class="raffle-admin-sub"></div>
+    <div id="rafflePlanList"></div>
+    <p class="raffle-admin-sub">선택한 경품으로 1명씩 추첨합니다. 테스트는 수량에 포함되지 않습니다. 기록을 삭제해도 지급 수량은 복원되지 않습니다. 실제 추첨 시 경품명과 당첨 결과가 외부에 송출됩니다.</p>
+  </div>
+</div>
+<div class="raffle-draw-controls">
             <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품명 또는 협찬사명 · 예: 삼성웰스토리 경품">
             <div class="raffle-control-row">
               <select class="lockable" id="rafflePoolSelect">
@@ -3772,6 +3787,49 @@ function secureRandomIndex(length){
   do{crypto.getRandomValues(buf);}while(buf[0]>=limit);
   return buf[0]%length;
 }
+
+let privateRafflePlan=[];
+async function loadPrivateRafflePlan(){
+  privateRafflePlan=[];
+  const {data,error}=await sb.from("raffle_prize_plan").select("id,part,position,prize,winners,units_per_winner,finale,draw_ids").order("part").order("position");
+  if(!error)privateRafflePlan=data||[];
+  document.getElementById("rafflePlanStatus").textContent=privateRafflePlan.length
+    ?"배분표와 남은 수량은 관리자에게만 표시됩니다."
+    :"관리자 로그인 후 계획을 불러와주세요. 일반 참가자 계정에는 공개되지 않습니다.";
+  renderPrivateRafflePlan();
+}
+function renderPrivateRafflePlan(){
+  const body=document.getElementById("rafflePlanBody");
+  if(!body)return;
+  body.hidden=!privateRafflePlan.length;
+  document.getElementById("rafflePlanLogin").hidden=!!privateRafflePlan.length;
+  const select=document.getElementById("rafflePlanSelect");
+  const previous=select.value;
+  const part=Number(document.getElementById("rafflePartSelect").value);
+  const rows=privateRafflePlan.filter(r=>r.part===part);
+  const remaining=r=>Math.max(0,r.winners-r.draw_ids.length);
+  select.innerHTML='<option value="">직접 입력 / 별도 경품</option>'+rows.map(r=>'<option value="'+escapeHtml(r.id)+'" '+(!remaining(r)?'disabled':'')+'>'+escapeHtml(r.prize)+' · 남은 '+remaining(r)+'명'+(r.finale?' · 마지막':'')+'</option>').join("");
+  if(rows.some(r=>r.id===previous&&remaining(r)))select.value=previous;
+  else if(previous)document.getElementById("rafflePrizeName").value="";
+  document.getElementById("rafflePlanSummary").textContent=part+"부 · 총 "+rows.reduce((n,r)=>n+r.winners,0)+"명 / 남은 "+rows.reduce((n,r)=>n+remaining(r),0)+"명";
+  document.getElementById("rafflePlanList").innerHTML=rows.map(r=>'<div class="raffle-history-row"><div><strong>'+escapeHtml(r.prize)+'</strong><span>'+r.winners+'명 · 1인당 '+r.units_per_winner+'개'+(r.finale?' · 마지막 추첨':'')+'</span></div><span>완료 '+r.draw_ids.length+' / 남은 '+remaining(r)+'</span></div>').join("");
+  applyRafflePlanSelection();
+}
+function applyRafflePlanSelection(){
+  const plan=privateRafflePlan.find(r=>r.id===document.getElementById("rafflePlanSelect").value);
+  const input=document.getElementById("rafflePrizeName");
+  input.readOnly=!!plan;
+  if(plan)input.value=plan.prize;
+}
+document.getElementById("rafflePlanReload").addEventListener("click",loadPrivateRafflePlan);
+document.getElementById("rafflePlanLogin").addEventListener("click",()=>{
+  document.getElementById("accessAdminLoginBtn").click();
+  document.getElementById("rafflePlanStatus").textContent="관리자 이메일의 로그인 링크를 확인해주세요.";
+});
+document.getElementById("rafflePartSelect").addEventListener("change",renderPrivateRafflePlan);
+document.getElementById("rafflePlanSelect").addEventListener("change",applyRafflePlanSelection);
+sb.auth.onAuthStateChange(()=>setTimeout(loadPrivateRafflePlan,0));
+
 function renderRaffleCenter(){
   const center=state.raffleCenter||DEFAULT_RAFFLE_CENTER;
   const entries=Array.isArray(center.storyEntries)?center.storyEntries:[];
@@ -3870,7 +3928,16 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
   if(!state.editMode||raffleActionBusy)return;
   raffleActionBusy=true;
   try{
+  const selectedPlanId=document.getElementById("rafflePlanSelect").value;
   await refreshRaffleSources();
+  const previousDrawId=state.raffleCenter.live?.drawId||"";
+  if(selectedPlanId){
+    await loadPrivateRafflePlan();
+    const plan=privateRafflePlan.find(r=>r.id===selectedPlanId);
+    if(!plan||plan.draw_ids.length>=plan.winners)throw new Error("경품 수량 또는 관리자 로그인을 확인해주세요.");
+    if(plan.finale&&privateRafflePlan.some(r=>r.part===plan.part&&!r.finale&&r.draw_ids.length<r.winners))throw new Error("마지막 경품은 해당 부의 다른 추첨을 마친 뒤 진행해주세요.");
+    document.getElementById("rafflePrizeName").value=plan.prize;
+  }
   const prize=document.getElementById("rafflePrizeName")?.value.trim()||"";
   const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
   const status=document.getElementById("raffleAdminStatus");
@@ -3890,10 +3957,16 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
   state.raffleCenter.winnerKeys=[...new Set([...HanjogoRaffle.winnerKeys(state.raffleCenter),rafflePersonKey(winner)])];
   state.raffleCenter.history.push(historyItem);
   state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+11000,winner,candidates:raffleAnimationCandidates(pool,winner)};
-  await dSet("raffleCenter",state.raffleCenter);
+  if(selectedPlanId){
+    const {error}=await sb.rpc("commit_planned_raffle",{p_plan_id:selectedPlanId,p_center:state.raffleCenter,p_previous_draw_id:previousDrawId});
+    if(error)throw error;
+    await loadPrivateRafflePlan();
+  }else{
+    await dSet("raffleCenter",state.raffleCenter);
+  }
   renderRaffleCenter();
   setTimeout(renderRaffleCenter,11200);
-  }catch(e){document.getElementById("raffleAdminStatus").textContent="최신 명단 확인 또는 추첨 처리에 실패했습니다. 상태를 확인한 뒤 다시 시도해주세요.";}
+  }catch(e){await refreshRaffleSources().catch(()=>{});document.getElementById("raffleAdminStatus").textContent=e.message||"추첨 처리에 실패했습니다. 새로고침 후 확인해주세요.";}
   finally{raffleActionBusy=false;}
 });
 document.getElementById("raffleResetDisplayBtn")?.addEventListener("click",async()=>{

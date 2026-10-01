@@ -1043,6 +1043,19 @@
   .tab-panel .sec-head-right{margin-left:auto}
   @media(max-width:640px){.home-task-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.main-tab{padding:9px 10px;font-size:12px}.tab-panel .sec-head-right{flex-wrap:wrap}.section-jumps{gap:5px}.section-jumps button{font-size:11px}}
   @media print{.dashboard-finder,.home-task-grid,.section-jumps,.tab-panel-tools{display:none!important}}
+
+  .raffle-main-tab{border-color:var(--purple);font-weight:800}
+  .raffle-home-shortcut{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:20px;margin:0 0 18px;border:1px solid var(--purple);border-radius:14px;background:var(--purple-light);color:var(--purple-dark);text-align:left;cursor:pointer}
+  .raffle-home-shortcut strong{font-size:17px}
+  .raffle-home-shortcut span{font-size:12px}
+  #tab-raffle .raffle-admin-grid{grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);align-items:start}
+  #tab-raffle .raffle-admin-grid>.raffle-admin-box:nth-child(2){order:-1}
+  #tab-raffle #raffleDrawBtn{min-height:54px;font-size:17px}
+  #tab-raffle .tab-panel-tools,#tab-raffle .section-jumps{display:none}
+  @media(max-width:760px){
+    #tab-raffle .raffle-admin-grid{grid-template-columns:minmax(0,1fr)}
+    .raffle-home-shortcut{align-items:flex-start;flex-direction:column}
+  }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20260926-generation-exclude"></script>
@@ -1118,6 +1131,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
 
   <nav class="main-tabs" id="mainTabs" aria-label="대시보드 메뉴">
     <button class="main-tab active" data-tab="home">홈</button>
+    <button class="main-tab raffle-main-tab" data-tab="raffle">🎁 경품 추첨</button>
     <button class="main-tab" data-tab="people">참가 · 입금</button>
     <button class="main-tab" data-tab="operations">행사 운영</button>
     <button class="main-tab" data-tab="finance">협찬 · 재정</button>
@@ -4643,8 +4657,9 @@ function setupMainTabs(){
   const system = makePanel("system","DB 연동과 공동 저장 등 평소 자주 변경하지 않는 시스템 설정입니다.");
   const publicPanel = makePanel("public","외부에 공개되는 공지·파일·행사 정보와 공식 링크를 한곳에서 관리합니다.");
   const finance = makePanel("finance","협찬·제작비·수입·지출 등 비용과 지원 관련 업무를 관리합니다.");
-  const operations = makePanel("operations","준비 일정, 현장 프로그램·추첨, 제작물과 운영진을 관리합니다.");
+  const operations = makePanel("operations","준비 일정, 현장 프로그램, 제작물과 운영진을 관리합니다.");
   const people = makePanel("people","참가·입금 현황을 먼저 확인하고, 신청 연동과 동문 정보를 관리합니다.");
+  const raffle = makePanel("raffle","행사 당일 추첨 전용 · 경품 선택 → 테스트 확인 → 실제 추첨 순서로 진행해주세요.");
   const home = makePanel("home","현재 준비 상황에서 중요한 내용만 빠르게 확인합니다.");
 
   // 시스템 탭 상단: 연동/저장 상태와 자주 쓰는 관리 기능을 한곳에 모음
@@ -4712,7 +4727,7 @@ function setupMainTabs(){
   // 행사 운영
   moveSectionByBody("body-phases", operations);
   moveSectionByBody("body-dayprogram", operations);
-  move("#section-raffle-center", operations);
+  move("#section-raffle-center", raffle);
   moveSectionByBody("body-production", operations);
   moveSectionByBody("body-committee", operations);
   move("#section-operations-committee", operations);
@@ -4754,6 +4769,11 @@ function setupMainTabs(){
     document.querySelectorAll(".main-tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
     document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active", p.id==="tab-"+name));
     try{ localStorage.setItem("hanjogo_main_tab", name); }catch(e){}
+    if(name==="raffle"){
+      state.sectionCollapse["body-raffle-center"]=false;
+      applyCollapseState();
+      nav.querySelector('[data-tab="raffle"]')?.scrollIntoView({block:"nearest",inline:"nearest"});
+    }
     if(name==="home") setTimeout(loadVisitorStats,50);
   };
   // 각 탭에서 긴 내용을 한 번에 접거나 펼칠 수 있게 정리
@@ -4777,6 +4797,12 @@ function setupMainTabs(){
   });
 
   nav.querySelectorAll(".main-tab").forEach(btn=>btn.addEventListener("click",()=>activate(btn.dataset.tab)));
+  const raffleShortcut=document.createElement("button");
+  raffleShortcut.type="button";
+  raffleShortcut.className="raffle-home-shortcut";
+  raffleShortcut.innerHTML="<strong>🎁 행사 경품 추첨 바로가기</strong><span>1·2부 경품 선택 · 테스트 · 실제 추첨</span>";
+  raffleShortcut.addEventListener("click",()=>{activate("raffle");nav.scrollIntoView({behavior:"smooth",block:"start"});});
+  home.prepend(raffleShortcut);
   setupDashboardNavigation(activate);
   activate(current);
   dashboardTabsReady = true;

@@ -1098,6 +1098,18 @@
  .fee-table .row-del{min-width:60px;min-height:40px;}
 }
 
+
+/* Compact participant overview */
+#body-participants>.card:first-child{padding:12px;}
+#body-participants .p-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;padding:0;}
+#body-participants .p-grid .field{min-width:0;gap:5px;}
+#body-participants .p-grid label{font-size:11px;white-space:normal;line-height:1.4;}
+#body-participants .p-grid input{min-width:0;width:100%;height:38px;padding:7px 9px;font-size:16px;}
+#body-participants .p-summary{padding:10px 0 0;margin:0;gap:6px;}
+#body-participants .p-summary [hidden]{display:none;}
+#body-participants .p-summary .pill{font-size:11px;padding:4px 9px;}
+@media(max-width:760px){#body-participants .p-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}}
+@media(max-width:380px){#body-participants .p-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20260926-generation-exclude"></script>
@@ -1373,13 +1385,10 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
           <div class="field"><label>입금 완료 인원</label><input type="number" id="pPaid" min="0"></div>
           <div class="field"><label>운영스태프 인원</label><input type="number" id="pStaff" min="0"></div>
         </div>
-        <div class="p-bar-wrap">
-          <div class="p-bar"><div class="p-bar-fill" id="pBarFill" style="width:0%"></div></div>
-        </div>
         <div class="p-summary">
-          <span class="pill" id="pillTotal">총 신청 0명</span>
-          <span class="pill" id="pillConfirmed">참가 확정 0명</span>
-          <span class="pill" id="pillPaid">입금 완료 0명</span>
+          <span class="pill" id="pillTotal" hidden>총 신청 0명</span>
+          <span class="pill" id="pillConfirmed" hidden>참가 확정 0명</span>
+          <span class="pill" id="pillPaid" hidden>입금 완료 0명</span>
           <span class="pill warn" id="pillWaitlist">대기 0명</span>
           <span class="pill muted" id="pillRemain">잔여 모집 가능 0석</span>
         </div>
@@ -3268,7 +3277,7 @@ function renderParticipants(){
   document.getElementById("pillPaid").textContent = `입금 완료 ${pt.paid||0}명`;
   document.getElementById("pillWaitlist").textContent = `대기 ${waitlistCount}명`;
   document.getElementById("pillRemain").textContent = `잔여 모집 가능 ${remain}석`;
-  document.getElementById("pBarFill").style.width = pct + "%";
+
 
   document.getElementById("statTotalApply").innerHTML = `${total} <small>/ ${pt.capacity||0}</small>`;
   document.getElementById("statConfirmed").textContent = pt.confirmed||0;

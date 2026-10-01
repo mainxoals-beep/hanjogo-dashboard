@@ -654,17 +654,32 @@ body.site-view-network.modal-open{overflow:auto!important}
 .board-detail-nav button:disabled{opacity:.4;cursor:default}
 .board-detail-position{flex:1;text-align:center;font-size:12px;color:var(--sub)}
 
-#eventGuideDialog{width:min(480px,calc(100% - 28px));max-height:90dvh;overflow:auto;border:0;border-radius:20px;padding:24px;color:var(--ink);background:#fff;box-shadow:0 20px 80px #211b3840;font-family:inherit}
-#eventGuideDialog::backdrop{background:rgba(25,20,35,.55)}
-.event-guide-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.event-guide-head h2{margin:0;font-size:22px}.event-guide-head button{border:0;background:transparent;font-size:28px;padding:4px 8px;cursor:pointer}
-.event-guide-mail{background:var(--purple-light);padding:14px;border-radius:12px;font-size:14px;line-height:1.65;color:var(--purple-dark)}
-.event-guide-details{display:grid;grid-template-columns:46px 1fr;gap:14px 8px;margin:20px 0;font-size:14px;line-height:1.6}
-.event-guide-details dt{font-weight:800}.event-guide-details dd{margin:0}.event-guide-details small{font-size:12px;color:var(--sub)}
-.event-guide-note{border-top:1px solid var(--line);padding-top:14px;font-size:13px;line-height:1.65}
-.event-guide-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}
-.event-guide-foot label{font-size:12px;color:var(--sub)}.event-guide-foot button{border:0;border-radius:10px;padding:12px 16px;background:var(--purple);color:#fff;font-weight:800;cursor:pointer}
-.event-guide-reopen{border:1px solid var(--line);background:var(--purple-light);color:var(--purple-dark);padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}
+/* Event guide: clear hierarchy with fixed controls on small screens. */
+#eventGuideDialog{width:min(500px,calc(100% - 28px));max-height:min(780px,90dvh);padding:0;border:1px solid #e8e3ef;border-radius:22px;color:#292532;background:#fff;box-shadow:0 24px 90px #211b3840;font-family:inherit;overflow:hidden}
+#eventGuideDialog[open]{display:flex;flex-direction:column}
+#eventGuideDialog::backdrop{background:rgba(25,20,35,.48);backdrop-filter:blur(3px)}
+.event-guide-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 24px 18px;flex-shrink:0;border-bottom:1px solid #eeeaf3}
+.event-guide-head h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.7px;line-height:1.35}
+.event-guide-head button{display:grid;place-items:center;width:36px;height:36px;flex-shrink:0;border:0;border-radius:50%;background:#f5f3f8;color:#665d73;font-size:25px;cursor:pointer}
+.event-guide-body{overflow:auto;overscroll-behavior:contain;padding:20px 24px 6px}
+.event-guide-mail{margin:0;padding:14px 16px;border-radius:12px;background:#f2eff9;color:#544780;font-size:13px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+.event-guide-details{display:grid;grid-template-columns:38px minmax(0,1fr);gap:18px 12px;margin:24px 0;font-size:15px;line-height:1.5;letter-spacing:-.25px}
+.event-guide-details dt{padding-top:2px;color:#85798f;font-size:12px;font-weight:700}
+.event-guide-details dd{margin:0;font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+.event-guide-details small{display:inline-block;margin-top:5px;color:#736b7c;font-size:12px;line-height:1.65;font-weight:400}
+.event-guide-note{margin:0 0 16px;padding-top:16px;border-top:1px solid #eeeaf3;color:#716879;font-size:12px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+.event-guide-note strong{display:inline-block;margin-bottom:3px;color:#3e354b;font-size:13px;font-weight:750}
+.event-guide-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;border-top:1px solid #eeeaf3;background:#fcfbfd;flex-shrink:0}
+.event-guide-foot label{display:flex;align-items:center;gap:7px;font-size:12px;color:#746b7f;cursor:pointer}
+.event-guide-foot input{width:16px;height:16px;margin:0;accent-color:#7661bb}
+.event-guide-foot button{min-height:42px;border:0;border-radius:11px;padding:11px 19px;background:#7661bb;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+#eventGuideDialog button:focus-visible,#eventGuideDialog input:focus-visible{outline:3px solid #bba7ea;outline-offset:3px}
+.event-guide-reopen{border:1px solid #e3ddef;background:#f5f2fa;color:#625284;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+@media(max-width:420px){
+ .event-guide-head{padding:18px 18px 15px}.event-guide-head h2{font-size:19px}
+ .event-guide-body{padding:16px 18px 4px}.event-guide-foot{padding:13px 18px;gap:8px}
+ .event-guide-foot button{padding:10px 14px}.event-guide-details{gap:16px 9px;font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -1095,6 +1110,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 <dialog id="eventGuideDialog" aria-labelledby="eventGuideTitle">
   <div class="event-guide-head"><h2 id="eventGuideTitle">10월 18일 행사 안내</h2><button type="button" id="eventGuideClose" aria-label="행사 안내 닫기">×</button></div>
+  <div class="event-guide-body">
   <p class="event-guide-mail">참가 확정자 대상 행사 안내 이메일을 보내드렸습니다.<br>신청 시 등록한 이메일을 확인해주세요.</p>
   <dl class="event-guide-details">
     <dt>일시</dt><dd>10월 18일(일) 19:00~22:30<br><small>입장 18:50부터 · 캐주얼 스탠딩 모임</small></dd>
@@ -1103,6 +1119,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   </dl>
   <p class="event-guide-note"><strong>협찬품 직접 반입</strong><br>카페가 18시까지 영업하므로, 세팅을 위해 18시 전후 도착 부탁드립니다. 별도 협의한 일정이 있다면 해당 시간에 맞춰 와주세요.</p>
   <p class="event-guide-note"><strong>동문회 회원 등록</strong><br>이번 모임에 함께하는 동문은 행사 후 동문회 회원으로 등록될 예정이며, 자세한 내용은 다시 안내드리겠습니다.</p>
+  </div>
   <div class="event-guide-foot"><label><input type="checkbox" id="eventGuideHideToday"> 오늘은 다시 보지 않기</label><button type="button" id="eventGuideConfirm">확인했습니다</button></div>
 </dialog>
 

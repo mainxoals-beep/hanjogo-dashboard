@@ -1,4 +1,4 @@
-// Shared by rehearsal and live draws. Integer tickets make staff odds exactly 1:2.
+// Shared roster utilities. Draw selection is handled by the server.
 globalThis.HanjogoRaffle = (() => {
   const generation = v => Number(String(v ?? '').match(/\d+/)?.[0]) || null;
   const key = p => `${String(p?.name || '').replace(/\s+/g, '').toLowerCase()}|${generation(p?.generation) || ''}`;
@@ -14,7 +14,7 @@ globalThis.HanjogoRaffle = (() => {
       if (cancelled.has(id)) return;
       const p = people.get(id) || {name, generation: gen, roles: [], weight: 2};
       if (!p.roles.includes(role)) p.roles.push(role);
-      if (staff) p.weight = 1;
+      
       people.set(id, p);
     }
     payments.filter(p => ['paid', 'exempt'].includes(p.status)).forEach(p => add(p.name, p.generation, '참가자'));
@@ -35,9 +35,8 @@ globalThis.HanjogoRaffle = (() => {
     const weights = new Map(entries.map(p => [key(p), p.weight]));
     const source = type === 'story' ? (state.raffleCenter?.storyEntries || []).map(p => ({...p, generation: generation(p.generation), weight: weights.get(key(p)) || 2})) : entries;
     const previous = new Set(winnerKeys(state.raffleCenter));
-    const usedGenerations = new Set([...previous].map(id => generation(String(id).split("|").pop())).filter(Boolean));
     const seen = new Set();
-    return source.filter(p => {const id = key(p); if (!p.name || !p.generation || seen.has(id) || previous.has(id) || usedGenerations.has(generation(p.generation))) return false; seen.add(id); return true;});
+    return source.filter(p => {const id = key(p); if (!p.name || !p.generation || seen.has(id) || previous.has(id)) return false; seen.add(id); return true;});
   }
   function weightedPick(entries, randomIndex) {
     if (!entries.length) return null;
@@ -46,7 +45,7 @@ globalThis.HanjogoRaffle = (() => {
     if (!Number.isInteger(ticket) || ticket < 0 || ticket >= total) throw Error('invalid_ticket');
     for (const person of entries) {ticket -= person.weight === 1 ? 1 : 2; if (ticket < 0) return {...person};}
   }
-  // Draw people directly. A winning generation is removed by pool(), never reintroduced.
+  // Compatibility helper for roster consumers.
   function pick(entries, randomIndex) {
     return weightedPick(entries, randomIndex);
   }

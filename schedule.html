@@ -3012,43 +3012,44 @@ const rafflePlayer=document.createElement("audio");rafflePlayer.preload="auto";r
   return URL.createObjectURL(new Blob([bytes],{type:"audio/wav"}));
  }
  const check=wave(1.2,[[0,523,.3,.45],[.3,659,.3,.45],[.6,784,.5,.45]]);
- function track(grand,pause=grand?4:1.2){
+ function track(grand,pause=4){
+  const reveal=grand?15:11,shift=reveal-11;
   const notes=[],add=(at,f,d,v,k)=>notes.push([at,f,d,v,k]);
   for(let i=0;i<5;i++){add(i,523,.2,.32);add(i,1047,.12,.12);add(i,62,.2,.3,"drum");}
-  const stop=11-pause,pattern=[523,659,784,988,880,784,659,587];
+  const stop=reveal-pause,pattern=[523,659,784,988,880,784,659,587];
   let step=0;
   for(let at=5;at<stop;at+=.17+(at-5)*.055){
    const f=pattern[step%8];add(at,f,.15,.3);add(at+.08,f*2,.12,.09);
    add(at,step%2?155:65,.12,.25,step%2?"snare":"drum");step++;
   }
-  [131,196,262].forEach(f=>add(5,f,5.7,.09,"pad"));
-  const rollStart=Math.min(8.8,stop-.3);
-  add(rollStart,180,10.8-rollStart,.18,"rise");
+  [131,196,262].forEach(f=>add(5,f,reveal-5.3,.09,"pad"));
+  const rollStart=stop-.3;
+  add(rollStart,180,reveal-.2-rollStart,.18,"rise");
   let roll=0;
-  for(let at=rollStart;at<10.82;at+=Math.max(.028,.12-(at-rollStart)*.045)){
-   const progress=(at-rollStart)/(10.82-rollStart);
+  for(let at=rollStart;at<reveal-.18;at+=Math.max(.028,.12-(at-rollStart)*.045)){
+   const progress=(at-rollStart)/(reveal-.18-rollStart);
    add(at,roll%2?190:155,.095,.22+progress*.19,"snare");
    if(roll%3===0)add(at,roll%2?100:135,.17,.32,"tom");roll++;
   }
-  add(11,55,.5,.55,"drum");add(11,320,1.8,.28,"cymbal");
+  add(reveal,55,.5,.55,"drum");add(reveal,320,1.8,.28,"cymbal");
   const chords=[[262,330,392],[220,262,330],[175,220,262],[196,247,294],[262,330,392]];
-  chords.forEach((ch,i)=>ch.forEach(f=>{add(11+i*.46,f,.72,.115,"brass");add(11+i*.46,f/2,.55,.07,"pad");}));
+  chords.forEach((ch,i)=>ch.forEach(f=>{add(reveal+i*.46,f,.72,.115,"brass");add(reveal+i*.46,f/2,.55,.07,"pad");}));
   const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,880,784,1047];
-  melody.forEach((f,i)=>{add(11+i*.2,f,.4,.29,"brass");add(11+i*.2+.13,f,.36,.07);});
-  const end=13.35;
+  melody.forEach((f,i)=>{add(reveal+i*.2,f,.4,.29,"brass");add(reveal+i*.2+.13,f,.36,.07);});
+  const end=13.35+shift;
   [131,262,523,659,784,1047].forEach(f=>add(end,f,grand?2.2:1.6,.11,"pad"));
   for(let i=0;i<(grand?12:6);i++)add(end+i*.1,[1047,1319,1568,2093][i%4],.6,.13);
   if(grand){add(end,320,2,.27,"cymbal");add(end,60,.5,.4,"drum");}
-  return wave(17,notes);
+  return wave(17+shift,notes);
  }
 
-const raffleScores={normal:track(false),grand:track(true),spirits:track(false,2.4)};
+const raffleScores={normal:track(false),grand:track(true),spirits:track(false)};
 function raffleStopSound(){rafflePlayer.pause();}
 function raffleTone(){} function raffleDrum(){} function rafflePercussion(){} function raffleFanfare(){}
 function raffleUpdateSoundButton(){const b=document.getElementById("raffleSoundToggle");if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}}
 function rafflePlayScore(live){
  if(!raffleSoundEnabled||!live||live.status!=="drawing")return;
- const elapsed=Math.max(0,(Date.now()-(Number(live.revealAt)-11000))/1000);if(elapsed>=17)return;
+ const elapsed=Math.max(0,(Date.now()-(Number(live.startedAt||Number(live.revealAt)-11000)))/1000);if(elapsed>=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?21:17))return;
  const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
  rafflePlayer.src=grand?raffleScores.grand:/위스키|브라클라|데킬라|테킬라|패트론|페트론|whisk(?:y|ey)|brackla|tequila|patr[oó]n/i.test(live.prize||"")?raffleScores.spirits:raffleScores.normal;rafflePlayer.currentTime=elapsed;
  rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});
@@ -3133,10 +3134,10 @@ function openRaffleOverlay(forceWaiting=false){
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
     if(remaining<=2600&&remaining>1200&&Date.now()-raffleDrumAt>110){raffleDrumAt=Date.now();rafflePercussion("snare",.17);}
-    if(remaining<=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?4000:/위스키|브라클라|데킬라|테킬라|패트론|페트론|whisk(?:y|ey)|brackla|tequila|patr[oó]n/i.test(live.prize||"")?2400:1200)){
+    if(remaining<=4000){
       if(remaining>180&&Date.now()-raffleDrumAt>Math.max(32,35+remaining*.055)){raffleDrumAt=Date.now();raffleDrum();}
       document.getElementById("raffleLivePanel")?.classList.add("suspense");
-      const staged=/갤럭시\s*탭|Galaxy\s*Tab|위스키|브라클라|데킬라|테킬라|패트론|페트론|whisk(?:y|ey)|brackla|tequila|patr[oó]n/i.test(live.prize||"");
+      const staged=true;
       if(staged){
         if(!name.classList.contains("generation-reveal")){
           name.getAnimations?.().forEach(a=>a.cancel());
@@ -3154,14 +3155,15 @@ function openRaffleOverlay(forceWaiting=false){
       if(foot)foot.textContent=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?"오늘의 주인공은…":"과연, 행운의 주인공은…";
       return;
     }
-    if(remaining>6000){
+    const rollWindow=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?10000:6000;
+    if(remaining>rollWindow){
       name.classList.add("countdown");name.classList.remove("spinning");
-      name.textContent=Math.min(5,Math.ceil((remaining-6000)/1000));
+      name.textContent=Math.min(5,Math.ceil((remaining-rollWindow)/1000));
       if(Number(name.textContent)!==lastCount){lastCount=Number(name.textContent);raffleTone(523,.14,0,.075,"triangle");raffleTone(1047,.09,0,.025);}
       if(foot)foot.textContent="잠시 후 당첨자를 공개합니다";
     }else{
       name.classList.remove("countdown");name.classList.add("spinning");
-      const pace=160+Math.pow(1-remaining/6000,2)*300;
+      const pace=160+Math.pow(1-remaining/rollWindow,2)*300;
       if(Date.now()-lastSpinAt<pace)return;
       lastSpinAt=Date.now();
       let person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;

@@ -6337,29 +6337,44 @@ init();
  let enabled=false,serial=0;
  function wave(seconds,notes){
   const rate=22050,size=Math.ceil(seconds*rate),samples=new Float32Array(size);
-  for(const [start,freq,duration,volume] of notes){
+  for(const [start,freq,duration,volume,kind="bell"] of notes){
    const first=Math.floor(start*rate),length=Math.floor(duration*rate);
    for(let i=0;i<length&&first+i<size;i++){
     const t=i/rate,envelope=Math.min(1,t/.008)*Math.pow(Math.max(0,1-t/duration),1.5);
-    samples[first+i]+=Math.sin(2*Math.PI*freq*t)*envelope*volume;
+    const phase=2*Math.PI*freq*t;
+    let sound;
+    if(kind==="drum")sound=Math.sin(2*Math.PI*(48*t+1.8*(1-Math.exp(-t*35))))*.85+(Math.random()*2-1)*Math.exp(-t*55)*.15;
+    else if(kind==="snare")sound=(Math.random()*2-1)*.75+Math.sin(phase)*.25;
+    else if(kind==="rise")sound=Math.sin(phase+2*Math.PI*650*t*t)*.65+(Math.random()*2-1)*.2;
+    else sound=Math.sin(phase)*.72+Math.sin(phase*2)*.19+Math.sin(phase*3)*.09;
+    samples[first+i]+=sound*envelope*volume;
    }
   }
   const bytes=new ArrayBuffer(44+size*2),v=new DataView(bytes);
   const str=(at,value)=>{for(let i=0;i<value.length;i++)v.setUint8(at+i,value.charCodeAt(i));};
   str(0,"RIFF");v.setUint32(4,36+size*2,true);str(8,"WAVE");str(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,"data");v.setUint32(40,size*2,true);
-  for(let i=0;i<size;i++)v.setInt16(44+i*2,Math.max(-1,Math.min(1,samples[i]))*32767,true);
+  for(let i=0;i<size;i++)v.setInt16(44+i*2,Math.tanh(samples[i]*1.35)*32767,true);
   return URL.createObjectURL(new Blob([bytes],{type:"audio/wav"}));
  }
  const check=wave(1.2,[[0,523,.3,.45],[.3,659,.3,.45],[.6,784,.5,.45]]);
  function track(grand){
-  const notes=[];
-  for(let i=0;i<5;i++)notes.push([i,440,.13,.3]);
-  for(let at=5;at<9.8;at+=.18+(at-5)*.05)notes.push([at,720,.065,.28]);
-  for(let at=9.8;at<10.82;at+=.08)notes.push([at,70,.07,.35]);
-  const melody=grand?[523,659,784,1047,784,1047,1319,1568]:[523,659,784,1047];
-  melody.forEach((f,i)=>notes.push([11+i*.16,f,.35,.38]));
-  [523,659,784,1047].forEach(f=>notes.push([11+melody.length*.16,f,grand?1.3:.8,.14]));
-  return wave(14,notes);
+  const notes=[],add=(at,f,d,v,k)=>notes.push([at,f,d,v,k]);
+  for(let i=0;i<5;i++){add(i,523,.16,.4);add(i,1047,.1,.16);add(i,60,.2,.32,"drum");}
+  const pattern=[523,659,784,659,587,740,880,740];
+  let step=0;
+  for(let at=5;at<9.8;at+=.17+(at-5)*.055){
+   add(at,pattern[step%8],.12,.32);add(at,pattern[step%8]*2,.08,.12);
+   if(step%2===0)add(at,60,.15,.35,"drum");else add(at,180,.07,.16,"snare");step++;
+  }
+  add(9.8,220,.95,.23,"rise");
+  for(let at=9.8;at<10.82;at+=.07){add(at,75,.065,.28,"drum");add(at,180,.06,.14,"snare");}
+  add(11,55,.45,.6,"drum");add(11,180,.28,.24,"snare");
+  const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,1047];
+  melody.forEach((f,i)=>{add(11+i*.18,f,.38,.4);add(11+i*.18,f/2,.4,.17);add(11+i*.18+.11,f,.28,.07);});
+  const end=11+melody.length*.18;
+  [262,523,659,784,1047].forEach(f=>add(end,f,grand?1.7:1.2,.16));
+  if(grand){for(let i=0;i<8;i++)add(end+i*.095,[1047,1319,1568,2093][i%4],.5,.19);add(end,60,.5,.5,"drum");}
+  return wave(16,notes);
  }
  const normal=track(false),grand=track(true);
  async function play(url,label){

@@ -720,6 +720,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 .raffle-sound-toggle{position:absolute;top:18px;left:18px;z-index:4;min-height:40px;padding:8px 13px;border:1px solid #ffffff50;border-radius:999px;background:#ffffff18;color:#fff;font:600 12px inherit;cursor:pointer;}
 .raffle-live-overlay{padding-top:70px;}
+.event-ready-card{margin:0 0 18px;padding:24px;border:1px solid var(--line,#e7e3d9);border-radius:20px;background:#fff}.event-ready-kicker{color:#6e5fcb;font-size:13px;font-weight:700}.event-ready-card h2{font-size:23px;margin:8px 0 12px;letter-spacing:-.04em}.event-ready-card>p{font-size:14px;line-height:1.7;color:#6b6862;margin:0 0 20px}.event-ready-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}.event-ready-grid span{display:block;font-size:12px;color:#9c988f;margin-bottom:5px}.event-ready-grid strong{display:block;font-size:16px}.event-ready-grid small{display:block;font-size:13px;line-height:1.6;color:#6b6862;margin-top:5px}.event-ready-notes{margin-top:20px;padding-top:14px;border-top:1px solid #eee}.event-ready-notes p{font-size:13px;line-height:1.7;color:#6b6862;margin:8px 0}.event-ready-notes b{color:#4e43a0;margin-right:6px}#applicationCta{padding:20px}#applicationCta .application-btn{margin-top:12px;padding:12px 16px;background:#eeedfb;color:#4e43a0;box-shadow:none;font-size:15px}#applicationCta .status-main{font-size:19px}#applicationCta .participant-highlight{font-size:16px;margin:16px 0}#rafflePublicCard .raffle-public-desc{font-size:14px;line-height:1.7}@media(max-width:480px){.event-ready-card{padding:20px 18px}.event-ready-card h2{font-size:21px}.event-ready-grid{gap:18px 12px}.event-ready-grid strong{font-size:15px}}
 </style>
 </head>
 <body>
@@ -790,6 +791,19 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="hero-dday" id="eventDday">D-</div>
 </div>
 
+<section class="event-ready-card site-view" data-site-view="event">
+ <div class="event-ready-kicker">10월 18일, 곧 만나요</div>
+ <h2>한조고 동문 네트워크 모임</h2>
+ <p>참가와 협찬에 함께해주셔서 감사합니다.<br>참가자분들께 발송한 행사 안내 메일을 확인해주세요.</p>
+ <div class="event-ready-grid">
+  <div><span>입장</span><strong>오후 6시 50분부터</strong></div>
+  <div><span>행사</span><strong>오후 7시 ~ 10시 30분</strong></div>
+  <div><span>장소</span><strong>카페 와일드덕</strong><small>서울 중구 동호로15길 43<br>미래빌딩 지하 1층</small></div>
+  <div><span>모임 형태</span><strong>캐주얼 스탠딩</strong><small>음식·음료와 함께 자유롭게 교류합니다.</small></div>
+ </div>
+ <div class="event-ready-notes"><p><b>주차</b> 현장 주차가 어려우니 다산동 공영주차장(동호로15길 60)을 이용해주세요. 대중교통 이용을 권장합니다.</p><p><b>협찬품 반입</b> 카페는 오후 6시까지 영업합니다. 협찬 관계자분들은 세팅을 위해 6시 전후로 도착 부탁드립니다.</p><p><b>동문회 회원 등록</b> 자세한 안내는 별도로 전해드리겠습니다.</p></div>
+</section>
+
 <div class="top-actions site-view" data-site-view="home">
 <button class="event-guide-reopen" type="button" id="eventGuideOpen">10월 18일 행사 안내</button>
 <button class="top-action primary" id="shareBtn">공유하기</button>
@@ -819,7 +833,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="application-cta site-view" id="applicationCta" data-site-view="event">
 <div class="application-status-row">
   <div>
-    <div class="status-kicker">참가 신청</div>
+    <div class="status-kicker">참가 안내</div>
     <div class="status-main" id="applyStatusTitle"></div>
     <div class="status-sub" id="applyStatusSub"></div>
   </div>
@@ -841,10 +855,30 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="application-countdown" id="applicationCountdown" hidden></div>
 </div>
 
+<div class="public-fold site-view" data-site-view="event">
+<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="true">
+  <span><span class="public-fold-title">행사 프로그램</span><span class="public-fold-sub">프로그램 순서와 주요 구성 보기</span></span>
+  <span class="public-fold-icon">▾</span>
+</button>
+<div class="public-fold-body" id="publicProgramBody">
+  <div class="program-card">
+  <div class="program-list">
+  <div class="program-item">입장 및<br>자유 네트워킹</div>
+  <div class="program-item">행사·협찬사<br>소개</div>
+  <div class="program-item">동문<br>스포트라이트</div>
+  <div class="program-item">1·2부 경품 추첨<br>스토리 참여 추첨</div>
+  <div class="program-item">자유 교류 및<br>마무리</div>
+  </div>
+  <div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
+  </div>
+</div>
+</div>
+
+
 <section class="raffle-public-card site-view" id="rafflePublicCard" data-site-view="event">
   <div class="raffle-public-kicker">2026 HANJOGO · EVENT RAFFLE</div>
   <div class="raffle-public-title">행사 경품 추첨 안내</div>
-  <div class="raffle-public-desc">10월 18일 행사에서 여러 경품을 현장 추첨합니다. <strong>참가자·운영위원·준비위원·후원·협찬 참여자 대상 추첨</strong>과 <strong>인스타그램 스토리 참여자 대상 추첨</strong>을 이 화면에서 진행하며, 당첨 결과도 실시간으로 확인할 수 있습니다. 스토리 참여 방법은 행사 당일 안내합니다. 더 많은 동문이 경품을 받을 수 있도록, 당첨은 1인 1회로 진행합니다.</div>
+  <div class="raffle-public-desc">경품 추첨은 <strong>1부·2부</strong>로 나누어 진행합니다. 전체 참가자 추첨과 인스타그램 스토리 참여 추첨이 준비되어 있으며, 현장에서 당첨 결과를 실시간으로 확인할 수 있습니다.</div>
   <div class="raffle-public-steps">
     <div class="raffle-public-step"><b>전체 참가자 추첨</b>참가 확정 동문을 대상으로 진행</div>
     <div class="raffle-public-step"><b>스토리 참여 추첨</b>한조고 인스타그램 @kcas_archived 팔로우 → 행사 사진을 스토리에 올리고 계정 태그 → DM으로 이름·기수 전송</div>
@@ -886,25 +920,6 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="brand-card site-view" id="brandCard" data-site-view="event" hidden>
   <div class="brand-title">함께하는 브랜드</div>
   <div class="brand-grid" id="brandGrid"></div>
-</div>
-
-<div class="public-fold site-view" data-site-view="event">
-<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="false">
-  <span><span class="public-fold-title">행사 프로그램</span><span class="public-fold-sub">프로그램 순서와 주요 구성 보기</span></span>
-  <span class="public-fold-icon">▾</span>
-</button>
-<div class="public-fold-body" id="publicProgramBody" hidden>
-  <div class="program-card">
-  <div class="program-list">
-  <div class="program-item">입장 및<br>자유 네트워킹</div>
-  <div class="program-item">행사·협찬사<br>소개</div>
-  <div class="program-item">동문<br>스포트라이트</div>
-  <div class="program-item">경품 추첨</div>
-  <div class="program-item">자유 교류 및<br>마무리</div>
-  </div>
-  <div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
-  </div>
-</div>
 </div>
 
 <div class="public-fold site-view" data-site-view="event">
@@ -1222,7 +1237,7 @@ a:"참가비는 1인 80,000원(팔만원)입니다. 여러 동문과 업체의 �
 },
 {
 q:"신청하면 바로 참가가 확정되나요?",
-a:"아닙니다. 참가 신청 후 확인 절차를 거쳐 입금 안내를 드리며, 입금 확인 후 최종 참가가 확정됩니다."
+a:"참가신청서를 작성한 뒤 폼에 안내된 계좌로 참가비를 입금하시면, 입금 확인 후 참가가 확정됩니다."
 },
 {
 q:"주차가 가능한가요?",
@@ -1758,13 +1773,13 @@ return;
 if(g.isClosed){
 
 applyStatusTitle.textContent=
-"2차 참가신청이 마감되었습니다";
+"참가 확정 및 추가 참가 문의";
 
 applyStatusSub.textContent=
-"정규 신청은 마감되었습니다. 추가 참가를 원하시면 별도 요청을 보내주세요.";
+"신청하신 동문은 행사 안내 메일을 확인해주세요. 추가 참가 문의도 가능합니다.";
 
 p.textContent=
-"2차 마감";
+"정규 접수 마감";
 
 p.classList.add(
 "closed"
@@ -1777,7 +1792,7 @@ const requestBody=
 "안녕하세요.\n\n10월 18일 한조고 네트워크 모임 추가 참가 가능 여부를 문의드립니다.\n\n이름:\n기수:\n연락처:\n\n감사합니다.";
 
 applicationBtn.textContent=
-g.a.closedLabel||"참가신청 요청하기";
+"추가 참가 문의하기";
 
 applicationBtn.classList.remove(
 "disabled"
@@ -1796,7 +1811,7 @@ applicationBtn.removeAttribute(
 );
 
 applicationSub.textContent=
-"버튼을 누르면 추가 참가 요청 메일을 작성할 수 있습니다.";
+"추가 참가를 원하시면 메일로 문의해주세요.";
 
 return;
 

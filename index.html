@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <title>한조고 동문 네트워크 모임 · 준비 대시보드</title>
 <style>
   :root{
@@ -1110,6 +1110,7 @@
 #body-participants .p-summary .pill{font-size:11px;padding:4px 9px;}
 @media(max-width:760px){#body-participants .p-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}}
 @media(max-width:380px){#body-participants .p-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.raffle-sound-control{min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--purple-dark);font-size:15px;font-weight:700;cursor:pointer}.raffle-sound-control[aria-pressed="true"]{background:var(--purple-light);border-color:var(--purple)}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
@@ -1640,7 +1641,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
             <button class="raffle-display-btn" id="raffleTestBtn" type="button">테스트 추첨</button>
             <div class="raffle-admin-status" id="raffleTestResult" aria-live="polite">최신 추첨 화면으로 연습합니다. 외부 송출이나 실제 당첨 기록에는 반영되지 않습니다.</div>
             <button class="raffle-display-btn" id="raffleTestResetBtn" type="button">테스트 기록 초기화</button>
-            <div style="margin:12px 0"><button type="button" class="btn" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button><span id="raffleAudioStatus" style="margin-left:8px;font-size:13px">테스트 전에 눌러 소리를 확인해주세요.</span></div><iframe id="raffleTestPreview" title="내부 테스트 추첨 · 실제 당첨 아님" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:600px;border:0;border-radius:16px"></iframe>
+            <div style="margin:12px 0"><button type="button" class="raffle-sound-control" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button><span id="raffleAudioStatus" style="margin-left:8px;font-size:13px">테스트 전에 눌러 소리를 확인해주세요.</span></div><iframe id="raffleTestPreview" title="내부 테스트 추첨 · 실제 당첨 아님" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:600px;border:0;border-radius:16px"></iframe>
             <button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작 · 외부에 송출</button>
             <details><summary>자동 연동 명단 확인</summary><button class="raffle-display-btn" id="raffleSyncBtn" type="button">최신 명단 불러오기</button><div id="raffleRosterList"></div></details>
             <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기</button>
@@ -6364,7 +6365,7 @@ init();
  async function play(url,label){
   const id=++serial;audio.pause();audio.src=url;
   try{await audio.play();if(id===serial)status.textContent=label;}
-  catch(error){if(id===serial){status.textContent= "재생 실패: "+(error.name||"오류")+" · Chrome에서 다시 열어주세요.";enabled=false;button.textContent="소리 켜기";button.setAttribute("aria-pressed","false");}}
+  catch(error){if(id===serial){status.textContent= "재생 실패: "+(error.name||"오류")+" · 새로고침 후 다시 눌러주세요.";enabled=false;button.textContent="소리 켜기";button.setAttribute("aria-pressed","false");}}
  }
  button.addEventListener("click",()=>{
   enabled=!enabled;button.textContent=enabled?"소리 끄기":"소리 켜기";button.setAttribute("aria-pressed",String(enabled));

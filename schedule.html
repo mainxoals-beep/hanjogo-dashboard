@@ -3009,9 +3009,12 @@ function setupRaffleSound(){
    const AudioClass=window.AudioContext||window.webkitAudioContext;
    if(!AudioClass)return;
    if(!raffleAudioContext)raffleAudioContext=new AudioClass();
+   const unlock=raffleAudioContext.createBufferSource();
+   unlock.buffer=raffleAudioContext.createBuffer(1,1,raffleAudioContext.sampleRate);
+   unlock.connect(raffleAudioContext.destination);unlock.start(0);
    await raffleAudioContext.resume();
    raffleSoundEnabled=raffleAudioContext.state==="running";raffleUpdateSoundButton();
-   raffleTone(660,.1,0,.035);
+   [523,659,784].forEach((f,i)=>raffleTone(f,.23,i*.15,.11,"triangle"));
   }catch(e){raffleSoundEnabled=false;raffleUpdateSoundButton();}
  });
  document.addEventListener("visibilitychange",()=>{if(document.hidden)raffleStopSound();});
@@ -3111,7 +3114,7 @@ function openRaffleOverlay(forceWaiting=false){
       lastSpinAt=Date.now();
       let person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
       if(person&&candidates.length>1&&person.name+"|"+person.generation===lastPersonKey)person=candidates[(candidates.indexOf(person)+1)%candidates.length];
-      if(person){lastPersonKey=person.name+"|"+person.generation;setRafflePerson(name,person,true,Math.min(pace*.85,320));raffleTone(720,.035,0,.025,"triangle");}else name.textContent="두근두근…";
+      if(person){lastPersonKey=person.name+"|"+person.generation;setRafflePerson(name,person,true,Math.min(pace*.85,320));raffleTone(720,.055,0,.06,"triangle");}else name.textContent="두근두근…";
       if(foot)foot.textContent="행운의 주인공은…";
     }
   };

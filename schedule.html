@@ -682,6 +682,30 @@ body.site-view-network.modal-open{overflow:auto!important}
  .event-guide-body{padding:16px 18px 4px}.event-guide-foot{padding:13px 18px;gap:8px}
  .event-guide-foot button{padding:10px 14px}.event-guide-details{gap:16px 9px;font-size:14px}
 }
+
+/* Raffle presentation */
+.raffle-live-panel{max-height:calc(100dvh - 48px);overflow:auto;padding:36px 28px;}
+.raffle-live-kicker{font-size:11px;line-height:1.5;letter-spacing:.12em;}
+.raffle-live-prize{line-height:1.35;overflow-wrap:anywhere;}
+.raffle-prize-sponsor{display:block;font-size:clamp(13px,2vw,17px);font-weight:600;color:#ded7fa;margin-bottom:8px;}
+.raffle-live-pool,.raffle-live-foot{line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;}
+.raffle-live-name{position:relative;flex-direction:column;gap:8px;min-height:180px;line-height:1.2;letter-spacing:-.025em;overflow:hidden;}
+.raffle-person-name{display:block;font-size:clamp(32px,8vw,66px);font-weight:900;overflow-wrap:anywhere;}
+.raffle-person-gen{display:block;font-size:clamp(17px,3vw,25px);font-weight:600;letter-spacing:0;opacity:.75;}
+.raffle-live-name.spinning{filter:none;animation:none;}
+.raffle-live-name.winner{animation:raffleWinnerPop .75s cubic-bezier(.16,1,.3,1);}
+.raffle-live-panel.grand{overflow:hidden;border-color:#f5d387;background:linear-gradient(145deg,rgba(93,61,29,.72),rgba(49,32,92,.9));}
+.raffle-live-panel.grand .raffle-live-kicker,.raffle-live-panel.grand .raffle-live-prize{color:#ffe9ae;}
+.raffle-live-panel.grand.celebrating{animation:raffleGoldGlow 2s ease-in-out 4;}
+.raffle-live-panel.grand .raffle-live-name.winner{background:linear-gradient(135deg,#fff9e5,#ffdc83);color:#62411c;box-shadow:0 0 45px #ffdc8370;animation:raffleGrandReveal 1.2s cubic-bezier(.16,1,.3,1);}
+.raffle-live-panel.grand.celebrating::before{content:"";position:absolute;inset:-100%;pointer-events:none;opacity:.22;background:repeating-conic-gradient(from 0deg,transparent 0deg 17deg,#ffd97e 18deg 21deg,transparent 22deg 40deg);animation:raffleRays 24s linear infinite;}
+.raffle-live-panel>*{position:relative;z-index:1;}
+@keyframes raffleGoldGlow{0%,100%{box-shadow:0 25px 80px #0005,0 0 30px #ffd47640}50%{box-shadow:0 0 100px #ffd47680,0 0 180px #b6a0ff40}}
+@keyframes raffleGrandReveal{0%{transform:scale(.86);opacity:0;filter:blur(8px)}60%{transform:scale(1.035);opacity:1;filter:blur(0)}100%{transform:scale(1)}}
+@keyframes raffleRays{to{transform:rotate(360deg)}}
+@media(max-width:620px){.raffle-live-overlay{padding:16px;}.raffle-live-panel{padding:28px 16px;}.raffle-live-name{margin:22px 0 16px;padding:20px 12px;min-height:160px;}.raffle-live-prize{font-size:26px;}}
+@media(prefers-reduced-motion:reduce){.raffle-live-panel.grand.celebrating::before,.raffle-live-panel.grand.celebrating,.raffle-live-panel.grand .raffle-live-name.winner{animation:none!important;}}
+
 </style>
 </head>
 <body>
@@ -2934,18 +2958,38 @@ function closeRaffleOverlay(){
   const overlay=document.getElementById("raffleLiveOverlay");
   if(overlay){overlay.hidden=true;overlay.setAttribute("aria-hidden","true");}
 }
+
+function setRafflePerson(element,person,animate=false,duration=180){
+  if(!element)return;
+  element.getAnimations?.().forEach(a=>a.cancel());
+  element.replaceChildren();
+  const n=document.createElement("span");n.className="raffle-person-name";n.textContent=person.name;
+  const g=document.createElement("span");g.className="raffle-person-gen";g.textContent=person.generation+"기";
+  element.append(n,g);
+  if(animate&&!matchMedia("(prefers-reduced-motion: reduce)").matches){
+    [n,g].forEach((node,i)=>node.animate([{transform:"translateY(22px)",opacity:.12},{transform:"translateY(0)",opacity:1}],{duration:duration+i*15,easing:"cubic-bezier(.16,1,.3,1)",fill:"both"}));
+  }
+}
+function setRafflePrize(element,value){
+  element.replaceChildren();
+  const parts=String(value).split(" · ");
+  if(parts.length>1){const sponsor=document.createElement("span");sponsor.className="raffle-prize-sponsor";sponsor.textContent=parts.shift();element.append(sponsor);}
+  const title=document.createElement("span");title.textContent=parts.join(" · ");element.append(title);
+}
+
 function showRaffleWinner(live){
   clearInterval(raffleAnimationTimer);raffleAnimationTimer=null;
   const name=document.getElementById("raffleLiveName");
   if(!name||name.classList.contains("winner"))return;
   const winner=live?.winner;
-  name.textContent=winner?`${winner.name} · ${winner.generation}기`:"추첨 결과를 확인해주세요";
+  if(winner)setRafflePerson(name,winner);else name.textContent="추첨 결과를 확인해주세요";
   name.classList.remove("countdown","spinning");
   name.classList.add("winner");
   const confetti=document.getElementById("raffleConfetti");
   document.getElementById("raffleLivePanel")?.classList.add("celebrating");
-  const colors=["#ffe395","#e2d7ff","#ffabc9","#b3f0e7","#ffffff","#ffca70"];
-  if(confetti)confetti.innerHTML=Array.from({length:120},(_,i)=>`<i style="--x:${(i*37)%100}%;--c:${colors[i%6]};--s:${5+i%7}px;--t:${3.8+(i%9)*.12}s;--d:${Math.floor(i/40)*.7+(i%8)*.07}s;--drift:${(i%2?1:-1)*(25+i%65)}px;--r:${(i%2?1:-1)*(400+i*13)}deg"></i>`).join("")+Array.from({length:8},(_,i)=>`<b class="raffle-burst" style="--x:${12+(i*29)%76}%;--y:${14+(i*19)%60}%;--c:${colors[i%6]};--d:${.12+i*.24}s"></b>`).join("");
+  const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
+  const colors=grand?["#ffe395","#fff4ce","#eabb57","#ffffff","#f4ce75","#ffca70"]:["#ffe395","#e2d7ff","#ffabc9","#b3f0e7","#ffffff","#ffca70"];
+  if(confetti)confetti.innerHTML=Array.from({length:grand?200:120},(_,i)=>`<i style="--x:${(i*37)%100}%;--c:${colors[i%6]};--s:${5+i%7}px;--t:${3.8+(i%9)*.12}s;--d:${Math.floor(i/40)*.7+(i%8)*.07}s;--drift:${(i%2?1:-1)*(25+i%65)}px;--r:${(i%2?1:-1)*(400+i*13)}deg"></i>`).join("")+Array.from({length:grand?14:8},(_,i)=>`<b class="raffle-burst" style="--x:${12+(i*29)%76}%;--y:${14+(i*19)%60}%;--c:${colors[i%6]};--d:${.12+i*.24}s"></b>`).join("");
   const foot=document.getElementById("raffleLiveFoot");
   if(foot)foot.textContent=rafflePreviewMode?"화면 미리보기입니다 · 실제 당첨이 아닙니다":"축하합니다! 현장에서 경품을 받아주세요.";
 }
@@ -2964,17 +3008,18 @@ function openRaffleOverlay(forceWaiting=false){
   document.getElementById("raffleLivePanel")?.classList.remove("celebrating");
   const confetti=document.getElementById("raffleConfetti");if(confetti)confetti.innerHTML="";
   const kicker=document.getElementById("raffleLiveKicker");if(kicker)kicker.textContent=rafflePreviewMode?"TEST PREVIEW · 실제 당첨 아님":"HANJOGO LIVE RAFFLE";
-  if(prize)prize.textContent=live.prize||"현장 경품 추첨";
+  if(prize)setRafflePrize(prize,live.prize||"현장 경품 추첨");
+  document.getElementById("raffleLivePanel")?.classList.toggle("grand",/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||""));
   if(pool)pool.textContent=live.poolLabel||"추첨 대기 중";
   if(live.status!=="drawing"||!live.winner){
     name.textContent=live.winner?`${live.winner.name} · ${live.winner.generation}기`:(raffleEventStarted()?"추첨을 기다리고 있습니다":"10월 18일 현장에서 만나요");
-    if(live.winner)name.classList.add("winner");
+    if(live.winner){setRafflePerson(name,live.winner);name.classList.add("winner");}
     if(foot)foot.textContent=live.winner?"최근 당첨 결과입니다.":(raffleEventStarted()?"현장 추첨이 시작되면 이 화면이 자동으로 바뀝니다.":"여러 경품의 추첨 결과가 행사 당일 여기에 표시됩니다.");
     return;
   }
   const candidates=Array.isArray(live.candidates)?live.candidates.filter(person=>person.name!==live.winner.name||Number(person.generation)!==Number(live.winner.generation)):[];
   const revealAt=Number(live.revealAt||0);
-  let lastSpinAt=0;
+  let lastSpinAt=0, lastPersonKey="";
   const spin=()=>{
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
@@ -2984,16 +3029,17 @@ function openRaffleOverlay(forceWaiting=false){
       if(foot)foot.textContent="잠시 후 당첨자를 공개합니다";
     }else{
       name.classList.remove("countdown");name.classList.add("spinning");
-      const pace=85+Math.pow(1-remaining/6000,3)*260;
+      const pace=160+Math.pow(1-remaining/6000,2)*300;
       if(Date.now()-lastSpinAt<pace)return;
       lastSpinAt=Date.now();
-      const person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
-      name.textContent=person?`${person.name} · ${person.generation}기`:"두근두근…";
+      let person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
+      if(person&&candidates.length>1&&person.name+"|"+person.generation===lastPersonKey)person=candidates[(candidates.indexOf(person)+1)%candidates.length];
+      if(person){lastPersonKey=person.name+"|"+person.generation;setRafflePerson(name,person,true,Math.min(pace*.85,320));}else name.textContent="두근두근…";
       if(foot)foot.textContent="행운의 주인공은…";
     }
   };
   if(revealAt>Date.now()){
-    spin();raffleAnimationTimer=setInterval(spin,85);
+    spin();raffleAnimationTimer=setInterval(spin,30);
     raffleRevealTimer=setTimeout(()=>showRaffleWinner(live),Math.max(0,revealAt-Date.now()));
   }else showRaffleWinner(live);
 }

@@ -717,6 +717,9 @@ body.site-view-network.modal-open{overflow:auto!important}
 @keyframes raffleGrandArrival{0%{opacity:0;transform:translateY(48px) scale(.78);filter:blur(12px)}45%{opacity:1;transform:translateY(-8px) scale(1.07);filter:blur(0)}70%{transform:translateY(3px) scale(.99)}100%{transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.raffle-live-panel.suspense .raffle-live-name{filter:none;transform:none;transition:none}.raffle-live-panel.grand.celebrating::after{display:none}.raffle-live-panel.grand.suspense .raffle-live-foot,.raffle-live-panel.grand .raffle-live-name.winner{animation:none!important}}
 
+
+.raffle-sound-toggle{position:absolute;top:18px;left:18px;z-index:4;min-height:40px;padding:8px 13px;border:1px solid #ffffff50;border-radius:999px;background:#ffffff18;color:#fff;font:600 12px inherit;cursor:pointer;}
+.raffle-live-overlay{padding-top:70px;}
 </style>
 </head>
 <body>
@@ -1133,6 +1136,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="board-modal" id="boardDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardDetailTitle"><div class="board-dialog-head"><div class="board-dialog-title">게시글</div><button class="board-close" type="button" data-board-close="boardDetailModal" aria-label="닫기">×</button></div><nav class="board-detail-nav" aria-label="게시글 이동"><button type="button" id="boardPrevBtn">← 이전 글</button><span class="board-detail-position" id="boardDetailPosition" aria-live="polite"></span><button type="button" id="boardNextBtn">다음 글 →</button></nav><article class="board-detail" id="boardDetail"></article><div class="board-comments"><div class="board-comments-title" id="boardCommentsTitle">댓글</div><div id="boardComments"></div><form class="board-comment-form" id="boardCommentForm"><input class="board-input" id="boardCommentInput" maxlength="1000" placeholder="댓글을 입력해주세요" required><button class="board-primary-btn" id="boardCommentSubmit" type="submit">댓글 등록</button></form></div></div></div>
 
 <div class="raffle-live-overlay" id="raffleLiveOverlay" hidden aria-hidden="true">
+  <button type="button" class="raffle-sound-toggle" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button>
   <button class="raffle-live-close" id="raffleLiveClose" type="button" aria-label="추첨 화면 닫기">×</button>
   <div class="raffle-confetti" id="raffleConfetti" aria-hidden="true"></div>
   <div class="raffle-live-panel" id="raffleLivePanel" role="dialog" aria-modal="true" aria-labelledby="raffleLivePrize">
@@ -2963,7 +2967,59 @@ renderPublicRaffle();
 
 }
 
+
+let raffleAudioContext=null,raffleSoundEnabled=false,raffleSoundNodes=new Set(),raffleDrumAt=0;
+function raffleStopSound(){
+ for(const n of raffleSoundNodes){try{n.stop();}catch(e){}}
+ raffleSoundNodes.clear();
+}
+function raffleTone(freq,duration=.06,delay=0,volume=.05,type="sine"){
+ if(!raffleSoundEnabled||!raffleAudioContext||raffleAudioContext.state!=="running")return;
+ const c=raffleAudioContext,t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,t);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+ o.connect(g);g.connect(c.destination);raffleSoundNodes.add(o);
+ o.onended=()=>{raffleSoundNodes.delete(o);o.disconnect();g.disconnect();};
+ o.start(t);o.stop(t+duration+.02);
+}
+function raffleDrum(){
+ if(!raffleSoundEnabled||!raffleAudioContext||raffleAudioContext.state!=="running")return;
+ const c=raffleAudioContext,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+ o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(45,t+.07);
+ g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.0001,t+.09);
+ o.connect(g);g.connect(c.destination);raffleSoundNodes.add(o);
+ o.onended=()=>{raffleSoundNodes.delete(o);o.disconnect();g.disconnect();};
+ o.start(t);o.stop(t+.1);
+}
+function raffleFanfare(grand){
+ raffleStopSound();
+ const melody=grand?[523,659,784,1047,784,1047,1319,1568]:[523,659,784,1047];
+ melody.forEach((f,i)=>{raffleTone(f,.32,i*.16,.07,"triangle");if(grand)raffleTone(f/2,.4,i*.16,.035,"sine");});
+ [523,659,784,1047].forEach(f=>raffleTone(f,grand?1.1:.65,melody.length*.16,.025,"triangle"));
+}
+function raffleUpdateSoundButton(){
+ const b=document.getElementById("raffleSoundToggle");
+ if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}
+}
+function setupRaffleSound(){
+ const b=document.getElementById("raffleSoundToggle");if(!b)return;
+ b.addEventListener("click",async()=>{
+  if(raffleSoundEnabled){raffleSoundEnabled=false;raffleStopSound();raffleUpdateSoundButton();return;}
+  try{
+   const AudioClass=window.AudioContext||window.webkitAudioContext;
+   if(!AudioClass)return;
+   if(!raffleAudioContext)raffleAudioContext=new AudioClass();
+   await raffleAudioContext.resume();
+   raffleSoundEnabled=raffleAudioContext.state==="running";raffleUpdateSoundButton();
+   raffleTone(660,.1,0,.035);
+  }catch(e){raffleSoundEnabled=false;raffleUpdateSoundButton();}
+ });
+ document.addEventListener("visibilitychange",()=>{if(document.hidden)raffleStopSound();});
+}
+setupRaffleSound();
+
 function closeRaffleOverlay(){
+  raffleStopSound();
   clearInterval(raffleAnimationTimer);clearTimeout(raffleRevealTimer);
   raffleAnimationTimer=null;raffleRevealTimer=null;
   const overlay=document.getElementById("raffleLiveOverlay");
@@ -2997,6 +3053,7 @@ function showRaffleWinner(live){
   if(winner)setRafflePerson(name,winner);else name.textContent="추첨 결과를 확인해주세요";
   name.classList.remove("countdown","spinning");
   name.classList.add("winner");
+  raffleFanfare(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||""));
   const confetti=document.getElementById("raffleConfetti");
   document.getElementById("raffleLivePanel")?.classList.add("celebrating");
   const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
@@ -3031,11 +3088,13 @@ function openRaffleOverlay(forceWaiting=false){
   }
   const candidates=Array.isArray(live.candidates)?live.candidates.filter(person=>person.name!==live.winner.name||Number(person.generation)!==Number(live.winner.generation)):[];
   const revealAt=Number(live.revealAt||0);
-  let lastSpinAt=0, lastPersonKey="";
+  let lastSpinAt=0, lastPersonKey="",lastCount=0;
+  raffleDrumAt=0;raffleStopSound();
   const spin=()=>{
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
     if(remaining<=1200){
+      if(remaining>180&&Date.now()-raffleDrumAt>75){raffleDrumAt=Date.now();raffleDrum();}
       document.getElementById("raffleLivePanel")?.classList.add("suspense");
       if(foot)foot.textContent=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?"오늘의 주인공은…":"과연, 행운의 주인공은…";
       return;
@@ -3043,6 +3102,7 @@ function openRaffleOverlay(forceWaiting=false){
     if(remaining>6000){
       name.classList.add("countdown");name.classList.remove("spinning");
       name.textContent=Math.min(5,Math.ceil((remaining-6000)/1000));
+      if(Number(name.textContent)!==lastCount){lastCount=Number(name.textContent);raffleTone(440,.1,0,.045);}
       if(foot)foot.textContent="잠시 후 당첨자를 공개합니다";
     }else{
       name.classList.remove("countdown");name.classList.add("spinning");
@@ -3051,7 +3111,7 @@ function openRaffleOverlay(forceWaiting=false){
       lastSpinAt=Date.now();
       let person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
       if(person&&candidates.length>1&&person.name+"|"+person.generation===lastPersonKey)person=candidates[(candidates.indexOf(person)+1)%candidates.length];
-      if(person){lastPersonKey=person.name+"|"+person.generation;setRafflePerson(name,person,true,Math.min(pace*.85,320));}else name.textContent="두근두근…";
+      if(person){lastPersonKey=person.name+"|"+person.generation;setRafflePerson(name,person,true,Math.min(pace*.85,320));raffleTone(720,.035,0,.025,"triangle");}else name.textContent="두근두근…";
       if(foot)foot.textContent="행운의 주인공은…";
     }
   };

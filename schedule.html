@@ -3012,8 +3012,8 @@ const rafflePlayer=document.createElement("audio");rafflePlayer.preload="auto";r
   return URL.createObjectURL(new Blob([bytes],{type:"audio/wav"}));
  }
  const check=wave(1.2,[[0,523,.3,.45],[.3,659,.3,.45],[.6,784,.5,.45]]);
- function track(grand,pause=4){
-  const reveal=grand?15:11,shift=reveal-11;
+ function track(grand,pause=grand?6:4){
+  const reveal=grand?18:11,shift=reveal-11;
   const notes=[],add=(at,f,d,v,k)=>notes.push([at,f,d,v,k]);
   for(let i=0;i<5;i++){add(i,523,.2,.32);add(i,1047,.12,.12);add(i,62,.2,.3,"drum");}
   const stop=reveal-pause,pattern=[523,659,784,988,880,784,659,587];
@@ -3049,7 +3049,7 @@ function raffleTone(){} function raffleDrum(){} function rafflePercussion(){} fu
 function raffleUpdateSoundButton(){const b=document.getElementById("raffleSoundToggle");if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}}
 function rafflePlayScore(live){
  if(!raffleSoundEnabled||!live||live.status!=="drawing")return;
- const elapsed=Math.max(0,(Date.now()-(Number(live.startedAt||Number(live.revealAt)-11000)))/1000);if(elapsed>=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?21:17))return;
+ const elapsed=Math.max(0,(Date.now()-(Number(live.startedAt||Number(live.revealAt)-11000)))/1000);if(elapsed>=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?24:17))return;
  const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
  rafflePlayer.src=grand?raffleScores.grand:/위스키|브라클라|데킬라|테킬라|패트론|페트론|whisk(?:y|ey)|brackla|tequila|patr[oó]n/i.test(live.prize||"")?raffleScores.spirits:raffleScores.normal;rafflePlayer.currentTime=elapsed;
  rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});
@@ -3141,7 +3141,7 @@ function openRaffleOverlay(forceWaiting=false){
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
     if(remaining<=2600&&remaining>1200&&Date.now()-raffleDrumAt>110){raffleDrumAt=Date.now();rafflePercussion("snare",.17);}
-    if(remaining<=4000){
+    if(remaining<=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?6000:4000)){
       if(remaining>180&&Date.now()-raffleDrumAt>Math.max(32,35+remaining*.055)){raffleDrumAt=Date.now();raffleDrum();}
       document.getElementById("raffleLivePanel")?.classList.add("suspense");
       const staged=true;
@@ -3162,7 +3162,7 @@ function openRaffleOverlay(forceWaiting=false){
       if(foot)foot.textContent=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?"오늘의 주인공은…":"과연, 행운의 주인공은…";
       return;
     }
-    const rollWindow=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?10000:6000;
+    const rollWindow=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?13000:6000;
     if(remaining>rollWindow){
       name.classList.add("countdown");name.classList.remove("spinning");
       name.textContent=Math.min(5,Math.ceil((remaining-rollWindow)/1000));

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <title>한조고 졸업생 네트워크 · 모임과 동문 연결</title>
 <meta name="description" content="2026 한조고 네트워크 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
@@ -2983,83 +2983,87 @@ renderPublicRaffle();
 }
 
 
-let raffleAudioContext=null,raffleSoundEnabled=false,raffleSoundNodes=new Set(),raffleDrumAt=0;
-function raffleStopSound(){
- for(const n of raffleSoundNodes){try{n.stop();}catch(e){}}
- raffleSoundNodes.clear();
-}
-function raffleTone(freq,duration=.06,delay=0,volume=.05,type="sine"){
- if(!raffleSoundEnabled||!raffleAudioContext||raffleAudioContext.state!=="running")return;
- const c=raffleAudioContext,t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();
- o.type=type;o.frequency.setValueAtTime(freq,t);
- g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume*1.3,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
- o.connect(g);g.connect(c.destination);raffleSoundNodes.add(o);
- o.onended=()=>{raffleSoundNodes.delete(o);o.disconnect();g.disconnect();};
- o.start(t);o.stop(t+duration+.02);
-}
-function rafflePercussion(kind="snare",volume=.18){
- if(!raffleSoundEnabled||!raffleAudioContext||raffleAudioContext.state!=="running")return;
- const c=raffleAudioContext,duration=kind==="cymbal"?1.5:.13,buffer=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate),samples=buffer.getChannelData(0);
- for(let i=0;i<samples.length;i++){
-  const t=i/c.sampleRate,envelope=Math.exp(-t*(kind==="cymbal"?3.5:30));
-  samples[i]=((Math.random()*2-1)*(kind==="cymbal"?.9:.65)+(kind==="cymbal"?Math.sin(t*28000)*.1:Math.sin(2*Math.PI*175*t)*.35))*envelope;
+let raffleSoundEnabled=false,raffleDrumAt=0,raffleAudioDraw="";
+const rafflePlayer=document.createElement("audio");rafflePlayer.preload="auto";rafflePlayer.volume=1;rafflePlayer.setAttribute("playsinline","");document.body.append(rafflePlayer);
+ function wave(seconds,notes){
+  const rate=22050,size=Math.ceil(seconds*rate),samples=new Float32Array(size);
+  for(const [start,freq,duration,volume,kind="bell"] of notes){
+   const first=Math.floor(start*rate),length=Math.floor(duration*rate);
+   for(let i=0;i<length&&first+i<size;i++){
+    const t=i/rate,envelope=Math.min(1,t/.008)*Math.pow(Math.max(0,1-t/duration),1.5);
+    const phase=2*Math.PI*freq*t;
+    let sound;
+    if(kind==="drum")sound=Math.sin(2*Math.PI*(48*t+1.8*(1-Math.exp(-t*35))))*.85+(Math.random()*2-1)*Math.exp(-t*55)*.15;
+    else if(kind==="snare")sound=(Math.random()*2-1)*.65+Math.sin(phase)*.35;
+    else if(kind==="tom")sound=Math.sin(2*Math.PI*(freq*t+1.2*(1-Math.exp(-t*25))))*.92+(Math.random()*2-1)*.08;
+    else if(kind==="cymbal")sound=(Math.random()*2-1)*.7+(Math.sin(phase*7.13)+Math.sin(phase*10.71))*.15;
+    else if(kind==="rise")sound=Math.sin(phase+2*Math.PI*650*t*t)*.65+(Math.random()*2-1)*.2;
+    else if(kind==="brass")sound=(Math.sin(phase)+.35*Math.sin(phase*2)+.18*Math.sin(phase*3))*.65;
+    else if(kind==="pad")sound=(Math.sin(phase)+Math.sin(phase*1.003))*.45;
+    else sound=Math.sin(phase)*.65+Math.sin(phase*2)*Math.exp(-t*8)*.23+Math.sin(phase*3)*Math.exp(-t*15)*.12;
+    samples[first+i]+=sound*envelope*volume;
+   }
+  }
+  const bytes=new ArrayBuffer(44+size*2),v=new DataView(bytes);
+  const str=(at,value)=>{for(let i=0;i<value.length;i++)v.setUint8(at+i,value.charCodeAt(i));};
+  str(0,"RIFF");v.setUint32(4,36+size*2,true);str(8,"WAVE");str(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,"data");v.setUint32(40,size*2,true);
+  for(let i=0;i<size;i++)v.setInt16(44+i*2,Math.tanh(samples[i]*1.35)*32767,true);
+  return URL.createObjectURL(new Blob([bytes],{type:"audio/wav"}));
  }
- const source=c.createBufferSource(),gain=c.createGain(),filter=c.createBiquadFilter();
- source.buffer=buffer;filter.type="highpass";filter.frequency.value=kind==="cymbal"?3500:650;gain.gain.value=volume;
- source.connect(filter);filter.connect(gain);gain.connect(c.destination);raffleSoundNodes.add(source);
- source.onended=()=>{raffleSoundNodes.delete(source);source.disconnect();filter.disconnect();gain.disconnect();};
- source.start();
-}
-function raffleDrum(){
- rafflePercussion("snare",.27);
- raffleTone(115,.12,0,.1,"sine");
-}
-function raffleFanfare(grand){
- raffleStopSound();
- rafflePercussion("cymbal",.25);
- const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,1047];
- raffleDrum();
- melody.forEach((f,i)=>{
-  raffleTone(f,.38,i*.18,.1,"triangle");
-  raffleTone(f/2,.4,i*.18,.045,"sine");
-  raffleTone(f,.28,i*.18+.11,.018,"sine");
- });
- const end=melody.length*.18;
- [262,523,659,784,1047].forEach(f=>raffleTone(f,grand?1.7:1.2,end,.035,"triangle"));
- if(grand)for(let i=0;i<8;i++)raffleTone([1047,1319,1568,2093][i%4],.5,end+i*.095,.045,"sine");
-}
-function raffleUpdateSoundButton(){
- const b=document.getElementById("raffleSoundToggle");
- if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}
+ const check=wave(1.2,[[0,523,.3,.45],[.3,659,.3,.45],[.6,784,.5,.45]]);
+ function track(grand){
+  const notes=[],add=(at,f,d,v,k)=>notes.push([at,f,d,v,k]);
+  for(let i=0;i<5;i++){add(i,523,.2,.32);add(i,1047,.12,.12);add(i,62,.2,.3,"drum");}
+  const stop=grand?8.6:9.8,pattern=[523,659,784,988,880,784,659,587];
+  let step=0;
+  for(let at=5;at<stop;at+=.17+(at-5)*.055){
+   const f=pattern[step%8];add(at,f,.15,.3);add(at+.08,f*2,.12,.09);
+   add(at,step%2?155:65,.12,.25,step%2?"snare":"drum");step++;
+  }
+  [131,196,262].forEach(f=>add(5,f,5.7,.09,"pad"));
+  const rollStart=grand?8.3:8.8;
+  add(rollStart,180,10.8-rollStart,.18,"rise");
+  let roll=0;
+  for(let at=rollStart;at<10.82;at+=Math.max(.028,.12-(at-rollStart)*.045)){
+   const progress=(at-rollStart)/(10.82-rollStart);
+   add(at,roll%2?190:155,.095,.22+progress*.19,"snare");
+   if(roll%3===0)add(at,roll%2?100:135,.17,.32,"tom");roll++;
+  }
+  add(11,55,.5,.55,"drum");add(11,320,1.8,.28,"cymbal");
+  const chords=[[262,330,392],[220,262,330],[175,220,262],[196,247,294],[262,330,392]];
+  chords.forEach((ch,i)=>ch.forEach(f=>{add(11+i*.46,f,.72,.115,"brass");add(11+i*.46,f/2,.55,.07,"pad");}));
+  const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,880,784,1047];
+  melody.forEach((f,i)=>{add(11+i*.2,f,.4,.29,"brass");add(11+i*.2+.13,f,.36,.07);});
+  const end=13.35;
+  [131,262,523,659,784,1047].forEach(f=>add(end,f,grand?2.2:1.6,.11,"pad"));
+  for(let i=0;i<(grand?12:6);i++)add(end+i*.1,[1047,1319,1568,2093][i%4],.6,.13);
+  if(grand){add(end,320,2,.27,"cymbal");add(end,60,.5,.4,"drum");}
+  return wave(17,notes);
+ }
+
+const raffleScores={normal:track(false),grand:track(true)};
+function raffleStopSound(){rafflePlayer.pause();}
+function raffleTone(){} function raffleDrum(){} function rafflePercussion(){} function raffleFanfare(){}
+function raffleUpdateSoundButton(){const b=document.getElementById("raffleSoundToggle");if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}}
+function rafflePlayScore(live){
+ if(!raffleSoundEnabled||!live||live.status!=="drawing")return;
+ const elapsed=Math.max(0,(Date.now()-(Number(live.revealAt)-11000))/1000);if(elapsed>=17)return;
+ const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
+ rafflePlayer.src=grand?raffleScores.grand:raffleScores.normal;rafflePlayer.currentTime=elapsed;
+ rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});
 }
 function setupRaffleSound(){
  const b=document.getElementById("raffleSoundToggle");if(!b)return;
- b.addEventListener("click",async()=>{
-  if(raffleSoundEnabled){raffleSoundEnabled=false;raffleStopSound();raffleUpdateSoundButton();return;}
-  try{
-   const AudioClass=window.AudioContext||window.webkitAudioContext;
-   if(!AudioClass)return;
-   if(!raffleAudioContext)raffleAudioContext=new AudioClass();
-   const unlock=raffleAudioContext.createBufferSource();
-   unlock.buffer=raffleAudioContext.createBuffer(1,1,raffleAudioContext.sampleRate);
-   unlock.connect(raffleAudioContext.destination);unlock.start(0);
-   await raffleAudioContext.resume();
-   raffleSoundEnabled=raffleAudioContext.state==="running";raffleUpdateSoundButton();
-   [523,659,784].forEach((f,i)=>raffleTone(f,.23,i*.15,.11,"triangle"));
-  }catch(e){raffleSoundEnabled=false;raffleUpdateSoundButton();}
+ b.addEventListener("click",()=>{
+  raffleSoundEnabled=!raffleSoundEnabled;raffleUpdateSoundButton();
+  if(!raffleSoundEnabled){raffleStopSound();return;}
+  const live=publicRaffleCenter?.live;
+  if(live?.status==="drawing"&&Number(live.revealAt)>Date.now())rafflePlayScore(live);
+  else{rafflePlayer.src=check;rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});}
  });
  document.addEventListener("visibilitychange",()=>{if(document.hidden)raffleStopSound();});
 }
 setupRaffleSound();
-
-function closeRaffleOverlay(){
-  raffleStopSound();
-  clearInterval(raffleAnimationTimer);clearTimeout(raffleRevealTimer);
-  raffleAnimationTimer=null;raffleRevealTimer=null;
-  const overlay=document.getElementById("raffleLiveOverlay");
-  if(overlay){overlay.hidden=true;overlay.setAttribute("aria-hidden","true");}
-}
-
 function setRafflePerson(element,person,animate=false,duration=180){
   if(!element)return;
   element.getAnimations?.().forEach(a=>a.cancel());
@@ -3123,12 +3127,12 @@ function openRaffleOverlay(forceWaiting=false){
   const candidates=Array.isArray(live.candidates)?live.candidates.filter(person=>person.name!==live.winner.name||Number(person.generation)!==Number(live.winner.generation)):[];
   const revealAt=Number(live.revealAt||0);
   let lastSpinAt=0, lastPersonKey="",lastCount=0;
-  raffleDrumAt=0;raffleStopSound();
+  raffleDrumAt=0;raffleStopSound();rafflePlayScore(live);
   const spin=()=>{
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
     if(remaining<=2600&&remaining>1200&&Date.now()-raffleDrumAt>110){raffleDrumAt=Date.now();rafflePercussion("snare",.17);}
-    if(remaining<=1200){
+    if(remaining<=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?2400:1200)){
       if(remaining>180&&Date.now()-raffleDrumAt>Math.max(32,35+remaining*.055)){raffleDrumAt=Date.now();raffleDrum();}
       document.getElementById("raffleLivePanel")?.classList.add("suspense");
       if(foot)foot.textContent=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?"오늘의 주인공은…":"과연, 행운의 주인공은…";

@@ -1111,6 +1111,37 @@
 @media(max-width:760px){#body-participants .p-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}}
 @media(max-width:380px){#body-participants .p-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .raffle-sound-control{min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--purple-dark);font-size:15px;font-weight:700;cursor:pointer}.raffle-sound-control[aria-pressed="true"]{background:var(--purple-light);border-color:var(--purple)}
+
+#section-raffle-center .raffle-workspace{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,1fr);gap:16px;align-items:start}
+#section-raffle-center .raffle-main-column,#section-raffle-center .raffle-side-column{display:grid;gap:14px;min-width:0}
+#section-raffle-center .raffle-admin-box{padding:20px;border:1px solid var(--line);border-radius:16px;background:#fff;min-width:0}
+#section-raffle-center .raffle-primary-panel{border-top:3px solid var(--purple)}
+#section-raffle-center .raffle-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#section-raffle-center .raffle-admin-title{font-size:17px;margin:0}
+#section-raffle-center .raffle-admin-sub{font-size:12px;line-height:1.65;margin:10px 0;color:var(--ink-sub)}
+#section-raffle-center .raffle-selection-grid{display:grid;grid-template-columns:85px minmax(0,1fr);gap:10px}
+#section-raffle-center .raffle-selection-grid label,.raffle-field-label{font-size:12px;font-weight:600;color:var(--ink-sub);display:block}
+#section-raffle-center input,#section-raffle-center select{min-width:0;width:100%;min-height:46px;font-size:16px;border-radius:10px}
+#section-raffle-center .raffle-selection-grid select{margin-top:6px}
+#section-raffle-center .raffle-draw-controls{display:grid;gap:8px;margin-top:16px}
+#section-raffle-center .raffle-field-label:not(:first-child){margin-top:8px}
+#section-raffle-center .raffle-live-action{margin-top:12px}
+#section-raffle-center .raffle-live-action span{display:block;font-size:11px;color:var(--ink-sub);text-align:center;margin:8px 0}
+#section-raffle-center .raffle-draw-btn{min-height:56px;font-size:17px;width:100%;border-radius:12px}
+#section-raffle-center .raffle-display-btn{min-height:44px;padding:10px 12px;font-size:13px;border-radius:10px;width:100%;text-align:center}
+#section-raffle-center .raffle-disclosure>summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--purple-dark);padding:4px 0}
+#section-raffle-center .raffle-disclosure>summary span{font-size:11px;font-weight:400;color:var(--ink-sub);margin-left:6px}
+#section-raffle-center .raffle-disclosure[open]>summary{margin-bottom:12px}
+#section-raffle-center .raffle-primary-panel .raffle-disclosure{margin-top:12px;padding:10px 12px;background:var(--ivory);border-radius:10px}
+#section-raffle-center .raffle-audio-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+#section-raffle-center #raffleAudioStatus{font-size:12px;color:var(--ink-sub);flex:1;min-width:140px}
+#section-raffle-center .raffle-test-actions{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
+#section-raffle-center .raffle-entry-form{display:grid;grid-template-columns:minmax(0,1fr) 65px;gap:8px}
+#section-raffle-center .raffle-entry-form button{grid-column:1/-1;min-height:44px}
+#section-raffle-center .raffle-utility-actions{display:grid;gap:10px}
+#section-raffle-center .raffle-admin-status:empty{display:none}
+#section-raffle-center .raffle-entry-list,#section-raffle-center #raffleRosterList{max-height:360px;overflow:auto}
+@media(max-width:760px){#section-raffle-center .raffle-workspace{grid-template-columns:1fr}#section-raffle-center .raffle-admin-box{padding:16px}#section-raffle-center .sec-head{flex-wrap:wrap}#section-raffle-center .raffle-test-actions{grid-template-columns:1fr}#section-raffle-center .raffle-selection-grid{grid-template-columns:72px minmax(0,1fr)}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
@@ -1588,68 +1619,57 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
   <!-- ===== 현장 통합 경품 추첨 ===== -->
   <section id="section-raffle-center">
     <div class="sec-head">
-      <div>
-        <div class="sec-title">현장 통합 경품 추첨</div>
-        <div class="sec-note">행사 경품마다 추첨 대상을 선택해 같은 실시간 화면에서 진행합니다. 추첨은 10월 18일 현장에서 진행 예정입니다.</div>
-      </div>
-      <div class="sec-head-right">
-        <div class="sec-note" id="raffleEntrySummary">참가 확정 0명 · 스토리 참여 0명 · 추첨 0회</div>
-        <button class="collapse-btn" data-target="body-raffle-center"><span class="chevron">▾</span><span class="collapse-label">펼치기</span></button>
-      </div>
+      <div><div class="sec-title">현장 경품 추첨</div><div class="sec-note">경품 선택 → 대상 확인 → 추첨 시작</div></div>
+      <div class="sec-head-right"><div class="sec-note" id="raffleEntrySummary"></div><button class="collapse-btn" data-target="body-raffle-center"><span class="chevron">▾</span><span class="collapse-label">접기</span></button></div>
     </div>
     <div class="sec-body" id="body-raffle-center">
-      <div class="raffle-admin-grid">
-        <div class="raffle-admin-box">
-          <div class="raffle-admin-title">추가 참여 방식 · 스토리 참여자 등록</div>
-          <div class="raffle-admin-sub">@kcas_archived 팔로우 여부, 행사 사진 스토리의 계정 태그, 이름·기수 DM을 모두 확인한 뒤 등록해주세요. 중복은 자동으로 막습니다.</div>
-          <form class="raffle-entry-form" id="raffleEntryForm">
-            <input class="lockable" id="raffleEntryName" list="raffleParticipantSuggestions" maxlength="60" placeholder="이름 검색 · 참가자 선택" autocomplete="off" required>
-            <datalist id="raffleParticipantSuggestions"></datalist>
-            <input class="lockable" id="raffleEntryGeneration" type="number" min="1" max="99" placeholder="기수" required>
-            <button class="lockable" type="submit">등록</button>
-          </form>
-          <div class="raffle-admin-sub" id="raffleEntryMatchHint">참가자 이름을 선택하면 기수가 자동으로 입력됩니다.</div>
-          <div class="raffle-entry-list" id="raffleStoryEntries"></div>
-        </div>
-        <div class="raffle-admin-box">
-          <div class="raffle-admin-title">전체 경품 실시간 추첨</div>
-          <div class="raffle-admin-sub">행사에서 진행할 각 경품의 이름과 추첨 대상을 선택하세요. 일반 경품과 스토리 참여 경품 모두 이 화면에서 추첨하고 기록합니다.</div>
-          <div class="raffle-admin-box" style="margin-bottom:12px">
-  <div class="raffle-admin-title">1·2부 경품 운영표 · 관리자 전용</div>
-  <p id="rafflePlanStatus" class="raffle-admin-sub">관리자 로그인 후 비공개 경품 계획을 불러올 수 있습니다.</p>
-  <button type="button" id="rafflePlanLogin" class="mini-btn">관리자 로그인 링크 받기</button>
-  <button type="button" id="rafflePlanReload" class="mini-btn">계획 새로고침</button>
-  <div id="rafflePlanBody" hidden>
-    <div class="raffle-control-row">
-      <select id="rafflePartSelect" aria-label="추첨 부"><option value="1">1부</option><option value="2">2부</option></select>
-      <select id="rafflePlanSelect" aria-label="추첨 경품"></select>
-    </div>
-    <div id="rafflePlanSummary" class="raffle-admin-sub"></div>
-    <div id="rafflePlanList"></div>
-    <p class="raffle-admin-sub">선택한 경품으로 1명씩 추첨합니다. 테스트는 수량에 포함되지 않습니다. 기록을 삭제해도 지급 수량은 복원되지 않습니다. 실제 추첨 시 경품명과 당첨 결과가 외부에 송출됩니다.</p>
-  </div>
-</div>
-<div class="raffle-draw-controls">
-            <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품명 또는 협찬사명 · 예: 삼성웰스토리 경품">
-            <div class="raffle-control-row">
-              <select class="lockable" id="rafflePoolSelect">
-                <option value="confirmed">전체 참여자 · 위원·후원·협찬 포함</option>
-                <option value="story">인스타 스토리 참여자</option>
-              </select>
-              <span class="raffle-check">한 번 당첨된 사람은 모든 후속 추첨에서 자동 제외</span>
+      <div class="raffle-workspace">
+        <div class="raffle-main-column">
+          <div class="raffle-admin-box raffle-primary-panel">
+            <div class="raffle-panel-heading"><div class="raffle-admin-title">경품 선택</div><button type="button" id="rafflePlanReload" class="mini-btn">새로고침</button></div>
+            <p id="rafflePlanStatus" class="raffle-admin-sub">관리자 로그인 후 경품 계획을 불러옵니다.</p>
+            <button type="button" id="rafflePlanLogin" class="mini-btn">관리자 로그인 링크 받기</button>
+            <div id="rafflePlanBody" hidden>
+              <div class="raffle-selection-grid">
+                <label>진행 순서<select id="rafflePartSelect"><option value="1">1부</option><option value="2">2부</option></select></label>
+                <label>추첨할 경품<select id="rafflePlanSelect"></select></label>
+              </div>
+              <div id="rafflePlanSummary" class="raffle-admin-sub"></div>
+              <details class="raffle-disclosure"><summary>경품별 남은 수량</summary><div id="rafflePlanList"></div><p class="raffle-admin-sub">기록을 삭제해도 지급 수량은 복원되지 않습니다.</p></details>
             </div>
-            <button class="raffle-display-btn" id="raffleTestBtn" type="button">테스트 추첨</button>
-            <div class="raffle-admin-status" id="raffleTestResult" aria-live="polite">최신 추첨 화면으로 연습합니다. 외부 송출이나 실제 당첨 기록에는 반영되지 않습니다.</div>
-            <button class="raffle-display-btn" id="raffleTestResetBtn" type="button">테스트 기록 초기화</button>
-            <div style="margin:12px 0"><button type="button" class="raffle-sound-control" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button><span id="raffleAudioStatus" style="margin-left:8px;font-size:13px">테스트 전에 눌러 소리를 확인해주세요.</span></div><iframe id="raffleTestPreview" title="내부 테스트 추첨 · 실제 당첨 아님" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:600px;border:0;border-radius:16px"></iframe>
-            <button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작 · 외부에 송출</button>
-            <details><summary>자동 연동 명단 확인</summary><button class="raffle-display-btn" id="raffleSyncBtn" type="button">최신 명단 불러오기</button><div id="raffleRosterList"></div></details>
-            <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기</button>
-            <a class="raffle-display-btn" href="./assets/hanjogo-live-raffle-qr.png" download="한조고_실시간경품추첨_QR.png">안내용 QR 이미지 저장</a>
-            <button class="raffle-display-btn lockable" id="raffleResetDisplayBtn" type="button">외부 화면을 대기 상태로 전환</button>
+            <div class="raffle-draw-controls">
+              <label class="raffle-field-label" for="rafflePrizeName">화면에 표시할 경품명</label>
+              <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품을 선택하거나 직접 입력해주세요">
+              <label class="raffle-field-label" for="rafflePoolSelect">추첨 대상</label>
+              <select class="lockable" id="rafflePoolSelect"><option value="confirmed">전체 참가자</option><option value="story">인스타 스토리 참여자</option></select>
+              <div class="raffle-live-action"><button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작</button><span>선택한 경품으로 1명 추첨 · 외부 화면에 실시간 송출</span></div>
+            </div>
+            <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
+            <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기 ↗</button>
           </div>
-          <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
-          <div class="raffle-history" id="raffleHistory"></div>
+          <details class="raffle-admin-box raffle-disclosure raffle-rehearsal" id="raffleRehearsalPanel">
+            <summary>테스트 추첨 <span>화면·소리 미리 확인</span></summary>
+            <p class="raffle-admin-sub">위에서 선택한 경품과 대상으로 연습합니다. 실제 당첨 기록과 경품 수량에는 반영되지 않습니다.</p>
+            <div class="raffle-audio-row"><button type="button" class="raffle-sound-control" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button><span id="raffleAudioStatus">테스트 전에 소리를 확인해주세요.</span></div>
+            <div class="raffle-test-actions"><button class="raffle-display-btn" id="raffleTestBtn" type="button">테스트 시작</button><button class="mini-btn" id="raffleTestResetBtn" type="button">테스트 기록 초기화</button></div>
+            <div class="raffle-admin-status" id="raffleTestResult" aria-live="polite"></div>
+            <iframe id="raffleTestPreview" title="내부 테스트 추첨 · 실제 당첨 아님" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:600px;border:0;border-radius:16px"></iframe>
+          </details>
+          <details class="raffle-admin-box raffle-disclosure"><summary>당첨 기록</summary><div class="raffle-history" id="raffleHistory"></div></details>
+        </div>
+        <div class="raffle-side-column">
+          <div class="raffle-admin-box">
+            <div class="raffle-admin-title">스토리 참여자 등록</div>
+            <p class="raffle-admin-sub">팔로우·스토리 태그·이름과 기수 DM 확인 후 등록해주세요.</p>
+            <form class="raffle-entry-form" id="raffleEntryForm">
+              <input class="lockable" id="raffleEntryName" list="raffleParticipantSuggestions" maxlength="60" placeholder="참가자 이름 검색" autocomplete="off" aria-label="참가자 이름" required><datalist id="raffleParticipantSuggestions"></datalist>
+              <input class="lockable" id="raffleEntryGeneration" type="number" min="1" max="99" placeholder="기수" aria-label="기수" required><button class="lockable" type="submit">등록</button>
+            </form>
+            <div class="raffle-admin-sub" id="raffleEntryMatchHint">이름을 선택하면 기수가 자동 입력됩니다.</div>
+            <details class="raffle-disclosure"><summary>등록된 스토리 참여자</summary><div class="raffle-entry-list" id="raffleStoryEntries"></div></details>
+          </div>
+          <details class="raffle-admin-box raffle-disclosure"><summary>참가 명단 확인</summary><button class="raffle-display-btn" id="raffleSyncBtn" type="button">최신 명단 불러오기</button><div id="raffleRosterList"></div></details>
+          <details class="raffle-admin-box raffle-disclosure"><summary>화면 관리 · QR</summary><div class="raffle-utility-actions"><a class="raffle-display-btn" href="./assets/hanjogo-live-raffle-qr.png" download="한조고_실시간경품추첨_QR.png">안내용 QR 저장</a><button class="raffle-display-btn lockable" id="raffleResetDisplayBtn" type="button">외부 화면을 대기로 전환</button></div></details>
         </div>
       </div>
     </div>

@@ -2982,17 +2982,26 @@ function raffleTone(freq,duration=.06,delay=0,volume=.05,type="sine"){
  o.onended=()=>{raffleSoundNodes.delete(o);o.disconnect();g.disconnect();};
  o.start(t);o.stop(t+duration+.02);
 }
-function raffleDrum(){
+function rafflePercussion(kind="snare",volume=.18){
  if(!raffleSoundEnabled||!raffleAudioContext||raffleAudioContext.state!=="running")return;
- const c=raffleAudioContext,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
- o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(45,t+.07);
- g.gain.setValueAtTime(.14,t);g.gain.exponentialRampToValueAtTime(.0001,t+.09);
- o.connect(g);g.connect(c.destination);raffleSoundNodes.add(o);
- o.onended=()=>{raffleSoundNodes.delete(o);o.disconnect();g.disconnect();};
- o.start(t);o.stop(t+.1);
+ const c=raffleAudioContext,duration=kind==="cymbal"?1.5:.13,buffer=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate),samples=buffer.getChannelData(0);
+ for(let i=0;i<samples.length;i++){
+  const t=i/c.sampleRate,envelope=Math.exp(-t*(kind==="cymbal"?3.5:30));
+  samples[i]=((Math.random()*2-1)*(kind==="cymbal"?.9:.65)+(kind==="cymbal"?Math.sin(t*28000)*.1:Math.sin(2*Math.PI*175*t)*.35))*envelope;
+ }
+ const source=c.createBufferSource(),gain=c.createGain(),filter=c.createBiquadFilter();
+ source.buffer=buffer;filter.type="highpass";filter.frequency.value=kind==="cymbal"?3500:650;gain.gain.value=volume;
+ source.connect(filter);filter.connect(gain);gain.connect(c.destination);raffleSoundNodes.add(source);
+ source.onended=()=>{raffleSoundNodes.delete(source);source.disconnect();filter.disconnect();gain.disconnect();};
+ source.start();
+}
+function raffleDrum(){
+ rafflePercussion("snare",.27);
+ raffleTone(115,.12,0,.1,"sine");
 }
 function raffleFanfare(grand){
  raffleStopSound();
+ rafflePercussion("cymbal",.25);
  const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,1047];
  raffleDrum();
  melody.forEach((f,i)=>{
@@ -3103,8 +3112,9 @@ function openRaffleOverlay(forceWaiting=false){
   const spin=()=>{
     const remaining=revealAt-Date.now();
     if(remaining<=0){showRaffleWinner(live);return;}
+    if(remaining<=2600&&remaining>1200&&Date.now()-raffleDrumAt>110){raffleDrumAt=Date.now();rafflePercussion("snare",.17);}
     if(remaining<=1200){
-      if(remaining>180&&Date.now()-raffleDrumAt>75){raffleDrumAt=Date.now();raffleDrum();}
+      if(remaining>180&&Date.now()-raffleDrumAt>Math.max(32,35+remaining*.055)){raffleDrumAt=Date.now();raffleDrum();}
       document.getElementById("raffleLivePanel")?.classList.add("suspense");
       if(foot)foot.textContent=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?"오늘의 주인공은…":"과연, 행운의 주인공은…";
       return;

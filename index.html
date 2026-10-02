@@ -6344,7 +6344,9 @@ init();
     const phase=2*Math.PI*freq*t;
     let sound;
     if(kind==="drum")sound=Math.sin(2*Math.PI*(48*t+1.8*(1-Math.exp(-t*35))))*.85+(Math.random()*2-1)*Math.exp(-t*55)*.15;
-    else if(kind==="snare")sound=(Math.random()*2-1)*.75+Math.sin(phase)*.25;
+    else if(kind==="snare")sound=(Math.random()*2-1)*.65+Math.sin(phase)*.35;
+    else if(kind==="tom")sound=Math.sin(2*Math.PI*(freq*t+1.2*(1-Math.exp(-t*25))))*.92+(Math.random()*2-1)*.08;
+    else if(kind==="cymbal")sound=(Math.random()*2-1)*.7+(Math.sin(phase*7.13)+Math.sin(phase*10.71))*.15;
     else if(kind==="rise")sound=Math.sin(phase+2*Math.PI*650*t*t)*.65+(Math.random()*2-1)*.2;
     else sound=Math.sin(phase)*.72+Math.sin(phase*2)*.19+Math.sin(phase*3)*.09;
     samples[first+i]+=sound*envelope*volume;
@@ -6366,14 +6368,20 @@ init();
    add(at,pattern[step%8],.12,.32);add(at,pattern[step%8]*2,.08,.12);
    if(step%2===0)add(at,60,.15,.35,"drum");else add(at,180,.07,.16,"snare");step++;
   }
-  add(9.8,220,.95,.23,"rise");
-  for(let at=9.8;at<10.82;at+=.07){add(at,75,.065,.28,"drum");add(at,180,.06,.14,"snare");}
-  add(11,55,.45,.6,"drum");add(11,180,.28,.24,"snare");
+  add(8.5,220,2.25,.18,"rise");
+  let roll=0;
+  for(let at=8.4;at<10.83;at+=Math.max(.032,.115-(at-8.4)*.035)){
+   const progress=(at-8.4)/2.43;
+   add(at,roll%2?185:155,.09,.23+progress*.2,"snare");
+   if(roll%3===0)add(at,roll%2?110:140,.16,.29+progress*.12,"tom");
+   roll++;
+  }
+  add(11,55,.45,.6,"drum");add(11,180,.28,.24,"snare");add(11,320,1.6,.32,"cymbal");
   const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,1047];
   melody.forEach((f,i)=>{add(11+i*.18,f,.38,.4);add(11+i*.18,f/2,.4,.17);add(11+i*.18+.11,f,.28,.07);});
   const end=11+melody.length*.18;
   [262,523,659,784,1047].forEach(f=>add(end,f,grand?1.7:1.2,.16));
-  if(grand){for(let i=0;i<8;i++)add(end+i*.095,[1047,1319,1568,2093][i%4],.5,.19);add(end,60,.5,.5,"drum");}
+  if(grand){add(end,320,1.8,.28,"cymbal");for(let i=0;i<8;i++)add(end+i*.095,[1047,1319,1568,2093][i%4],.5,.19);add(end,60,.5,.5,"drum");}
   return wave(16,notes);
  }
  const normal=track(false),grand=track(true);

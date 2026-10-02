@@ -3066,6 +3066,13 @@ function setupRaffleSound(){
  document.addEventListener("visibilitychange",()=>{if(document.hidden)raffleStopSound();});
 }
 setupRaffleSound();
+function closeRaffleOverlay(){
+ raffleStopSound();
+ clearInterval(raffleAnimationTimer);clearTimeout(raffleRevealTimer);
+ raffleAnimationTimer=null;raffleRevealTimer=null;
+ const overlay=document.getElementById("raffleLiveOverlay");
+ if(overlay){overlay.hidden=true;overlay.setAttribute("aria-hidden","true");}
+}
 function setRafflePerson(element,person,animate=false,duration=180){
   if(!element)return;
   element.getAnimations?.().forEach(a=>a.cancel());

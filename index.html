@@ -4036,8 +4036,9 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
     result.textContent="최신 명단 확인 후 테스트 추첨 중…";
     await refreshRaffleSources();
     const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
-    const eligible=raffleTestEntries(pool);
-    const winner=HanjogoRaffle.pick(eligible,secureRandomIndex);
+    const {data,error}=await sb.rpc("perform_raffle",{p_pool:pool,p_prize:"",p_plan_id:"",p_previous_draw_id:"",p_test:true,p_test_keys:raffleTestWinnerKeys});
+    if(error)throw error;
+    const winner=data?.winner;
     if(winner){
       raffleTestWinnerKeys.push(HanjogoRaffle.key(winner));saveRaffleTestKeys();showRaffleTestPreview(winner,pool);
       result.textContent=`[테스트 결과] ${raffleTestWinnerKeys.length}회차 · 아래 화면에서 당첨자를 공개합니다. 외부 송출·실제 기록 없음`;
@@ -4068,23 +4069,10 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
     if(status)status.textContent="현재 추첨이 진행 중입니다. 결과가 나온 뒤 다시 눌러주세요.";
     return;
   }
-  const eligible=raffleEligibleEntries(pool);
-  if(!eligible.length){if(status)status.textContent="선택한 대상에 추첨 가능한 사람이 없습니다.";return;}
-  const winner=HanjogoRaffle.pick(eligible,secureRandomIndex);
-  const drawId=`draw-${Date.now()}-${uid()}`;
-  const startedAt=Date.now();
-  const poolLabel=pool==="story"?"인스타 스토리 참여자":"전체 참여자 · 위원·후원·협찬 포함";
-  const historyItem={id:drawId,prize,pool,poolLabel,winner,drawRule:"person-weighted-generation-exclusion-v1",eligibleCount:eligible.length,totalWeight:eligible.reduce((n,x)=>n+x.weight,0),drawnAt:new Date(startedAt).toISOString()};
-  state.raffleCenter.winnerKeys=[...new Set([...HanjogoRaffle.winnerKeys(state.raffleCenter),rafflePersonKey(winner)])];
-  state.raffleCenter.history.push(historyItem);
-  state.raffleCenter.live={status:"drawing",drawId,prize,pool,poolLabel,startedAt,revealAt:startedAt+11000,winner,candidates:raffleAnimationCandidates(pool,winner)};
-  if(selectedPlanId){
-    const {error}=await sb.rpc("commit_planned_raffle",{p_plan_id:selectedPlanId,p_center:state.raffleCenter,p_previous_draw_id:previousDrawId});
-    if(error)throw error;
-    await loadPrivateRafflePlan();
-  }else{
-    await dSet("raffleCenter",state.raffleCenter);
-  }
+  const {data,error}=await sb.rpc("perform_raffle",{p_pool:pool,p_prize:prize,p_plan_id:selectedPlanId||"",p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]});
+  if(error)throw error;
+  state.raffleCenter=data.center;
+  if(selectedPlanId)await loadPrivateRafflePlan();
   renderRaffleCenter();
   setTimeout(renderRaffleCenter,11200);
   }catch(e){await refreshRaffleSources().catch(()=>{});document.getElementById("raffleAdminStatus").textContent=e.message||"추첨 처리에 실패했습니다. 새로고침 후 확인해주세요.";}

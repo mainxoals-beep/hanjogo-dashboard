@@ -4086,7 +4086,7 @@ function renderRaffleCenter(){
   }
   const roster=HanjogoRaffle.roster(state,raffleOperatingMembers());
   const rosterList=document.getElementById("raffleRosterList");
-  if(rosterList)rosterList.innerHTML=`<p>총 ${roster.entries.length}명 · 위원 ${roster.entries.filter(p=>p.weight===1).length}명 · 이름/기수 확인 필요 ${roster.skipped.length}건</p>`+roster.entries.map(p=>`<div class="raffle-entry-row"><strong>${escapeHtml(p.name)}</strong><span>${p.generation}기 · ${escapeHtml(p.roles.join(" · "))}</span></div>`).join("");
+  if(rosterList)rosterList.innerHTML=`<p>총 ${roster.entries.length}명 · 위원 ${roster.entries.filter(p=>p.roles.some(r=>r==="준비위원"||r==="운영위원")).length}명 · 이름/기수 확인 필요 ${roster.skipped.length}건</p>`+roster.entries.map(p=>`<div class="raffle-entry-row"><strong>${escapeHtml(p.name)}</strong><span>${p.generation}기 · ${escapeHtml(p.roles.join(" · "))}</span></div>`).join("");
   const summary=document.getElementById("raffleEntrySummary");
   if(summary)summary.textContent=`통합 대상 ${confirmedRaffleEntries().length}명 · 스토리 참여 ${entries.length}명 · 추첨 ${history.length}회`;
   const status=document.getElementById("raffleAdminStatus");

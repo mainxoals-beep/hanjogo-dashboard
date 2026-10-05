@@ -1001,6 +1001,12 @@
 .access-admin-form input,.access-admin-add input{min-width:0;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-size:11px}
 .access-admin-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .special-access-list{margin-top:12px;border-top:1px solid var(--line)}
+.place-admin{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.place-admin-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:11.5px}
+.place-admin-name{font-weight:800;color:var(--ink)}
+.place-admin-meta{margin-top:2px;color:var(--ink-mute);font-size:10.5px;line-height:1.5}
+.place-admin-buttons{display:flex;gap:6px}
+.place-admin-empty{padding:10px 0;color:var(--ink-mute);font-size:11px}
 .special-access-row{display:grid;grid-template-columns:1.3fr .7fr 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:11px}
 .special-access-email{font-weight:800;color:var(--ink)}
 .special-access-meta{font-size:10px;color:var(--ink-mute)}
@@ -1393,6 +1399,30 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
           </div>
           <div class="sec-note" id="specialAccessStatus"></div>
           <div class="special-access-list" id="specialAccessList"></div>
+
+          <div class="place-admin">
+            <div class="access-admin-panel-head">
+              <div>
+                <div class="access-admin-title">동문 업장 신청</div>
+                <div class="access-admin-sub">공개 사이트에서 들어온 등록 신청과 운영자 인증 요청입니다. 승인하면 바로 지도에 반영됩니다.</div>
+              </div>
+              <button type="button" class="mini-btn" id="placeAdminReload">불러오기</button>
+            </div>
+            <div class="sec-note" id="placeAdminStatus">불러오기를 눌러 확인해주세요.</div>
+            <div id="placeAdminList"></div>
+          </div>
+
+          <div class="place-admin">
+            <div class="access-admin-panel-head">
+              <div>
+                <div class="access-admin-title">업장 담당자 이메일 연결</div>
+                <div class="access-admin-sub">졸업생 DB에서 이름과 기수가 모두 같은 사람을 찾아 제안합니다. 같은 기수에 동명이인이 있으면 제안하지 않습니다. 연결된 사람은 그 업장 정보를 직접 수정할 수 있습니다.</div>
+              </div>
+              <button type="button" class="mini-btn" id="placeMatchBtn">후보 찾기</button>
+            </div>
+            <div class="sec-note" id="placeMatchStatus"></div>
+            <div id="placeMatchList"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -6376,6 +6406,107 @@ document.getElementById("specialAccessList")?.addEventListener("click",async e=>
     await renderSpecialAccess();
   }catch(err){status.textContent="삭제 실패: "+(err?.message||err);}
 });
+// ---------- 동문 업장 신청 승인 / 담당자 연결 ----------
+// 모두 관리자 계정(mainxoals)으로만 동작합니다. 판단은 서버 함수가 합니다.
+function placeAdminRow(title,meta,buttons){
+  return `<div class="place-admin-row"><div><div class="place-admin-name">${escapeHtml(title)}</div>`
+    +`<div class="place-admin-meta">${escapeHtml(meta)}</div></div><div class="place-admin-buttons">${buttons}</div></div>`;
+}
+async function loadPlaceRequests(){
+  const status=document.getElementById("placeAdminStatus");
+  const list=document.getElementById("placeAdminList");
+  status.textContent="불러오는 중...";
+  try{
+    const data=await accessAdminInvoke("place_requests");
+    const submissions=data.submissions||[],claims=data.claims||[];
+    list.innerHTML=[
+      ...submissions.map(s=>placeAdminRow(
+        s.name||"이름 없음",
+        [`등록 신청`,s.owner_name?`${s.owner_name} · ${s.owner_generation||"?"}기`:"",s.email,s.address,s.category].filter(Boolean).join(" · "),
+        `<button type="button" class="mini-btn primary" data-place-approve="submission" data-id="${s.id}">승인</button>`
+        +`<button type="button" class="mini-btn" data-place-reject="submission" data-id="${s.id}">거절</button>`)),
+      ...claims.map(c=>placeAdminRow(
+        c.place?.name||`업장 #${c.place_id}`,
+        [`운영자 인증 요청`,c.email,c.place?`등록된 운영자: ${c.place.owner_name||"-"} ${c.place.owner_generation||""}기`:""].filter(Boolean).join(" · "),
+        `<button type="button" class="mini-btn primary" data-place-approve="claim" data-id="${c.id}">승인</button>`
+        +`<button type="button" class="mini-btn" data-place-reject="claim" data-id="${c.id}">거절</button>`)),
+    ].join("")||`<div class="place-admin-empty">대기 중인 신청이 없습니다.</div>`;
+    status.textContent=`등록 신청 ${submissions.length}건 · 운영자 인증 요청 ${claims.length}건 · 담당자 미연결 업장 ${data.unlinkedCount??"-"}곳`;
+  }catch(e){
+    status.textContent="신청 목록을 불러오지 못했습니다. 관리자 로그인을 확인해주세요.";
+  }
+}
+document.getElementById("placeAdminReload")?.addEventListener("click",loadPlaceRequests);
+document.getElementById("placeAdminList")?.addEventListener("click",async e=>{
+  const button=e.target.closest("[data-place-approve],[data-place-reject]");
+  if(!button||button.disabled)return;
+  const approve=button.hasAttribute("data-place-approve");
+  const kind=approve?button.dataset.placeApprove:button.dataset.placeReject;
+  if(!approve&&!confirm("이 신청을 거절할까요?"))return;
+  button.disabled=true;
+  const status=document.getElementById("placeAdminStatus");
+  try{
+    await accessAdminInvoke(kind==="submission"?"place_submission_decide":"place_claim_decide",{id:Number(button.dataset.id),approve});
+    status.textContent=approve?"승인했습니다.":"거절했습니다.";
+    await loadPlaceRequests();
+  }catch(err){
+    status.textContent="처리하지 못했습니다. 다시 시도해주세요.";
+    button.disabled=false;
+  }
+});
+
+async function loadPlaceMatches(){
+  const status=document.getElementById("placeMatchStatus");
+  const list=document.getElementById("placeMatchList");
+  status.textContent="졸업생 DB와 맞춰보는 중...";
+  try{
+    const data=await accessAdminInvoke("place_owner_matches");
+    const matched=data.matched||[],ambiguous=data.ambiguous||[],unmatched=data.unmatched||[];
+    list.innerHTML=(matched.length
+      ? `<div class="place-admin-row"><div class="place-admin-name">후보 ${matched.length}곳</div>`
+        +`<div class="place-admin-buttons"><button type="button" class="mini-btn primary" id="placeMatchLinkAll">모두 연결</button></div></div>`
+      : "")
+      +matched.map(m=>placeAdminRow(m.name,`${m.ownerName||"-"} · ${m.ownerGeneration||"?"}기 · ${m.email}`,
+        `<button type="button" class="mini-btn primary" data-place-link="${m.id}" data-email="${escapeHtml(m.email)}">연결</button>`)).join("")
+      +ambiguous.map(m=>placeAdminRow(m.name,`${m.ownerName||"-"} · ${m.ownerGeneration||"?"}기 · 같은 이름 ${m.count}명 — 본인 인증 요청으로 처리해주세요`,"")).join("")
+      +(unmatched.length?`<div class="place-admin-empty">졸업생 DB에서 찾지 못한 업장 ${unmatched.length}곳: ${escapeHtml(unmatched.slice(0,12).map(m=>m.name).join(", "))}${unmatched.length>12?" 외":""}</div>`:"");
+    status.textContent=`연결 가능 ${matched.length}곳 · 동명이인 ${ambiguous.length}곳 · DB에 없음 ${unmatched.length}곳`;
+  }catch(e){
+    status.textContent="졸업생 DB를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+  }
+}
+document.getElementById("placeMatchBtn")?.addEventListener("click",loadPlaceMatches);
+document.getElementById("placeMatchList")?.addEventListener("click",async e=>{
+  const status=document.getElementById("placeMatchStatus");
+  if(e.target.id==="placeMatchLinkAll"){
+    const buttons=[...document.querySelectorAll("[data-place-link]")];
+    if(!buttons.length||!confirm(`${buttons.length}곳의 담당자 이메일을 연결할까요? 연결된 동문은 해당 업장 정보를 직접 수정할 수 있습니다.`))return;
+    e.target.disabled=true;
+    let done=0;
+    for(const button of buttons){
+      try{
+        await accessAdminInvoke("place_link_owner",{placeId:Number(button.dataset.placeLink),email:button.dataset.email});
+        done++;
+        status.textContent=`연결 중... ${done}/${buttons.length}`;
+      }catch(err){/* 실패한 곳은 목록에 남습니다. */}
+    }
+    status.textContent=`${done}곳을 연결했습니다.`;
+    await loadPlaceMatches();
+    return;
+  }
+  const button=e.target.closest("[data-place-link]");
+  if(!button||button.disabled)return;
+  button.disabled=true;
+  try{
+    await accessAdminInvoke("place_link_owner",{placeId:Number(button.dataset.placeLink),email:button.dataset.email});
+    status.textContent="연결했습니다.";
+    await loadPlaceMatches();
+  }catch(err){
+    status.textContent="연결하지 못했습니다. 다시 시도해주세요.";
+    button.disabled=false;
+  }
+});
+
 sbAdmin.auth.onAuthStateChange(()=>setTimeout(renderSpecialAccess,0));
 renderSpecialAccess();
 

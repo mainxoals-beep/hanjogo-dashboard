@@ -19,6 +19,21 @@
   `dashboard_state`에서 공개해도 되는 값만 골라 반환합니다. 새 필드를 추가할 때 개인정보가 섞이지 않게 합니다.
 - 실시간 갱신은 `public_dashboard_state` 변경을 구독합니다(`dashboard_state`가 바뀌면 트리거가 함께 갱신).
 
+## 동문 프로필 (`schedule.html` > 내 정보)
+- 원본은 구글 폼 시트(CSV)입니다. 동문이 사이트에서 고치면 `public.hanjogo_profile_overrides`에 저장하고,
+  **저장된 행이 있으면 그 내용이 폼보다 우선**합니다. 같은 사람이 폼을 다시 제출해도 사이트 내용이 유지됩니다.
+- 이 표에는 `anon`·`authenticated` 권한을 주지 않습니다. `hanjogo-access` 함수(service role)만 읽고 씁니다.
+- 공개 범위는 서버가 정합니다. `public_fields`에 없는 항목은 목록 응답에 아예 담기지 않습니다.
+  화면에서 숨기는 방식으로 처리하지 않습니다. `tests/profile.test.cjs`가 이를 확인합니다.
+- `consent`가 false면 공개 목록에 나오지 않습니다. 이름 표시는 `display_mode`(full/masked/hidden)를 따릅니다.
+
+## 동문 업장 (`alumni-map.html`, `schedule.html` > 내 정보)
+- `hanjogo_alumni_places`의 공개 읽기에는 **`owner_email`을 넣지 않습니다**. 담당자 이메일이 외부로 나갑니다.
+  컬럼 단위로 select 권한을 주고 있으므로, 화면에서 `select('*')`를 쓰지 않습니다.
+- 담당자 연결(`owner_email`)은 그 업장을 수정할 수 있다는 뜻입니다. 관리자만 바꿉니다.
+  이름+기수 자동 매칭은 **제안까지만** 하고, 같은 기수 동명이인은 제안하지 않습니다.
+- 등록 신청·운영자 인증 요청 승인은 관리자(`mainxoals`)만 할 수 있습니다. 대시보드 > 시스템 설정에 있습니다.
+
 ## 서버 함수
 - `hanjogo-access`: 동문 인증, 게시판, 프로필 (JWT 검증, 관리자 확인은 서버에서)
 - `refresh-participant-count`: 1분마다 cron이 호출, service role로 참가자 수 갱신. 소스에 cron 토큰이 있어 저장소에 넣지 않습니다.

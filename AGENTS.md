@@ -31,3 +31,7 @@
 - 내부 대시보드 로그인은 Supabase Auth 공용 계정으로 합니다. 비밀번호나 해시를 코드에 넣지 않습니다.
 - `index.html`의 Supabase 클라이언트 `sb`(공용 계정)와 `sbAdmin`(관리자)을 하나로 합치지 않습니다. 이유는 `supabase/SECURITY.md`에 있습니다.
 - 편집자 추가·삭제는 `public.hanjogo_dashboard_editors` 테이블에서 합니다.
+- 동문이 공개할지 고른 항목(`hanjogo_profile_overrides.public_fields`)에 없는 값은 서버 응답에 담지 않습니다.
+  화면에서 숨기는 방식으로 바꾸지 않습니다.
+- 업장 담당자 이메일(`hanjogo_alumni_places.owner_email`)은 공개 조회 대상이 아닙니다.
+  지도·공개 페이지에서 `select('*')`를 쓰지 않고 필요한 컬럼만 지정합니다.

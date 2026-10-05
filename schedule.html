@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'self'; upgrade-insecure-requests">
 <title>한조고 졸업생 네트워크 · 모임과 동문 연결</title>
 <meta name="description" content="2026 한조고 네트워크 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
@@ -739,7 +739,10 @@ body.site-view-network.modal-open{overflow:auto!important}
 .network-hub-stat .network-new-count{font-size:10.5px}
 .top-actions{display:flex;gap:8px}
 .top-actions>.event-guide-reopen,.top-actions>.top-action{flex:1 1 0;min-width:0;min-height:44px;padding:10px 12px;border-radius:11px;font-size:13px;font-weight:800}
-.network-hub-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+.network-hub-actions{grid-template-columns:1.35fr 1fr}
+.network-hub-action{flex-direction:column;gap:5px;min-height:76px;line-height:1.4}
+.network-hub-action small{font-size:11px;font-weight:500;opacity:.85}
+.network-hub-btn:focus-visible{outline:3px solid var(--purple-dark);outline-offset:3px}
 @media(max-width:720px){
   .site-nav{gap:5px}
   .site-nav-btn{flex:1 0 auto;padding:10px 10px}
@@ -786,6 +789,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   .myinfo-row,.myinfo-checks{grid-template-columns:1fr}
   .network-access-session-actions{gap:5px}
 }
+.myinfo-settings-icon{display:inline-block;font-size:1.1em;line-height:1;vertical-align:-.05em}.myinfo-account{display:grid;gap:6px;margin:12px 0}.myinfo-account #myInfoCurrentEmail{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}.myinfo-account small{font-size:11px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -805,9 +809,11 @@ body.site-view-network.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
   <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
-  <a class="site-nav-btn" href="alumni-map.html" style="text-decoration:none" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</a>
+  <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
+  <button class="site-nav-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button>
 </nav>
 
+<section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
 <section class="site-home site-view" id="siteHome" data-site-view="home">
   <div class="site-home-hero">
     <div class="site-home-kicker">KCAS ALUMNI NETWORK</div>
@@ -890,9 +896,8 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="오늘 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
   </div>
   <div class="network-hub-actions">
-    <a class="network-hub-btn" href="alumni-map.html">동문 업장 지도 보기</a>
-    <a class="network-hub-btn primary" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-    <a class="network-hub-btn" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">프로필 등록·수정</a>
+    <button class="network-hub-btn network-hub-action primary" type="button" data-open-myinfo><span><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보 · 프로필 관리</span><small>프로필·공개 범위·내가 운영하는 업장 관리</small></button>
+    <a class="network-hub-btn network-hub-action" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener"><span>졸업생 DB 등록하기</span><small>아직 등록하지 않은 동문 · 새 창에서 열기</small></a>
   </div>
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
 </div>
@@ -1139,7 +1144,7 @@ body.site-view-network.modal-open{overflow:auto!important}
       </div>
     </div>
     <div class="network-profile-protected" id="networkProfileProtected" hidden>
-      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><span class="network-access-session-actions"><button class="network-access-myinfo" id="myInfoOpenBtn" type="button">내 정보</button><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></span></div>
+      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><span class="network-access-session-actions"><button class="network-access-myinfo" id="myInfoOpenBtn" type="button"><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></span></div>
     <div class="network-generation-nav">
       <div class="network-generation-head">
         <div>
@@ -1220,9 +1225,10 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 <div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
+  <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small></div>
   <div class="myinfo-tabs" role="tablist">
     <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
-    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">내 업장</button>
+    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">운영 중인 내 업장</button>
   </div>
 
   <form class="board-form myinfo-pane" id="myInfoProfilePane">
@@ -1262,6 +1268,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   </form>
 
   <div class="myinfo-pane" id="myInfoPlacePane" hidden>
+    <div class="myinfo-note">동문이 본인 명의로 소유하거나 공동 운영하는 매장을 등록하는 공간입니다. 직원으로 근무하는 회사·업장은 ‘내 정보 → 프로필’의 소속 항목에 적어주세요.</div>
     <div class="myinfo-note" id="myInfoPlaceNote">내 업장을 불러오는 중입니다.</div>
     <div id="myInfoPlaceList"></div>
     <form class="board-form myinfo-newplace" id="myInfoPlaceForm" hidden>
@@ -1279,8 +1286,8 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="board-form-foot"><div class="board-form-status" id="myPlaceStatus" aria-live="polite"></div><button class="board-primary-btn" id="myPlaceSubmitBtn" type="submit">등록 신청</button></div>
     </form>
     <div class="myinfo-place-actions">
-      <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">새 업장 등록 신청</button>
-      <a class="board-secondary-btn" href="alumni-map.html">동문 업장 지도 열기</a>
+      <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">내가 운영하는 업장 등록</button>
+      <button class="board-secondary-btn" type="button" data-site-target="places">동문 업장 지도 열기</button>
     </div>
   </div>
 </div></div>
@@ -2744,7 +2751,7 @@ async function loadMyPlaces(){
         <div class="myinfo-place-actions"><button class="board-secondary-btn" type="button" data-myplace-edit="${p.id}">수정하기</button></div>
       </div>`).join("");
     const lines=[];
-    if(!places.length)lines.push("담당자로 연결된 업장이 없습니다. 지도에서 내 업장을 찾아 운영자 인증을 요청하거나, 아래에서 새로 등록해주세요.");
+    if(!places.length)lines.push("담당자로 연결된 업장이 없습니다. 본인이 운영하는 업장이 있다면 지도에서 운영자 인증을 요청하거나 새로 등록해주세요.");
     if(waiting.length)lines.push(`등록 신청 ${waiting.length}건을 확인 중입니다.`);
     if(claims.length)lines.push(`운영자 인증 요청 ${claims.length}건을 확인 중입니다.`);
     note.textContent=lines.join(" ")||"담당 업장 정보를 수정할 수 있습니다.";
@@ -2766,6 +2773,14 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-open-myinfo]"))myInfoEl("myInfoOpenBtn")?.click();
 });
 myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
+  if(networkAccessState!=="verified"){
+    setSiteView("network");
+    const emailInput=document.getElementById("networkAccessEmail");
+    emailInput?.scrollIntoView({block:"center"});
+    emailInput?.focus({preventScroll:true});
+    return;
+  }
+  myInfoEl("myInfoCurrentEmail").textContent=networkCurrentSession?.user?.email||"";
   openBoardModal("myInfoModal");
   setMyInfoTab("profile");
   if(!myInfoLoaded)loadMyInfo();
@@ -2856,7 +2871,7 @@ myInfoEl("myInfoPlaceForm")?.addEventListener("submit",async e=>{
   }finally{button.disabled=false;}
 });
 
-const SITE_VIEWS=new Set(["home","event","network","board"]);
+const SITE_VIEWS=new Set(["home","event","network","board","places"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
@@ -2895,7 +2910,7 @@ function currentSiteView(){
 function setSiteView(view,{updateHash=true}={}){
   const next=SITE_VIEWS.has(view)?view:"home";
 
-  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-alumni","modal-open");
+  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-alumni","site-view-places","modal-open");
   document.body.classList.add("site-view-"+next);
 
   document.querySelectorAll(".site-view").forEach(el=>{
@@ -2934,6 +2949,8 @@ function setSiteView(view,{updateHash=true}={}){
     ["boardWriteModal","boardDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
   }else syncBoardAccess();
 
+  const placesFrame=document.getElementById("alumniPlacesFrame");
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-regions";
   syncHomeSummary();
 
   if(updateHash){
@@ -2944,12 +2961,17 @@ function setSiteView(view,{updateHash=true}={}){
 
 document.querySelectorAll("[data-site-target]").forEach(el=>{
   el.addEventListener("click",()=>{
+    closeBoardModal("myInfoModal");
     setSiteView(el.dataset.siteTarget||"home");
   });
 });
 
 window.addEventListener("hashchange",()=>setSiteView(currentSiteView(),{updateHash:false}));
 
+document.getElementById("alumniPlacesFrame")?.addEventListener("load",event=>{
+  const back=event.target.contentDocument?.querySelector(".back");
+  if(back)back.addEventListener("click",e=>{e.preventDefault();setSiteView("network");});
+});
 const homeSyncObserver=new MutationObserver(syncHomeSummary);
 ["participantHighlight","networkPublicCount","networkAlumniCount"].forEach(id=>{
   const el=document.getElementById(id);

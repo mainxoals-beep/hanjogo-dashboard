@@ -723,6 +723,38 @@ body.site-view-network.modal-open{overflow:auto!important}
 .raffle-live-overlay{padding-top:70px;}
 .event-ready-card{margin:0 0 18px;padding:24px;border:1px solid var(--line,#e7e3d9);border-radius:20px;background:#fff}.event-ready-kicker{color:#6e5fcb;font-size:13px;font-weight:700}.event-ready-card h2{font-size:23px;margin:8px 0 12px;letter-spacing:-.04em}.event-ready-card>p{font-size:14px;line-height:1.7;color:#6b6862;margin:0 0 20px}.event-ready-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}.event-ready-grid span{display:block;font-size:12px;color:#9c988f;margin-bottom:5px}.event-ready-grid strong{display:block;font-size:16px}.event-ready-grid small{display:block;font-size:13px;line-height:1.6;color:#6b6862;margin-top:5px}.event-ready-notes{margin-top:20px;padding-top:14px;border-top:1px solid #eee}.event-ready-notes p{font-size:13px;line-height:1.7;color:#6b6862;margin:8px 0}.event-ready-notes b{color:#4e43a0;margin-right:6px}#applicationCta{padding:20px}#applicationCta .application-btn{margin-top:12px;padding:12px 16px;background:#eeedfb;color:#4e43a0;box-shadow:none;font-size:15px}#applicationCta .status-main{font-size:19px}#applicationCta .participant-highlight{font-size:16px;margin:16px 0}#rafflePublicCard .raffle-public-desc{font-size:14px;line-height:1.7}@media(max-width:480px){.event-ready-card{padding:20px 18px}.event-ready-card h2{font-size:21px}.event-ready-grid{gap:18px 12px}.event-ready-grid strong{font-size:15px}}
 .raffle-live-panel.suspense .raffle-live-name.generation-reveal{opacity:1;filter:none;transform:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}.raffle-generation-label{font-size:clamp(15px,3vw,22px);font-weight:500;letter-spacing:0;color:#e2d7ff}.raffle-generation-value{font-size:clamp(48px,12vw,90px);line-height:1.1;color:#fff}.grand .raffle-generation-value{color:#ffe395}
+
+/* 2026-10 공개 사이트 점검: 글씨 크기·배치 보정 (이 블록이 위 규칙보다 우선합니다) */
+.site-home-kicker,.site-home-card-kicker,.network-hub-kicker,.site-page-kicker,.raffle-public-kicker{font-size:11px}
+.status-kicker,.status-pill{font-size:11.5px}
+.participant-basis{font-size:11.5px}
+.application-cta-sub{font-size:12px}
+.program-item{font-size:12.5px}
+.program-note,.public-sync-status,#publicSyncTime{font-size:11px}
+.next-kicker{font-size:11.5px}
+.note{font-size:12.5px}
+.site-page-desc{font-size:13px}
+.brand-item{font-size:12.5px}
+.network-hub-stat small{font-size:11.5px}
+.network-hub-stat .network-new-count{font-size:10.5px}
+.top-actions{display:flex;gap:8px}
+.top-actions>.event-guide-reopen,.top-actions>.top-action{flex:1 1 0;min-width:0;min-height:44px;padding:10px 12px;border-radius:11px;font-size:13px;font-weight:800}
+.network-hub-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:720px){
+  .site-nav{gap:5px}
+  .site-nav-btn{flex:1 0 auto;padding:10px 10px}
+  .site-nav .nav-long{display:none}
+  .brand-item{font-size:12px}
+}
+@media(max-width:620px){
+  .network-hub-actions{grid-template-columns:1fr}
+  .network-hub-stat{flex-direction:column;align-items:flex-start;gap:2px}
+  .network-hub-stat span{margin-right:0}
+  .network-hub-stat b{font-size:20px;line-height:1.25}
+}
+@media(max-width:380px){
+  .site-nav{flex-wrap:wrap;overflow-x:visible}
+}
 </style>
 </head>
 <body>
@@ -740,9 +772,9 @@ body.site-view-network.modal-open{overflow:auto!important}
 <nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
   <button class="site-nav-btn" type="button" data-site-target="home">홈</button>
   <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
-  <button class="site-nav-btn" type="button" data-site-target="network">동문 네트워크</button>
+  <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
-  <a class="site-nav-btn" href="alumni-map.html" style="text-decoration:none">동문 업장 지도</a>
+  <a class="site-nav-btn" href="alumni-map.html" style="text-decoration:none" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</a>
 </nav>
 
 <section class="site-home site-view" id="siteHome" data-site-view="home">
@@ -828,7 +860,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   </div>
   <div class="network-hub-actions">
     <a class="network-hub-btn" href="alumni-map.html">동문 업장 지도 보기</a>
-    <a class="network-hub-btn primary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+    <a class="network-hub-btn primary" href="https://link24.kr/DPWKmSL" target="_blank" rel="noopener">졸업생 DB 등록·수정</a>
     <a class="network-hub-btn" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">프로필 등록·수정</a>
   </div>
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
@@ -1362,16 +1394,23 @@ return String(v??"").replace(/[&<>"']/g,c=>({
 }[c]));
 }
 
-function toDate(s){
-return new Date(
-s+"T00:00:00+09:00"
-);
+// 날짜는 접속한 나라와 관계없이 한국 날짜 그대로 표시합니다.
+function seoulToday(){
+return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+}
+function ymdParts(s){
+const [y,m,d]=String(s).slice(0,10).split("-").map(Number);
+return {y,m,d};
+}
+function dayNumber(s){
+const {y,m,d}=ymdParts(s);
+return Date.UTC(y,m-1,d)/86400000;
 }
 
 function fmtKR(s){
-const d=toDate(s);
+const {m,d}=ymdParts(s);
 
-return `${d.getMonth()+1}월 ${d.getDate()}일`;
+return `${m}월 ${d}일`;
 }
 
 function fmtRange(i){
@@ -1382,7 +1421,7 @@ return i.start===i.end
 
 function formatEventDate(iso){
 
-const d=toDate(
+const {y,m,d}=ymdParts(
 iso||"2026-10-18"
 );
 
@@ -1390,7 +1429,7 @@ const wd=[
 "일","월","화","수","목","금","토"
 ];
 
-return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일(${wd[d.getDay()]})`;
+return `${y}년 ${m}월 ${d}일(${wd[new Date(Date.UTC(y,m-1,d)).getUTCDay()]})`;
 }
 
 function mergePublicInfo(saved){
@@ -1547,22 +1586,13 @@ p.eventDate
 heroPlace.textContent=
 `${p.eventName||""} · ${p.venueName||""}`;
 
-const eventDate=
-toDate(
+const eventDay=
+dayNumber(
 p.eventDate||"2026-10-18"
 );
 
-const today=
-new Date();
-
-today.setHours(
-0,0,0,0
-);
-
 const diff=
-Math.round(
-(eventDate-today)/86400000
-);
+eventDay-dayNumber(seoulToday());
 
 eventDday.textContent=
 diff===0
@@ -2623,11 +2653,8 @@ function renderTimeline(){
 const s=
 getSchedule();
 
-const now=
-new Date();
-
 const today=
-`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+seoulToday();
 
 const next=
 s.find(
@@ -2880,7 +2907,7 @@ if(!card||!grid)return;
 const committeeBrands=["렁팡스","쿠움","극단 아트솔루스","예쿡쿠킹클래스"];
 const brands=[...new Set([
   ...(Array.isArray(relatedBrands)
-    ? relatedBrands.map(v=>String(v||"").trim()).filter(v=>v&&v!=="바카디 코리아")
+    ? relatedBrands.map(v=>String(v||"").trim()).filter(v=>v&&v!=="바카디 코리아"&&!/^[^()]+\(\d+\s*기\)$/.test(v))
     : []),
   ...committeeBrands
 ])];
@@ -3235,6 +3262,7 @@ async function loadPublicRaffle(){
 
 document.getElementById("raffleWatchBtn")?.addEventListener("click",()=>openRaffleOverlay(true));
 document.getElementById("raffleLiveClose")?.addEventListener("click",closeRaffleOverlay);
+document.addEventListener("keydown",e=>{const o=document.getElementById("raffleLiveOverlay");if(e.key==="Escape"&&o&&!o.hidden)closeRaffleOverlay();});
 
 async function loadPublicInfo(){
 
@@ -3438,7 +3466,7 @@ url:location.href
 return;
 
 }
-catch(e){}
+catch(e){if(e?.name==="AbortError")return;}
 
 }
 

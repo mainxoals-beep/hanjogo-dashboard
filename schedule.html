@@ -789,6 +789,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   .myinfo-row,.myinfo-checks{grid-template-columns:1fr}
   .network-access-session-actions{gap:5px}
 }
+.myinfo-settings-icon{display:inline-block;font-size:1.1em;line-height:1;vertical-align:-.05em}.myinfo-account{display:grid;gap:6px;margin:12px 0}.myinfo-account #myInfoCurrentEmail{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}.myinfo-account small{font-size:11px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -809,7 +810,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
   <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
-  <button class="site-nav-btn" type="button" data-open-myinfo>내 정보</button>
+  <button class="site-nav-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button>
 </nav>
 
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
@@ -895,7 +896,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="오늘 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
   </div>
   <div class="network-hub-actions">
-    <button class="network-hub-btn network-hub-action primary" type="button" data-open-myinfo><span>내 정보 · 프로필 관리</span><small>프로필·공개 범위·내가 운영하는 업장 관리</small></button>
+    <button class="network-hub-btn network-hub-action primary" type="button" data-open-myinfo><span><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보 · 프로필 관리</span><small>프로필·공개 범위·내가 운영하는 업장 관리</small></button>
     <a class="network-hub-btn network-hub-action" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener"><span>졸업생 DB 등록하기</span><small>아직 등록하지 않은 동문 · 새 창에서 열기</small></a>
   </div>
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
@@ -1143,7 +1144,7 @@ body.site-view-network.modal-open{overflow:auto!important}
       </div>
     </div>
     <div class="network-profile-protected" id="networkProfileProtected" hidden>
-      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><span class="network-access-session-actions"><button class="network-access-myinfo" id="myInfoOpenBtn" type="button">내 정보</button><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></span></div>
+      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><span class="network-access-session-actions"><button class="network-access-myinfo" id="myInfoOpenBtn" type="button"><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></span></div>
     <div class="network-generation-nav">
       <div class="network-generation-head">
         <div>
@@ -1224,6 +1225,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 <div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
+  <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small></div>
   <div class="myinfo-tabs" role="tablist">
     <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
     <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">운영 중인 내 업장</button>
@@ -2778,6 +2780,7 @@ myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
     emailInput?.focus({preventScroll:true});
     return;
   }
+  myInfoEl("myInfoCurrentEmail").textContent=networkCurrentSession?.user?.email||"";
   openBoardModal("myInfoModal");
   setMyInfoTab("profile");
   if(!myInfoLoaded)loadMyInfo();

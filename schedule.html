@@ -3569,7 +3569,7 @@ function startPublicApp(){
 
   sb
   .channel("hanjogo-public-page")
-  .on("postgres_changes",{event:"*",schema:"public",table:"dashboard_state",filter:"id=eq.main"},()=>{loadPublicInfo();loadPublicRaffle();})
+  .on("postgres_changes",{event:"*",schema:"public",table:"public_dashboard_state",filter:"id=eq.main"},()=>{loadPublicInfo();loadPublicRaffle();})
   .subscribe();
 
   setInterval(()=>{

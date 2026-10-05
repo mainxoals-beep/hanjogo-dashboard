@@ -6094,17 +6094,13 @@ document.getElementById("productionImageModal")?.addEventListener("click",e=>{
 });
 
 
-// ---------- simple owner-controlled password gate ----------
-// 비밀번호 원문은 저장하지 않고, 영문 대소문자를 무시한 SHA-256 해시만 비교합니다.
-// 비밀번호 변경은 이 파일을 관리하는 사람만 할 수 있습니다.
-const INTERNAL_DASHBOARD_PASSWORD_HASH = "9989a37538faecc495bbe774b30fb447a1582b8f1bc14ac88dfd84996a7b799a";
-const INTERNAL_UNLOCK_KEY = "hanjogo_internal_unlocked";
+// ---------- committee login gate ----------
+// 공용 비밀번호는 코드에 저장하지 않고 Supabase Auth 공용 계정으로 확인합니다.
+// 실제 데이터 보호는 DB 정책(public.hanjogo_dashboard_editors)이 담당합니다.
+// 비밀번호 변경: Supabase 대시보드 > Authentication > Users 에서 아래 계정의 비밀번호를 바꿉니다.
+const DASHBOARD_LOGIN_EMAIL = "mainxoals+hanjogo-committee@gmail.com";
+let internalAppStarted = false;
 
-async function sha256Text(text){
-  const bytes=new TextEncoder().encode(text);
-  const digest=await crypto.subtle.digest("SHA-256",bytes);
-  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
 function showPasswordScreen(){
   document.body.classList.add("password-locked");
   document.getElementById("passwordScreen")?.classList.remove("hidden");
@@ -6116,8 +6112,21 @@ function showInternalDashboard(){
   document.getElementById("passwordScreen")?.classList.add("hidden");
   document.getElementById("internalApp")?.classList.remove("password-hidden");
 }
-function checkInitialPasswordState(){
-  if(sessionStorage.getItem(INTERNAL_UNLOCK_KEY)==="1") showInternalDashboard();
+async function isDashboardEditor(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) return false;
+  const {data, error} = await sb.rpc("is_hanjogo_dashboard_editor");
+  if(error){ console.error("편집 권한 확인 실패", error); return false; }
+  return data === true;
+}
+function startInternalApp(){
+  showInternalDashboard();
+  if(internalAppStarted) return;
+  internalAppStarted = true;
+  init();
+}
+async function checkInitialPasswordState(){
+  if(await isDashboardEditor()) startInternalApp();
   else showPasswordScreen();
 }
 
@@ -6125,21 +6134,24 @@ document.getElementById("passwordForm")?.addEventListener("submit",async e=>{
   e.preventDefault();
   const input=document.getElementById("internalPasswordInput");
   const err=document.getElementById("passwordError");
-  const enteredHash=await sha256Text((input?.value||"").toLowerCase());
-  if(enteredHash===INTERNAL_DASHBOARD_PASSWORD_HASH){
-    sessionStorage.setItem(INTERNAL_UNLOCK_KEY,"1");
+  if(err) err.textContent="확인 중입니다…";
+  const {error} = await sb.auth.signInWithPassword({
+    email: DASHBOARD_LOGIN_EMAIL,
+    password: (input?.value||"").toLowerCase()
+  });
+  if(!error && await isDashboardEditor()){
     if(err) err.textContent="";
     if(input) input.value="";
-    showInternalDashboard();
+    startInternalApp();
   }else{
-    if(err) err.textContent="비밀번호가 맞지 않습니다.";
+    if(err) err.textContent = error && /network|fetch/i.test(error.message||"") ? "연결이 불안정합니다. 잠시 후 다시 시도해주세요." : "비밀번호가 맞지 않습니다.";
     if(input){input.select();input.focus();}
   }
 });
 
-document.getElementById("quickLockBtn")?.addEventListener("click",()=>{
-  sessionStorage.removeItem(INTERNAL_UNLOCK_KEY);
-  showPasswordScreen();
+document.getElementById("quickLockBtn")?.addEventListener("click",async()=>{
+  await sb.auth.signOut();
+  location.reload();
 });
 
 
@@ -6356,8 +6368,6 @@ sb.auth.onAuthStateChange(()=>setTimeout(renderSpecialAccess,0));
 renderSpecialAccess();
 
 checkInitialPasswordState();
-
-init();
 
 </script>
 

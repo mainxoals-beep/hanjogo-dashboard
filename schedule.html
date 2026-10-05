@@ -2950,7 +2950,7 @@ function setSiteView(view,{updateHash=true}={}){
   }else syncBoardAccess();
 
   const placesFrame=document.getElementById("alumniPlacesFrame");
-  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1";
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-regions";
   syncHomeSummary();
 
   if(updateHash){

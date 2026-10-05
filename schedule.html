@@ -755,6 +755,37 @@ body.site-view-network.modal-open{overflow:auto!important}
 @media(max-width:380px){
   .site-nav{flex-wrap:wrap;overflow-x:visible}
 }
+
+/* 내 정보 (동문 인증 후) */
+.network-access-session-actions{display:flex;gap:6px;flex-shrink:0}
+.network-access-myinfo{min-height:34px;border:1px solid var(--purple);border-radius:999px;padding:6px 14px;background:var(--purple);color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.network-access-myinfo:hover{background:var(--purple-dark);border-color:var(--purple-dark)}
+.myinfo-tabs{display:flex;gap:6px;padding:12px 17px 0}
+.myinfo-tab{flex:1;min-height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--sub);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.myinfo-tab.active{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.myinfo-pane{padding:16px 17px 20px}
+/* .board-form 의 display:grid 가 hidden 보다 우선하므로 명시적으로 숨깁니다. */
+.myinfo-pane[hidden],.myinfo-newplace[hidden]{display:none}
+.myinfo-note{margin-bottom:12px;padding:10px 12px;border-radius:10px;background:var(--purple-light);color:var(--purple-dark);font-size:12.5px;line-height:1.6}
+.myinfo-hint{color:var(--mute);font-size:12px;line-height:1.5}
+.myinfo-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.myinfo-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.myinfo-checks-block{grid-template-columns:1fr;margin-top:4px}
+.myinfo-check{display:flex;align-items:flex-start;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:12.5px;line-height:1.45;cursor:pointer}
+.myinfo-check input{margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--purple)}
+.myinfo-check b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
+.myinfo-check small{display:block;margin-top:2px;color:var(--mute);font-size:11.5px}
+.myinfo-place{margin-bottom:10px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.myinfo-place-name{font-size:14px;font-weight:900;color:var(--ink)}
+.myinfo-place-meta{margin-top:3px;color:var(--mute);font-size:12px;line-height:1.5}
+.myinfo-place-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.myinfo-place-actions .board-secondary-btn{flex:1 1 180px;text-align:center;text-decoration:none;line-height:1.9}
+.myinfo-newplace{padding:14px 0 0;border-top:1px solid var(--line);margin-top:12px}
+.myinfo-status{margin-top:4px;color:var(--mute);font-size:12px}
+@media(max-width:620px){
+  .myinfo-row,.myinfo-checks{grid-template-columns:1fr}
+  .network-access-session-actions{gap:5px}
+}
 </style>
 </head>
 <body>
@@ -1108,7 +1139,7 @@ body.site-view-network.modal-open{overflow:auto!important}
       </div>
     </div>
     <div class="network-profile-protected" id="networkProfileProtected" hidden>
-      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></div>
+      <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><span class="network-access-session-actions"><button class="network-access-myinfo" id="myInfoOpenBtn" type="button">내 정보</button><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></span></div>
     <div class="network-generation-nav">
       <div class="network-generation-head">
         <div>
@@ -1186,6 +1217,73 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="board-modal" id="boardWriteModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardWriteTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="boardWriteTitle">게시글 작성</div><button class="board-close" type="button" data-board-close="boardWriteModal" aria-label="닫기">×</button></div><form class="board-form" id="boardForm"><input type="hidden" id="boardEditId"><div class="board-field"><label for="boardCategory">분류</label><select class="board-select" id="boardCategory" required><option value="free">자유</option><option value="jobs">구인·구직</option><option value="collab">협업·도움</option><option value="business">업체·행사</option><option value="notice" id="boardNoticeOption" hidden>공지</option></select></div><div class="board-field"><label for="boardTitle">제목</label><input class="board-input" id="boardTitle" maxlength="120" placeholder="제목을 입력해주세요" required></div><div class="board-field"><label for="boardBody">내용</label><textarea class="board-textarea" id="boardBody" maxlength="5000" placeholder="동문들과 나눌 내용을 입력해주세요" required></textarea></div><div class="board-form-foot"><div class="board-form-status" id="boardFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="boardSubmitBtn" type="submit">등록하기</button></div></form></div></div>
 
 <div class="board-modal" id="boardDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardDetailTitle"><div class="board-dialog-head"><div class="board-dialog-title">게시글</div><button class="board-close" type="button" data-board-close="boardDetailModal" aria-label="닫기">×</button></div><nav class="board-detail-nav" aria-label="게시글 이동"><button type="button" id="boardPrevBtn">← 이전 글</button><span class="board-detail-position" id="boardDetailPosition" aria-live="polite"></span><button type="button" id="boardNextBtn">다음 글 →</button></nav><article class="board-detail" id="boardDetail"></article><div class="board-comments"><div class="board-comments-title" id="boardCommentsTitle">댓글</div><div id="boardComments"></div><form class="board-comment-form" id="boardCommentForm"><input class="board-input" id="boardCommentInput" maxlength="1000" placeholder="댓글을 입력해주세요" required><button class="board-primary-btn" id="boardCommentSubmit" type="submit">댓글 등록</button></form></div></div></div>
+
+<div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
+  <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
+  <div class="myinfo-tabs" role="tablist">
+    <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
+    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">내 업장</button>
+  </div>
+
+  <form class="board-form myinfo-pane" id="myInfoProfilePane">
+    <div class="myinfo-note" id="myInfoSource"></div>
+    <div class="myinfo-row">
+      <div class="board-field"><label for="myInfoName">이름</label><input class="board-input" id="myInfoName" maxlength="40" autocomplete="name"></div>
+      <div class="board-field"><label for="myInfoGen">졸업 기수</label><input class="board-input" id="myInfoGen" inputmode="numeric" maxlength="3" placeholder="예: 7"></div>
+    </div>
+    <div class="board-field">
+      <label for="myInfoDisplayMode">동문들에게 보이는 이름</label>
+      <select class="board-select" id="myInfoDisplayMode">
+        <option value="full">실명 전체 공개</option>
+        <option value="masked">가운데 가리기 (김○민)</option>
+        <option value="hidden">이름 비공개</option>
+      </select>
+    </div>
+    <div class="board-field">
+      <label>공개할 항목</label>
+      <div class="myinfo-checks" id="myInfoFields"></div>
+      <div class="myinfo-hint">선택하지 않은 항목은 다른 동문에게 보이지 않습니다.</div>
+    </div>
+    <div class="board-field"><label for="myInfoCompany">현재 소속 · 직장 · 브랜드</label><input class="board-input" id="myInfoCompany" maxlength="120"></div>
+    <div class="board-field"><label for="myInfoWork">현재 하는 일</label><input class="board-input" id="myInfoWork" maxlength="120"></div>
+    <div class="myinfo-row">
+      <div class="board-field"><label for="myInfoActivity">활동 분야</label><input class="board-input" id="myInfoActivity" maxlength="120"></div>
+      <div class="board-field"><label for="myInfoRegion">활동 지역</label><input class="board-input" id="myInfoRegion" maxlength="60"></div>
+    </div>
+    <div class="board-field"><label for="myInfoInstagram">Instagram</label><input class="board-input" id="myInfoInstagram" maxlength="200" placeholder="@아이디 또는 주소"></div>
+    <div class="board-field"><label for="myInfoBio">동문들에게 하고 싶은 소개</label><textarea class="board-textarea" id="myInfoBio" maxlength="1000"></textarea></div>
+    <div class="board-field"><label for="myInfoConnect">어떤 분야로 연결되고 싶나요</label><input class="board-input" id="myInfoConnect" maxlength="300"></div>
+    <div class="myinfo-checks myinfo-checks-block">
+      <label class="myinfo-check"><input type="checkbox" id="myInfoConsent"><span><b>동문 목록에 내 프로필 공개</b><small>끄면 목록에서 바로 사라집니다.</small></span></label>
+      <label class="myinfo-check"><input type="checkbox" id="myInfoAllowEmail"><span><b>이메일로 연락받기</b><small>인증된 동문에게만 이메일이 보입니다.</small></span></label>
+      <label class="myinfo-check"><input type="checkbox" id="myInfoAttendee"><span><b>행사 참가자 명단에 표시</b><small>10월 18일 모임 참가자 명단에 나옵니다.</small></span></label>
+    </div>
+    <div class="board-form-foot"><div class="board-form-status" id="myInfoStatus" aria-live="polite"></div><button class="board-primary-btn" id="myInfoSaveBtn" type="submit">저장하기</button></div>
+  </form>
+
+  <div class="myinfo-pane" id="myInfoPlacePane" hidden>
+    <div class="myinfo-note" id="myInfoPlaceNote">내 업장을 불러오는 중입니다.</div>
+    <div id="myInfoPlaceList"></div>
+    <form class="board-form myinfo-newplace" id="myInfoPlaceForm" hidden>
+      <div class="myinfo-note">확인 후 지도에 공개됩니다.</div>
+      <div class="board-field"><label for="myPlaceName">업장명</label><input class="board-input" id="myPlaceName" maxlength="80" required></div>
+      <div class="myinfo-row">
+        <div class="board-field"><label for="myPlaceCategory">종류</label><input class="board-input" id="myPlaceCategory" maxlength="40" placeholder="예: 한식"></div>
+        <div class="board-field"><label for="myPlaceRegion">지역</label><input class="board-input" id="myPlaceRegion" maxlength="40" placeholder="예: 서울 중구"></div>
+      </div>
+      <div class="board-field"><label for="myPlaceAddress">주소</label><input class="board-input" id="myPlaceAddress" maxlength="200"></div>
+      <div class="board-field"><label for="myPlaceInstagram">Instagram 주소</label><input class="board-input" id="myPlaceInstagram" maxlength="300" placeholder="https://"></div>
+      <div class="board-field"><label for="myPlaceWebsite">홈페이지</label><input class="board-input" id="myPlaceWebsite" maxlength="300" placeholder="https://"></div>
+      <div class="board-field"><label for="myPlaceBooking">예약 링크</label><input class="board-input" id="myPlaceBooking" maxlength="300" placeholder="https://"></div>
+      <div class="board-field"><label for="myPlaceDescription">소개</label><textarea class="board-textarea" id="myPlaceDescription" maxlength="600"></textarea></div>
+      <div class="board-form-foot"><div class="board-form-status" id="myPlaceStatus" aria-live="polite"></div><button class="board-primary-btn" id="myPlaceSubmitBtn" type="submit">등록 신청</button></div>
+    </form>
+    <div class="myinfo-place-actions">
+      <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">새 업장 등록 신청</button>
+      <a class="board-secondary-btn" href="alumni-map.html">동문 업장 지도 열기</a>
+    </div>
+  </div>
+</div></div>
 
 <div class="raffle-live-overlay" id="raffleLiveOverlay" hidden aria-hidden="true">
   <button type="button" class="raffle-sound-toggle" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button>
@@ -2548,6 +2646,213 @@ document.getElementById("boardDetail")?.addEventListener("click",async e=>{const
 document.getElementById("boardCommentForm")?.addEventListener("submit",async e=>{e.preventDefault();const input=document.getElementById("boardCommentInput"),button=document.getElementById("boardCommentSubmit"),content=input?.value.trim()||"";if(!content||!boardSelectedId)return;button.disabled=true;try{await boardCall("board_comment_create",{postId:boardSelectedId,content});input.value="";await loadBoard(true);renderBoardDetail();}catch(err){alert("댓글을 등록하지 못했습니다.");}finally{button.disabled=false;}});
 document.getElementById("boardComments")?.addEventListener("click",async e=>{const b=e.target.closest("[data-comment-delete]");if(!b||!confirm("이 댓글을 삭제할까요?"))return;try{await boardCall("board_comment_delete",{id:Number(b.dataset.commentDelete)});await loadBoard(true);renderBoardDetail();}catch(err){alert("댓글을 삭제하지 못했습니다.");}});
 
+// ---------- 내 정보 (동문 인증 후 본인 프로필·업장 관리) ----------
+// 저장은 모두 서버 함수(hanjogo-access)를 거칩니다. 공개 범위 판단도 서버가 합니다.
+const MYINFO_FIELDS=[
+  ["gen","졸업 기수"],["company","소속·브랜드"],["work","하는 일"],["activity","활동 분야"],
+  ["region","활동 지역"],["instagram","Instagram"],["bio","소개"],["connect","연결 희망 분야"],
+];
+let myInfoLoaded=false,myInfoPlacesLoaded=false;
+const myInfoEl=id=>document.getElementById(id);
+
+function renderMyInfoFields(selected){
+  const box=myInfoEl("myInfoFields");
+  if(!box)return;
+  box.innerHTML=MYINFO_FIELDS.map(([key,label])=>
+    `<label class="myinfo-check"><input type="checkbox" data-myinfo-field="${key}"${selected.includes(key)?" checked":""}><span><b>${esc(label)}</b></span></label>`
+  ).join("");
+}
+function fillMyInfo(draft){
+  myInfoEl("myInfoName").value=draft.name||"";
+  myInfoEl("myInfoGen").value=draft.generation==null?"":String(draft.generation);
+  myInfoEl("myInfoDisplayMode").value=draft.displayMode||"masked";
+  renderMyInfoFields(Array.isArray(draft.publicFields)?draft.publicFields:[]);
+  for(const [id,key] of [["myInfoCompany","company"],["myInfoWork","work"],["myInfoActivity","activity"],
+    ["myInfoRegion","region"],["myInfoInstagram","instagram"],["myInfoBio","bio"],["myInfoConnect","connect"]]){
+    myInfoEl(id).value=draft[key]||"";
+  }
+  myInfoEl("myInfoConsent").checked=!!draft.consent;
+  myInfoEl("myInfoAllowEmail").checked=!!draft.allowEmailContact;
+  myInfoEl("myInfoAttendee").checked=!!draft.attendeeVisible;
+}
+function readMyInfo(){
+  return {
+    name:myInfoEl("myInfoName").value.trim(),
+    generation:myInfoEl("myInfoGen").value.trim(),
+    displayMode:myInfoEl("myInfoDisplayMode").value,
+    publicFields:[...document.querySelectorAll("[data-myinfo-field]")].filter(x=>x.checked).map(x=>x.dataset.myinfoField),
+    company:myInfoEl("myInfoCompany").value.trim(),
+    work:myInfoEl("myInfoWork").value.trim(),
+    activity:myInfoEl("myInfoActivity").value.trim(),
+    region:myInfoEl("myInfoRegion").value.trim(),
+    instagram:myInfoEl("myInfoInstagram").value.trim(),
+    bio:myInfoEl("myInfoBio").value.trim(),
+    connect:myInfoEl("myInfoConnect").value.trim(),
+    allowEmailContact:myInfoEl("myInfoAllowEmail").checked,
+    attendeeVisible:myInfoEl("myInfoAttendee").checked,
+    consent:myInfoEl("myInfoConsent").checked,
+  };
+}
+const MYINFO_ERRORS={
+  name_required:"이름을 입력해주세요. 공개하지 않으려면 '동문 목록에 내 프로필 공개'를 꺼주세요.",
+  invalid_generation:"졸업 기수는 1~99 사이 숫자로 입력해주세요.",
+  invalid_instagram:"Instagram은 @아이디 또는 instagram.com 주소로 입력해주세요.",
+  invalid_display_mode:"이름 표시 방식을 다시 선택해주세요.",
+  invalid_link:"링크는 https:// 로 시작해야 합니다.",
+  not_alumni:"동문 인증이 필요합니다.",
+};
+const myInfoMessage=code=>MYINFO_ERRORS[code]||"저장하지 못했습니다. 잠시 후 다시 시도해주세요.";
+// 서버가 400/403으로 답하면 supabase-js 가 본문을 삼키므로, 사유 코드를 직접 꺼냅니다.
+async function myInfoCall(action,payload={}){
+  try{
+    return await boardCall(action,payload);
+  }catch(err){
+    const response=err?.context;
+    if(response&&typeof response.json==="function"){
+      const body=await response.json().catch(()=>null);
+      if(body?.error)throw new Error(body.error);
+    }
+    throw err;
+  }
+}
+
+async function loadMyInfo(){
+  const note=myInfoEl("myInfoSource");
+  try{
+    const data=await myInfoCall("profile_me");
+    fillMyInfo(data.draft||{});
+    myInfoLoaded=true;
+    note.textContent=data.source==="form"
+      ? "이전에 구글 폼으로 보내주신 내용입니다. 여기서 고치면 앞으로는 이 내용이 사이트에 표시됩니다."
+      : data.source==="new"
+      ? "아직 등록된 프로필이 없습니다. 내용을 채우고 저장해주세요."
+      : "이 화면에서 관리 중인 프로필입니다.";
+  }catch(e){
+    note.textContent="프로필을 불러오지 못했습니다. 잠시 후 다시 열어주세요.";
+  }
+}
+async function loadMyPlaces(){
+  const note=myInfoEl("myInfoPlaceNote"),list=myInfoEl("myInfoPlaceList");
+  try{
+    const data=await myInfoCall("place_mine");
+    myInfoPlacesLoaded=true;
+    const places=data.places||[],waiting=(data.submissions||[]).filter(s=>s.status==="pending");
+    const claims=(data.claims||[]).filter(c=>c.status==="pending");
+    list.innerHTML=places.map(p=>`<div class="myinfo-place">
+        <div class="myinfo-place-name">${esc(p.name||"")}</div>
+        <div class="myinfo-place-meta">${esc([p.category,p.region,p.address].filter(Boolean).join(" · ")||"정보 없음")}</div>
+        <div class="myinfo-place-actions"><button class="board-secondary-btn" type="button" data-myplace-edit="${p.id}">수정하기</button></div>
+      </div>`).join("");
+    const lines=[];
+    if(!places.length)lines.push("담당자로 연결된 업장이 없습니다. 지도에서 내 업장을 찾아 운영자 인증을 요청하거나, 아래에서 새로 등록해주세요.");
+    if(waiting.length)lines.push(`등록 신청 ${waiting.length}건을 확인 중입니다.`);
+    if(claims.length)lines.push(`운영자 인증 요청 ${claims.length}건을 확인 중입니다.`);
+    note.textContent=lines.join(" ")||"담당 업장 정보를 수정할 수 있습니다.";
+  }catch(e){
+    note.textContent="업장 정보를 불러오지 못했습니다. 잠시 후 다시 열어주세요.";
+  }
+}
+function setMyInfoTab(tab){
+  document.querySelectorAll("[data-myinfo-tab]").forEach(b=>{
+    const on=b.dataset.myinfoTab===tab;
+    b.classList.toggle("active",on);
+    b.setAttribute("aria-selected",String(on));
+  });
+  myInfoEl("myInfoProfilePane").hidden=tab!=="profile";
+  myInfoEl("myInfoPlacePane").hidden=tab!=="place";
+  if(tab==="place"&&!myInfoPlacesLoaded)loadMyPlaces();
+}
+myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
+  openBoardModal("myInfoModal");
+  setMyInfoTab("profile");
+  if(!myInfoLoaded)loadMyInfo();
+});
+document.querySelector(".myinfo-tabs")?.addEventListener("click",e=>{
+  const tab=e.target.closest("[data-myinfo-tab]");
+  if(tab)setMyInfoTab(tab.dataset.myinfoTab);
+});
+myInfoEl("myInfoProfilePane")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const status=myInfoEl("myInfoStatus"),button=myInfoEl("myInfoSaveBtn");
+  button.disabled=true;status.textContent="저장 중입니다…";
+  try{
+    await myInfoCall("profile_save",readMyInfo());
+    status.textContent="저장했습니다. 동문 목록에 바로 반영됩니다.";
+    myInfoEl("myInfoSource").textContent="이 화면에서 관리 중인 프로필입니다.";
+    if(networkCurrentSession)loadNetworkProfiles(networkCurrentSession);
+  }catch(err){
+    status.textContent=myInfoMessage(err?.message);
+  }finally{button.disabled=false;}
+});
+myInfoEl("myInfoPlaceAddBtn")?.addEventListener("click",()=>{
+  const form=myInfoEl("myInfoPlaceForm");
+  form.hidden=!form.hidden;
+  if(!form.hidden)myInfoEl("myPlaceName").focus();
+});
+myInfoEl("myInfoPlaceList")?.addEventListener("click",e=>{
+  const id=e.target.closest("[data-myplace-edit]")?.dataset.myplaceEdit;
+  if(id)openMyPlaceEdit(Number(id));
+});
+let myPlaceEditId=null;
+async function openMyPlaceEdit(id){
+  const data=await myInfoCall("place_mine").catch(()=>null);
+  const place=(data?.places||[]).find(p=>p.id===id);
+  if(!place)return;
+  myPlaceEditId=id;
+  for(const [field,key] of [["myPlaceName","name"],["myPlaceCategory","category"],["myPlaceRegion","region"],
+    ["myPlaceAddress","address"],["myPlaceInstagram","instagram_url"],["myPlaceWebsite","website_url"],
+    ["myPlaceBooking","booking_url"],["myPlaceDescription","description"]]){
+    myInfoEl(field).value=place[key]||"";
+  }
+  myInfoEl("myInfoPlaceForm").hidden=false;
+  myInfoEl("myPlaceSubmitBtn").textContent="수정 저장";
+  myInfoEl("myPlaceStatus").textContent=place.name+" 정보를 수정합니다.";
+  myInfoEl("myPlaceName").focus();
+}
+myInfoEl("myInfoPlaceForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const status=myInfoEl("myPlaceStatus"),button=myInfoEl("myPlaceSubmitBtn");
+  const payload={
+    name:myInfoEl("myPlaceName").value.trim(),
+    category:myInfoEl("myPlaceCategory").value.trim(),
+    region:myInfoEl("myPlaceRegion").value.trim(),
+    address:myInfoEl("myPlaceAddress").value.trim(),
+    instagram_url:myInfoEl("myPlaceInstagram").value.trim(),
+    website_url:myInfoEl("myPlaceWebsite").value.trim(),
+    booking_url:myInfoEl("myPlaceBooking").value.trim(),
+    description:myInfoEl("myPlaceDescription").value.trim(),
+  };
+  if(!payload.name){status.textContent="업장명을 입력해주세요.";return;}
+  button.disabled=true;status.textContent="처리 중입니다…";
+  try{
+    if(myPlaceEditId){
+      await myInfoCall("place_save",{id:myPlaceEditId,...payload});
+      status.textContent="수정했습니다. 지도에 바로 반영됩니다.";
+    }else{
+      const session=networkCurrentSession||(await sb.auth.getSession()).data?.session;
+      const {error}=await sb.from("hanjogo_alumni_place_submissions").insert({
+        ...payload,
+        category:payload.category||null,region:payload.region||null,address:payload.address||null,
+        instagram_url:payload.instagram_url||null,website_url:payload.website_url||null,
+        booking_url:payload.booking_url||null,description:payload.description||null,
+        user_id:session.user.id,email:session.user.email,
+        owner_name:myInfoEl("myInfoName").value.trim()||session.user.email.split("@")[0],
+        owner_generation:Number(myInfoEl("myInfoGen").value.trim())||null,
+        status:"pending",
+      });
+      if(error)throw error;
+      status.textContent="등록 신청했습니다. 확인 후 지도에 공개됩니다.";
+      myInfoEl("myInfoPlaceForm").reset();
+    }
+    myPlaceEditId=null;
+    myInfoEl("myPlaceSubmitBtn").textContent="등록 신청";
+    myInfoPlacesLoaded=false;
+    await loadMyPlaces();
+  }catch(err){
+    status.textContent=myInfoMessage(err?.message);
+  }finally{button.disabled=false;}
+});
+
 const SITE_VIEWS=new Set(["home","event","network","board"]);
 
 function syncHomeSummary(){
@@ -3638,7 +3943,7 @@ initializeNetworkAccess().finally(()=>{
 });
 sb.auth.onAuthStateChange((event)=>{
   if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED")setTimeout(initializeNetworkAccess,0);
-  if(event==="SIGNED_OUT")setTimeout(()=>{networkCurrentSession=null;networkIsAdmin=false;boardPosts=[];boardLoaded=false;setNetworkAccessView("signed-out");},0);
+  if(event==="SIGNED_OUT")setTimeout(()=>{networkCurrentSession=null;networkIsAdmin=false;boardPosts=[];boardLoaded=false;myInfoLoaded=false;myInfoPlacesLoaded=false;closeBoardModal("myInfoModal");setNetworkAccessView("signed-out");},0);
 });
 
 

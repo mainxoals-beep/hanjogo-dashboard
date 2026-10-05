@@ -7,6 +7,8 @@
 <script>
 const U='https://siuresrjvrrezhwsjery.supabase.co',K='sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs';
 const sb=window.supabase.createClient(U,K,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+// 준비위원 공용 계정은 내부 대시보드 전용입니다. 예전 버전 때문에 이 브라우저의 공유 로그인에 남아 있으면 지웁니다.
+sb.auth.getSession().then(({data:{session}})=>{if(String(session?.user?.email||"").toLowerCase()==="mainxoals+hanjogo-committee@gmail.com")sb.auth.signOut({scope:"local"});});
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 let places=[],session=null,editing=null,authVersion=0;
 function safeUrl(value){try{const u=new URL(value);return /^https?:$/.test(u.protocol)?u.href:''}catch{return ''}}

@@ -1199,6 +1199,8 @@ const sb=window.supabase.createClient(
   SUPABASE_KEY,
   {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
 );
+// 준비위원 공용 계정은 내부 대시보드 전용입니다. 예전 버전 때문에 이 브라우저의 공유 로그인에 남아 있으면 지웁니다.
+sb.auth.getSession().then(({data:{session}})=>{if(String(session?.user?.email||"").toLowerCase()==="mainxoals+hanjogo-committee@gmail.com")sb.auth.signOut({scope:"local"});});
 
 const DEFAULT_PUBLIC_INFO={
 eventName:"한조고 동문 네트워크 모임",

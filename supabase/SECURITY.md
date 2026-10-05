@@ -5,6 +5,11 @@
 - 로그인: Supabase Auth 이메일+비밀번호. 준비위원은 공용 계정 `mainxoals+hanjogo-committee@gmail.com`을 씁니다.
   화면에서는 비밀번호만 입력하고, 입력값은 소문자로 바꿔 전송합니다(기존 비밀번호 화면과 같은 동작).
   관리자는 기존처럼 이메일 링크(OTP)로 로그인해도 됩니다.
+- 로그인 저장 공간이 둘입니다. 하나로 합치지 않습니다.
+  - `sb`: 공용 계정 전용(`storageKey: hanjogo-dashboard-committee-auth`). 대시보드 데이터 읽기·쓰기.
+  - `sbAdmin`: 관리자(mainxoals) 로그인. 공개 페이지·동문 지도와 같은 저장 공간을 공유합니다. 추첨, 배분표, 특별 접근 관리에 씁니다.
+  - 합치면 공용 계정 로그인이 관리자 로그인을 덮어써서 공개 페이지 인증이 풀리고 추첨이 막힙니다.
+  - 잠금 버튼은 `signOut({scope:"local"})`만 씁니다. 그냥 `signOut()`은 공용 계정을 쓰는 모든 준비위원을 로그아웃시킵니다.
 - 권한: `public.is_hanjogo_dashboard_editor()`가 로그인 이메일이 `public.hanjogo_dashboard_editors`에 있는지 확인합니다.
   `dashboard_state`의 읽기·쓰기 정책은 이 함수가 true일 때만 허용합니다.
 - 비밀번호 변경: Supabase 대시보드 > Authentication > Users > 공용 계정 > 비밀번호 변경 (소문자로 설정).

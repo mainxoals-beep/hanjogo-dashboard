@@ -2245,7 +2245,20 @@ function setSaveStatus(kind, retryFn){
 // ---------- Supabase shared storage ----------
 const SUPABASE_URL = "https://siuresrjvrrezhwsjery.supabase.co";
 const SUPABASE_KEY = "sb_publishable_wUyHlifthoh02pevGvIjYA_IBRw5Phs";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// 로그인 저장 공간을 둘로 나눕니다.
+// sb: 준비위원 공용 계정 전용(대시보드 데이터). 공개 페이지·동문 지도와 따로 저장해서
+//     공용 계정으로 로그인해도 관리자 로그인을 덮어쓰지 않습니다.
+// sbAdmin: 관리자(mainxoals) 로그인. 공개 페이지·동문 지도와 같은 저장 공간을 씁니다.
+//     추첨, 배분표, 특별 접근 관리처럼 관리자 계정이 필요한 기능에만 씁니다.
+const DASHBOARD_LOGIN_EMAIL = "mainxoals+hanjogo-committee@gmail.com";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth:{storageKey:"hanjogo-dashboard-committee-auth", detectSessionInUrl:false}
+});
+const sbAdmin = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// 예전 버전은 공용 계정을 공유 저장 공간에 넣었습니다. 남아 있으면 이 브라우저에서만 지웁니다.
+sbAdmin.auth.getSession().then(({data:{session}})=>{
+  if(String(session?.user?.email||"").toLowerCase()===DASHBOARD_LOGIN_EMAIL) sbAdmin.auth.signOut({scope:"local"});
+});
 const DASHBOARD_TABLE = "dashboard_state";
 const PUBLIC_DASHBOARD_TABLE = "public_dashboard_state";
 const DASHBOARD_ID = "main";
@@ -3961,7 +3974,7 @@ function secureRandomIndex(length){
 let privateRafflePlan=[];
 async function loadPrivateRafflePlan(){
   privateRafflePlan=[];
-  const {data,error}=await sb.from("raffle_prize_plan").select("id,part,position,prize,winners,units_per_winner,finale,draw_ids").order("part").order("position");
+  const {data,error}=await sbAdmin.from("raffle_prize_plan").select("id,part,position,prize,winners,units_per_winner,finale,draw_ids").order("part").order("position");
   if(!error)privateRafflePlan=data||[];
   document.getElementById("rafflePlanStatus").textContent=privateRafflePlan.length
     ?"배분표와 남은 수량은 관리자에게만 표시됩니다."
@@ -3999,7 +4012,7 @@ document.getElementById("rafflePlanLogin").addEventListener("click",()=>{
 });
 document.getElementById("rafflePartSelect").addEventListener("change",renderPrivateRafflePlan);
 document.getElementById("rafflePlanSelect").addEventListener("change",applyRafflePlanSelection);
-sb.auth.onAuthStateChange(()=>setTimeout(loadPrivateRafflePlan,0));
+sbAdmin.auth.onAuthStateChange(()=>setTimeout(loadPrivateRafflePlan,0));
 
 
 function raffleParticipantSuggestions(){
@@ -4126,7 +4139,7 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
     result.textContent="최신 명단 확인 후 테스트 추첨 중…";
     await refreshRaffleSources();
     const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
-    const {data,error}=await sb.rpc("perform_raffle",{p_pool:pool,p_prize:"",p_plan_id:"",p_previous_draw_id:"",p_test:true,p_test_keys:raffleTestWinnerKeys});
+    const {data,error}=await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:"",p_plan_id:"",p_previous_draw_id:"",p_test:true,p_test_keys:raffleTestWinnerKeys});
     if(error)throw error;
     const winner=data?.winner;
     if(winner){
@@ -4159,7 +4172,7 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
     if(status)status.textContent="현재 추첨이 진행 중입니다. 결과가 나온 뒤 다시 눌러주세요.";
     return;
   }
-  const {data,error}=await sb.rpc("perform_raffle",{p_pool:pool,p_prize:prize,p_plan_id:selectedPlanId||"",p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]});
+  const {data,error}=await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:prize,p_plan_id:selectedPlanId||"",p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]});
   if(error)throw error;
   state.raffleCenter=data.center;
   if(selectedPlanId)await loadPrivateRafflePlan();
@@ -6097,8 +6110,7 @@ document.getElementById("productionImageModal")?.addEventListener("click",e=>{
 // ---------- committee login gate ----------
 // 공용 비밀번호는 코드에 저장하지 않고 Supabase Auth 공용 계정으로 확인합니다.
 // 실제 데이터 보호는 DB 정책(public.hanjogo_dashboard_editors)이 담당합니다.
-// 비밀번호 변경: Supabase 대시보드 > Authentication > Users 에서 아래 계정의 비밀번호를 바꿉니다.
-const DASHBOARD_LOGIN_EMAIL = "mainxoals+hanjogo-committee@gmail.com";
+// 비밀번호 변경: Supabase 대시보드 > Authentication > Users 에서 DASHBOARD_LOGIN_EMAIL 계정의 비밀번호를 바꿉니다.
 let internalAppStarted = false;
 
 function showPasswordScreen(){
@@ -6150,7 +6162,7 @@ document.getElementById("passwordForm")?.addEventListener("submit",async e=>{
 });
 
 document.getElementById("quickLockBtn")?.addEventListener("click",async()=>{
-  await sb.auth.signOut();
+  await sb.auth.signOut({scope:"local"});
   location.reload();
 });
 
@@ -6282,9 +6294,9 @@ setInterval(loadNetworkProfileResponses,60000);
 
 
 async function accessAdminInvoke(action,payload={}){
-  const {data:{session}}=await sb.auth.getSession();
+  const {data:{session}}=await sbAdmin.auth.getSession();
   if(!session)throw new Error("관리자 로그인이 필요합니다.");
-  const {data,error}=await sb.functions.invoke("hanjogo-access",{
+  const {data,error}=await sbAdmin.functions.invoke("hanjogo-access",{
     body:{action,...payload},
     headers:{Authorization:"Bearer "+session.access_token}
   });
@@ -6296,7 +6308,7 @@ async function renderSpecialAccess(){
   const panel=document.getElementById("accessAdminPanel");
   const status=document.getElementById("accessAdminStatus");
   if(!login||!panel)return;
-  const {data:{session}}=await sb.auth.getSession();
+  const {data:{session}}=await sbAdmin.auth.getSession();
   const email=String(session?.user?.email||"").toLowerCase();
   const admin=email==="mainxoals@gmail.com";
   login.hidden=admin;
@@ -6327,14 +6339,14 @@ document.getElementById("accessAdminLoginBtn")?.addEventListener("click",async()
   const status=document.getElementById("accessAdminStatus");
   status.textContent="로그인 링크를 보내는 중입니다.";
   const redirectTo=location.origin+location.pathname;
-  const {error}=await sb.auth.signInWithOtp({
+  const {error}=await sbAdmin.auth.signInWithOtp({
     email:"mainxoals@gmail.com",
     options:{emailRedirectTo:redirectTo,shouldCreateUser:true}
   });
   status.textContent=error?"발송 실패: "+error.message:"메일을 보냈습니다. 로그인 링크를 눌러주세요.";
 });
 document.getElementById("accessAdminLogoutBtn")?.addEventListener("click",async()=>{
-  await sb.auth.signOut();
+  await sbAdmin.auth.signOut();
   renderSpecialAccess();
 });
 document.getElementById("specialAccessAddBtn")?.addEventListener("click",async()=>{
@@ -6364,7 +6376,7 @@ document.getElementById("specialAccessList")?.addEventListener("click",async e=>
     await renderSpecialAccess();
   }catch(err){status.textContent="삭제 실패: "+(err?.message||err);}
 });
-sb.auth.onAuthStateChange(()=>setTimeout(renderSpecialAccess,0));
+sbAdmin.auth.onAuthStateChange(()=>setTimeout(renderSpecialAccess,0));
 renderSpecialAccess();
 
 checkInitialPasswordState();

@@ -1642,6 +1642,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
               <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품을 선택하거나 직접 입력해주세요">
               <label class="raffle-field-label" for="rafflePoolSelect">추첨 대상</label>
               <select class="lockable" id="rafflePoolSelect"><option value="confirmed">전체 참가자</option><option value="story">인스타 스토리 참여자</option></select>
+              <p style="margin:8px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 경품 당첨자도 마지막 갤럭시탭 추첨에 참여할 수 있습니다.</p>
               <div class="raffle-live-action"><button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작</button><span>선택한 경품으로 1명 추첨 · 외부 화면에 실시간 송출</span></div>
             </div>
             <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
@@ -1661,7 +1662,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
           <div class="raffle-admin-box">
             <div class="raffle-admin-title">스토리 참여자 등록</div>
             <p class="raffle-admin-sub">팔로우·스토리 태그·이름과 기수 DM 확인 후 등록해주세요.</p>
-            <p class="raffle-admin-sub">스토리 경품 당첨자도 마지막 갤럭시탭 추첨에 참여할 수 있습니다.</p>
+
             <form class="raffle-entry-form" id="raffleEntryForm">
               <input class="lockable" id="raffleEntryName" list="raffleParticipantSuggestions" maxlength="60" placeholder="참가자 이름 검색" autocomplete="off" aria-label="참가자 이름" required><datalist id="raffleParticipantSuggestions"></datalist>
               <input class="lockable" id="raffleEntryGeneration" type="number" min="1" max="99" placeholder="기수" aria-label="기수" required><button class="lockable" type="submit">등록</button>

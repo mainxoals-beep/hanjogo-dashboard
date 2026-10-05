@@ -3296,6 +3296,15 @@ function renderParticipants(){
   document.getElementById("pillTotal").textContent = `총 신청 ${total}명`;
   document.getElementById("pillConfirmed").textContent = `참가 확정 ${pt.confirmed||0}명`;
   document.getElementById("pillPaid").textContent = `입금 완료 ${pt.paid||0}명`;
+  let expectedPill = document.getElementById("pillExpectedAttendance");
+  if(!expectedPill){
+    expectedPill = document.createElement("span");
+    expectedPill.id = "pillExpectedAttendance";
+    expectedPill.className = document.getElementById("pillConfirmed").className;
+    document.getElementById("pillConfirmed").insertAdjacentElement("afterend", expectedPill);
+  }
+  expectedPill.textContent = `전체 예상 참석 ${confirmedRaffleEntries().length}명`;
+
   document.getElementById("pillWaitlist").textContent = `대기 ${waitlistCount}명`;
   document.getElementById("pillRemain").textContent = `잔여 모집 가능 ${remain}석`;
 

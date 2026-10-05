@@ -3988,6 +3988,7 @@ function applyRafflePlanSelection(){
   const input=document.getElementById("rafflePrizeName");
   input.readOnly=!!plan;
   if(plan)input.value=plan.prize;
+  if(plan)document.getElementById("rafflePoolSelect").value=plan.id==="event-story-pending"?"story":"confirmed";
 }
 document.getElementById("rafflePlanReload").addEventListener("click",loadPrivateRafflePlan);
 document.getElementById("rafflePlanLogin").addEventListener("click",()=>{

@@ -1,0 +1,6 @@
+# Supabase CLI 가 만드는 임시 캐시입니다. 저장소에 넣지 않습니다.
+supabase/.temp/
+
+# 로컬 작업 중 생기는 파일
+node_modules/
+.DS_Store

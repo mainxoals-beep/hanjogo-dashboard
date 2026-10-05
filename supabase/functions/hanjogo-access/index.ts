@@ -746,6 +746,55 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, draft: cleaned });
   }
 
+  // ---- 즐겨찾기 (관심 동문 · 관심 업장) ------------------------------------
+  // 본인 것만 읽고 씁니다. 어떤 요청이 와도 email 은 로그인한 사람의 것입니다.
+  if (action.startsWith("favorites_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+
+    if (action === "favorites_list") {
+      const { data, error } = await adminClient
+        .from("hanjogo_favorites").select("kind,ref_id").eq("email", email);
+      if (error) return json({ error: error.message }, 500);
+      return json({
+        allowed: true,
+        place: (data || []).filter((row) => row.kind === "place").map((row) => String(row.ref_id)),
+        profile: (data || []).filter((row) => row.kind === "profile").map((row) => String(row.ref_id)),
+      });
+    }
+
+    const kind = String(body.kind || "");
+    if (!["place", "profile"].includes(kind)) return json({ error: "invalid_kind" }, 400);
+
+    if (action === "favorites_set") {
+      const refId = cleanBoardText(body.refId, 100);
+      if (!refId) return json({ error: "invalid_favorite" }, 400);
+      if (body.on) {
+        const { error } = await adminClient.from("hanjogo_favorites")
+          .upsert({ email, kind, ref_id: refId }, { onConflict: "email,kind,ref_id", ignoreDuplicates: true });
+        if (error) return json({ error: error.message }, 500);
+      } else {
+        const { error } = await adminClient.from("hanjogo_favorites")
+          .delete().eq("email", email).eq("kind", kind).eq("ref_id", refId);
+        if (error) return json({ error: error.message }, 500);
+      }
+      return json({ ok: true });
+    }
+
+    // 로그인 전에 이 브라우저에서 눌러둔 별을 계정으로 한 번 옮깁니다.
+    if (action === "favorites_add") {
+      const refIds = (Array.isArray(body.refIds) ? body.refIds : [])
+        .map((value: unknown) => cleanBoardText(value, 100)).filter(Boolean).slice(0, 500);
+      if (!refIds.length) return json({ ok: true, added: 0 });
+      const { error } = await adminClient.from("hanjogo_favorites")
+        .upsert(refIds.map((refId) => ({ email, kind, ref_id: refId })), {
+          onConflict: "email,kind,ref_id",
+          ignoreDuplicates: true,
+        });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, added: refIds.length });
+    }
+  }
+
   // ---- 내 업장 -----------------------------------------------------------
   if (action === "place_mine") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);

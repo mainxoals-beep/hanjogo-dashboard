@@ -2125,6 +2125,25 @@ function loadNetworkFavorites(){
 function saveNetworkFavorites(){
   try{localStorage.setItem(networkFavoritesKey(),JSON.stringify([...networkFavoriteIds]));}catch(e){}
 }
+// 로그인하면 계정에 저장된 관심 동문을 불러옵니다.
+// 인증 전에 이 브라우저에서 눌러둔 별은 한 번만 계정으로 옮깁니다.
+let networkFavoritesSyncing=null;
+function syncNetworkFavorites(){
+  // 목록 새로고침이 겹쳐도 요청은 한 번만 보냅니다.
+  if(!networkCurrentSession)return Promise.resolve();
+  if(!networkFavoritesSyncing)networkFavoritesSyncing=runNetworkFavoritesSync().finally(()=>{networkFavoritesSyncing=null;});
+  return networkFavoritesSyncing;
+}
+async function runNetworkFavoritesSync(){
+  try{
+    let guest=[];
+    try{const saved=JSON.parse(localStorage.getItem("hanjogo_profile_favorites:guest")||"[]");if(Array.isArray(saved))guest=saved.map(String);}catch(e){}
+    if(guest.length)await boardCall("favorites_add",{kind:"profile",refIds:guest});
+    const data=await boardCall("favorites_list");
+    networkFavoriteIds=new Set([...(data?.profile||[]).map(String),...guest]);
+    saveNetworkFavorites();
+  }catch(e){/* 못 불러오면 이 브라우저에 저장된 목록을 그대로 씁니다. */}
+}
 function renderNetworkConnectNav(){
   const wrap=document.getElementById("networkConnectNav");
   const chips=document.getElementById("networkConnectChips");
@@ -2290,6 +2309,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
     networkProfiles=(Array.isArray(data.profiles)?data.profiles:[])
       .sort((a,b)=>Number(Boolean(b.isOwnProfile))-Number(Boolean(a.isOwnProfile))||Number(Boolean(b.isNew))-Number(Boolean(a.isNew))||a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
     loadNetworkFavorites();
+    syncNetworkFavorites().then(renderNetworkProfiles);
     networkProfilesLoaded=true;
     networkGenerationFilter="all";
     renderNetworkProfiles();
@@ -2504,10 +2524,17 @@ document.getElementById("networkProfileList")?.addEventListener("click",e=>{
   if(favoriteBtn){
     const id=String(favoriteBtn.dataset.favoriteId||"");
     if(!id)return;
-    if(networkFavoriteIds.has(id))networkFavoriteIds.delete(id);
-    else networkFavoriteIds.add(id);
+    const on=!networkFavoriteIds.has(id);
+    if(on)networkFavoriteIds.add(id);else networkFavoriteIds.delete(id);
     saveNetworkFavorites();
     renderNetworkProfiles();
+    if(networkCurrentSession){
+      boardCall("favorites_set",{kind:"profile",refId:id,on}).catch(()=>{
+        if(on)networkFavoriteIds.delete(id);else networkFavoriteIds.add(id);
+        saveNetworkFavorites();
+        renderNetworkProfiles();
+      });
+    }
     return;
   }
   const bioToggle=e.target.closest(".network-profile-bio-toggle");

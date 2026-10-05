@@ -30,7 +30,40 @@ function favoritesKey(){return 'hanjogo_place_favorites:'+String(session?.user?.
 function loadFavorites(){try{const saved=JSON.parse(localStorage.getItem(favoritesKey())||'[]');favoriteIds=new Set(Array.isArray(saved)?saved.map(String):[]);}catch(e){favoriteIds=new Set();}}
 function saveFavorites(){try{localStorage.setItem(favoritesKey(),JSON.stringify([...favoriteIds]));}catch(e){}}
 function isFavorite(p){return favoriteIds.has(String(p.id));}
-function toggleFavorite(id){const key=String(id);if(favoriteIds.has(key))favoriteIds.delete(key);else favoriteIds.add(key);saveFavorites();draw();}
+function toggleFavorite(id){
+  const key=String(id),on=!favoriteIds.has(key);
+  if(on)favoriteIds.add(key);else favoriteIds.delete(key);
+  saveFavorites();draw();
+  if(!session)return;
+  // 로그인한 경우에는 계정에도 저장해서 다른 기기에서도 보이게 합니다.
+  sb.functions.invoke('hanjogo-access',{body:{action:'favorites_set',kind:'place',refId:key,on}})
+    .then(({error})=>{if(error)throw error;})
+    .catch(()=>{
+      if(on)favoriteIds.delete(key);else favoriteIds.add(key);
+      saveFavorites();draw();
+      alert('즐겨찾기를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.');
+    });
+}
+// 로그인하면 계정에 저장된 즐겨찾기를 불러옵니다.
+// 로그인 전에 이 브라우저에서 눌러둔 별은 한 번만 계정으로 옮깁니다.
+let favoritesSyncing=null;
+function syncFavorites(){
+  // 로그인 확인이 두 번 들어와도 요청은 한 번만 보냅니다.
+  if(!session)return Promise.resolve();
+  if(!favoritesSyncing)favoritesSyncing=runFavoritesSync().finally(()=>{favoritesSyncing=null;});
+  return favoritesSyncing;
+}
+async function runFavoritesSync(){
+  try{
+    let guest=[];
+    try{const saved=JSON.parse(localStorage.getItem('hanjogo_place_favorites:guest')||'[]');if(Array.isArray(saved))guest=saved.map(String);}catch(e){}
+    if(guest.length)await sb.functions.invoke('hanjogo-access',{body:{action:'favorites_add',kind:'place',refIds:guest}});
+    const {data,error}=await sb.functions.invoke('hanjogo-access',{body:{action:'favorites_list'}});
+    if(error)throw error;
+    favoriteIds=new Set([...(data?.place||[]).map(String),...guest]);
+    saveFavorites();
+  }catch(e){/* 못 불러오면 이 브라우저에 저장된 목록을 그대로 씁니다. */}
+}
 
 function mine(p){return !!(session?.user?.email_confirmed_at&&myPlaceIds.has(Number(p.id)))}
 async function loadMyPlaceIds(){if(!session){myPlaceIds=new Set();return;}try{const {data,error}=await sb.functions.invoke('hanjogo-access',{body:{action:'place_mine'}});if(error)throw error;myPlaceIds=new Set((data?.places||[]).map(p=>Number(p.id)));}catch(e){myPlaceIds=new Set();}}
@@ -49,7 +82,7 @@ function draw(){const v=filtered();filterSummary();$('grid').innerHTML=v.map(p=>
 async function load(){ $('retryBtn').hidden=true;try{const {data,error}=await sb.from('hanjogo_alumni_places').select('id,name,owner_name,owner_generation,category,region,address,instagram_url,website_url,booking_url,description,is_address_verified,owner_linked').eq('is_published',true).order('name');if(error)throw error;places=data||[];populateGenerations();draw();}catch(e){$('loadStatus').textContent='업장 목록을 불러오지 못했습니다. 다시 시도해주세요.';$('retryBtn').hidden=false;console.error('업장 목록 조회 실패',e);}}
 $('grid').addEventListener('click',e=>{const card=e.target.closest('.card');if(!card)return;const button=e.target.closest('button');if(e.target.closest('a'))return;const id=card.dataset.id;if(button?.dataset.action==='favorite')toggleFavorite(id);else if(button?.dataset.action==='edit')openEdit(id);else if(button?.dataset.action==='claim')claim(id);else focusPlace(id);});
 $('grid').addEventListener('keydown',e=>{if(e.target.matches('.card')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();focusPlace(e.target.dataset.id);}});
-function updateAuth(next){session=next;loadFavorites();loadMyPlaceIds().then(draw);$('authText').textContent=session?session.user.email+' · 이메일 인증됨':'운영 동문은 이메일 인증 후 직접 정보를 관리할 수 있습니다.';$('authBtn').textContent=session?'로그아웃':'이메일 인증';editing=null;$('editDialog').close();draw();}
+function updateAuth(next){session=next;loadFavorites();syncFavorites().then(draw);loadMyPlaceIds().then(draw);$('authText').textContent=session?session.user.email+' · 이메일 인증됨':'운영 동문은 이메일 인증 후 직접 정보를 관리할 수 있습니다.';$('authBtn').textContent=session?'로그아웃':'이메일 인증';editing=null;$('editDialog').close();draw();}
 async function verifiedUser(){const {data,error}=await sb.auth.getUser();if(error||!data?.user?.email_confirmed_at){$('loginDialog').showModal();throw new Error('이메일 인증 후 이용해주세요.');}const user=data.user;const result=await sb.functions.invoke('hanjogo-access',{body:{action:'verify'}});if(result.error)throw new Error('동문 인증을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.');if(!result.data?.allowed)throw new Error('졸업생 DB에 등록된 이메일로 인증해주세요.');return user;}
 async function busy(id,work){const button=$(id);button.disabled=true;try{await work();}catch(e){alert(e.message||'처리하지 못했습니다. 다시 시도해주세요.');}finally{button.disabled=false;}}
 $('authBtn').onclick=()=>busy('authBtn',async()=>{if(session){const {error}=await sb.auth.signOut();if(error)throw error;updateAuth(null);}else $('loginDialog').showModal();});

@@ -27,6 +27,13 @@
   화면에서 숨기는 방식으로 처리하지 않습니다. `tests/profile.test.cjs`가 이를 확인합니다.
 - `consent`가 false면 공개 목록에 나오지 않습니다. 이름 표시는 `display_mode`(full/masked/hidden)를 따릅니다.
 
+## 즐겨찾기 (관심 동문 · 관심 업장)
+- `public.hanjogo_favorites`에 계정별로 저장해 기기 간에 따라다닙니다.
+  `anon`·`authenticated` 권한을 주지 않습니다. `hanjogo-access` 함수만 읽고 쓰며, **항상 로그인한 본인 이메일 것만** 다룹니다.
+- 담는 값은 동문 프로필 id(이메일 해시)와 업장 번호뿐입니다. 이름·이메일을 넣지 않습니다.
+- 로그인하지 않은 사람은 브라우저에만 저장됩니다. 인증하면 그 목록을 계정으로 한 번 옮깁니다.
+- 화면은 브라우저 저장본을 먼저 보여주고 서버 값으로 맞춥니다. 서버 저장이 실패하면 별을 되돌립니다.
+
 ## 동문 업장 (`alumni-map.html`, `schedule.html` > 내 정보)
 - `hanjogo_alumni_places`의 공개 읽기에는 **`owner_email`을 넣지 않습니다**. 담당자 이메일이 외부로 나갑니다.
   컬럼 단위로 select 권한을 주고 있으므로, 화면에서 `select('*')`를 쓰지 않습니다.

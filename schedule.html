@@ -1224,7 +1224,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
   <div class="myinfo-tabs" role="tablist">
     <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
-    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">내 업장</button>
+    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">운영 중인 내 업장</button>
   </div>
 
   <form class="board-form myinfo-pane" id="myInfoProfilePane">
@@ -1264,6 +1264,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   </form>
 
   <div class="myinfo-pane" id="myInfoPlacePane" hidden>
+    <div class="myinfo-note">동문이 본인 명의로 소유하거나 공동 운영하는 매장을 등록하는 공간입니다. 직원으로 근무하는 회사·업장은 ‘내 정보 → 프로필’의 소속 항목에 적어주세요.</div>
     <div class="myinfo-note" id="myInfoPlaceNote">내 업장을 불러오는 중입니다.</div>
     <div id="myInfoPlaceList"></div>
     <form class="board-form myinfo-newplace" id="myInfoPlaceForm" hidden>
@@ -1281,7 +1282,7 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="board-form-foot"><div class="board-form-status" id="myPlaceStatus" aria-live="polite"></div><button class="board-primary-btn" id="myPlaceSubmitBtn" type="submit">등록 신청</button></div>
     </form>
     <div class="myinfo-place-actions">
-      <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">새 업장 등록 신청</button>
+      <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">내가 운영하는 업장 등록</button>
       <button class="board-secondary-btn" type="button" data-site-target="places">동문 업장 지도 열기</button>
     </div>
   </div>
@@ -2746,7 +2747,7 @@ async function loadMyPlaces(){
         <div class="myinfo-place-actions"><button class="board-secondary-btn" type="button" data-myplace-edit="${p.id}">수정하기</button></div>
       </div>`).join("");
     const lines=[];
-    if(!places.length)lines.push("담당자로 연결된 업장이 없습니다. 지도에서 내 업장을 찾아 운영자 인증을 요청하거나, 아래에서 새로 등록해주세요.");
+    if(!places.length)lines.push("담당자로 연결된 업장이 없습니다. 본인이 운영하는 업장이 있다면 지도에서 운영자 인증을 요청하거나 새로 등록해주세요.");
     if(waiting.length)lines.push(`등록 신청 ${waiting.length}건을 확인 중입니다.`);
     if(claims.length)lines.push(`운영자 인증 요청 ${claims.length}건을 확인 중입니다.`);
     note.textContent=lines.join(" ")||"담당 업장 정보를 수정할 수 있습니다.";

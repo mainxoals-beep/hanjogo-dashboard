@@ -739,7 +739,10 @@ body.site-view-network.modal-open{overflow:auto!important}
 .network-hub-stat .network-new-count{font-size:10.5px}
 .top-actions{display:flex;gap:8px}
 .top-actions>.event-guide-reopen,.top-actions>.top-action{flex:1 1 0;min-width:0;min-height:44px;padding:10px 12px;border-radius:11px;font-size:13px;font-weight:800}
-.network-hub-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+.network-hub-actions{grid-template-columns:1.35fr 1fr}
+.network-hub-action{flex-direction:column;gap:5px;min-height:76px;line-height:1.4}
+.network-hub-action small{font-size:11px;font-weight:500;opacity:.85}
+.network-hub-btn:focus-visible{outline:3px solid var(--purple-dark);outline-offset:3px}
 @media(max-width:720px){
   .site-nav{gap:5px}
   .site-nav-btn{flex:1 0 auto;padding:10px 10px}
@@ -892,9 +895,8 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="오늘 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
   </div>
   <div class="network-hub-actions">
-    <button class="network-hub-btn" type="button" data-site-target="places">동문 업장 지도 보기</button>
-    <a class="network-hub-btn primary" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-    <a class="network-hub-btn" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">프로필 등록·수정</a>
+    <button class="network-hub-btn network-hub-action primary" type="button" data-open-myinfo><span>내 정보 · 프로필 관리</span><small>프로필·공개 범위·내가 운영하는 업장 관리</small></button>
+    <a class="network-hub-btn network-hub-action" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener"><span>졸업생 DB 등록하기</span><small>아직 등록하지 않은 동문 · 새 창에서 열기</small></a>
   </div>
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
 </div>
@@ -2771,7 +2773,9 @@ document.addEventListener("click",e=>{
 myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
   if(networkAccessState!=="verified"){
     setSiteView("network");
-    document.getElementById("networkAccessEmail")?.focus();
+    const emailInput=document.getElementById("networkAccessEmail");
+    emailInput?.scrollIntoView({block:"center"});
+    emailInput?.focus({preventScroll:true});
     return;
   }
   openBoardModal("myInfoModal");

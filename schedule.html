@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'self'; upgrade-insecure-requests">
 <title>한조고 졸업생 네트워크 · 모임과 동문 연결</title>
 <meta name="description" content="2026 한조고 네트워크 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
@@ -805,9 +805,11 @@ body.site-view-network.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
   <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
-  <a class="site-nav-btn" href="alumni-map.html" style="text-decoration:none" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</a>
+  <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
+  <button class="site-nav-btn" type="button" data-open-myinfo>내 정보</button>
 </nav>
 
+<section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
 <section class="site-home site-view" id="siteHome" data-site-view="home">
   <div class="site-home-hero">
     <div class="site-home-kicker">KCAS ALUMNI NETWORK</div>
@@ -890,7 +892,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="오늘 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
   </div>
   <div class="network-hub-actions">
-    <a class="network-hub-btn" href="alumni-map.html">동문 업장 지도 보기</a>
+    <button class="network-hub-btn" type="button" data-site-target="places">동문 업장 지도 보기</button>
     <a class="network-hub-btn primary" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
     <a class="network-hub-btn" href="https://forms.gle/ffX9yaVtn4Vf1cJQA" target="_blank" rel="noopener">프로필 등록·수정</a>
   </div>
@@ -1280,7 +1282,7 @@ body.site-view-network.modal-open{overflow:auto!important}
     </form>
     <div class="myinfo-place-actions">
       <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">새 업장 등록 신청</button>
-      <a class="board-secondary-btn" href="alumni-map.html">동문 업장 지도 열기</a>
+      <button class="board-secondary-btn" type="button" data-site-target="places">동문 업장 지도 열기</button>
     </div>
   </div>
 </div></div>
@@ -2766,6 +2768,11 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-open-myinfo]"))myInfoEl("myInfoOpenBtn")?.click();
 });
 myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
+  if(networkAccessState!=="verified"){
+    setSiteView("network");
+    document.getElementById("networkAccessEmail")?.focus();
+    return;
+  }
   openBoardModal("myInfoModal");
   setMyInfoTab("profile");
   if(!myInfoLoaded)loadMyInfo();
@@ -2856,7 +2863,7 @@ myInfoEl("myInfoPlaceForm")?.addEventListener("submit",async e=>{
   }finally{button.disabled=false;}
 });
 
-const SITE_VIEWS=new Set(["home","event","network","board"]);
+const SITE_VIEWS=new Set(["home","event","network","board","places"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
@@ -2895,7 +2902,7 @@ function currentSiteView(){
 function setSiteView(view,{updateHash=true}={}){
   const next=SITE_VIEWS.has(view)?view:"home";
 
-  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-alumni","modal-open");
+  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-alumni","site-view-places","modal-open");
   document.body.classList.add("site-view-"+next);
 
   document.querySelectorAll(".site-view").forEach(el=>{
@@ -2934,6 +2941,8 @@ function setSiteView(view,{updateHash=true}={}){
     ["boardWriteModal","boardDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
   }else syncBoardAccess();
 
+  const placesFrame=document.getElementById("alumniPlacesFrame");
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1";
   syncHomeSummary();
 
   if(updateHash){
@@ -2944,12 +2953,17 @@ function setSiteView(view,{updateHash=true}={}){
 
 document.querySelectorAll("[data-site-target]").forEach(el=>{
   el.addEventListener("click",()=>{
+    closeBoardModal("myInfoModal");
     setSiteView(el.dataset.siteTarget||"home");
   });
 });
 
 window.addEventListener("hashchange",()=>setSiteView(currentSiteView(),{updateHash:false}));
 
+document.getElementById("alumniPlacesFrame")?.addEventListener("load",event=>{
+  const back=event.target.contentDocument?.querySelector(".back");
+  if(back)back.addEventListener("click",e=>{e.preventDefault();setSiteView("network");});
+});
 const homeSyncObserver=new MutationObserver(syncHomeSummary);
 ["participantHighlight","networkPublicCount","networkAlumniCount"].forEach(id=>{
   const el=document.getElementById(id);

@@ -253,8 +253,17 @@ function numberFromText(value: unknown) {
   return match ? Number(match[0]) : null;
 }
 
-async function boardIdentity(email: string, special: Record<string, unknown> | null) {
+async function boardIdentity(
+  email: string,
+  special: Record<string, unknown> | null,
+  override?: Record<string, unknown> | null,
+) {
   if (email === ADMIN_EMAIL) return { name: "김태민", generation: 2 };
+  // A profile edited on the site is the person's own latest answer.
+  if (override) {
+    const name = cleanBoardText(override.name, 40);
+    if (name) return { name, generation: override.generation == null ? null : Number(override.generation) };
+  }
   try {
     const rows = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)));
     const row = rows.find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
@@ -361,6 +370,232 @@ async function buildProfile(
   };
 }
 
+/** Fields an alumnus can choose to publish. Stored as short keys in
+ * hanjogo_profile_overrides.public_fields; the form CSV uses Korean labels. */
+const PROFILE_FIELD_KEYS = ["gen", "company", "work", "activity", "region", "instagram", "bio", "connect"] as const;
+type ProfileFieldKey = typeof PROFILE_FIELD_KEYS[number];
+const PROFILE_FIELD_LABELS: Record<ProfileFieldKey, string> = {
+  gen: "졸업 기수",
+  company: "현재 소속 / 직장 / 사업체·브랜드",
+  work: "현재 하는 일",
+  activity: "활동 분야",
+  region: "활동 지역",
+  instagram: "Instagram",
+  bio: "프로필 소개",
+  connect: "연결 희망 분야",
+};
+const PROFILE_TEXT_LIMITS: Record<string, number> = {
+  name: 40, company: 120, work: 120, activity: 120,
+  region: 60, instagram: 200, bio: 1000, connect: 300,
+};
+
+function dateKeyFromTimestamp(value: unknown) {
+  const date = new Date(String(value ?? ""));
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(date);
+}
+
+/** The editable values behind a profile, read from the form CSV row.
+ * Used to pre-fill the in-page editor the first time someone opens it. */
+function profileDraftFromCsv(row: Record<string, string>) {
+  const fields = fieldSet(row);
+  const displayMode = getField(row, "사이트에서 이름을 어떻게 표시할까요?");
+  const consent = getField(row, "작성하신 정보 중 일부를 한조고 네트워크 사이트에 공개하는 것에 동의하시나요?");
+  const contactConsent = getField(row, "동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
+  const attendeePreference = getField(row, "행사 참가자 명단에 표시해도 될까요?");
+  return {
+    name: getField(row, "이름"),
+    generation: numberFromText(getField(row, "졸업 기수")),
+    displayMode: displayMode.includes("실명 전체") ? "full" : displayMode.includes("마스킹") ? "masked" : "hidden",
+    publicFields: PROFILE_FIELD_KEYS.filter((key) => isAllowed(fields, PROFILE_FIELD_LABELS[key])),
+    company: getField(row, "현재 소속 / 직장 / 사업체·브랜드"),
+    work: getField(row, "현재 하는 일"),
+    activity: getField(row, "활동 분야"),
+    region: getField(row, "활동 지역"),
+    instagram: getField(row, "Instagram"),
+    bio: cleanNarrative(getField(row, "동문들에게 소개하고 싶은 내용")),
+    connect: getField(row, "동문들과 어떤 분야로 연결되고 싶나요?"),
+    allowEmailContact: contactConsent.includes("허용합니다"),
+    attendeeVisible: !attendeePreference.includes("표시하지"),
+    consent: consent.includes("동의합니다"),
+  };
+}
+
+function profileDraftFromOverride(row: Record<string, unknown>) {
+  return {
+    name: String(row.name ?? ""),
+    generation: row.generation == null ? null : Number(row.generation),
+    displayMode: String(row.display_mode ?? "masked"),
+    publicFields: ((row.public_fields as string[] | null) ?? []).filter(
+      (key): key is ProfileFieldKey => (PROFILE_FIELD_KEYS as readonly string[]).includes(key),
+    ),
+    company: String(row.company ?? ""),
+    work: String(row.work ?? ""),
+    activity: String(row.activity ?? ""),
+    region: String(row.region ?? ""),
+    instagram: String(row.instagram ?? ""),
+    bio: String(row.bio ?? ""),
+    connect: String(row.connect ?? ""),
+    allowEmailContact: Boolean(row.allow_email_contact),
+    attendeeVisible: Boolean(row.attendee_visible),
+    consent: Boolean(row.consent),
+  };
+}
+
+type ProfileDraft = ReturnType<typeof profileDraftFromOverride>;
+
+/** Same shape as buildProfile(), but from a draft the alumnus saved in-page. */
+async function buildProfileFromDraft(
+  draft: ProfileDraft,
+  email: string,
+  firstPublicDate: string,
+  todayKey: string,
+  viewerEmail: string,
+) {
+  if (!draft.consent) return null;
+  const actualName = String(draft.name || "").trim();
+  const fullNamePublic = draft.displayMode === "full";
+  const name = fullNamePublic ? actualName : draft.displayMode === "masked" ? maskName(actualName) : "이름 비공개";
+  const shows = (key: ProfileFieldKey) => draft.publicFields.includes(key);
+  const generation = draft.generation == null ? "" : String(draft.generation);
+  return {
+    name,
+    actualName: fullNamePublic ? actualName : "",
+    fullNamePublic,
+    gen: shows("gen") ? generation : "",
+    company: shows("company") ? draft.company : "",
+    work: shows("work") ? draft.work : "",
+    activity: shows("activity") ? draft.activity : "",
+    region: shows("region") ? draft.region : "",
+    instagram: shows("instagram") ? safeInstagram(draft.instagram) : null,
+    bio: shows("bio") ? cleanNarrative(draft.bio) : "",
+    connect: shows("connect") ? draft.connect : "",
+    email: draft.allowEmailContact ? email : "",
+    allowEmailContact: draft.allowEmailContact,
+    attendeeVisible: draft.attendeeVisible,
+    attendeeMaskedName: maskName(actualName),
+    profileId: await stableProfileId(email),
+    isOwnProfile: Boolean(email) && email === viewerEmail,
+    isNew: Boolean(firstPublicDate) && firstPublicDate === todayKey,
+    isRecent: dateKeyWithinDays(firstPublicDate, todayKey, 7),
+    sortGen: Number(generation) || 999,
+    sortName: name,
+  };
+}
+
+/** Validate what the browser sent before it becomes someone's public profile. */
+function cleanProfileDraft(body: Record<string, unknown>): ProfileDraft | { error: string } {
+  const text = (value: unknown, key: string) => cleanBoardText(value, PROFILE_TEXT_LIMITS[key] ?? 120);
+  const name = text(body.name, "name");
+  const displayMode = String(body.displayMode ?? "masked");
+  const consent = Boolean(body.consent);
+  if (!["full", "masked", "hidden"].includes(displayMode)) return { error: "invalid_display_mode" };
+  if (consent && !name) return { error: "name_required" };
+  let generation: number | null = null;
+  if (body.generation !== null && body.generation !== undefined && String(body.generation).trim() !== "") {
+    const parsed = numberFromText(body.generation);
+    if (parsed === null || parsed < 1 || parsed > 99) return { error: "invalid_generation" };
+    generation = parsed;
+  }
+  const requested = Array.isArray(body.publicFields) ? body.publicFields.map((value) => String(value)) : [];
+  const publicFields = PROFILE_FIELD_KEYS.filter((key) => requested.includes(key));
+  const instagram = text(body.instagram, "instagram");
+  if (instagram && !safeInstagram(instagram)) return { error: "invalid_instagram" };
+  return {
+    name,
+    generation,
+    displayMode,
+    publicFields,
+    company: text(body.company, "company"),
+    work: text(body.work, "work"),
+    activity: text(body.activity, "activity"),
+    region: text(body.region, "region"),
+    instagram,
+    bio: text(body.bio, "bio"),
+    connect: text(body.connect, "connect"),
+    allowEmailContact: Boolean(body.allowEmailContact),
+    attendeeVisible: Boolean(body.attendeeVisible),
+    consent,
+  };
+}
+
+function draftToOverrideRow(draft: ProfileDraft, email: string) {
+  return {
+    email,
+    name: draft.name,
+    generation: draft.generation,
+    display_mode: draft.displayMode,
+    public_fields: draft.publicFields,
+    company: draft.company,
+    work: draft.work,
+    activity: draft.activity,
+    region: draft.region,
+    instagram: draft.instagram,
+    bio: draft.bio,
+    connect: draft.connect,
+    allow_email_contact: draft.allowEmailContact,
+    attendee_visible: draft.attendeeVisible,
+    consent: draft.consent,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+const PLACE_TEXT_LIMITS: Record<string, number> = {
+  name: 80, category: 40, region: 40, address: 200,
+  instagram_url: 300, website_url: 300, booking_url: 300, description: 600,
+};
+
+function safeLink(value: string) {
+  const raw = value.trim();
+  if (!raw) return "";
+  if (!/^https?:\/\//i.test(raw)) return null;
+  try {
+    new URL(raw);
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+function cleanPlaceInput(body: Record<string, unknown>) {
+  const field = (key: string) => cleanBoardText(body[key], PLACE_TEXT_LIMITS[key] ?? 120);
+  const name = field("name");
+  if (!name) return { error: "name_required" } as const;
+  const links: Record<string, string> = {};
+  for (const key of ["instagram_url", "website_url", "booking_url"]) {
+    const value = safeLink(field(key));
+    if (value === null) return { error: "invalid_link" } as const;
+    links[key] = value;
+  }
+  return {
+    value: {
+      name,
+      category: field("category") || null,
+      region: field("region") || null,
+      address: field("address") || null,
+      instagram_url: links.instagram_url || null,
+      website_url: links.website_url || null,
+      booking_url: links.booking_url || null,
+      description: field("description") || null,
+    },
+  } as const;
+}
+
+/** Alumni directory rows (name, cohort, email) for owner matching. */
+async function alumniPeople() {
+  const rows = rowsAsObjects(await fetchCsv(ALUMNI_CSV_URL));
+  return rows.map((row) => {
+    const nameKey = Object.keys(row).find((key) => /(^|\s)이름(\s|$)|성명/.test(key));
+    const genKey = Object.keys(row).find((key) => /기수/.test(key));
+    const emailKey = Object.keys(row).find((key) => /이메일|email/i.test(key));
+    return {
+      name: String(nameKey ? row[nameKey] : "").trim(),
+      generation: numberFromText(genKey ? row[genKey] : ""),
+      email: normalizeEmail(emailKey ? row[emailKey] : ""),
+    };
+  }).filter((person) => person.name && person.generation && person.email);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { ...cors, ...securityHeaders } });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -403,6 +638,14 @@ Deno.serve(async (req: Request) => {
     return json({ allowed: false, error: "access_check_unavailable" }, 503);
   }
 
+  /** The caller's own profile row, if they have edited it on the site. */
+  async function myOverride() {
+    const { data, error } = await adminClient
+      .from("hanjogo_profile_overrides").select("*").eq("email", email).maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
   if (action === "verify") {
     return json({ allowed: inAlumniDb, source: isAdmin ? "admin" : special ? "special" : inAlumniDb ? "alumni_db" : null, isAdmin });
   }
@@ -417,17 +660,132 @@ Deno.serve(async (req: Request) => {
       const contactOverrides = new Map(
         (contactOverrideRows || []).map((row) => [normalizeEmail(row.email), Boolean(row.allow_email_contact)]),
       );
+      const { data: overrideRows, error: overrideError } = await adminClient
+        .from("hanjogo_profile_overrides")
+        .select("*");
+      if (overrideError) throw overrideError;
+      const overrides = new Map<string, Record<string, unknown>>(
+        (overrideRows || []).map((row) => [normalizeEmail(row.email), row as Record<string, unknown>]),
+      );
       const allRows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
       const todayKey = koreaDateKey();
       const firstPublicDates = firstPublicProfileDates(allRows);
       const rows = latestPublicProfileRows(allRows, firstPublicDates);
-      const profiles = (await Promise.all(
-        rows.map((row) => buildProfile(row, contactOverrides, firstPublicDates, todayKey, email)),
-      )).filter(Boolean);
+      // A profile edited on the site replaces that person's form row.
+      const fromCsv = await Promise.all(
+        rows
+          .filter((row) => !overrides.has(normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"))))
+          .map((row) => buildProfile(row, contactOverrides, firstPublicDates, todayKey, email)),
+      );
+      const fromSite = await Promise.all(
+        [...overrides.values()].map((row) => {
+          const ownerEmail = normalizeEmail(row.email);
+          return buildProfileFromDraft(
+            profileDraftFromOverride(row),
+            ownerEmail,
+            firstPublicDates.get(ownerEmail) || dateKeyFromTimestamp(row.created_at),
+            todayKey,
+            email,
+          );
+        }),
+      );
+      const profiles = [...fromCsv, ...fromSite].filter(Boolean);
       return json({ allowed: true, profiles, count: profiles.length });
     } catch {
       return json({ allowed: true, error: "profiles_unavailable" }, 503);
     }
+  }
+
+  // ---- 내 정보: 본인 프로필 보기와 저장 ----------------------------------
+  if (action === "profile_me") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const override = await myOverride();
+    if (override) {
+      return json({ allowed: true, source: "site", email, draft: profileDraftFromOverride(override) });
+    }
+    // 아직 사이트에서 고친 적이 없으면 구글 폼 답변을 가져와 채워줍니다.
+    try {
+      const rows = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)));
+      const row = rows.find((item) =>
+        normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email
+      );
+      if (row) return json({ allowed: true, source: "form", email, draft: profileDraftFromCsv(row) });
+    } catch {
+      return json({ allowed: true, source: "unavailable", email, error: "profile_source_unavailable" }, 503);
+    }
+    // 폼에도 없으면 졸업생 DB의 이름과 기수로 시작합니다.
+    let name = "";
+    let generation: number | null = null;
+    try {
+      const person = (await alumniPeople()).find((item) => item.email === email);
+      if (person) {
+        name = person.name;
+        generation = person.generation;
+      }
+    } catch { /* 이름 없이 빈 양식으로 시작합니다. */ }
+    return json({
+      allowed: true,
+      source: "new",
+      email,
+      draft: {
+        name, generation, displayMode: "masked", publicFields: ["gen"],
+        company: "", work: "", activity: "", region: "", instagram: "", bio: "", connect: "",
+        allowEmailContact: false, attendeeVisible: true, consent: false,
+      },
+    });
+  }
+
+  if (action === "profile_save") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const cleaned = cleanProfileDraft(body);
+    if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+    const { error } = await adminClient
+      .from("hanjogo_profile_overrides")
+      .upsert(draftToOverrideRow(cleaned, email), { onConflict: "email" });
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true, draft: cleaned });
+  }
+
+  // ---- 내 업장 -----------------------------------------------------------
+  if (action === "place_mine") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const [places, submissions, claims] = await Promise.all([
+      adminClient.from("hanjogo_alumni_places")
+        .select("id,name,owner_name,owner_generation,category,region,address,instagram_url,website_url,booking_url,description,is_published")
+        .ilike("owner_email", email).order("name"),
+      adminClient.from("hanjogo_alumni_place_submissions")
+        .select("id,name,status,created_at").eq("user_id", userId).order("created_at", { ascending: false }),
+      adminClient.from("hanjogo_alumni_place_claims")
+        .select("id,place_id,status,created_at").eq("user_id", userId).order("created_at", { ascending: false }),
+    ]);
+    for (const result of [places, submissions, claims]) {
+      if (result.error) return json({ error: result.error.message }, 500);
+    }
+    return json({
+      allowed: true,
+      places: places.data || [],
+      submissions: submissions.data || [],
+      claims: claims.data || [],
+    });
+  }
+
+  if (action === "place_save") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const id = Number(body.id);
+    if (!Number.isFinite(id)) return json({ error: "invalid_place" }, 400);
+    const cleaned = cleanPlaceInput(body);
+    if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+    const { data: target, error: lookupError } = await adminClient
+      .from("hanjogo_alumni_places").select("id,owner_email,address").eq("id", id).maybeSingle();
+    if (lookupError) return json({ error: lookupError.message }, 500);
+    if (!target) return json({ error: "not_found" }, 404);
+    if (normalizeEmail(target.owner_email) !== email) return json({ error: "forbidden" }, 403);
+    const patch: Record<string, unknown> = { ...cleaned.value, updated_at: new Date().toISOString() };
+    // 주소가 바뀌면 좌표를 다시 확인해야 합니다.
+    if (patch.address !== target.address) patch.is_address_verified = false;
+    const { error } = await adminClient.from("hanjogo_alumni_places").update(patch).eq("id", id);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
   }
 
   if (action.startsWith("board_")) {
@@ -505,7 +863,7 @@ Deno.serve(async (req: Request) => {
       const content = cleanBoardText(body.content, 5000);
       if (!["free", "jobs", "collab", "business", "notice"].includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
       if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
-      const identity = await boardIdentity(email, special);
+      const identity = await boardIdentity(email, special, await myOverride());
       const { data, error } = await adminClient.from("hanjogo_board_posts").insert({
         author_id: userId, author_email: email, author_name: identity.name,
         author_generation: identity.generation, category, title, content, is_notice: category === "notice",
@@ -546,7 +904,7 @@ Deno.serve(async (req: Request) => {
       const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
       if (postError) return json({ error: postError.message }, 500);
       if (!post) return json({ error: "post_not_found" }, 404);
-      const identity = await boardIdentity(email, special);
+      const identity = await boardIdentity(email, special, await myOverride());
       const { error } = await adminClient.from("hanjogo_board_comments").insert({
         post_id: postId, author_id: userId, author_email: email, author_name: identity.name,
         author_generation: identity.generation, content,
@@ -600,6 +958,135 @@ Deno.serve(async (req: Request) => {
     }
     if (!targetEmail) return json({ error: "missing_target" }, 400);
     const { error } = await adminClient.from("hanjogo_special_access").delete().eq("email", targetEmail);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  // ---- 관리자: 업장 신청 승인과 담당자 연결 -------------------------------
+  if (action === "place_requests") {
+    const [submissions, claims, places] = await Promise.all([
+      adminClient.from("hanjogo_alumni_place_submissions")
+        .select("*").eq("status", "pending").order("created_at"),
+      adminClient.from("hanjogo_alumni_place_claims")
+        .select("*").eq("status", "pending").order("created_at"),
+      adminClient.from("hanjogo_alumni_places")
+        .select("id,name,owner_name,owner_generation,owner_email").order("name"),
+    ]);
+    for (const result of [submissions, claims, places]) {
+      if (result.error) return json({ error: result.error.message }, 500);
+    }
+    const placeById = new Map((places.data || []).map((place) => [place.id, place]));
+    return json({
+      submissions: submissions.data || [],
+      claims: (claims.data || []).map((claim) => ({ ...claim, place: placeById.get(claim.place_id) || null })),
+      unlinkedCount: (places.data || []).filter((place) => !String(place.owner_email || "").trim()).length,
+    });
+  }
+
+  if (action === "place_submission_decide") {
+    const id = Number(body.id);
+    const approve = Boolean(body.approve);
+    if (!Number.isFinite(id)) return json({ error: "invalid_request" }, 400);
+    const { data: target, error: lookupError } = await adminClient
+      .from("hanjogo_alumni_place_submissions").select("*").eq("id", id).eq("status", "pending").maybeSingle();
+    if (lookupError) return json({ error: lookupError.message }, 500);
+    if (!target) return json({ error: "not_found" }, 404);
+    if (approve) {
+      const { error } = await adminClient.from("hanjogo_alumni_places").insert({
+        name: target.name,
+        owner_name: target.owner_name,
+        owner_generation: target.owner_generation == null ? null : String(target.owner_generation),
+        category: target.category, region: target.region, address: target.address,
+        instagram_url: target.instagram_url, website_url: target.website_url,
+        booking_url: target.booking_url, description: target.description,
+        // 신청한 본인이 바로 수정할 수 있도록 담당자로 연결합니다.
+        owner_email: normalizeEmail(target.email),
+        is_address_verified: false, is_published: true,
+      });
+      if (error) return json({ error: error.message }, 500);
+    }
+    const { error } = await adminClient.from("hanjogo_alumni_place_submissions")
+      .update({ status: approve ? "approved" : "rejected", updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  if (action === "place_claim_decide") {
+    const id = Number(body.id);
+    const approve = Boolean(body.approve);
+    if (!Number.isFinite(id)) return json({ error: "invalid_request" }, 400);
+    const { data: target, error: lookupError } = await adminClient
+      .from("hanjogo_alumni_place_claims").select("*").eq("id", id).eq("status", "pending").maybeSingle();
+    if (lookupError) return json({ error: lookupError.message }, 500);
+    if (!target) return json({ error: "not_found" }, 404);
+    if (approve) {
+      const { error } = await adminClient.from("hanjogo_alumni_places")
+        .update({ owner_email: normalizeEmail(target.email), updated_at: new Date().toISOString() })
+        .eq("id", target.place_id);
+      if (error) return json({ error: error.message }, 500);
+    }
+    const { error } = await adminClient.from("hanjogo_alumni_place_claims")
+      .update({ status: approve ? "approved" : "rejected" }).eq("id", id);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  /** Propose owner emails for places that have none, by matching the alumni
+   * directory on name AND cohort. A cohort with two people of the same name is
+   * reported as ambiguous and never proposed: linking grants edit rights. */
+  if (action === "place_owner_matches") {
+    let people: { name: string; generation: number | null; email: string }[];
+    try {
+      people = await alumniPeople();
+    } catch {
+      return json({ error: "alumni_db_unavailable" }, 503);
+    }
+    const byNameGeneration = new Map<string, Set<string>>();
+    people.forEach((person) => {
+      const key = `${normalizeKey(person.name)}|${person.generation}`;
+      const emails = byNameGeneration.get(key) || new Set<string>();
+      emails.add(person.email);
+      byNameGeneration.set(key, emails);
+    });
+    const { data: places, error } = await adminClient.from("hanjogo_alumni_places")
+      .select("id,name,owner_name,owner_generation,owner_email").order("name");
+    if (error) return json({ error: error.message }, 500);
+    const matched: unknown[] = [];
+    const ambiguous: unknown[] = [];
+    const unmatched: unknown[] = [];
+    (places || []).forEach((place) => {
+      if (String(place.owner_email || "").trim()) return;
+      const generation = numberFromText(place.owner_generation);
+      const emails = [...(byNameGeneration.get(`${normalizeKey(place.owner_name)}|${generation}`) || [])];
+      const entry = { id: place.id, name: place.name, ownerName: place.owner_name, ownerGeneration: generation };
+      if (emails.length === 1) matched.push({ ...entry, email: emails[0] });
+      else if (emails.length > 1) ambiguous.push({ ...entry, count: emails.length });
+      else unmatched.push(entry);
+    });
+    return json({ matched, ambiguous, unmatched });
+  }
+
+  if (action === "place_link_owner") {
+    const placeId = Number(body.placeId);
+    const targetEmail = normalizeEmail(body.email);
+    if (!Number.isFinite(placeId) || !targetEmail.includes("@")) return json({ error: "invalid_request" }, 400);
+    const { data: target, error: lookupError } = await adminClient
+      .from("hanjogo_alumni_places").select("id,owner_email").eq("id", placeId).maybeSingle();
+    if (lookupError) return json({ error: lookupError.message }, 500);
+    if (!target) return json({ error: "not_found" }, 404);
+    // 이미 연결된 업장은 덮어쓰지 않습니다. 바꾸려면 먼저 연결을 해제합니다.
+    if (String(target.owner_email || "").trim() && !body.replace) return json({ error: "already_linked" }, 409);
+    const { error } = await adminClient.from("hanjogo_alumni_places")
+      .update({ owner_email: targetEmail, updated_at: new Date().toISOString() }).eq("id", placeId);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  if (action === "place_unlink_owner") {
+    const placeId = Number(body.placeId);
+    if (!Number.isFinite(placeId)) return json({ error: "invalid_request" }, 400);
+    const { error } = await adminClient.from("hanjogo_alumni_places")
+      .update({ owner_email: null, updated_at: new Date().toISOString() }).eq("id", placeId);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true });
   }

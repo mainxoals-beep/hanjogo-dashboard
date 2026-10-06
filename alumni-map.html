@@ -84,9 +84,9 @@ function populateGenerations(){const select=$('generationFilter'),current=select
 function filterSummary(){$('regionFilter').dataset.region=$('regionFilter').value;const parts=[];if($('q').value.trim())parts.push('검색: '+$('q').value.trim());for(const id of ['regionFilter','categoryFilter','generationFilter','addressFilter']){const select=$(id);if(select.value!=='all')parts.push(select.options[select.selectedIndex]?.textContent||select.value);}if(favoritesOnly)parts.unshift('즐겨찾기만');$('filterSummary').textContent=parts.join(' · ')||'모든 업장';const fav=$('favoritesBtn');if(fav){fav.textContent=(favoritesOnly?'\u2605':'\u2606')+' 즐겨찾기 '+favoriteIds.size;fav.setAttribute('aria-pressed',String(favoritesOnly));fav.classList.toggle('active',favoritesOnly);}}
 function resetFilters(){$('q').value='';favoritesOnly=false;for(const id of ['regionFilter','categoryFilter','generationFilter','addressFilter'])$(id).value='all';redraw();}
 function links(p){return [['instagram_url','Instagram'],['website_url','홈페이지'],['booking_url','예약']].map(([k,label])=>safeUrl(p[k])?'<a class="btn" href="'+esc(safeUrl(p[k]))+'" target="_blank" rel="noopener noreferrer">'+label+'</a>':'').join('');}
-// 가나다 이름을 먼저, 영어 이름은 그 뒤에(알파벳 순) 보여줍니다.
-function nameGroup(p){const n=String(p.name||'').trim();return /^[가-힣ㄱ-ㅎ]/.test(n)?0:/^[A-Za-z]/.test(n)?1:2;}
-function comparePlaces(a,b){return nameGroup(a)-nameGroup(b)||String(a.name||'').trim().localeCompare(String(b.name||'').trim(),nameGroup(a)===1?'en':'ko',{sensitivity:'base'});}
+// 영어 이름을 먼저(알파벳 순), 그다음 가나다 순으로 보여줍니다.
+function nameGroup(p){const n=String(p.name||'').trim();return /^[A-Za-z]/.test(n)?0:/^[가-힣ㄱ-ㅎ]/.test(n)?1:2;}
+function comparePlaces(a,b){return nameGroup(a)-nameGroup(b)||String(a.name||'').trim().localeCompare(String(b.name||'').trim(),nameGroup(a)===0?'en':'ko',{sensitivity:'base'});}
 // 처음에는 20개만, 카드는 짧게 보여주고 누르면 자세히 펼칩니다.
 const PAGE_SIZE=20;let shownCount=PAGE_SIZE,openId=null;
 function redraw(){shownCount=PAGE_SIZE;draw();}

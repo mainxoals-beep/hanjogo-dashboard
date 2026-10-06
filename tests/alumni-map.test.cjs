@@ -112,14 +112,14 @@ test('email contact button only for owners who allowed contact, never on my own 
   assert(decodeURIComponent(href).includes('저는 2기 김태민입니다.'));
 });
 
-// 가나다 이름이 먼저, 영어 이름은 뒤에. 카드는 접힌 채로 시작하고 누르면 펼쳐집니다.
-test('Korean names first, then English; cards start collapsed and open on tap',async()=>{
+// 영어 이름이 먼저, 그다음 가나다. 카드는 접힌 채로 시작하고 누르면 펼쳐집니다.
+test('English names first, then 가나다; cards start collapsed and open on tap',async()=>{
   const rows=[{id:1,name:'moono',region:'서울'},{id:2,name:'한송양식당',region:'서울'},{id:3,name:'Jua',region:'해외'},
               {id:4,name:'LÉGUME',region:'서울'},{id:5,name:'가게',region:'서울'},{id:6,name:'네기',region:'서울'}];
   const h=harness({data:rows,error:null});
   await new Promise(setImmediate);
   const run=expr=>vm.runInContext(expr,h.context);
-  assert.deepEqual(run("filtered().sort(comparePlaces).map(p=>p.name)"),['가게','네기','한송양식당','Jua','LÉGUME','moono']);
+  assert.deepEqual(run("filtered().sort(comparePlaces).map(p=>p.name)"),['Jua','LÉGUME','moono','가게','네기','한송양식당']);
   const html=h.el('grid').innerHTML;
   assert(!html.includes('class="card open'),'처음에는 모든 카드가 접혀 있어야 합니다');
   assert(html.includes('자세히 ▾'));

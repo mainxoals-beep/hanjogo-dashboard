@@ -779,6 +779,24 @@ body.site-view-network.modal-open{overflow:auto!important}
 .myinfo-check input{margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--purple)}
 .myinfo-check b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
 .myinfo-check small{display:block;margin-top:2px;color:var(--mute);font-size:11.5px}
+.meetup-hint{margin-left:4px;font-weight:600;color:var(--mute)}
+.meetup-section-title{padding:14px 16px 6px;font-size:12px;font-weight:900;color:var(--mute)}
+.meetup-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:14px 16px;border:0;border-bottom:1px solid var(--line);background:#fff;font:inherit;text-align:left;cursor:pointer}
+.meetup-row:hover{background:#FBFAFE}.meetup-row.is-past{opacity:.6}
+.meetup-date{display:grid;place-items:center;min-height:58px;border-radius:12px;background:var(--purple-light);color:var(--purple-dark);line-height:1.15}
+.meetup-date b{font-size:17px;font-weight:950}.meetup-date span{font-size:11px;font-weight:800}
+.meetup-row-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:900;color:var(--ink)}
+.meetup-row-meta{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--sub)}
+.meetup-count{font-size:12px;font-weight:900;color:var(--purple-dark);white-space:nowrap;text-align:right}
+.meetup-count small{display:block;margin-top:3px;font-size:10.5px;font-weight:800;color:var(--mute)}
+.meetup-tag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#F3F1EE;color:var(--sub);font-size:10.5px;font-weight:900;vertical-align:1px}
+.meetup-tag.on{background:var(--purple-light);color:var(--purple-dark)}.meetup-tag.off{background:#FBEAEA;color:#A33}
+.meetup-facts{display:grid;gap:6px;margin-top:12px;font-size:13px;color:var(--sub)}.meetup-facts b{display:inline-block;min-width:44px;color:var(--ink)}
+.meetup-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.meetup-person{padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:800;color:var(--sub)}
+.meetup-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:15px;border-top:1px solid var(--line)}
+.meetup-actions .board-primary-btn[disabled]{opacity:.5;cursor:not-allowed}
+.meetup-secondary{min-height:40px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff;color:var(--purple-dark);font:inherit;font-size:12.5px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.meetup-secondary.danger{color:#A33}
 .myinfo-label{display:block;margin-bottom:6px;font-size:12px;font-weight:800;color:var(--ink)}
 .myinfo-label small{margin-left:4px;font-weight:600;color:var(--mute)}
 .myinfo-tags{display:flex;flex-wrap:wrap;gap:6px}
@@ -817,6 +835,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
   <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
+  <button class="site-nav-btn" type="button" data-site-target="meetups" aria-label="번개·소모임">모임</button>
   <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
   <button class="site-nav-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button>
 </nav>
@@ -848,6 +867,11 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="site-home-card-value" id="homeBoardCount">새로운 소식</div>
       <div class="site-home-card-meta">자유글, 구인·구직, 협업과 업체 소식을 나눌 수 있습니다.</div><div class="site-home-card-link">게시판 보기 →</div>
     </button>
+    <button class="site-home-card" type="button" data-site-target="meetups">
+      <div class="site-home-card-kicker">ALUMNI MEETUPS</div><div class="site-home-card-title">번개·소모임</div>
+      <div class="site-home-card-value" id="homeMeetupCount">다음 만남</div>
+      <div class="site-home-card-meta">날짜와 장소를 정해 동문을 모으고, 참석 버튼으로 함께하세요.</div><div class="site-home-card-link">모임 보기 →</div>
+    </button>
   </div>
 </section>
 
@@ -859,6 +883,18 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="board-toolbar"><div class="board-toolbar-copy"><strong>최근 게시글</strong><span>작성자 이름과 기수는 인증 정보로 표시됩니다.</span></div><button class="board-write-btn" id="boardWriteBtn" type="button">글쓰기</button></div>
       <div class="board-filters" id="boardFilters" aria-label="게시글 분류"><button class="board-filter active" type="button" data-board-filter="all">전체</button><button class="board-filter" type="button" data-board-filter="free">자유</button><button class="board-filter" type="button" data-board-filter="jobs">구인·구직</button><button class="board-filter" type="button" data-board-filter="collab">협업·도움</button><button class="board-filter" type="button" data-board-filter="business">업체·행사</button></div>
       <div class="board-list" id="boardList"><div class="board-list-empty">게시글을 불러오는 중입니다.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="board-page site-view" id="meetupPage" data-site-view="meetups" hidden>
+  <div class="site-page-intro"><div class="site-page-kicker">ALUMNI MEETUPS</div><div class="site-page-title">동문 번개·소모임</div><div class="site-page-desc">"서울 동문 와인 모임", "베이커리 투어"처럼 누구나 날짜·장소·정원을 정해 모임을 열 수 있어요. 참석 버튼으로 신청하고 댓글로 약속을 맞춰보세요.</div></div>
+  <div class="board-shell">
+    <div class="board-gate" id="meetupGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 모임을 보고, 직접 열거나 참석할 수 있습니다.</div><button class="board-gate-btn" id="meetupVerifyBtn" type="button">동문 이메일 인증하기</button></div>
+    <div class="board-content" id="meetupContent" hidden>
+      <div class="board-toolbar"><div class="board-toolbar-copy"><strong>다가오는 모임</strong><span>이름은 각자 프로필의 표시 방식대로 보입니다.</span></div><button class="board-write-btn" id="meetupCreateBtn" type="button">모임 만들기</button></div>
+      <div class="board-filters" id="meetupFilters" aria-label="모임 분류"><button class="board-filter active" type="button" data-meetup-filter="all">전체</button><button class="board-filter" type="button" data-meetup-filter="food">식사·술</button><button class="board-filter" type="button" data-meetup-filter="tour">업장 투어</button><button class="board-filter" type="button" data-meetup-filter="hobby">운동·취미</button><button class="board-filter" type="button" data-meetup-filter="work">공부·일</button><button class="board-filter" type="button" data-meetup-filter="etc">기타</button><button class="board-filter" type="button" data-meetup-filter="mine">내가 참석</button></div>
+      <div class="board-list" id="meetupList"><div class="board-list-empty">모임을 불러오는 중입니다.</div></div>
     </div>
   </div>
 </section>
@@ -1230,6 +1266,22 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="board-modal" id="boardWriteModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardWriteTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="boardWriteTitle">게시글 작성</div><button class="board-close" type="button" data-board-close="boardWriteModal" aria-label="닫기">×</button></div><form class="board-form" id="boardForm"><input type="hidden" id="boardEditId"><div class="board-field"><label for="boardCategory">분류</label><select class="board-select" id="boardCategory" required><option value="free">자유</option><option value="jobs">구인·구직</option><option value="collab">협업·도움</option><option value="business">업체·행사</option><option value="notice" id="boardNoticeOption" hidden>공지</option></select></div><div class="board-field"><label for="boardTitle">제목</label><input class="board-input" id="boardTitle" maxlength="120" placeholder="제목을 입력해주세요" required></div><div class="board-field"><label for="boardBody">내용</label><textarea class="board-textarea" id="boardBody" maxlength="5000" placeholder="동문들과 나눌 내용을 입력해주세요" required></textarea></div><div class="board-form-foot"><div class="board-form-status" id="boardFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="boardSubmitBtn" type="submit">등록하기</button></div></form></div></div>
 
 <div class="board-modal" id="boardDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardDetailTitle"><div class="board-dialog-head"><div class="board-dialog-title">게시글</div><button class="board-close" type="button" data-board-close="boardDetailModal" aria-label="닫기">×</button></div><nav class="board-detail-nav" aria-label="게시글 이동"><button type="button" id="boardPrevBtn">← 이전 글</button><span class="board-detail-position" id="boardDetailPosition" aria-live="polite"></span><button type="button" id="boardNextBtn">다음 글 →</button></nav><article class="board-detail" id="boardDetail"></article><div class="board-comments"><div class="board-comments-title" id="boardCommentsTitle">댓글</div><div id="boardComments"></div><form class="board-comment-form" id="boardCommentForm"><input class="board-input" id="boardCommentInput" maxlength="1000" placeholder="댓글을 입력해주세요" required><button class="board-primary-btn" id="boardCommentSubmit" type="submit">댓글 등록</button></form></div></div></div>
+
+<div class="board-modal" id="meetupFormModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="meetupFormTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="meetupFormTitle">모임 만들기</div><button class="board-close" type="button" data-board-close="meetupFormModal" aria-label="닫기">×</button></div>
+<form class="board-form" id="meetupForm"><input type="hidden" id="meetupEditId">
+  <div class="board-field"><label for="meetupTitle">모임 이름</label><input class="board-input" id="meetupTitle" maxlength="80" placeholder="예: 서울 동문 와인 모임" required></div>
+  <div class="board-field"><label for="meetupCategory">분류</label><select class="board-select" id="meetupCategory"><option value="food">식사·술</option><option value="tour">업장 투어</option><option value="hobby">운동·취미</option><option value="work">공부·일</option><option value="etc">기타</option></select></div>
+  <div class="myinfo-row"><div class="board-field"><label for="meetupDate">날짜</label><input class="board-input" id="meetupDate" type="date" required></div><div class="board-field"><label for="meetupTime">시간</label><input class="board-input" id="meetupTime" type="time" value="19:00" required></div></div>
+  <div class="myinfo-row"><div class="board-field"><label for="meetupRegion">지역</label><input class="board-input" id="meetupRegion" maxlength="40" placeholder="예: 서울 성수"></div><div class="board-field"><label for="meetupCapacity">정원 <small class="meetup-hint">비우면 제한 없음</small></label><input class="board-input" id="meetupCapacity" type="number" min="2" max="200" inputmode="numeric" placeholder="예: 6"></div></div>
+  <div class="board-field"><label for="meetupPlace">장소</label><input class="board-input" id="meetupPlace" maxlength="120" placeholder="가게 이름이나 만날 곳 (정해지지 않았으면 비워두세요)"></div>
+  <div class="board-field"><label for="meetupDescription">소개</label><textarea class="board-textarea" id="meetupDescription" maxlength="1500" placeholder="어떤 모임인지, 회비나 준비물이 있는지 적어주세요"></textarea></div>
+  <div class="board-form-foot"><div class="board-form-status" id="meetupFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="meetupSubmitBtn" type="submit">모임 열기</button></div>
+</form></div></div>
+
+<div class="board-modal" id="meetupDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="meetupDetailHeading"><div class="board-dialog-head"><div class="board-dialog-title" id="meetupDetailHeading">모임</div><button class="board-close" type="button" data-board-close="meetupDetailModal" aria-label="닫기">×</button></div>
+<article class="board-detail" id="meetupDetail"></article>
+<div class="board-comments"><div class="board-comments-title" id="meetupCommentsTitle">댓글</div><div id="meetupComments"></div><form class="board-comment-form" id="meetupCommentForm"><input class="board-input" id="meetupCommentInput" maxlength="500" placeholder="시간·장소 의견이나 인사를 남겨주세요" required><button class="board-primary-btn" id="meetupCommentSubmit" type="submit">댓글 등록</button></form></div>
+</div></div>
 
 <div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
@@ -2365,6 +2417,7 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   }
   syncHomeSummary();
   syncBoardAccess();
+  syncMeetupAccess();
 }
 
 async function verifyNetworkAccess(session){
@@ -2609,6 +2662,218 @@ function boardCacheKey(){return "hanjogo-board-v2:"+String(networkCurrentSession
 function readBoardCache(){try{const raw=localStorage.getItem(boardCacheKey());if(!raw)return null;const cached=JSON.parse(raw);if(!Array.isArray(cached?.items)||Date.now()-Number(cached.savedAt||0)>BOARD_CACHE_TTL){localStorage.removeItem(boardCacheKey());return null;}return cached;}catch{return null;}}
 function writeBoardCache(items,isAdmin){try{localStorage.setItem(boardCacheKey(),JSON.stringify({items,isAdmin:Boolean(isAdmin),savedAt:Date.now()}));}catch{}}
 function syncBoardAccess(){const ok=networkAccessState==="verified";const gate=document.getElementById("boardGate"),content=document.getElementById("boardContent"),notice=document.getElementById("boardNoticeOption");if(gate)gate.hidden=ok;if(content)content.hidden=!ok;if(notice)notice.hidden=!networkIsAdmin;if(ok&&currentSiteView()==="board")loadBoard();}
+
+// ---- 번개·소모임 -----------------------------------------------------------
+// 서버 함수(hanjogo-access)가 동문 인증·주최자 확인을 합니다. 참석자 이메일은 주최자에게만 옵니다.
+const MEETUP_CATEGORY_LABELS={food:"식사·술",tour:"업장 투어",hobby:"운동·취미",work:"공부·일",etc:"기타"};
+const MEETUP_ERRORS={
+  title_required:"모임 이름을 입력해주세요.",invalid_category:"분류를 다시 선택해주세요.",
+  invalid_date:"날짜와 시간을 확인해주세요.",date_in_past:"지난 시간으로는 모임을 열 수 없어요.",
+  date_too_far:"1년 안의 날짜로 정해주세요.",invalid_capacity:"정원은 2~200명 사이로 적거나 비워두세요.",
+  capacity_below_attendees:"이미 신청한 인원보다 정원을 적게 할 수 없어요.",
+  full:"정원이 다 찼어요.",cancelled:"취소된 모임이에요.",past:"이미 지난 모임이에요.",
+  not_found:"모임을 찾을 수 없어요. 새로고침 해주세요.",host_cannot_leave:"주최자는 참석을 취소할 수 없어요. 모임 취소를 이용해주세요.",
+  forbidden:"주최자만 할 수 있어요.",invalid_comment:"댓글 내용을 입력해주세요."
+};
+let meetups=[],meetupFilter="all",meetupLoaded=false,meetupLoadPromise=null,meetupSelectedId=null,meetupIsAdmin=false;
+function meetupErrorText(e){const code=String(e?.message||e||"");return MEETUP_ERRORS[code]||"처리하지 못했어요. 잠시 후 다시 시도해주세요.";}
+async function meetupCall(action,payload={}){
+  try{return await boardCall(action,payload);}
+  catch(e){
+    // 서버가 400·409로 보낸 이유를 꺼내 보여줍니다.
+    const res=e?.context;
+    if(res&&typeof res.json==="function"){try{const body=await res.json();if(body?.error)throw new Error(body.error);}catch(inner){if(inner instanceof Error&&inner.message)throw inner;}}
+    throw e;
+  }
+}
+function meetupParts(iso){
+  const d=new Date(iso);
+  const f=new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",month:"numeric",day:"numeric",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+  const parts=Object.fromEntries(f.formatToParts(d).map(p=>[p.type,p.value]));
+  return {md:parts.month+"."+parts.day,weekday:parts.weekday,time:(parts.hour==="24"?"00":parts.hour)+":"+parts.minute};
+}
+function meetupKstInputs(iso){
+  const f=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
+  const [date,time]=f.format(new Date(iso)).split(" ");
+  return {date,time};
+}
+function meetupIsPast(m){return new Date(m.startsAt).getTime()<Date.now();}
+function meetupIsFull(m){return m.capacity!=null&&m.attendeeCount>=m.capacity;}
+function meetupPerson(name,gen){return (gen?gen+"기 ":"")+(name||"동문");}
+function syncMeetupAccess(){
+  const ok=networkAccessState==="verified";
+  const gate=document.getElementById("meetupGate"),content=document.getElementById("meetupContent");
+  if(gate)gate.hidden=ok;if(content)content.hidden=!ok;
+  if(ok&&currentSiteView()==="meetups")loadMeetups();
+}
+function loadMeetups(force=false){
+  if(meetupLoadPromise)return meetupLoadPromise;
+  if(meetupLoaded&&!force){renderMeetupList();return Promise.resolve();}
+  const list=document.getElementById("meetupList");
+  if(list&&!meetupLoaded)list.innerHTML='<div class="board-list-empty">모임을 불러오는 중입니다.</div>';
+  meetupLoadPromise=meetupCall("meetup_list").then(data=>{
+    meetups=Array.isArray(data.items)?data.items:[];meetupIsAdmin=!!data.isAdmin;meetupLoaded=true;renderMeetupList();
+    if(meetupSelectedId!=null&&!document.getElementById("meetupDetailModal")?.hidden)renderMeetupDetail();
+  }).catch(()=>{
+    if(list)list.innerHTML='<div class="board-list-empty">모임을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
+  }).finally(()=>{meetupLoadPromise=null;});
+  return meetupLoadPromise;
+}
+function meetupRow(m){
+  const p=meetupParts(m.startsAt),past=meetupIsPast(m);
+  const tags=[];
+  if(m.status==="cancelled")tags.push('<span class="meetup-tag off">취소됨</span>');
+  else if(past)tags.push('<span class="meetup-tag">지난 모임</span>');
+  else if(meetupIsFull(m))tags.push('<span class="meetup-tag off">마감</span>');
+  if(m.isHost)tags.push('<span class="meetup-tag on">내가 주최</span>');
+  else if(m.joined)tags.push('<span class="meetup-tag on">참석</span>');
+  const meta=[p.time,m.region,m.place].filter(Boolean).join(" · ");
+  const count=m.capacity!=null?m.attendeeCount+"/"+m.capacity+"명":m.attendeeCount+"명";
+  return `<button type="button" class="meetup-row${past||m.status==="cancelled"?" is-past":""}" data-meetup-id="${esc(m.id)}">
+    <span class="meetup-date"><b>${esc(p.md)}</b><span>${esc(p.weekday)}</span></span>
+    <span><span class="meetup-row-title">${esc(m.title)}${tags.join("")}</span><span class="meetup-row-meta">${esc(MEETUP_CATEGORY_LABELS[m.category]||"기타")} · ${esc(meta)}</span></span>
+    <span class="meetup-count">${esc(count)}<small>${esc(meetupPerson(m.hostName,m.hostGeneration))}</small></span>
+  </button>`;
+}
+function renderMeetupList(){
+  const list=document.getElementById("meetupList");if(!list)return;
+  document.querySelectorAll("[data-meetup-filter]").forEach(b=>b.classList.toggle("active",b.dataset.meetupFilter===meetupFilter));
+  const shown=meetups.filter(m=>meetupFilter==="all"||(meetupFilter==="mine"?(m.joined||m.isHost):m.category===meetupFilter));
+  const upcoming=shown.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").sort((a,b)=>a.startsAt.localeCompare(b.startsAt));
+  const done=shown.filter(m=>meetupIsPast(m)||m.status==="cancelled").sort((a,b)=>b.startsAt.localeCompare(a.startsAt));
+  const homeCount=document.getElementById("homeMeetupCount");
+  if(homeCount){const n=meetups.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").length;homeCount.textContent=n?"다가오는 모임 "+n+"개":"첫 모임을 열어보세요";}
+  if(!upcoming.length&&!done.length){
+    list.innerHTML='<div class="board-list-empty">'+(meetupFilter==="all"?"아직 열린 모임이 없어요.<br>\"모임 만들기\"로 첫 모임을 열어보세요.":"조건에 맞는 모임이 없어요.")+'</div>';
+    return;
+  }
+  list.innerHTML=(upcoming.length?upcoming.map(meetupRow).join(""):'<div class="board-list-empty">다가오는 모임이 없어요.</div>')
+    +(done.length?'<div class="meetup-section-title">지난·취소된 모임</div>'+done.map(meetupRow).join(""):"");
+}
+function openMeetupForm(m=null){
+  const form=document.getElementById("meetupForm");if(!form)return;
+  form.reset();
+  document.getElementById("meetupEditId").value=m?String(m.id):"";
+  document.getElementById("meetupFormTitle").textContent=m?"모임 수정":"모임 만들기";
+  document.getElementById("meetupSubmitBtn").textContent=m?"수정하기":"모임 열기";
+  document.getElementById("meetupFormStatus").textContent="";
+  const today=meetupKstInputs(new Date().toISOString()).date;
+  const dateInput=document.getElementById("meetupDate");dateInput.min=today;
+  if(m){
+    const {date,time}=meetupKstInputs(m.startsAt);
+    document.getElementById("meetupTitle").value=m.title||"";
+    document.getElementById("meetupCategory").value=m.category||"etc";
+    dateInput.value=date;document.getElementById("meetupTime").value=time;
+    document.getElementById("meetupRegion").value=m.region||"";
+    document.getElementById("meetupPlace").value=m.place||"";
+    document.getElementById("meetupCapacity").value=m.capacity!=null?String(m.capacity):"";
+    document.getElementById("meetupDescription").value=m.description||"";
+  }else document.getElementById("meetupTime").value="19:00";
+  openBoardModal("meetupFormModal");
+  setTimeout(()=>document.getElementById("meetupTitle")?.focus(),50);
+}
+function meetupDetailHtml(m){
+  const p=meetupParts(m.startsAt),past=meetupIsPast(m),cancelled=m.status==="cancelled",full=meetupIsFull(m);
+  const facts=[
+    `<div><b>일시</b> ${esc(p.md)} (${esc(p.weekday)}) ${esc(p.time)}</div>`,
+    m.region?`<div><b>지역</b> ${esc(m.region)}</div>`:"",
+    `<div><b>장소</b> ${esc(m.place||"정해지면 알려드려요")}</div>`,
+    `<div><b>주최</b> ${esc(meetupPerson(m.hostName,m.hostGeneration))}</div>`,
+    `<div><b>인원</b> ${esc(m.attendeeCount)}명${m.capacity!=null?" / 정원 "+esc(m.capacity)+"명":" (정원 제한 없음)"}</div>`
+  ].join("");
+  const people=m.attendees.map(a=>`<span class="meetup-person">${esc(meetupPerson(a.name,a.generation))}</span>`).join("");
+  const actions=[];
+  if(cancelled)actions.push('<button class="board-primary-btn" type="button" disabled>취소된 모임</button>');
+  else if(past)actions.push('<button class="board-primary-btn" type="button" disabled>지난 모임</button>');
+  else if(m.isHost)actions.push('<button class="board-primary-btn" type="button" disabled>내가 연 모임</button>');
+  else if(m.joined)actions.push('<button class="meetup-secondary" type="button" data-meetup-action="leave">참석 취소</button>');
+  else if(full)actions.push('<button class="board-primary-btn" type="button" disabled>정원 마감</button>');
+  else actions.push('<button class="board-primary-btn" type="button" data-meetup-action="join">참석하기</button>');
+  if(m.isHost&&m.attendeeEmails?.length){
+    const url="https://mail.google.com/mail/?view=cm&fs=1&bcc="+encodeURIComponent(m.attendeeEmails.join(","))+"&su="+encodeURIComponent("[한조고 모임] "+m.title);
+    actions.push(`<a class="meetup-secondary" href="${esc(url)}" target="_blank" rel="noopener noreferrer">✉ 참석자에게 메일</a>`);
+  }
+  if(m.canEdit&&!cancelled&&!past){
+    actions.push('<button class="meetup-secondary" type="button" data-meetup-action="edit">수정</button>');
+    actions.push('<button class="meetup-secondary danger" type="button" data-meetup-action="cancel">모임 취소</button>');
+  }
+  if(meetupIsAdmin&&!m.isHost)actions.push('<button class="meetup-secondary danger" type="button" data-meetup-action="hide">숨기기(관리자)</button>');
+  return `<div class="board-detail-category"><span class="board-category">${esc(MEETUP_CATEGORY_LABELS[m.category]||"기타")}</span></div>
+    <div class="board-detail-title">${esc(m.title)}</div>
+    <div class="meetup-facts">${facts}</div>
+    ${m.description?`<div class="board-detail-body">${esc(m.description)}</div>`:""}
+    <div class="board-comments-title" style="margin-top:16px">참석자 ${esc(m.attendeeCount)}명</div>
+    <div class="meetup-people">${people||'<span class="meetup-hint">아직 없어요</span>'}</div>
+    <div class="meetup-actions">${actions.join("")}</div>
+    <div class="board-form-status" id="meetupActionStatus" aria-live="polite"></div>`;
+}
+function renderMeetupDetail(){
+  const m=meetups.find(x=>String(x.id)===String(meetupSelectedId));
+  const box=document.getElementById("meetupDetail");if(!box)return;
+  if(!m){box.innerHTML='<div class="board-list-empty">모임을 찾을 수 없어요.</div>';return;}
+  box.innerHTML=meetupDetailHtml(m);
+  document.getElementById("meetupCommentsTitle").textContent="댓글 "+m.comments.length;
+  document.getElementById("meetupComments").innerHTML=m.comments.map(c=>`<div class="board-comment"><div class="board-comment-head"><span class="board-comment-author">${esc(meetupPerson(c.name,c.generation))}</span><span>${esc(boardDate(c.createdAt))}${c.canDelete?` · <button type="button" class="board-comment-delete" data-meetup-comment-delete="${esc(c.id)}">삭제</button>`:""}</span></div><div class="board-comment-body">${esc(c.content)}</div></div>`).join("")||'<div class="board-list-empty" style="padding:14px 0">첫 댓글을 남겨보세요.</div>';
+}
+function openMeetupDetail(id){meetupSelectedId=id;renderMeetupDetail();openBoardModal("meetupDetailModal");}
+async function runMeetupAction(work,doneText){
+  const status=document.getElementById("meetupActionStatus");
+  document.querySelectorAll("#meetupDetail button").forEach(b=>b.disabled=true);
+  try{await work();await loadMeetups(true);renderMeetupDetail();const s=document.getElementById("meetupActionStatus");if(s&&doneText)s.textContent=doneText;}
+  catch(e){renderMeetupDetail();const s=document.getElementById("meetupActionStatus");if(s)s.textContent=meetupErrorText(e);}
+}
+document.getElementById("meetupVerifyBtn")?.addEventListener("click",()=>setSiteView("network"));
+document.getElementById("meetupCreateBtn")?.addEventListener("click",()=>openMeetupForm());
+document.getElementById("meetupFilters")?.addEventListener("click",e=>{const b=e.target.closest("[data-meetup-filter]");if(b){meetupFilter=b.dataset.meetupFilter;renderMeetupList();}});
+document.getElementById("meetupList")?.addEventListener("click",e=>{const r=e.target.closest("[data-meetup-id]");if(r)openMeetupDetail(r.dataset.meetupId);});
+document.getElementById("meetupDetail")?.addEventListener("click",e=>{
+  const b=e.target.closest("[data-meetup-action]");if(!b)return;
+  const id=meetupSelectedId,m=meetups.find(x=>String(x.id)===String(id));if(!m)return;
+  const action=b.dataset.meetupAction;
+  if(action==="edit"){closeBoardModal("meetupDetailModal");openMeetupForm(m);return;}
+  if(action==="join")runMeetupAction(()=>meetupCall("meetup_join",{id}),"참석 신청했어요. 댓글로 인사를 남겨보세요.");
+  if(action==="leave"&&confirm("참석을 취소할까요?"))runMeetupAction(()=>meetupCall("meetup_leave",{id}),"참석을 취소했어요.");
+  if(action==="cancel"&&confirm("모임을 취소할까요? 참석자에게는 목록에 '취소됨'으로 보여요."))runMeetupAction(()=>meetupCall("meetup_cancel",{id}),"모임을 취소했어요.");
+  if(action==="hide"&&confirm("이 모임을 목록에서 숨길까요?"))runMeetupAction(async()=>{await meetupCall("meetup_hide",{id});closeBoardModal("meetupDetailModal");});
+});
+document.getElementById("meetupComments")?.addEventListener("click",e=>{
+  const b=e.target.closest("[data-meetup-comment-delete]");if(!b||!confirm("댓글을 삭제할까요?"))return;
+  runMeetupAction(()=>meetupCall("meetup_comment_delete",{id:meetupSelectedId,commentId:Number(b.dataset.meetupCommentDelete)}));
+});
+document.getElementById("meetupCommentForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const input=document.getElementById("meetupCommentInput"),btn=document.getElementById("meetupCommentSubmit");
+  const content=input.value.trim();if(!content)return;
+  btn.disabled=true;
+  try{await meetupCall("meetup_comment_create",{id:meetupSelectedId,content});input.value="";await loadMeetups(true);renderMeetupDetail();}
+  catch(err){const s=document.getElementById("meetupActionStatus");if(s)s.textContent=meetupErrorText(err);}
+  finally{btn.disabled=false;}
+});
+document.getElementById("meetupForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const status=document.getElementById("meetupFormStatus"),btn=document.getElementById("meetupSubmitBtn");
+  const date=document.getElementById("meetupDate").value,time=document.getElementById("meetupTime").value;
+  if(!date||!time){status.textContent=MEETUP_ERRORS.invalid_date;return;}
+  const editId=document.getElementById("meetupEditId").value;
+  const payload={
+    title:document.getElementById("meetupTitle").value.trim(),
+    category:document.getElementById("meetupCategory").value,
+    // 입력한 날짜·시간은 한국 시간으로 봅니다(해외에서 열어도 같은 뜻이 되도록).
+    startsAt:date+"T"+time+":00+09:00",
+    region:document.getElementById("meetupRegion").value.trim(),
+    place:document.getElementById("meetupPlace").value.trim(),
+    capacity:document.getElementById("meetupCapacity").value.trim(),
+    description:document.getElementById("meetupDescription").value.trim()
+  };
+  btn.disabled=true;status.textContent="저장하는 중입니다…";
+  try{
+    const data=editId?await meetupCall("meetup_update",{id:Number(editId),...payload}):await meetupCall("meetup_create",payload);
+    closeBoardModal("meetupFormModal");
+    await loadMeetups(true);
+    openMeetupDetail(editId?Number(editId):data.id);
+  }catch(err){status.textContent=meetupErrorText(err);}
+  finally{btn.disabled=false;}
+});
 function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(p=>boardFilter==="all"||p.category===boardFilter);document.querySelectorAll(".board-filter").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}</span><span class="board-row-meta">${esc(author)} · ${esc(boardDate(p.createdAt))}</span></span><span class="board-comment-count">반응 ${reactionTotal} · 조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 async function loadBoard(force=false){
   if(networkAccessState!=="verified")return;
@@ -2941,7 +3206,7 @@ myInfoEl("myInfoPlaceForm")?.addEventListener("submit",async e=>{
   }finally{button.disabled=false;}
 });
 
-const SITE_VIEWS=new Set(["home","event","network","board","places"]);
+const SITE_VIEWS=new Set(["home","event","network","board","meetups","places"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
@@ -3018,9 +3283,12 @@ function setSiteView(view,{updateHash=true}={}){
   if(next!=="board"){
     ["boardWriteModal","boardDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
   }else syncBoardAccess();
+  if(next!=="meetups"){
+    ["meetupFormModal","meetupDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
+  }else syncMeetupAccess();
 
   const placesFrame=document.getElementById("alumniPlacesFrame");
-  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-regions";
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-contact";
   syncHomeSummary();
 
   if(updateHash){

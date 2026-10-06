@@ -11,7 +11,7 @@ const body = source.slice(source.indexOf('function normalizeEmail'), source.inde
 assert(body.length > 1000, '함수 본문을 찾지 못했습니다');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanjogo-profile-'));
 const file = path.join(dir, 'helpers.ts');
-fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName };\n');
+fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput };\n');
 
 const baseDraft = {
   name: '김태민', generation: 2, displayMode: 'masked',
@@ -114,6 +114,24 @@ const baseDraft = {
   assert.equal(H.alumniName('Jenny Kim'), 'Jenny Kim');
   assert.equal(H.alumniName(''), '');
 
+  // ---- 번개·소모임 입력 ----------------------------------------------------
+  const NOW = Date.parse('2026-10-06T00:00:00Z');
+  const meetup = { title: ' 서울 와인 모임 ', category: 'food', startsAt: '2026-10-25T10:00:00Z', capacity: '6', region: '서울', place: '성수', description: '편하게 와요' };
+  const okMeetup = H.cleanMeetupInput(meetup, NOW).value;
+  assert.equal(okMeetup.title, '서울 와인 모임');
+  assert.equal(okMeetup.capacity, 6);
+  assert.equal(okMeetup.starts_at, '2026-10-25T10:00:00.000Z');
+  assert.equal(H.cleanMeetupInput({ ...meetup, capacity: '' }, NOW).value.capacity, null, '정원은 비워둘 수 있습니다');
+  assert.equal(H.cleanMeetupInput({ ...meetup, title: ' ' }, NOW).error, 'title_required');
+  assert.equal(H.cleanMeetupInput({ ...meetup, category: 'party' }, NOW).error, 'invalid_category');
+  assert.equal(H.cleanMeetupInput({ ...meetup, startsAt: 'nope' }, NOW).error, 'invalid_date');
+  assert.equal(H.cleanMeetupInput({ ...meetup, startsAt: '2026-10-01T10:00:00Z' }, NOW).error, 'date_in_past');
+  assert.equal(H.cleanMeetupInput({ ...meetup, startsAt: '2028-01-01T10:00:00Z' }, NOW).error, 'date_too_far');
+  assert.equal(H.cleanMeetupInput({ ...meetup, capacity: 1 }, NOW).error, 'invalid_capacity');
+  assert.equal(H.cleanMeetupInput({ ...meetup, capacity: 2.5 }, NOW).error, 'invalid_capacity');
+  assert.equal(H.cleanMeetupInput({ ...meetup, capacity: 201 }, NOW).error, 'invalid_capacity');
+  assert.equal(H.cleanMeetupInput({ ...meetup, region: '' }, NOW).value.region, null);
+
   fs.rmSync(dir, { recursive: true, force: true });
-  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출');
+  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증');
 })().catch((e) => { console.error(e); process.exit(1); });

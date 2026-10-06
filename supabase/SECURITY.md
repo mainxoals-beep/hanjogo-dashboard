@@ -34,6 +34,12 @@
 - 로그인하지 않은 사람은 브라우저에만 저장됩니다. 인증하면 그 목록을 계정으로 한 번 옮깁니다.
 - 화면은 브라우저 저장본을 먼저 보여주고 서버 값으로 맞춥니다. 서버 저장이 실패하면 별을 되돌립니다.
 
+## 번개·소모임 (`schedule.html` > 모임)
+- `hanjogo_meetups`, `hanjogo_meetup_attendees`, `hanjogo_meetup_comments`에는 `anon`·`authenticated` 권한을 주지 않습니다.
+  `hanjogo-access` 함수만 읽고 쓰며, 동문 인증한 사람만 볼 수 있습니다.
+- 목록에는 표시 이름(프로필의 이름 표시 방식 적용)과 기수만 나갑니다. **참석자 이메일은 그 모임 주최자에게만** 보냅니다.
+- 정원 확인은 `hanjogo_meetup_join()` 함수가 모임 행을 잠그고 합니다(동시에 눌러도 정원 초과 없음). service role만 실행합니다.
+
 ## 동문 업장 (`alumni-map.html`, `schedule.html` > 내 정보)
 - `hanjogo_alumni_places`의 공개 읽기에는 **`owner_email`을 넣지 않습니다**. 담당자 이메일이 외부로 나갑니다.
   컬럼 단위로 select 권한을 주고 있으므로, 화면에서 `select('*')`를 쓰지 않습니다.

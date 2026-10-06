@@ -590,6 +590,37 @@ function cleanPlaceInput(body: Record<string, unknown>) {
   } as const;
 }
 
+const MEETUP_CATEGORIES = ["food", "tour", "hobby", "work", "etc"];
+
+/** Validate a meetup the browser sent. `now` is passed in so tests can pin it. */
+function cleanMeetupInput(body: Record<string, unknown>, now = Date.now()) {
+  const title = cleanBoardText(body.title, 80);
+  if (!title) return { error: "title_required" } as const;
+  const category = String(body.category ?? "");
+  if (!MEETUP_CATEGORIES.includes(category)) return { error: "invalid_category" } as const;
+  const startsAt = new Date(String(body.startsAt ?? ""));
+  if (Number.isNaN(startsAt.getTime())) return { error: "invalid_date" } as const;
+  if (startsAt.getTime() < now) return { error: "date_in_past" } as const;
+  if (startsAt.getTime() > now + 366 * 86400000) return { error: "date_too_far" } as const;
+  let capacity: number | null = null;
+  if (body.capacity !== null && body.capacity !== undefined && String(body.capacity).trim() !== "") {
+    const parsed = Number(body.capacity);
+    if (!Number.isInteger(parsed) || parsed < 2 || parsed > 200) return { error: "invalid_capacity" } as const;
+    capacity = parsed;
+  }
+  return {
+    value: {
+      title,
+      category,
+      starts_at: startsAt.toISOString(),
+      region: cleanBoardText(body.region, 40) || null,
+      place: cleanBoardText(body.place, 120) || null,
+      capacity,
+      description: cleanBoardText(body.description, 1500) || null,
+    },
+  } as const;
+}
+
 /** Alumni directory rows (name, cohort, email) for owner matching. */
 async function alumniPeople() {
   const rows = rowsAsObjects(await fetchCsv(ALUMNI_CSV_URL));
@@ -879,6 +910,191 @@ Deno.serve(async (req: Request) => {
     const { error } = await adminClient.from("hanjogo_alumni_places").update(patch).eq("id", id);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true });
+  }
+
+  // ---- 번개·소모임 ---------------------------------------------------------
+  if (action.startsWith("meetup_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+
+    /** How this person appears on a meetup: their profile's name display
+     * choice (실명 / 가운데 ○ / 비공개) is applied once, when they join. */
+    async function meetupIdentity() {
+      const override = await myOverride();
+      const identity = await boardIdentity(email, special, override);
+      let mode = "masked";
+      if (isAdmin) mode = "full";
+      else if (override) mode = String(override.display_mode || "masked");
+      else {
+        try {
+          const row = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)))
+            .find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
+          const choice = row ? getField(row, "사이트에서 이름을 어떻게 표시할까요?") : "";
+          if (choice.includes("실명 전체")) mode = "full";
+          else if (choice && !choice.includes("마스킹")) mode = "hidden";
+        } catch { /* 폼을 못 읽으면 가운데 ○ 로 표시합니다. */ }
+      }
+      const name = mode === "full" ? identity.name : mode === "hidden" ? "이름 비공개" : maskName(identity.name);
+      const generation = Number(identity.generation);
+      return {
+        display_name: cleanBoardText(name, 40) || "동문",
+        generation: Number.isInteger(generation) && generation >= 1 && generation <= 99 ? generation : null,
+      };
+    }
+
+    async function loadMeetup(id: number) {
+      const { data, error } = await adminClient.from("hanjogo_meetups").select("*").eq("id", id).maybeSingle();
+      if (error) throw error;
+      return data && !data.is_hidden ? data : null;
+    }
+
+    if (action === "meetup_list") {
+      const since = new Date(Date.now() - 30 * 86400000).toISOString();
+      const { data: meetups, error } = await adminClient.from("hanjogo_meetups")
+        .select("id,host_user_id,host_display_name,host_generation,title,category,starts_at,region,place,capacity,description,status,created_at")
+        .eq("is_hidden", false).gte("starts_at", since).order("starts_at").limit(200);
+      if (error) return json({ error: error.message }, 500);
+      const ids = (meetups || []).map((m) => m.id);
+      let attendees: Record<string, unknown>[] = [];
+      let comments: Record<string, unknown>[] = [];
+      if (ids.length) {
+        const [a, c] = await Promise.all([
+          adminClient.from("hanjogo_meetup_attendees")
+            .select("meetup_id,user_id,email,display_name,generation,created_at").in("meetup_id", ids).order("created_at"),
+          adminClient.from("hanjogo_meetup_comments")
+            .select("id,meetup_id,user_id,display_name,generation,content,created_at")
+            .in("meetup_id", ids).eq("is_hidden", false).order("created_at"),
+        ]);
+        if (a.error) return json({ error: a.error.message }, 500);
+        if (c.error) return json({ error: c.error.message }, 500);
+        attendees = a.data || [];
+        comments = c.data || [];
+      }
+      const items = (meetups || []).map((m) => {
+        const isHost = m.host_user_id === userId;
+        const going = attendees.filter((row) => row.meetup_id === m.id);
+        return {
+          id: m.id, title: m.title, category: m.category, startsAt: m.starts_at,
+          region: m.region, place: m.place, capacity: m.capacity, description: m.description,
+          status: m.status, hostName: m.host_display_name, hostGeneration: m.host_generation,
+          isHost, canEdit: isHost || isAdmin,
+          joined: going.some((row) => row.user_id === userId),
+          attendeeCount: going.length,
+          attendees: going.map((row) => ({ name: row.display_name, generation: row.generation })),
+          // 참석자 이메일은 주최자에게만 보냅니다(전체 연락용).
+          attendeeEmails: isHost ? going.filter((row) => row.user_id !== userId).map((row) => row.email) : [],
+          comments: comments.filter((row) => row.meetup_id === m.id).map((row) => ({
+            id: row.id, name: row.display_name, generation: row.generation, content: row.content,
+            createdAt: row.created_at, canDelete: isAdmin || row.user_id === userId,
+          })),
+        };
+      });
+      return json({ allowed: true, isAdmin, items });
+    }
+
+    if (action === "meetup_create") {
+      const cleaned = cleanMeetupInput(body);
+      if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+      const me = await meetupIdentity();
+      const { data, error } = await adminClient.from("hanjogo_meetups").insert({
+        ...cleaned.value, host_user_id: userId, host_email: email,
+        host_display_name: me.display_name, host_generation: me.generation,
+      }).select("id").single();
+      if (error) return json({ error: error.message }, 500);
+      // 모임을 연 사람은 자동으로 첫 참석자가 됩니다.
+      const { error: joinError } = await adminClient.from("hanjogo_meetup_attendees").insert({
+        meetup_id: data.id, user_id: userId, email, display_name: me.display_name, generation: me.generation,
+      });
+      if (joinError) return json({ error: joinError.message }, 500);
+      return json({ ok: true, id: data.id });
+    }
+
+    const meetupId = Number(body.id);
+    if (!Number.isFinite(meetupId)) return json({ error: "invalid_meetup" }, 400);
+    let meetup: Record<string, unknown> | null;
+    try {
+      meetup = await loadMeetup(meetupId);
+    } catch (e) {
+      return json({ error: String((e as Error).message || e) }, 500);
+    }
+    if (!meetup) return json({ error: "not_found" }, 404);
+    const canEdit = isAdmin || meetup.host_user_id === userId;
+
+    if (action === "meetup_update") {
+      if (!canEdit) return json({ error: "forbidden" }, 403);
+      const cleaned = cleanMeetupInput(body);
+      if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+      if (cleaned.value.capacity !== null) {
+        const { count, error: countError } = await adminClient.from("hanjogo_meetup_attendees")
+          .select("user_id", { count: "exact", head: true }).eq("meetup_id", meetupId);
+        if (countError) return json({ error: countError.message }, 500);
+        if ((count || 0) > cleaned.value.capacity) return json({ error: "capacity_below_attendees" }, 400);
+      }
+      const { error } = await adminClient.from("hanjogo_meetups")
+        .update({ ...cleaned.value, updated_at: new Date().toISOString() }).eq("id", meetupId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "meetup_cancel") {
+      if (!canEdit) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_meetups")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("id", meetupId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "meetup_hide") {
+      if (!isAdmin) return json({ error: "admin_only" }, 403);
+      const { error } = await adminClient.from("hanjogo_meetups")
+        .update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", meetupId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "meetup_join") {
+      const me = await meetupIdentity();
+      const { data, error } = await adminClient.rpc("hanjogo_meetup_join", {
+        p_meetup_id: meetupId, p_user_id: userId, p_email: email,
+        p_display_name: me.display_name, p_generation: me.generation,
+      });
+      if (error) return json({ error: error.message }, 500);
+      if (data !== "ok") return json({ error: String(data) }, 409);
+      return json({ ok: true });
+    }
+
+    if (action === "meetup_leave") {
+      if (meetup.host_user_id === userId) return json({ error: "host_cannot_leave" }, 400);
+      const { error } = await adminClient.from("hanjogo_meetup_attendees")
+        .delete().eq("meetup_id", meetupId).eq("user_id", userId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "meetup_comment_create") {
+      const content = cleanBoardText(body.content, 500);
+      if (!content) return json({ error: "invalid_comment" }, 400);
+      const me = await meetupIdentity();
+      const { error } = await adminClient.from("hanjogo_meetup_comments").insert({
+        meetup_id: meetupId, user_id: userId, display_name: me.display_name, generation: me.generation, content,
+      });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "meetup_comment_delete") {
+      const commentId = Number(body.commentId);
+      if (!Number.isFinite(commentId)) return json({ error: "invalid_comment" }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_meetup_comments")
+        .select("id,user_id").eq("id", commentId).eq("meetup_id", meetupId).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target) return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.user_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_meetup_comments").update({ is_hidden: true }).eq("id", commentId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    return json({ error: "unknown_action" }, 400);
   }
 
   if (action.startsWith("board_")) {

@@ -155,3 +155,20 @@ test('places run by the same alumnus are grouped into one card',async()=>{
   assert.equal(run('openId'),'g:2|김태민');
   assert.match(h.el('grid').innerHTML,/class="card group open selected"/);
 });
+
+// 새로 등록된 업장(30일 이내)은 NEW 표시와 함께 맨 앞에, 최근 등록 순으로 보입니다.
+test('new places come first with a NEW badge',async()=>{
+  const day=86400000,ago=d=>new Date(Date.now()-d*day).toISOString();
+  const rows=[{id:1,name:'Alpha',owner_name:'가',owner_generation:'1기',created_at:ago(200)},
+              {id:2,name:'하늘',owner_name:'나',owner_generation:'2기',created_at:ago(3)},
+              {id:3,name:'가람',owner_name:'다',owner_generation:'3기',created_at:ago(1)},
+              {id:4,name:'Beta',owner_name:'라',owner_generation:'4기'}];
+  const h=harness({data:rows,error:null});
+  await new Promise(setImmediate);
+  const run=expr=>vm.runInContext(expr,h.context);
+  assert.deepEqual(run('filtered().sort(comparePlaces).map(p=>p.id)'),[3,2,1,4]);
+  const html=h.el('grid').innerHTML;
+  assert.equal((html.match(/new-badge/g)||[]).length,2);
+  assert.ok(html.indexOf('가람')<html.indexOf('하늘'));
+  assert.match(h.el('loadStatus').textContent,/새 업장 2곳/);
+});

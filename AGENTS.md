@@ -7,6 +7,7 @@
 - `schedule.html`: 동문 공개 페이지
 - `alumni-map.html`: 동문 매장 지도
 - `assets/raffle-roster.js`: 추첨 명단 로직 (`tests/`에서 테스트)
+- `assets/analytics.js`: 구글 애널리틱스(공개 페이지·지도 전용, 주소만 전송)
 - `supabase/`: Supabase 프로젝트 `siuresrjvrrezhwsjery` 관련 코드와 DB 변경 기록
 - 배포: `main` 브랜치에 push하면 GitHub Pages(`mainxoals-beep.github.io/hanjogo-dashboard`)에 반영됩니다.
 

@@ -11,7 +11,7 @@ const body = source.slice(source.indexOf('function normalizeEmail'), source.inde
 assert(body.length > 1000, '함수 본문을 찾지 못했습니다');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanjogo-profile-'));
 const file = path.join(dir, 'helpers.ts');
-fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, boardTopic, cleanResourceInput, resourceExtension };\n');
+fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, boardTopic, cleanResourceInput, helpTopicsFor, cleanMentions, resourceExtension };\n');
 
 const baseDraft = {
   name: '김태민', generation: 2, displayMode: 'masked',
@@ -154,6 +154,14 @@ const baseDraft = {
   assert.equal(H.cleanResourceInput({ title: '원가표', category: 'nope', linkUrl: 'https://a.b' }).error, 'invalid_category');
   assert.equal(H.cleanResourceInput({ title: ' ', category: 'cost', linkUrl: 'https://a.b' }).error, 'title_required');
 
+  // ---- 도우미 분야(폼 연결 희망 분야 포함) · 태그 ------------------------------
+  assert.deepEqual(H.helpTopicsFor(['매장 운영'], '정보 교류, 창업, 메뉴개발 / R&D'), ['창업 준비', '매장 운영', '메뉴 개발']);
+  assert.deepEqual(H.helpTopicsFor([], ''), [], '연결 희망 분야를 공개하지 않았으면 도우미로 나오지 않습니다');
+  assert.deepEqual(H.helpTopicsFor([], '멘토링 / 후배 지원, 특별히 없음'), []);
+  const id = 'a'.repeat(24);
+  assert.deepEqual(H.cleanMentions([id, id, 'x', 'B'.repeat(24)]), [id], '중복·잘못된 id는 버립니다');
+  assert.equal(H.cleanMentions(Array.from({ length: 15 }, (_, i) => i.toString(16).padStart(24, '0'))).length, 10, '한 번에 10명까지');
+
   fs.rmSync(dir, { recursive: true, force: true });
-  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증, 도움 분야·질문 분야·자료실 입력 검증');
+  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증, 도움 분야·질문 분야·자료실 입력 검증, 도우미 분야·태그');
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -43,6 +43,10 @@
 
 ## 선후배 질문 · 실무 자료실 (`schedule.html` > 게시판 '선후배 질문', 자료실)
 - 선후배 질문은 게시판(`hanjogo_board_posts`)의 `question` 분류입니다. 질문 글에만 `topic`(도움 분야)과 `is_resolved`가 붙습니다.
+- 도와줄 수 있는 동문 목록과 @태그 후보는 **공개 프로필(동의 + 이름 비공개 아님)** 만 씁니다. 사이트에서 고른 분야에 더해,
+  구글 폼 "연결 희망 분야"를 **공개 항목으로 고른 경우에만** 그 답(창업, 메뉴개발/R&D, 해외 취업/유학, 식자재/유통, 교육/강의)을 분야로 봅니다.
+  이메일은 서버 안에서 알림을 보낼 때만 쓰고 화면으로 보내지 않습니다.
+- 알림(`hanjogo_notifications`)은 `anon`·`authenticated` 권한이 없고, 함수가 로그인한 본인 것만 보여줍니다.
 - `hanjogo_resources`, `hanjogo_resource_comments`에는 `anon`·`authenticated` 권한을 주지 않습니다.
   `hanjogo-access` 함수만 읽고 쓰며, 동문 인증한 사람만 봅니다. 목록에는 표시 이름과 기수만 나갑니다(이메일 없음).
 - "도와줄 수 있는 분야"(`hanjogo_profile_overrides.help_topics`)는 공개를 목적으로 고르는 항목입니다.

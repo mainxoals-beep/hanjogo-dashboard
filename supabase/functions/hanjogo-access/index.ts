@@ -7,6 +7,9 @@ const ADMIN_EMAIL = "mainxoals@gmail.com";
 const ALUMNI_EMAIL_CACHE_TTL = 5 * 60 * 1000;
 let alumniEmailCache: { expiresAt: number; emails: Set<string> } | null = null;
 let alumniEmailCachePromise: Promise<Set<string>> | null = null;
+// 태그·도우미 목록에 쓰는 공개 프로필 목록. 몇 분 동안 다시 쓰고, 프로필을 저장하면 비웁니다.
+let publicPeopleCache: { expiresAt: number; people: PublicPerson[] } | null = null;
+type PublicPerson = { profileId: string; email: string; name: string; generation: number | null; topics: string[] };
 
 const cors = {
   "Access-Control-Allow-Origin": "https://mainxoals-beep.github.io",
@@ -643,6 +646,37 @@ const HELP_TOPICS = [
   "취업·이직", "식자재·유통", "마케팅·SNS", "교육·강의", "호텔·파인다이닝",
 ];
 
+/** Google Form "연결 희망 분야" answers that clearly mean the same as a help field. */
+const CONNECT_TO_HELP: Record<string, string> = {
+  "창업": "창업 준비",
+  "메뉴개발 / R&D": "메뉴 개발",
+  "해외 취업 / 유학": "해외 취업·유학",
+  "식자재 / 유통": "식자재·유통",
+  "교육 / 강의": "교육·강의",
+};
+
+/** Help fields for a public profile: the ones picked on the site, plus the
+ * form's 연결 희망 분야 answers that map onto a field. `connect` is only
+ * non-empty when the person made it public, so nothing private leaks here. */
+function helpTopicsFor(picked: unknown, connect: unknown) {
+  const topics = new Set(cleanHelpTopics(picked));
+  String(connect ?? "").split(/[,;\n]+/).map((tag) => tag.trim()).forEach((tag) => {
+    if (CONNECT_TO_HELP[tag]) topics.add(CONNECT_TO_HELP[tag]);
+  });
+  return HELP_TOPICS.filter((topic) => topics.has(topic));
+}
+
+function validGeneration(value: unknown) {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 99 ? n : null;
+}
+
+/** Profile ids someone was @-tagged with: unique, at most 10. */
+function cleanMentions(value: unknown) {
+  const ids = Array.isArray(value) ? value.map((item) => String(item)) : [];
+  return [...new Set(ids.filter((id) => /^[0-9a-f]{24}$/.test(id)))].slice(0, 10);
+}
+
 function cleanHelpTopics(value: unknown) {
   const requested = Array.isArray(value) ? value.map((item) => String(item)) : [];
   return HELP_TOPICS.filter((topic) => requested.includes(topic));
@@ -768,6 +802,58 @@ Deno.serve(async (req: Request) => {
     };
   }
 
+  /** Alumni who can be @-tagged or shown as helpers: public profiles only
+   * (profile consent on, name not hidden), with the name as they chose to show
+   * it. The email stays on the server; it is only used to deliver notifications. */
+  async function publicPeople(): Promise<PublicPerson[]> {
+    if (publicPeopleCache && publicPeopleCache.expiresAt > Date.now()) return publicPeopleCache.people;
+    const { data: overrideRows, error } = await adminClient.from("hanjogo_profile_overrides").select("*");
+    if (error) throw error;
+    const overrides = new Map<string, Record<string, unknown>>(
+      (overrideRows || []).map((row) => [normalizeEmail(row.email), row as Record<string, unknown>]),
+    );
+    const allRows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
+    const todayKey = koreaDateKey();
+    const firstDates = firstPublicProfileDates(allRows);
+    const people: PublicPerson[] = [];
+    const add = (profile: Record<string, unknown> | null, ownerEmail: string, picked: unknown) => {
+      if (!profile || !ownerEmail || profile.name === "이름 비공개") return;
+      people.push({
+        profileId: String(profile.profileId),
+        email: ownerEmail,
+        name: String(profile.name),
+        generation: numberFromText(profile.gen),
+        topics: helpTopicsFor(picked, profile.connect),
+      });
+    };
+    for (const row of latestPublicProfileRows(allRows, firstDates)) {
+      const rowEmail = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
+      if (!rowEmail || overrides.has(rowEmail)) continue;
+      add(await buildProfile(row, new Map(), firstDates, todayKey, ""), rowEmail, []);
+    }
+    for (const [ownerEmail, row] of overrides) {
+      const draft = profileDraftFromOverride(row);
+      add(await buildProfileFromDraft(draft, ownerEmail, "", todayKey, ""), ownerEmail, draft.helpTopics);
+    }
+    people.sort((a, b) => (a.generation ?? 999) - (b.generation ?? 999) || a.name.localeCompare(b.name, "ko"));
+    publicPeopleCache = { expiresAt: Date.now() + 3 * 60 * 1000, people };
+    return people;
+  }
+
+  /** Leave an in-site notification (🔔) for each tagged person, never for yourself. */
+  async function notifyMentions(mentionIds: string[], postId: number, title: string, actor: { name: string; generation: number | null }, skip: Set<string>) {
+    if (!mentionIds.length) return;
+    let people: PublicPerson[] = [];
+    try { people = await publicPeople(); } catch { return; }
+    const rows = people
+      .filter((person) => mentionIds.includes(person.profileId) && person.email !== email && !skip.has(person.email))
+      .map((person) => {
+        skip.add(person.email);
+        return { recipient_email: person.email, kind: "mention", post_id: postId, title: cleanBoardText(title, 120), actor_name: actor.name, actor_generation: validGeneration(actor.generation) };
+      });
+    if (rows.length) await adminClient.from("hanjogo_notifications").insert(rows);
+  }
+
   if (action === "verify") {
     return json({ allowed: inAlumniDb, source: isAdmin ? "admin" : special ? "special" : inAlumniDb ? "alumni_db" : null, isAdmin });
   }
@@ -865,6 +951,7 @@ Deno.serve(async (req: Request) => {
       .from("hanjogo_profile_overrides")
       .upsert(draftToOverrideRow(cleaned, email), { onConflict: "email" });
     if (error) return json({ error: error.message }, 500);
+    publicPeopleCache = null;
     return json({ ok: true, draft: cleaned });
   }
 
@@ -1293,6 +1380,29 @@ Deno.serve(async (req: Request) => {
     return json({ error: "unknown_action" }, 400);
   }
 
+  // ---- 알림 (🔔) -----------------------------------------------------------
+  // 본인 것만 봅니다. 태그됐을 때, 내 글에 답변·댓글이 달렸을 때 생깁니다.
+  if (action === "notifications_list") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const { data, error } = await adminClient.from("hanjogo_notifications")
+      .select("id,kind,post_id,title,actor_name,actor_generation,created_at,read_at")
+      .eq("recipient_email", email).order("created_at", { ascending: false }).limit(50);
+    if (error) return json({ error: error.message }, 500);
+    const items = (data || []).map((row) => ({
+      id: row.id, kind: row.kind, postId: row.post_id, title: row.title,
+      actorName: row.actor_name, actorGeneration: row.actor_generation, createdAt: row.created_at, read: Boolean(row.read_at),
+    }));
+    return json({ allowed: true, items, unread: items.filter((item) => !item.read).length });
+  }
+
+  if (action === "notifications_read") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const { error } = await adminClient.from("hanjogo_notifications")
+      .update({ read_at: new Date().toISOString() }).eq("recipient_email", email).is("read_at", null);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
   if (action.startsWith("board_")) {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
     if (action === "board_list") {
@@ -1319,20 +1429,16 @@ Deno.serve(async (req: Request) => {
         reactions = reactionResult.data || [];
         views = viewResult.data || [];
       }
-      // 선후배 질문: 분야별로 도와줄 수 있다고 한 동문. 프로필 공개에 동의한 사람만, 각자 고른 이름 표시 방식으로 보여줍니다.
-      const { data: helperRows, error: helperError } = await adminClient.from("hanjogo_profile_overrides")
-        .select("name,generation,display_mode,help_topics").eq("consent", true);
-      if (helperError) return json({ error: helperError.message }, 500);
-      const helpersByTopic: Record<string, { name: string; generation: number | null }[]> = {};
+      // 선후배 질문: 분야별로 도와줄 수 있는 동문과 @태그할 수 있는 동문(공개 프로필만, 각자 고른 이름 표시 방식).
+      let people: PublicPerson[] = [];
+      try { people = await publicPeople(); } catch { /* 폼을 못 읽으면 목록 없이 보여줍니다. */ }
+      const helpersByTopic: Record<string, { profileId: string; name: string; generation: number | null }[]> = {};
       HELP_TOPICS.forEach((topic) => { helpersByTopic[topic] = []; });
-      (helperRows || []).forEach((row) => {
-        const name = String(row.name || "").trim();
-        const shown = row.display_mode === "full" ? name : row.display_mode === "hidden" ? "이름 비공개" : maskName(name);
-        cleanHelpTopics(row.help_topics).forEach((topic) => {
-          helpersByTopic[topic].push({ name: shown || "동문", generation: row.generation == null ? null : Number(row.generation) });
-        });
-      });
-      return json({ allowed: true, isAdmin, helpTopics: HELP_TOPICS, helpersByTopic, items: (posts || []).map((post) => publicBoardPost(
+      people.forEach((person) => person.topics.forEach((topic) => {
+        helpersByTopic[topic].push({ profileId: person.profileId, name: person.name, generation: person.generation });
+      }));
+      const mentionable = people.map((person) => ({ profileId: person.profileId, name: person.name, generation: person.generation }));
+      return json({ allowed: true, isAdmin, helpTopics: HELP_TOPICS, helpersByTopic, people: mentionable, items: (posts || []).map((post) => publicBoardPost(
         post,
         comments.filter((comment) => comment.post_id === post.id),
         reactions.filter((reaction) => reaction.post_id === post.id),
@@ -1389,6 +1495,7 @@ Deno.serve(async (req: Request) => {
         author_generation: identity.generation, category, title, content, topic: picked.topic, is_notice: category === "notice",
       }).select("id").single();
       if (error) return json({ error: error.message }, 500);
+      await notifyMentions(cleanMentions(body.mentions), data.id, title, identity, new Set());
       return json({ ok: true, id: data.id });
     }
     if (action === "board_update") {
@@ -1435,7 +1542,7 @@ Deno.serve(async (req: Request) => {
       const postId = Number(body.postId);
       const content = cleanBoardText(body.content, 1000);
       if (!Number.isFinite(postId) || !content) return json({ error: "invalid_comment" }, 400);
-      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id,title,category,author_email").eq("id", postId).eq("is_hidden", false).maybeSingle();
       if (postError) return json({ error: postError.message }, 500);
       if (!post) return json({ error: "post_not_found" }, 404);
       const identity = await boardIdentity(email, special, await myOverride());
@@ -1444,6 +1551,17 @@ Deno.serve(async (req: Request) => {
         author_generation: identity.generation, content,
       });
       if (error) return json({ error: error.message }, 500);
+      // 글쓴이에게 새 답변(댓글)을 알리고, 태그한 동문에게도 알립니다. 같은 사람에게 두 번 보내지 않습니다.
+      const notified = new Set<string>();
+      const author = normalizeEmail(post.author_email);
+      if (author && author !== email) {
+        notified.add(author);
+        await adminClient.from("hanjogo_notifications").insert({
+          recipient_email: author, kind: post.category === "question" ? "answer" : "comment", post_id: postId,
+          title: cleanBoardText(post.title, 120), actor_name: identity.name, actor_generation: validGeneration(identity.generation),
+        });
+      }
+      await notifyMentions(cleanMentions(body.mentions), postId, String(post.title || ""), identity, notified);
       return json({ ok: true });
     }
     if (action === "board_comment_delete") {

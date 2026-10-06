@@ -524,11 +524,9 @@ body:not(.site-view-event) #brandCard{display:none!important}
   padding:24px;border:1px solid var(--line);border-radius:22px;background:#fff;
   box-shadow:0 12px 34px rgba(30,28,26,.06)
 }
-.hero-visits{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.hero-visits[hidden]{display:none}
-.hero-visit{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:#F5F2FF;border:1px solid #E4DEFA}
-.hero-visit-k{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--sub)}
-.hero-visit b{font-size:22px;line-height:1.2;font-weight:950;color:var(--purple-dark);font-variant-numeric:tabular-nums}
+.visit-pill{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:5px 11px;border-radius:999px;background:#F5F2FF;border:1px solid #E4DEFA;font-size:12px;color:var(--sub)}
+.visit-pill[hidden]{display:none}
+.visit-pill b{color:var(--purple-dark);font-weight:900;font-variant-numeric:tabular-nums}
 .live-dot{width:7px;height:7px;border-radius:50%;background:#22A55B;box-shadow:0 0 0 0 rgba(34,165,91,.5);animation:livePulse 2s infinite}
 @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(34,165,91,.5)}70%{box-shadow:0 0 0 7px rgba(34,165,91,0)}100%{box-shadow:0 0 0 0 rgba(34,165,91,0)}}
 @media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
@@ -845,6 +843,8 @@ body.site-view-network.modal-open{overflow:auto!important}
     <img class="head-logo" src="./assets/hanjogo-logo.svg" alt="한국조리과학고등학교 KCAS 로고">
   </div>
   <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
+  <!-- 방문 현황: 어느 메뉴에서든 사이트가 살아 있다는 걸 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
+  <div class="visit-pill" id="visitorCounter" hidden aria-label="사이트 방문 현황"><span class="live-dot" aria-hidden="true"></span><span>오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b> 방문</span></div>
 </div>
 
 <nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
@@ -865,11 +865,6 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="site-home-kicker">KCAS ALUMNI NETWORK</div>
     <div class="site-home-title">졸업 이후에도 이어지는 한조고 네트워크</div>
     <div class="site-home-desc">2026 네트워크 모임 정보와 졸업생 DB·공개 동문 프로필을 한곳에서 확인할 수 있습니다.</div>
-    <!-- 방문 현황: 사이트가 살아 있다는 걸 첫 화면에서 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
-    <div class="hero-visits" id="visitorCounter" hidden aria-label="사이트 방문 현황">
-      <div class="hero-visit"><span class="hero-visit-k"><span class="live-dot" aria-hidden="true"></span>오늘 방문</span><b id="todayVisitorCount">-</b></div>
-      <div class="hero-visit"><span class="hero-visit-k">누적 방문</span><b id="totalVisitorCount">-</b></div>
-    </div>
   </div>
   <div class="site-home-grid">
     <button class="site-home-card" type="button" data-site-target="event">

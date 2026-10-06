@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const html=fs.readFileSync('alumni-map.html','utf8'),code=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].at(-1)[1];
 function harness(result){const elements=new Map(),queries=[];function el(id){if(!elements.has(id))elements.set(id,{dataset:{},value:'',textContent:'',innerHTML:'',hidden:false,disabled:false,classList:{remove(){},toggle(){}},setAttribute(name,value){this.dataset[name]=String(value)},close(){},showModal(){},addEventListener(){},scrollIntoView(){},reportValidity(){return true}});return elements.get(id)}const sb={auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})},from(table){queries.push(table);const q={select(){return q},eq(){return q},order:async()=>result};return q;}};for(const id of ['regionFilter','categoryFilter','generationFilter','addressFilter']){el(id).value='all';el(id).options=[{textContent:'전체'}];el(id).selectedIndex=0;}const context=vm.createContext({window:{supabase:{createClient:()=>sb}},document:{getElementById:el,querySelectorAll:()=>[]},URL,location:{origin:'https://example.com',pathname:'/alumni-map.html'},console:{error(){}},alert(){},confirm:()=>false,localStorage:{store:new Map(),getItem(k){return this.store.has(k)?this.store.get(k):null},setItem(k,v){this.store.set(k,String(v))}}});vm.runInContext(code,context);return{context,elements,queries,el};}
-test('uses existing published places schema and restores all rows',async()=>{const rows=Array.from({length:30},(_,i)=>({id:i+1,name:'업장 '+i,owner_generation:'2기',region:'서울'}));const h=harness({data:rows,error:null});await new Promise(setImmediate);assert.deepEqual(h.queries,['hanjogo_alumni_places']);assert.equal((h.el('grid').innerHTML.match(/<article /g)||[]).length,30);assert.ok(!h.el('grid').innerHTML.includes('2기기'));h.el('q').value='업장 29';vm.runInContext('draw()',h.context);assert.equal((h.el('grid').innerHTML.match(/<article /g)||[]).length,1);});
+test('uses existing published places schema and restores all rows',async()=>{const rows=Array.from({length:30},(_,i)=>({id:i+1,name:'업장 '+i,owner_generation:'2기',region:'서울'}));const h=harness({data:rows,error:null});await new Promise(setImmediate);assert.deepEqual(h.queries,['hanjogo_alumni_places']);assert.equal((h.el('grid').innerHTML.match(/<article /g)||[]).length,20,'처음에는 20개만 보여줍니다');assert.match(h.el('grid').innerHTML,/더 보기 \(남은 10개\)/);vm.runInContext('showMore()',h.context);assert.equal((h.el('grid').innerHTML.match(/<article /g)||[]).length,30);assert.ok(!h.el('grid').innerHTML.includes('2기기'));h.el('q').value='업장 29';vm.runInContext('draw()',h.context);assert.equal((h.el('grid').innerHTML.match(/<article /g)||[]).length,1);});
 test('API error stays visible instead of appearing as an empty list',async()=>{const h=harness({data:null,error:new Error('missing relation')});await new Promise(setImmediate);assert.equal(h.el('retryBtn').hidden,false);assert.match(h.el('loadStatus').textContent,/불러오지 못/);});
 test('unsafe links are rejected and owner matching requires confirmed email',()=>{const h=harness({data:[],error:null});assert.equal(vm.runInContext("safeUrl('javascript:alert(1)')",h.context),'');assert.equal(vm.runInContext("safeUrl('https://instagram.com/test')",h.context),'https://instagram.com/test');// 담당 업장 목록은 서버(place_mine)가 알려줍니다. 공개 조회에는 담당자 이메일이 없습니다.
 assert.equal(vm.runInContext("myPlaceIds=new Set([7]);session={user:{email:'owner@example.com'}};mine({id:7})",h.context),false,'이메일 인증 전에는 수정 권한이 없어야 합니다');
@@ -110,4 +110,23 @@ test('email contact button only for owners who allowed contact, never on my own 
   const href=run("contactHref(places[1])");
   assert(decodeURIComponent(href).includes('7기 손혜지 동문님 안녕하세요.'));
   assert(decodeURIComponent(href).includes('저는 2기 김태민입니다.'));
+});
+
+// 가나다 이름이 먼저, 영어 이름은 뒤에. 카드는 접힌 채로 시작하고 누르면 펼쳐집니다.
+test('Korean names first, then English; cards start collapsed and open on tap',async()=>{
+  const rows=[{id:1,name:'moono',region:'서울'},{id:2,name:'한송양식당',region:'서울'},{id:3,name:'Jua',region:'해외'},
+              {id:4,name:'LÉGUME',region:'서울'},{id:5,name:'가게',region:'서울'},{id:6,name:'네기',region:'서울'}];
+  const h=harness({data:rows,error:null});
+  await new Promise(setImmediate);
+  const run=expr=>vm.runInContext(expr,h.context);
+  assert.deepEqual(run("filtered().sort(comparePlaces).map(p=>p.name)"),['가게','네기','한송양식당','Jua','LÉGUME','moono']);
+  const html=h.el('grid').innerHTML;
+  assert(!html.includes('class="card open'),'처음에는 모든 카드가 접혀 있어야 합니다');
+  assert(html.includes('자세히 ▾'));
+  run("openId=2;draw()");
+  const opened=h.el('grid').innerHTML.split('<article').find(part=>part.includes('한송양식당'));
+  assert(opened.includes('class="card open selected"')&&opened.includes('접기 ▴'));
+  // 검색·필터를 바꾸면 다시 처음 20개부터 보여줍니다.
+  run("shownCount=60;redraw()");
+  assert.equal(run('shownCount'),20);
 });

@@ -3503,7 +3503,7 @@ function setSiteView(view,{updateHash=true}={}){
   }else{syncResourceAccess();if(networkAccessState==="verified")loadResources();}
 
   const placesFrame=document.getElementById("alumniPlacesFrame");
-  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-contact";
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-compact";
   syncHomeSummary();
 
   if(updateHash){

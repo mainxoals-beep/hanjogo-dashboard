@@ -58,3 +58,33 @@ test('favorites persist per account, filter the list and survive a missing local
   run('loadFavorites()');
   assert.equal(run('favoriteIds.size'),0);
 });
+
+// 운영자 상태(표시)와 인증 신청(버튼)은 서로 구분되어야 합니다.
+// 둘 다 "운영자 인증"으로 보이면, 보는 사람이 인증된 건지 신청하는 건지 알 수 없습니다.
+test('owner status reads as a state, and only an unclaimed place offers the request button',async()=>{
+  const rows=[{id:1,name:'내 가게',owner_name:'김태민',owner_generation:'2기',region:'서울',owner_linked:true},
+              {id:2,name:'남의 가게',owner_name:'손혜지',owner_generation:'7기',region:'서울',owner_linked:true},
+              {id:3,name:'주인 없는 가게',owner_name:'이서현',owner_generation:'19기',region:'경기',owner_linked:false}];
+  const h=harness({data:rows,error:null});
+  await new Promise(setImmediate);
+  const run=expr=>vm.runInContext(expr,h.context);
+  run("myPlaceIds=new Set([1]);session={user:{email:'me@example.com',email_confirmed_at:'2026-10-05'}};draw()");
+  const html=h.el('grid').innerHTML;
+  const card=name=>html.split('<article').find(part=>part.includes(name))||'';
+
+  // 내 업장: 상태 표시 + 수정 버튼
+  assert(card('내 가게').includes('내 업장</span>'),'내 업장임을 표시해야 합니다');
+  assert(card('내 가게').includes('data-action="edit"'));
+
+  // 남의 업장이 이미 인증된 경우: 표시만 있고 신청 버튼은 없어야 합니다.
+  assert(card('남의 가게').includes('운영자 확인됨'),'인증된 업장은 상태를 표시해야 합니다');
+  assert(!card('남의 가게').includes('data-action="claim"'),'이미 인증된 업장에 신청 버튼을 두면 눌러도 오류만 납니다');
+
+  // 주인 없는 업장: 상태 표시 없이 신청 버튼만.
+  assert(!card('주인 없는 가게').includes('owner-tag'),'미연결 업장에 인증 표시가 있으면 안 됩니다');
+  assert(card('주인 없는 가게').includes('data-action="claim"'));
+  assert(card('주인 없는 가게').includes('요청'),'버튼 문구에 요청임이 드러나야 합니다');
+
+  // 상태 표시는 버튼이 아니어야 합니다.
+  assert(!/<button[^>]*class="[^"]*owner-tag/.test(html),'상태 표시가 버튼이면 다시 헷갈립니다');
+});

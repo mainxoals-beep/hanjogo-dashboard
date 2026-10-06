@@ -11,7 +11,7 @@ const body = source.slice(source.indexOf('function normalizeEmail'), source.inde
 assert(body.length > 1000, '함수 본문을 찾지 못했습니다');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanjogo-profile-'));
 const file = path.join(dir, 'helpers.ts');
-fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput };\n');
+fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, cleanQuestionInput, cleanResourceInput, resourceExtension };\n');
 
 const baseDraft = {
   name: '김태민', generation: 2, displayMode: 'masked',
@@ -132,6 +132,29 @@ const baseDraft = {
   assert.equal(H.cleanMeetupInput({ ...meetup, capacity: 201 }, NOW).error, 'invalid_capacity');
   assert.equal(H.cleanMeetupInput({ ...meetup, region: '' }, NOW).value.region, null);
 
+  // ---- 도와줄 수 있는 분야 · 질문 · 자료실 입력 ----------------------------------
+  assert.deepEqual(H.cleanHelpTopics(['창업 준비', '아무거나', '메뉴 개발']), ['창업 준비', '메뉴 개발'], '모르는 분야는 버립니다');
+  assert.deepEqual(H.cleanHelpTopics('창업 준비'), []);
+  assert.deepEqual(H.cleanProfileDraft({ ...baseDraft, helpTopics: ['해외 취업·유학', 'x'] }).helpTopics, ['해외 취업·유학']);
+  assert.deepEqual(H.profileDraftFromOverride({ name: 'a', consent: false }).helpTopics, [], '예전 행에는 분야가 없을 수 있습니다');
+  const helper = await H.buildProfileFromDraft(H.cleanProfileDraft({ ...baseDraft, helpTopics: ['창업 준비'] }), 'a@b.com', '', '2026-10-05', '');
+  assert.deepEqual(helper.helpTopics, ['창업 준비']);
+  assert.equal(await H.buildProfileFromDraft(H.cleanProfileDraft({ ...baseDraft, helpTopics: ['창업 준비'], consent: false }), 'a@b.com', '', '2026-10-05', ''), null, '비공개 프로필의 분야는 나가지 않습니다');
+  assert.equal(H.cleanQuestionInput({ topic: '창업 준비', title: ' 첫 매장 ', content: '보증금은?' }).value.title, '첫 매장');
+  assert.equal(H.cleanQuestionInput({ topic: '없는 분야', title: 'a', content: 'b' }).error, 'invalid_topic');
+  assert.equal(H.cleanQuestionInput({ topic: '창업 준비', title: '', content: 'b' }).error, 'title_required');
+  assert.equal(H.cleanQuestionInput({ topic: '창업 준비', title: 'a', content: ' ' }).error, 'content_required');
+  assert.equal(H.resourceExtension('원가계산표.XLSX'), 'xlsx');
+  assert.equal(H.resourceExtension('오픈체크리스트.hwp'), 'hwp');
+  assert.equal(H.resourceExtension('virus.exe'), '');
+  assert.equal(H.resourceExtension('noext'), '');
+  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost', filePath: 'u/1.xlsx' }).value.link_url, null);
+  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost', linkUrl: 'https://drive.google.com/x' }).value.link_url, 'https://drive.google.com/x');
+  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost' }).error, 'file_or_link_required');
+  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost', linkUrl: 'javascript:alert(1)' }).error, 'invalid_link');
+  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'nope', linkUrl: 'https://a.b' }).error, 'invalid_category');
+  assert.equal(H.cleanResourceInput({ title: ' ', category: 'cost', linkUrl: 'https://a.b' }).error, 'title_required');
+
   fs.rmSync(dir, { recursive: true, force: true });
-  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증');
+  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증, 도움 분야·질문·자료실 입력 검증');
 })().catch((e) => { console.error(e); process.exit(1); });

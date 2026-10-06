@@ -41,6 +41,15 @@
 - 취소: 주최자 말고 신청한 사람이 없으면 행을 지웁니다. 있으면 `status='cancelled'`로 남기고, 모임 날짜가 지나면 목록에서 뺍니다.
 - 정원 확인은 `hanjogo_meetup_join()` 함수가 모임 행을 잠그고 합니다(동시에 눌러도 정원 초과 없음). service role만 실행합니다.
 
+## 선후배에게 물어보기 · 실무 자료실 (`schedule.html` > 물어보기, 자료실)
+- `hanjogo_questions`, `hanjogo_question_answers`, `hanjogo_resources`, `hanjogo_resource_comments`에는 `anon`·`authenticated` 권한을 주지 않습니다.
+  `hanjogo-access` 함수만 읽고 쓰며, 동문 인증한 사람만 봅니다. 목록에는 표시 이름과 기수만 나갑니다(이메일 없음).
+- "도와줄 수 있는 분야"(`hanjogo_profile_overrides.help_topics`)는 공개를 목적으로 고르는 항목입니다.
+  **프로필 공개(consent)에 동의한 사람만** 다른 동문에게 보이고, 이름은 그 사람의 이름 표시 방식을 따릅니다.
+- 자료 파일은 비공개 저장소 `hanjogo-resources`에 둡니다. 저장소 정책을 만들지 않습니다(함수만 접근).
+  올릴 때는 함수가 만든 일회용 주소로, 받을 때는 5분짜리 주소로만 접근합니다. 파일은 올린 사람 폴더(`<user_id>/`) 아래 무작위 이름으로 저장하고,
+  다른 사람 폴더의 파일을 자기 자료로 등록하지 못하게 함수가 확인합니다. 10MB, 정해진 확장자만 받습니다.
+
 ## 동문 업장 (`alumni-map.html`, `schedule.html` > 내 정보)
 - `hanjogo_alumni_places`의 공개 읽기에는 **`owner_email`을 넣지 않습니다**. 담당자 이메일이 외부로 나갑니다.
   컬럼 단위로 select 권한을 주고 있으므로, 화면에서 `select('*')`를 쓰지 않습니다.

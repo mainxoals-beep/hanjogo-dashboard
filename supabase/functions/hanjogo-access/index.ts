@@ -427,6 +427,7 @@ function profileDraftFromCsv(row: Record<string, string>) {
     allowEmailContact: contactConsent.includes("허용합니다"),
     attendeeVisible: !attendeePreference.includes("표시하지"),
     consent: consent.includes("동의합니다"),
+    helpTopics: [] as string[],
   };
 }
 
@@ -448,6 +449,7 @@ function profileDraftFromOverride(row: Record<string, unknown>) {
     allowEmailContact: Boolean(row.allow_email_contact),
     attendeeVisible: Boolean(row.attendee_visible),
     consent: Boolean(row.consent),
+    helpTopics: cleanHelpTopics(row.help_topics),
   };
 }
 
@@ -483,6 +485,8 @@ async function buildProfileFromDraft(
     allowEmailContact: draft.allowEmailContact,
     attendeeVisible: draft.attendeeVisible,
     attendeeMaskedName: maskName(actualName),
+    // 도와줄 수 있는 분야는 그 목적(공개)으로 고르는 항목입니다. 프로필 공개에 동의한 경우에만 여기까지 옵니다.
+    helpTopics: draft.helpTopics,
     profileId: await stableProfileId(email),
     isOwnProfile: Boolean(email) && email === viewerEmail,
     isNew: Boolean(firstPublicDate) && firstPublicDate === todayKey,
@@ -525,6 +529,7 @@ function cleanProfileDraft(body: Record<string, unknown>): ProfileDraft | { erro
     allowEmailContact: Boolean(body.allowEmailContact),
     attendeeVisible: Boolean(body.attendeeVisible),
     consent,
+    helpTopics: cleanHelpTopics(body.helpTopics),
   };
 }
 
@@ -545,6 +550,7 @@ function draftToOverrideRow(draft: ProfileDraft, email: string) {
     allow_email_contact: draft.allowEmailContact,
     attendee_visible: draft.attendeeVisible,
     consent: draft.consent,
+    help_topics: draft.helpTopics,
     updated_at: new Date().toISOString(),
   };
 }
@@ -621,6 +627,56 @@ function cleanMeetupInput(body: Record<string, unknown>, now = Date.now()) {
   } as const;
 }
 
+/** Fields an alumnus can offer help in (선후배에게 물어보기). Questions pick one of these. */
+const HELP_TOPICS = [
+  "창업 준비", "매장 운영", "메뉴 개발", "제과·제빵 진로", "해외 취업·유학",
+  "취업·이직", "식자재·유통", "마케팅·SNS", "교육·강의", "호텔·파인다이닝",
+];
+
+function cleanHelpTopics(value: unknown) {
+  const requested = Array.isArray(value) ? value.map((item) => String(item)) : [];
+  return HELP_TOPICS.filter((topic) => requested.includes(topic));
+}
+
+function cleanQuestionInput(body: Record<string, unknown>) {
+  const topic = String(body.topic ?? "");
+  if (!HELP_TOPICS.includes(topic)) return { error: "invalid_topic" } as const;
+  const title = cleanBoardText(body.title, 100);
+  if (!title) return { error: "title_required" } as const;
+  const content = cleanBoardText(body.content, 2000);
+  if (!content) return { error: "content_required" } as const;
+  return { value: { topic, title, content } } as const;
+}
+
+const RESOURCE_CATEGORIES = ["cost", "order", "store", "career", "hygiene", "etc"];
+const RESOURCE_EXTENSIONS = ["pdf", "xlsx", "xls", "csv", "docx", "doc", "pptx", "ppt", "hwp", "hwpx", "txt", "png", "jpg", "jpeg"];
+const RESOURCE_MAX_BYTES = 10 * 1024 * 1024;
+
+/** The extension of an uploaded file, or "" when it is not one we accept. */
+function resourceExtension(fileName: unknown) {
+  const match = String(fileName ?? "").toLowerCase().match(/\.([a-z0-9]{1,5})$/);
+  return match && RESOURCE_EXTENSIONS.includes(match[1]) ? match[1] : "";
+}
+
+function cleanResourceInput(body: Record<string, unknown>) {
+  const title = cleanBoardText(body.title, 100);
+  if (!title) return { error: "title_required" } as const;
+  const category = String(body.category ?? "");
+  if (!RESOURCE_CATEGORIES.includes(category)) return { error: "invalid_category" } as const;
+  const link = safeLink(cleanBoardText(body.linkUrl, 500));
+  if (link === null) return { error: "invalid_link" } as const;
+  const hasFile = Boolean(body.filePath);
+  if (!hasFile && !link) return { error: "file_or_link_required" } as const;
+  return {
+    value: {
+      title,
+      category,
+      description: cleanBoardText(body.description, 1500) || null,
+      link_url: link || null,
+    },
+  } as const;
+}
+
 /** Alumni directory rows (name, cohort, email) for owner matching. */
 async function alumniPeople() {
   const rows = rowsAsObjects(await fetchCsv(ALUMNI_CSV_URL));
@@ -684,6 +740,32 @@ Deno.serve(async (req: Request) => {
       .from("hanjogo_profile_overrides").select("*").eq("email", email).maybeSingle();
     if (error) throw error;
     return data;
+  }
+
+  /** How the caller appears on meetups, questions and resources: their
+   * profile's name display choice (실명 / 가운데 ○ / 비공개) is applied once, when
+   * they post or join. Email is never shown. */
+  async function displayIdentity() {
+    const override = await myOverride();
+    const identity = await boardIdentity(email, special, override);
+    let mode = "masked";
+    if (isAdmin) mode = "full";
+    else if (override) mode = String(override.display_mode || "masked");
+    else {
+      try {
+        const row = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)))
+          .find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
+        const choice = row ? getField(row, "사이트에서 이름을 어떻게 표시할까요?") : "";
+        if (choice.includes("실명 전체")) mode = "full";
+        else if (choice && !choice.includes("마스킹")) mode = "hidden";
+      } catch { /* 폼을 못 읽으면 가운데 ○ 로 표시합니다. */ }
+    }
+    const name = mode === "full" ? identity.name : mode === "hidden" ? "이름 비공개" : maskName(identity.name);
+    const generation = Number(identity.generation);
+    return {
+      display_name: cleanBoardText(name, 40) || "동문",
+      generation: Number.isInteger(generation) && generation >= 1 && generation <= 99 ? generation : null,
+    };
   }
 
   if (action === "verify") {
@@ -770,7 +852,7 @@ Deno.serve(async (req: Request) => {
       draft: {
         name, generation, displayMode: "masked", publicFields: ["gen"],
         company: "", work: "", activity: "", region: "", instagram: "", bio: "", connect: "",
-        allowEmailContact: false, attendeeVisible: true, consent: false,
+        allowEmailContact: false, attendeeVisible: true, consent: false, helpTopics: [],
       },
     });
   }
@@ -799,11 +881,12 @@ Deno.serve(async (req: Request) => {
         allowed: true,
         place: (data || []).filter((row) => row.kind === "place").map((row) => String(row.ref_id)),
         profile: (data || []).filter((row) => row.kind === "profile").map((row) => String(row.ref_id)),
+        resource: (data || []).filter((row) => row.kind === "resource").map((row) => String(row.ref_id)),
       });
     }
 
     const kind = String(body.kind || "");
-    if (!["place", "profile"].includes(kind)) return json({ error: "invalid_kind" }, 400);
+    if (!["place", "profile", "resource"].includes(kind)) return json({ error: "invalid_kind" }, 400);
 
     if (action === "favorites_set") {
       const refId = cleanBoardText(body.refId, 100);
@@ -916,31 +999,6 @@ Deno.serve(async (req: Request) => {
   if (action.startsWith("meetup_")) {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
 
-    /** How this person appears on a meetup: their profile's name display
-     * choice (실명 / 가운데 ○ / 비공개) is applied once, when they join. */
-    async function meetupIdentity() {
-      const override = await myOverride();
-      const identity = await boardIdentity(email, special, override);
-      let mode = "masked";
-      if (isAdmin) mode = "full";
-      else if (override) mode = String(override.display_mode || "masked");
-      else {
-        try {
-          const row = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)))
-            .find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
-          const choice = row ? getField(row, "사이트에서 이름을 어떻게 표시할까요?") : "";
-          if (choice.includes("실명 전체")) mode = "full";
-          else if (choice && !choice.includes("마스킹")) mode = "hidden";
-        } catch { /* 폼을 못 읽으면 가운데 ○ 로 표시합니다. */ }
-      }
-      const name = mode === "full" ? identity.name : mode === "hidden" ? "이름 비공개" : maskName(identity.name);
-      const generation = Number(identity.generation);
-      return {
-        display_name: cleanBoardText(name, 40) || "동문",
-        generation: Number.isInteger(generation) && generation >= 1 && generation <= 99 ? generation : null,
-      };
-    }
-
     async function loadMeetup(id: number) {
       const { data, error } = await adminClient.from("hanjogo_meetups").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
@@ -997,7 +1055,7 @@ Deno.serve(async (req: Request) => {
     if (action === "meetup_create") {
       const cleaned = cleanMeetupInput(body);
       if ("error" in cleaned) return json({ error: cleaned.error }, 400);
-      const me = await meetupIdentity();
+      const me = await displayIdentity();
       const { data, error } = await adminClient.from("hanjogo_meetups").insert({
         ...cleaned.value, host_user_id: userId, host_email: email,
         host_display_name: me.display_name, host_generation: me.generation,
@@ -1065,7 +1123,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "meetup_join") {
-      const me = await meetupIdentity();
+      const me = await displayIdentity();
       const { data, error } = await adminClient.rpc("hanjogo_meetup_join", {
         p_meetup_id: meetupId, p_user_id: userId, p_email: email,
         p_display_name: me.display_name, p_generation: me.generation,
@@ -1086,7 +1144,7 @@ Deno.serve(async (req: Request) => {
     if (action === "meetup_comment_create") {
       const content = cleanBoardText(body.content, 500);
       if (!content) return json({ error: "invalid_comment" }, 400);
-      const me = await meetupIdentity();
+      const me = await displayIdentity();
       const { error } = await adminClient.from("hanjogo_meetup_comments").insert({
         meetup_id: meetupId, user_id: userId, display_name: me.display_name, generation: me.generation, content,
       });
@@ -1103,6 +1161,236 @@ Deno.serve(async (req: Request) => {
       if (!target) return json({ error: "not_found" }, 404);
       if (!isAdmin && target.user_id !== userId) return json({ error: "forbidden" }, 403);
       const { error } = await adminClient.from("hanjogo_meetup_comments").update({ is_hidden: true }).eq("id", commentId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    return json({ error: "unknown_action" }, 400);
+  }
+
+  // ---- 선후배에게 물어보기 ---------------------------------------------------
+  if (action.startsWith("question_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+
+    if (action === "question_list") {
+      const [questions, helpers] = await Promise.all([
+        adminClient.from("hanjogo_questions")
+          .select("id,user_id,display_name,generation,topic,title,content,is_resolved,created_at")
+          .eq("is_hidden", false).order("created_at", { ascending: false }).limit(200),
+        // 도와줄 수 있다고 고른 동문. 프로필 공개에 동의한 사람만, 각자 고른 이름 표시 방식으로 보여줍니다.
+        adminClient.from("hanjogo_profile_overrides")
+          .select("name,generation,display_mode,help_topics").eq("consent", true),
+      ]);
+      if (questions.error) return json({ error: questions.error.message }, 500);
+      if (helpers.error) return json({ error: helpers.error.message }, 500);
+      const ids = (questions.data || []).map((q) => q.id);
+      let answers: Record<string, unknown>[] = [];
+      if (ids.length) {
+        const { data, error } = await adminClient.from("hanjogo_question_answers")
+          .select("id,question_id,user_id,display_name,generation,content,created_at")
+          .in("question_id", ids).eq("is_hidden", false).order("created_at");
+        if (error) return json({ error: error.message }, 500);
+        answers = data || [];
+      }
+      const helpersByTopic: Record<string, { name: string; generation: number | null }[]> = {};
+      HELP_TOPICS.forEach((topic) => { helpersByTopic[topic] = []; });
+      (helpers.data || []).forEach((row) => {
+        const name = String(row.name || "").trim();
+        const shown = row.display_mode === "full" ? name : row.display_mode === "hidden" ? "이름 비공개" : maskName(name);
+        cleanHelpTopics(row.help_topics).forEach((topic) => {
+          helpersByTopic[topic].push({ name: shown || "동문", generation: row.generation == null ? null : Number(row.generation) });
+        });
+      });
+      const items = (questions.data || []).map((q) => ({
+        id: q.id, topic: q.topic, title: q.title, content: q.content, isResolved: q.is_resolved,
+        name: q.display_name, generation: q.generation, createdAt: q.created_at,
+        isMine: q.user_id === userId, canEdit: isAdmin || q.user_id === userId,
+        answers: answers.filter((a) => a.question_id === q.id).map((a) => ({
+          id: a.id, name: a.display_name, generation: a.generation, content: a.content,
+          createdAt: a.created_at, canDelete: isAdmin || a.user_id === userId,
+        })),
+      }));
+      return json({ allowed: true, isAdmin, topics: HELP_TOPICS, helpersByTopic, items });
+    }
+
+    if (action === "question_create") {
+      const cleaned = cleanQuestionInput(body);
+      if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+      const me = await displayIdentity();
+      const { data, error } = await adminClient.from("hanjogo_questions")
+        .insert({ ...cleaned.value, user_id: userId, email, ...me }).select("id").single();
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, id: data.id });
+    }
+
+    const questionId = Number(body.id);
+    if (!Number.isFinite(questionId)) return json({ error: "invalid_question" }, 400);
+    const { data: question, error: questionError } = await adminClient.from("hanjogo_questions")
+      .select("id,user_id").eq("id", questionId).eq("is_hidden", false).maybeSingle();
+    if (questionError) return json({ error: questionError.message }, 500);
+    if (!question) return json({ error: "not_found" }, 404);
+    const ownsQuestion = isAdmin || question.user_id === userId;
+
+    if (action === "question_resolve") {
+      if (!ownsQuestion) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_questions")
+        .update({ is_resolved: Boolean(body.resolved), updated_at: new Date().toISOString() }).eq("id", questionId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "question_delete") {
+      if (!ownsQuestion) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_questions")
+        .update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", questionId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "question_answer_create") {
+      const content = cleanBoardText(body.content, 2000);
+      if (!content) return json({ error: "content_required" }, 400);
+      const me = await displayIdentity();
+      const { error } = await adminClient.from("hanjogo_question_answers")
+        .insert({ question_id: questionId, user_id: userId, content, ...me });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "question_answer_delete") {
+      const answerId = Number(body.answerId);
+      if (!Number.isFinite(answerId)) return json({ error: "invalid_answer" }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_question_answers")
+        .select("id,user_id").eq("id", answerId).eq("question_id", questionId).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target) return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.user_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_question_answers").update({ is_hidden: true }).eq("id", answerId);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    return json({ error: "unknown_action" }, 400);
+  }
+
+  // ---- 동문 실무 자료실 ------------------------------------------------------
+  // 파일은 비공개 저장소에 두고, 올릴 때·받을 때마다 함수가 짧게 쓰는 주소를 만들어 줍니다.
+  if (action.startsWith("resource_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const bucket = adminClient.storage.from("hanjogo-resources");
+
+    if (action === "resource_list") {
+      const { data: resources, error } = await adminClient.from("hanjogo_resources")
+        .select("id,user_id,display_name,generation,title,category,description,file_path,file_name,file_size,link_url,download_count,created_at")
+        .eq("is_hidden", false).order("created_at", { ascending: false }).limit(300);
+      if (error) return json({ error: error.message }, 500);
+      const ids = (resources || []).map((r) => r.id);
+      let comments: Record<string, unknown>[] = [];
+      if (ids.length) {
+        const { data, error: commentError } = await adminClient.from("hanjogo_resource_comments")
+          .select("id,resource_id,user_id,display_name,generation,content,created_at")
+          .in("resource_id", ids).eq("is_hidden", false).order("created_at");
+        if (commentError) return json({ error: commentError.message }, 500);
+        comments = data || [];
+      }
+      const items = (resources || []).map((r) => ({
+        id: r.id, title: r.title, category: r.category, description: r.description,
+        hasFile: Boolean(r.file_path), fileName: r.file_name, fileSize: r.file_size, linkUrl: r.link_url,
+        downloadCount: r.download_count, name: r.display_name, generation: r.generation, createdAt: r.created_at,
+        canEdit: isAdmin || r.user_id === userId,
+        comments: comments.filter((c) => c.resource_id === r.id).map((c) => ({
+          id: c.id, name: c.display_name, generation: c.generation, content: c.content,
+          createdAt: c.created_at, canDelete: isAdmin || c.user_id === userId,
+        })),
+      }));
+      return json({ allowed: true, isAdmin, items });
+    }
+
+    if (action === "resource_upload_url") {
+      const ext = resourceExtension(body.fileName);
+      if (!ext) return json({ error: "invalid_file_type" }, 400);
+      const size = Number(body.fileSize);
+      if (!Number.isInteger(size) || size < 1 || size > RESOURCE_MAX_BYTES) return json({ error: "file_too_large" }, 400);
+      // 저장 경로는 올린 사람 폴더 아래에 둡니다. 원래 파일 이름은 표에만 적습니다.
+      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+      const { data, error } = await bucket.createSignedUploadUrl(path);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, path: data.path, token: data.token });
+    }
+
+    if (action === "resource_create") {
+      const cleaned = cleanResourceInput(body);
+      if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+      let file: { file_path: string; file_name: string; file_size: number } | null = null;
+      if (body.filePath) {
+        const path = String(body.filePath);
+        const fileName = cleanBoardText(body.fileName, 200);
+        // 남의 폴더 파일을 자기 자료로 등록하지 못하게 합니다.
+        if (!path.startsWith(`${userId}/`) || path.includes("..") || !resourceExtension(path) || !resourceExtension(fileName)) {
+          return json({ error: "invalid_file" }, 400);
+        }
+        const { data: listed, error: listError } = await bucket.list(userId, { search: path.slice(userId.length + 1) });
+        if (listError) return json({ error: listError.message }, 500);
+        const object = (listed || []).find((item) => `${userId}/${item.name}` === path);
+        if (!object) return json({ error: "upload_missing" }, 400);
+        const size = Number((object.metadata as Record<string, unknown> | null)?.size || body.fileSize || 0);
+        file = { file_path: path, file_name: fileName, file_size: Math.min(Math.max(size, 1), RESOURCE_MAX_BYTES) };
+      }
+      const me = await displayIdentity();
+      const { data, error } = await adminClient.from("hanjogo_resources")
+        .insert({ ...cleaned.value, ...(file || {}), user_id: userId, email, ...me }).select("id").single();
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, id: data.id });
+    }
+
+    const resourceId = Number(body.id);
+    if (!Number.isFinite(resourceId)) return json({ error: "invalid_resource" }, 400);
+    const { data: resource, error: resourceError } = await adminClient.from("hanjogo_resources")
+      .select("id,user_id,file_path,file_name,link_url,download_count").eq("id", resourceId).eq("is_hidden", false).maybeSingle();
+    if (resourceError) return json({ error: resourceError.message }, 500);
+    if (!resource) return json({ error: "not_found" }, 404);
+
+    if (action === "resource_download") {
+      let url = String(resource.link_url || "");
+      if (resource.file_path) {
+        const { data, error } = await bucket.createSignedUrl(String(resource.file_path), 300, { download: String(resource.file_name || "") || true });
+        if (error) return json({ error: error.message }, 500);
+        url = data.signedUrl;
+      }
+      if (!url) return json({ error: "not_found" }, 404);
+      await adminClient.from("hanjogo_resources")
+        .update({ download_count: Number(resource.download_count || 0) + 1 }).eq("id", resourceId);
+      return json({ ok: true, url });
+    }
+
+    if (action === "resource_delete") {
+      if (!isAdmin && resource.user_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_resources")
+        .update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", resourceId);
+      if (error) return json({ error: error.message }, 500);
+      if (resource.file_path) await bucket.remove([String(resource.file_path)]);
+      return json({ ok: true });
+    }
+
+    if (action === "resource_comment_create") {
+      const content = cleanBoardText(body.content, 1000);
+      if (!content) return json({ error: "content_required" }, 400);
+      const me = await displayIdentity();
+      const { error } = await adminClient.from("hanjogo_resource_comments")
+        .insert({ resource_id: resourceId, user_id: userId, content, ...me });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === "resource_comment_delete") {
+      const commentId = Number(body.commentId);
+      if (!Number.isFinite(commentId)) return json({ error: "invalid_comment" }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_resource_comments")
+        .select("id,user_id").eq("id", commentId).eq("resource_id", resourceId).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target) return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.user_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_resource_comments").update({ is_hidden: true }).eq("id", commentId);
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true });
     }

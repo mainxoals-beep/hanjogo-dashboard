@@ -954,8 +954,8 @@ Deno.serve(async (req: Request) => {
         .eq("is_hidden", false).gte("starts_at", since).order("starts_at").limit(200);
       if (error) return json({ error: error.message }, 500);
       // 취소된 모임은 날짜가 지나면 더 보여줄 필요가 없습니다.
-      const nowIso = new Date().toISOString();
-      const visible = (meetups || []).filter((m) => m.status !== "cancelled" || String(m.starts_at) >= nowIso);
+      const now = Date.now();
+      const visible = (meetups || []).filter((m) => m.status !== "cancelled" || new Date(m.starts_at).getTime() >= now);
       const ids = visible.map((m) => m.id);
       let attendees: Record<string, unknown>[] = [];
       let comments: Record<string, unknown>[] = [];

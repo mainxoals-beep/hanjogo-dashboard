@@ -779,6 +779,13 @@ body.site-view-network.modal-open{overflow:auto!important}
 .myinfo-check input{margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--purple)}
 .myinfo-check b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
 .myinfo-check small{display:block;margin-top:2px;color:var(--mute);font-size:11.5px}
+.myinfo-label{display:block;margin-bottom:6px;font-size:12px;font-weight:800;color:var(--ink)}
+.myinfo-label small{margin-left:4px;font-weight:600;color:var(--mute)}
+.myinfo-tags{display:flex;flex-wrap:wrap;gap:6px}
+.myinfo-tag{min-height:34px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:#fff;color:var(--sub);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.myinfo-tag[aria-pressed="true"]{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.myinfo-tag[aria-pressed="true"]::before{content:"✓ "}
+.myinfo-tag-other{margin-top:8px}
 .myinfo-place{margin-bottom:10px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .myinfo-place-name{font-size:14px;font-weight:900;color:var(--ink)}
 .myinfo-place-meta{margin-top:3px;color:var(--mute);font-size:12px;line-height:1.5}
@@ -1259,7 +1266,10 @@ body.site-view-network.modal-open{overflow:auto!important}
     </div>
     <div class="board-field"><label for="myInfoInstagram">Instagram</label><input class="board-input" id="myInfoInstagram" maxlength="200" placeholder="@아이디 또는 주소"></div>
     <div class="board-field"><label for="myInfoBio">동문들에게 하고 싶은 소개</label><textarea class="board-textarea" id="myInfoBio" maxlength="1000"></textarea></div>
-    <div class="board-field"><label for="myInfoConnect">어떤 분야로 연결되고 싶나요</label><input class="board-input" id="myInfoConnect" maxlength="300"></div>
+    <div class="board-field"><span class="myinfo-label" id="myInfoConnectLabel">어떤 분야로 연결되고 싶나요 <small>여러 개 고를 수 있어요</small></span>
+      <div class="myinfo-tags" id="myInfoConnectTags" role="group" aria-labelledby="myInfoConnectLabel"></div>
+      <input class="board-input myinfo-tag-other" id="myInfoConnectOther" maxlength="150" placeholder="기타 (직접 입력, 선택)" aria-label="기타 연결 희망 분야">
+    </div>
     <div class="myinfo-checks myinfo-checks-block">
       <label class="myinfo-check"><input type="checkbox" id="myInfoConsent"><span><b>동문 목록에 내 프로필 공개</b><small>끄면 목록에서 바로 사라집니다.</small></span></label>
       <label class="myinfo-check"><input type="checkbox" id="myInfoAllowEmail"><span><b>이메일로 연락받기</b><small>인증된 동문에게만 이메일이 보입니다.</small></span></label>
@@ -2697,15 +2707,47 @@ function renderMyInfoFields(selected){
     `<label class="myinfo-check"><input type="checkbox" data-myinfo-field="${key}"${selected.includes(key)?" checked":""}><span><b>${esc(label)}</b></span></label>`
   ).join("");
 }
+// 연결 희망 분야는 원래 구글 폼의 보기와 같은 값으로 저장합니다(쉼표로 구분).
+// 그래야 동문 목록의 "연결 희망 분야로 찾기"에서 폼 답변과 같은 묶음으로 보입니다.
+const MYINFO_CONNECT_OPTIONS=["정보 교류","멘토링 / 후배 지원","사업 / 협업","메뉴개발 / R&D","프로젝트 / 팝업","교육 / 강의","식자재 / 유통","해외 취업 / 유학","창업","특별히 없음"];
+const MYINFO_CONNECT_NONE="특별히 없음";
+function renderMyInfoConnect(value){
+  const tags=splitConnectTags(value);
+  const box=myInfoEl("myInfoConnectTags");
+  if(box)box.innerHTML=MYINFO_CONNECT_OPTIONS.map(tag=>
+    `<button type="button" class="myinfo-tag" data-connect-option="${esc(tag)}" aria-pressed="${tags.includes(tag)?"true":"false"}">${esc(tag)}</button>`
+  ).join("");
+  const other=myInfoEl("myInfoConnectOther");
+  if(other)other.value=tags.filter(tag=>!MYINFO_CONNECT_OPTIONS.includes(tag)).join(", ");
+}
+function readMyInfoConnect(){
+  const picked=[...document.querySelectorAll("[data-connect-option]")].filter(b=>b.getAttribute("aria-pressed")==="true").map(b=>b.dataset.connectOption);
+  const other=(myInfoEl("myInfoConnectOther")?.value||"").trim();
+  return [...picked,...(other?[other]:[])].join(", ");
+}
+document.getElementById("myInfoConnectTags")?.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-connect-option]");
+  if(!btn)return;
+  const on=btn.getAttribute("aria-pressed")!=="true";
+  btn.setAttribute("aria-pressed",on?"true":"false");
+  if(!on)return;
+  // "특별히 없음"은 다른 분야와 함께 고를 수 없습니다.
+  document.querySelectorAll("[data-connect-option]").forEach(other=>{
+    if(other===btn)return;
+    const isNone=other.dataset.connectOption===MYINFO_CONNECT_NONE;
+    if(btn.dataset.connectOption===MYINFO_CONNECT_NONE?!isNone:isNone)other.setAttribute("aria-pressed","false");
+  });
+});
 function fillMyInfo(draft){
   myInfoEl("myInfoName").value=draft.name||"";
   myInfoEl("myInfoGen").value=draft.generation==null?"":String(draft.generation);
   myInfoEl("myInfoDisplayMode").value=draft.displayMode||"masked";
   renderMyInfoFields(Array.isArray(draft.publicFields)?draft.publicFields:[]);
   for(const [id,key] of [["myInfoCompany","company"],["myInfoWork","work"],["myInfoActivity","activity"],
-    ["myInfoRegion","region"],["myInfoInstagram","instagram"],["myInfoBio","bio"],["myInfoConnect","connect"]]){
+    ["myInfoRegion","region"],["myInfoInstagram","instagram"],["myInfoBio","bio"]]){
     myInfoEl(id).value=draft[key]||"";
   }
+  renderMyInfoConnect(draft.connect);
   myInfoEl("myInfoConsent").checked=!!draft.consent;
   myInfoEl("myInfoAllowEmail").checked=!!draft.allowEmailContact;
   myInfoEl("myInfoAttendee").checked=!!draft.attendeeVisible;
@@ -2722,7 +2764,7 @@ function readMyInfo(){
     region:myInfoEl("myInfoRegion").value.trim(),
     instagram:myInfoEl("myInfoInstagram").value.trim(),
     bio:myInfoEl("myInfoBio").value.trim(),
-    connect:myInfoEl("myInfoConnect").value.trim(),
+    connect:readMyInfoConnect(),
     allowEmailContact:myInfoEl("myInfoAllowEmail").checked,
     attendeeVisible:myInfoEl("myInfoAttendee").checked,
     consent:myInfoEl("myInfoConsent").checked,

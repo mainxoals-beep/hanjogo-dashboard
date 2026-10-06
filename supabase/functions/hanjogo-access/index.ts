@@ -953,7 +953,10 @@ Deno.serve(async (req: Request) => {
         .select("id,host_user_id,host_display_name,host_generation,title,category,starts_at,region,place,capacity,description,status,created_at")
         .eq("is_hidden", false).gte("starts_at", since).order("starts_at").limit(200);
       if (error) return json({ error: error.message }, 500);
-      const ids = (meetups || []).map((m) => m.id);
+      // 취소된 모임은 날짜가 지나면 더 보여줄 필요가 없습니다.
+      const nowIso = new Date().toISOString();
+      const visible = (meetups || []).filter((m) => m.status !== "cancelled" || String(m.starts_at) >= nowIso);
+      const ids = visible.map((m) => m.id);
       let attendees: Record<string, unknown>[] = [];
       let comments: Record<string, unknown>[] = [];
       if (ids.length) {
@@ -969,7 +972,7 @@ Deno.serve(async (req: Request) => {
         attendees = a.data || [];
         comments = c.data || [];
       }
-      const items = (meetups || []).map((m) => {
+      const items = visible.map((m) => {
         const isHost = m.host_user_id === userId;
         const going = attendees.filter((row) => row.meetup_id === m.id);
         return {
@@ -1037,6 +1040,16 @@ Deno.serve(async (req: Request) => {
 
     if (action === "meetup_cancel") {
       if (!canEdit) return json({ error: "forbidden" }, 403);
+      // 주최자 말고 신청한 사람이 없으면 알릴 사람이 없으니 아예 지웁니다.
+      // 신청한 사람이 있으면 "취소됨"으로 남겨 참석자가 알 수 있게 합니다(날짜가 지나면 목록에서 빠집니다).
+      const { count, error: countError } = await adminClient.from("hanjogo_meetup_attendees")
+        .select("user_id", { count: "exact", head: true }).eq("meetup_id", meetupId).neq("user_id", String(meetup.host_user_id));
+      if (countError) return json({ error: countError.message }, 500);
+      if (!count) {
+        const { error } = await adminClient.from("hanjogo_meetups").delete().eq("id", meetupId);
+        if (error) return json({ error: error.message }, 500);
+        return json({ ok: true, deleted: true });
+      }
       const { error } = await adminClient.from("hanjogo_meetups")
         .update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("id", meetupId);
       if (error) return json({ error: error.message }, 500);

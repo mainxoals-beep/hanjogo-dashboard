@@ -2795,7 +2795,8 @@ function meetupDetailHtml(m){
   }
   if(m.canEdit&&!cancelled&&!past){
     actions.push('<button class="meetup-secondary" type="button" data-meetup-action="edit">수정</button>');
-    actions.push('<button class="meetup-secondary danger" type="button" data-meetup-action="cancel">모임 취소</button>');
+    // 나 말고 신청한 사람이 없으면 취소 대신 바로 삭제합니다.
+    actions.push(`<button class="meetup-secondary danger" type="button" data-meetup-action="cancel">${m.attendeeCount<=1?"모임 삭제":"모임 취소"}</button>`);
   }
   if(meetupIsAdmin&&!m.isHost)actions.push('<button class="meetup-secondary danger" type="button" data-meetup-action="hide">숨기기(관리자)</button>');
   return `<div class="board-detail-category"><span class="board-category">${esc(MEETUP_CATEGORY_LABELS[m.category]||"기타")}</span></div>
@@ -2833,7 +2834,11 @@ document.getElementById("meetupDetail")?.addEventListener("click",e=>{
   if(action==="edit"){closeBoardModal("meetupDetailModal");openMeetupForm(m);return;}
   if(action==="join")runMeetupAction(()=>meetupCall("meetup_join",{id}),"참석 신청했어요. 댓글로 인사를 남겨보세요.");
   if(action==="leave"&&confirm("참석을 취소할까요?"))runMeetupAction(()=>meetupCall("meetup_leave",{id}),"참석을 취소했어요.");
-  if(action==="cancel"&&confirm("모임을 취소할까요? 참석자에게는 목록에 '취소됨'으로 보여요."))runMeetupAction(()=>meetupCall("meetup_cancel",{id}),"모임을 취소했어요.");
+  if(action==="cancel"){
+    const alone=m.attendeeCount<=1;
+    if(!confirm(alone?"모임을 삭제할까요? 목록에서 바로 사라져요.":"모임을 취소할까요? 신청한 동문이 알 수 있게 '취소됨'으로 남고, 모임 날짜가 지나면 사라져요."))return;
+    runMeetupAction(async()=>{const r=await meetupCall("meetup_cancel",{id});if(r?.deleted)closeBoardModal("meetupDetailModal");},alone?"":"모임을 취소했어요.");
+  }
   if(action==="hide"&&confirm("이 모임을 목록에서 숨길까요?"))runMeetupAction(async()=>{await meetupCall("meetup_hide",{id});closeBoardModal("meetupDetailModal");});
 });
 document.getElementById("meetupComments")?.addEventListener("click",e=>{

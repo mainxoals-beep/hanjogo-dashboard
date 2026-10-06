@@ -130,3 +130,28 @@ test('English names first, then 가나다; cards start collapsed and open on tap
   run("shownCount=60;redraw()");
   assert.equal(run('shownCount'),20);
 });
+
+// 한 동문이 여러 업장을 운영하면 카드 하나로 묶습니다(이름·기수가 같을 때만).
+test('places run by the same alumnus are grouped into one card',async()=>{
+  const rows=[{id:1,name:'Alpha',owner_name:'김태민',owner_generation:'2기',region:'서울',category:'카페'},
+              {id:2,name:'렁팡스',owner_name:'김 태민',owner_generation:2,region:'서울',category:'레스토랑'},
+              {id:3,name:'쥬네스',owner_name:'김태민',owner_generation:'7기',region:'서울'},
+              {id:4,name:'이름없음'},{id:5,name:'이름없음2'}];
+  const h=harness({data:rows,error:null});
+  await new Promise(setImmediate);
+  const run=expr=>vm.runInContext(expr,h.context);
+  const html=h.el('grid').innerHTML;
+  assert.equal((html.match(/<article /g)||[]).length,4,'같은 이름·기수 두 곳은 한 카드, 기수가 다르거나 이름이 없으면 따로');
+  assert.match(html,/2기 김태민 동문의 업장/);
+  assert.match(html,/data-id="1"/);assert.match(html,/data-id="2"/);
+  // 검색으로 한 곳만 남으면 일반 카드로 보이고, 다른 업장이 있다는 표시만 남깁니다.
+  h.el('q').value='렁팡스';run('redraw()');
+  const one=h.el('grid').innerHTML;
+  assert.doesNotMatch(one,/동문의 업장/);
+  assert.match(one,/업장 2곳 운영/);
+  // 묶음 카드 열기는 key 로 합니다.
+  h.el('q').value='';run('redraw()');
+  run("toggleCard('g:2|김태민')");
+  assert.equal(run('openId'),'g:2|김태민');
+  assert.match(h.el('grid').innerHTML,/class="card group open selected"/);
+});

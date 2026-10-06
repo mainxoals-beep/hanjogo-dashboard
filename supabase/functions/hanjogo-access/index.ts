@@ -300,6 +300,15 @@ async function boardIdentity(
   return { name: specialName || email.split("@")[0], generation: null };
 }
 
+const BOARD_CATEGORIES = ["free", "jobs", "collab", "business", "notice", "question"];
+
+/** A "question" post must name one of the help fields; other posts carry none. */
+function boardTopic(category: string, value: unknown) {
+  if (category !== "question") return { topic: null };
+  const topic = String(value ?? "");
+  return HELP_TOPICS.includes(topic) ? { topic } : { error: "invalid_topic" };
+}
+
 function publicBoardPost(
   row: Record<string, unknown>,
   comments: Record<string, unknown>[],
@@ -315,6 +324,7 @@ function publicBoardPost(
   });
   return {
     id: row.id, category: row.category, title: row.title, content: row.content,
+    topic: row.topic ?? null, isResolved: Boolean(row.is_resolved),
     authorName: row.author_name, authorGeneration: row.author_generation,
     isNotice: Boolean(row.is_notice), createdAt: row.created_at, updatedAt: row.updated_at,
     canEdit: isAdmin || row.author_id === userId,
@@ -627,7 +637,7 @@ function cleanMeetupInput(body: Record<string, unknown>, now = Date.now()) {
   } as const;
 }
 
-/** Fields an alumnus can offer help in (선후배에게 물어보기). Questions pick one of these. */
+/** Fields an alumnus can offer help in. A board post in the "question" category picks one of these. */
 const HELP_TOPICS = [
   "창업 준비", "매장 운영", "메뉴 개발", "제과·제빵 진로", "해외 취업·유학",
   "취업·이직", "식자재·유통", "마케팅·SNS", "교육·강의", "호텔·파인다이닝",
@@ -636,16 +646,6 @@ const HELP_TOPICS = [
 function cleanHelpTopics(value: unknown) {
   const requested = Array.isArray(value) ? value.map((item) => String(item)) : [];
   return HELP_TOPICS.filter((topic) => requested.includes(topic));
-}
-
-function cleanQuestionInput(body: Record<string, unknown>) {
-  const topic = String(body.topic ?? "");
-  if (!HELP_TOPICS.includes(topic)) return { error: "invalid_topic" } as const;
-  const title = cleanBoardText(body.title, 100);
-  if (!title) return { error: "title_required" } as const;
-  const content = cleanBoardText(body.content, 2000);
-  if (!content) return { error: "content_required" } as const;
-  return { value: { topic, title, content } } as const;
 }
 
 const RESOURCE_CATEGORIES = ["cost", "order", "store", "career", "hygiene", "etc"];
@@ -1168,111 +1168,6 @@ Deno.serve(async (req: Request) => {
     return json({ error: "unknown_action" }, 400);
   }
 
-  // ---- 선후배에게 물어보기 ---------------------------------------------------
-  if (action.startsWith("question_")) {
-    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
-
-    if (action === "question_list") {
-      const [questions, helpers] = await Promise.all([
-        adminClient.from("hanjogo_questions")
-          .select("id,user_id,display_name,generation,topic,title,content,is_resolved,created_at")
-          .eq("is_hidden", false).order("created_at", { ascending: false }).limit(200),
-        // 도와줄 수 있다고 고른 동문. 프로필 공개에 동의한 사람만, 각자 고른 이름 표시 방식으로 보여줍니다.
-        adminClient.from("hanjogo_profile_overrides")
-          .select("name,generation,display_mode,help_topics").eq("consent", true),
-      ]);
-      if (questions.error) return json({ error: questions.error.message }, 500);
-      if (helpers.error) return json({ error: helpers.error.message }, 500);
-      const ids = (questions.data || []).map((q) => q.id);
-      let answers: Record<string, unknown>[] = [];
-      if (ids.length) {
-        const { data, error } = await adminClient.from("hanjogo_question_answers")
-          .select("id,question_id,user_id,display_name,generation,content,created_at")
-          .in("question_id", ids).eq("is_hidden", false).order("created_at");
-        if (error) return json({ error: error.message }, 500);
-        answers = data || [];
-      }
-      const helpersByTopic: Record<string, { name: string; generation: number | null }[]> = {};
-      HELP_TOPICS.forEach((topic) => { helpersByTopic[topic] = []; });
-      (helpers.data || []).forEach((row) => {
-        const name = String(row.name || "").trim();
-        const shown = row.display_mode === "full" ? name : row.display_mode === "hidden" ? "이름 비공개" : maskName(name);
-        cleanHelpTopics(row.help_topics).forEach((topic) => {
-          helpersByTopic[topic].push({ name: shown || "동문", generation: row.generation == null ? null : Number(row.generation) });
-        });
-      });
-      const items = (questions.data || []).map((q) => ({
-        id: q.id, topic: q.topic, title: q.title, content: q.content, isResolved: q.is_resolved,
-        name: q.display_name, generation: q.generation, createdAt: q.created_at,
-        isMine: q.user_id === userId, canEdit: isAdmin || q.user_id === userId,
-        answers: answers.filter((a) => a.question_id === q.id).map((a) => ({
-          id: a.id, name: a.display_name, generation: a.generation, content: a.content,
-          createdAt: a.created_at, canDelete: isAdmin || a.user_id === userId,
-        })),
-      }));
-      return json({ allowed: true, isAdmin, topics: HELP_TOPICS, helpersByTopic, items });
-    }
-
-    if (action === "question_create") {
-      const cleaned = cleanQuestionInput(body);
-      if ("error" in cleaned) return json({ error: cleaned.error }, 400);
-      const me = await displayIdentity();
-      const { data, error } = await adminClient.from("hanjogo_questions")
-        .insert({ ...cleaned.value, user_id: userId, email, ...me }).select("id").single();
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true, id: data.id });
-    }
-
-    const questionId = Number(body.id);
-    if (!Number.isFinite(questionId)) return json({ error: "invalid_question" }, 400);
-    const { data: question, error: questionError } = await adminClient.from("hanjogo_questions")
-      .select("id,user_id").eq("id", questionId).eq("is_hidden", false).maybeSingle();
-    if (questionError) return json({ error: questionError.message }, 500);
-    if (!question) return json({ error: "not_found" }, 404);
-    const ownsQuestion = isAdmin || question.user_id === userId;
-
-    if (action === "question_resolve") {
-      if (!ownsQuestion) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_questions")
-        .update({ is_resolved: Boolean(body.resolved), updated_at: new Date().toISOString() }).eq("id", questionId);
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true });
-    }
-
-    if (action === "question_delete") {
-      if (!ownsQuestion) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_questions")
-        .update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", questionId);
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true });
-    }
-
-    if (action === "question_answer_create") {
-      const content = cleanBoardText(body.content, 2000);
-      if (!content) return json({ error: "content_required" }, 400);
-      const me = await displayIdentity();
-      const { error } = await adminClient.from("hanjogo_question_answers")
-        .insert({ question_id: questionId, user_id: userId, content, ...me });
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true });
-    }
-
-    if (action === "question_answer_delete") {
-      const answerId = Number(body.answerId);
-      if (!Number.isFinite(answerId)) return json({ error: "invalid_answer" }, 400);
-      const { data: target, error: lookupError } = await adminClient.from("hanjogo_question_answers")
-        .select("id,user_id").eq("id", answerId).eq("question_id", questionId).eq("is_hidden", false).maybeSingle();
-      if (lookupError) return json({ error: lookupError.message }, 500);
-      if (!target) return json({ error: "not_found" }, 404);
-      if (!isAdmin && target.user_id !== userId) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_question_answers").update({ is_hidden: true }).eq("id", answerId);
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true });
-    }
-
-    return json({ error: "unknown_action" }, 400);
-  }
-
   // ---- 동문 실무 자료실 ------------------------------------------------------
   // 파일은 비공개 저장소에 두고, 올릴 때·받을 때마다 함수가 짧게 쓰는 주소를 만들어 줍니다.
   if (action.startsWith("resource_")) {
@@ -1402,7 +1297,7 @@ Deno.serve(async (req: Request) => {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
     if (action === "board_list") {
       const { data: posts, error: postsError } = await adminClient.from("hanjogo_board_posts")
-        .select("id,author_id,author_name,author_generation,category,title,content,is_notice,created_at,updated_at")
+        .select("id,author_id,author_name,author_generation,category,title,content,topic,is_resolved,is_notice,created_at,updated_at")
         .eq("is_hidden", false).order("is_notice", { ascending: false }).order("created_at", { ascending: false }).limit(100);
       if (postsError) return json({ error: postsError.message }, 500);
       const postIds = (posts || []).map((post) => post.id);
@@ -1424,7 +1319,20 @@ Deno.serve(async (req: Request) => {
         reactions = reactionResult.data || [];
         views = viewResult.data || [];
       }
-      return json({ allowed: true, isAdmin, items: (posts || []).map((post) => publicBoardPost(
+      // 선후배 질문: 분야별로 도와줄 수 있다고 한 동문. 프로필 공개에 동의한 사람만, 각자 고른 이름 표시 방식으로 보여줍니다.
+      const { data: helperRows, error: helperError } = await adminClient.from("hanjogo_profile_overrides")
+        .select("name,generation,display_mode,help_topics").eq("consent", true);
+      if (helperError) return json({ error: helperError.message }, 500);
+      const helpersByTopic: Record<string, { name: string; generation: number | null }[]> = {};
+      HELP_TOPICS.forEach((topic) => { helpersByTopic[topic] = []; });
+      (helperRows || []).forEach((row) => {
+        const name = String(row.name || "").trim();
+        const shown = row.display_mode === "full" ? name : row.display_mode === "hidden" ? "이름 비공개" : maskName(name);
+        cleanHelpTopics(row.help_topics).forEach((topic) => {
+          helpersByTopic[topic].push({ name: shown || "동문", generation: row.generation == null ? null : Number(row.generation) });
+        });
+      });
+      return json({ allowed: true, isAdmin, helpTopics: HELP_TOPICS, helpersByTopic, items: (posts || []).map((post) => publicBoardPost(
         post,
         comments.filter((comment) => comment.post_id === post.id),
         reactions.filter((reaction) => reaction.post_id === post.id),
@@ -1471,12 +1379,14 @@ Deno.serve(async (req: Request) => {
       const category = cleanBoardText(body.category, 20);
       const title = cleanBoardText(body.title, 120);
       const content = cleanBoardText(body.content, 5000);
-      if (!["free", "jobs", "collab", "business", "notice"].includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
+      if (!BOARD_CATEGORIES.includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
       if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
+      const picked = boardTopic(category, body.topic);
+      if ("error" in picked) return json({ error: picked.error }, 400);
       const identity = await boardIdentity(email, special, await myOverride());
       const { data, error } = await adminClient.from("hanjogo_board_posts").insert({
         author_id: userId, author_email: email, author_name: identity.name,
-        author_generation: identity.generation, category, title, content, is_notice: category === "notice",
+        author_generation: identity.generation, category, title, content, topic: picked.topic, is_notice: category === "notice",
       }).select("id").single();
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true, id: data.id });
@@ -1486,13 +1396,27 @@ Deno.serve(async (req: Request) => {
       const category = cleanBoardText(body.category, 20);
       const title = cleanBoardText(body.title, 120);
       const content = cleanBoardText(body.content, 5000);
-      if (!Number.isFinite(id) || !["free", "jobs", "collab", "business", "notice"].includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
+      if (!Number.isFinite(id) || !BOARD_CATEGORIES.includes(category) || !title || !content) return json({ error: "invalid_post" }, 400);
       if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
+      const picked = boardTopic(category, body.topic);
+      if ("error" in picked) return json({ error: picked.error }, 400);
       const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id").eq("id", id).eq("is_hidden", false).maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
       if (!target) return json({ error: "not_found" }, 404);
       if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_board_posts").update({ category, title, content, is_notice: category === "notice", updated_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await adminClient.from("hanjogo_board_posts").update({ category, title, content, topic: picked.topic, is_notice: category === "notice", updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+    // 선후배 질문: 질문한 사람(또는 관리자)이 해결됨을 표시합니다.
+    if (action === "board_resolve") {
+      const id = Number(body.id);
+      if (!Number.isFinite(id)) return json({ error: "invalid_post" }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id,category").eq("id", id).eq("is_hidden", false).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!target || target.category !== "question") return json({ error: "not_found" }, 404);
+      if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_board_posts").update({ is_resolved: Boolean(body.resolved) }).eq("id", id);
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true });
     }

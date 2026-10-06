@@ -11,7 +11,7 @@ const body = source.slice(source.indexOf('function normalizeEmail'), source.inde
 assert(body.length > 1000, '함수 본문을 찾지 못했습니다');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanjogo-profile-'));
 const file = path.join(dir, 'helpers.ts');
-fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, cleanQuestionInput, cleanResourceInput, resourceExtension };\n');
+fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, boardTopic, cleanResourceInput, resourceExtension };\n');
 
 const baseDraft = {
   name: '김태민', generation: 2, displayMode: 'masked',
@@ -140,10 +140,9 @@ const baseDraft = {
   const helper = await H.buildProfileFromDraft(H.cleanProfileDraft({ ...baseDraft, helpTopics: ['창업 준비'] }), 'a@b.com', '', '2026-10-05', '');
   assert.deepEqual(helper.helpTopics, ['창업 준비']);
   assert.equal(await H.buildProfileFromDraft(H.cleanProfileDraft({ ...baseDraft, helpTopics: ['창업 준비'], consent: false }), 'a@b.com', '', '2026-10-05', ''), null, '비공개 프로필의 분야는 나가지 않습니다');
-  assert.equal(H.cleanQuestionInput({ topic: '창업 준비', title: ' 첫 매장 ', content: '보증금은?' }).value.title, '첫 매장');
-  assert.equal(H.cleanQuestionInput({ topic: '없는 분야', title: 'a', content: 'b' }).error, 'invalid_topic');
-  assert.equal(H.cleanQuestionInput({ topic: '창업 준비', title: '', content: 'b' }).error, 'title_required');
-  assert.equal(H.cleanQuestionInput({ topic: '창업 준비', title: 'a', content: ' ' }).error, 'content_required');
+  assert.deepEqual(H.boardTopic('question', '창업 준비'), { topic: '창업 준비' });
+  assert.equal(H.boardTopic('question', '없는 분야').error, 'invalid_topic', '질문 글은 분야가 있어야 합니다');
+  assert.deepEqual(H.boardTopic('free', '창업 준비'), { topic: null }, '질문이 아닌 글에는 분야를 붙이지 않습니다');
   assert.equal(H.resourceExtension('원가계산표.XLSX'), 'xlsx');
   assert.equal(H.resourceExtension('오픈체크리스트.hwp'), 'hwp');
   assert.equal(H.resourceExtension('virus.exe'), '');
@@ -156,5 +155,5 @@ const baseDraft = {
   assert.equal(H.cleanResourceInput({ title: ' ', category: 'cost', linkUrl: 'https://a.b' }).error, 'title_required');
 
   fs.rmSync(dir, { recursive: true, force: true });
-  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증, 도움 분야·질문·자료실 입력 검증');
+  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출, 소모임 입력 검증, 도움 분야·질문 분야·자료실 입력 검증');
 })().catch((e) => { console.error(e); process.exit(1); });

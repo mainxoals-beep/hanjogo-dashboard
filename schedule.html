@@ -74,7 +74,7 @@ button,a{font:inherit} button{cursor:pointer}
 .program-item:before{counter-increment:program;content:counter(program);display:block;width:20px;height:20px;margin:0 auto 6px;border-radius:50%;background:var(--purple-light);color:var(--purple-dark);font-size:10px;font-weight:900;line-height:20px}
 .program-note{margin-top:9px;color:var(--mute);text-align:right;font-size:9.5px}
 .info-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:18px}
-.info-card,.resource-card,.alumni-card,.month,.calendar-detail,.faq,.application-stats,.visitor-counter{background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.info-card,.resource-card,.alumni-card,.month,.calendar-detail,.faq,.application-stats{background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
 .info-card{padding:17px 18px}.info-label{margin-bottom:7px;color:var(--purple-dark);font-size:10.5px;font-weight:800}.info-title{margin-bottom:4px;font-size:17px;font-weight:800}
 .info-text{color:var(--sub);font-size:12.5px;line-height:1.7}.info-text strong{color:var(--ink)}
 .event-time{margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--event-light);color:var(--event-dark);font-size:12px;font-weight:800;line-height:1.7}
@@ -122,7 +122,7 @@ button,a{font:inherit} button{cursor:pointer}
 .timeline-toggle:hover{background:var(--purple-light)}
 .timeline-wrap[hidden]{display:none}
 .application-stats{margin:14px 0;padding:11px 13px;text-align:center}.application-stats strong{font-size:15px}.application-stats-label{font-size:10.5px;color:var(--mute)}
-.public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}.visitor-counter{margin:18px 0 4px;padding:11px 13px;text-align:center;font-size:10.5px;color:var(--mute)}
+.public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
 @media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.program-list{grid-template-columns:repeat(2,1fr)}.program-item:last-child{grid-column:1/-1}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.hero-dday{font-size:30px}.head h1{font-size:22px}}
 .application-cta .participant-highlight{margin:8px 0 12px;font-size:14px}
@@ -243,7 +243,6 @@ body.modal-open{overflow:hidden}
 .top-actions{margin:16px 0 0}
 .top-action.primary{min-height:44px;border-color:#D9D3F5;background:#F0EEFC;color:var(--purple-dark)}
 .top-action.primary:hover{border-color:var(--purple);background:#E9E5FA}
-.visitor-counter{margin:8px 0 14px;padding:7px 10px;background:transparent;border:0;text-align:right;font-size:12px;opacity:.78}
 
 .network-hub{
   margin:0 0 18px;padding:20px;border:1px solid #DCD6F5;border-radius:18px;
@@ -286,7 +285,6 @@ body.modal-open{overflow:hidden}
   .network-hub-title{font-size:18px}
   .network-hub-actions{grid-template-columns:1fr}
   .network-hub-stats{grid-template-columns:1fr 1fr}
-  .visitor-counter{text-align:center}
 }
 
 /* combined participant status + list */
@@ -526,6 +524,14 @@ body:not(.site-view-event) #brandCard{display:none!important}
   padding:24px;border:1px solid var(--line);border-radius:22px;background:#fff;
   box-shadow:0 12px 34px rgba(30,28,26,.06)
 }
+.hero-visits{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.hero-visits[hidden]{display:none}
+.hero-visit{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:#F5F2FF;border:1px solid #E4DEFA}
+.hero-visit-k{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--sub)}
+.hero-visit b{font-size:22px;line-height:1.2;font-weight:950;color:var(--purple-dark);font-variant-numeric:tabular-nums}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#22A55B;box-shadow:0 0 0 0 rgba(34,165,91,.5);animation:livePulse 2s infinite}
+@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(34,165,91,.5)}70%{box-shadow:0 0 0 7px rgba(34,165,91,0)}100%{box-shadow:0 0 0 0 rgba(34,165,91,0)}}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
 .site-home-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;color:var(--purple-dark)}
 .site-home-title{margin-top:7px;font-size:23px;line-height:1.25;font-weight:950;color:var(--ink)}
 .site-home-desc{margin-top:8px;font-size:13px;line-height:1.7;color:var(--sub)}
@@ -859,6 +865,11 @@ body.site-view-network.modal-open{overflow:auto!important}
     <div class="site-home-kicker">KCAS ALUMNI NETWORK</div>
     <div class="site-home-title">졸업 이후에도 이어지는 한조고 네트워크</div>
     <div class="site-home-desc">2026 네트워크 모임 정보와 졸업생 DB·공개 동문 프로필을 한곳에서 확인할 수 있습니다.</div>
+    <!-- 방문 현황: 사이트가 살아 있다는 걸 첫 화면에서 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
+    <div class="hero-visits" id="visitorCounter" hidden aria-label="사이트 방문 현황">
+      <div class="hero-visit"><span class="hero-visit-k"><span class="live-dot" aria-hidden="true"></span>오늘 방문</span><b id="todayVisitorCount">-</b></div>
+      <div class="hero-visit"><span class="hero-visit-k">누적 방문</span><b id="totalVisitorCount">-</b></div>
+    </div>
   </div>
   <div class="site-home-grid">
     <button class="site-home-card" type="button" data-site-target="event">
@@ -955,9 +966,6 @@ body.site-view-network.modal-open{overflow:auto!important}
 <button class="top-action primary" id="shareBtn">공유하기</button>
 </div>
 
-<div class="visitor-counter site-view" data-site-view="home" id="visitorCounter">
-방문 현황 · 오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b>
-</div>
 
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
@@ -3603,7 +3611,7 @@ function setSiteView(view,{updateHash=true}={}){
   }else{syncResourceAccess();if(networkAccessState==="verified")loadResources();}
 
   const placesFrame=document.getElementById("alumniPlacesFrame");
-  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-group";
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-new";
   syncHomeSummary();
 
   if(updateHash){
@@ -4383,6 +4391,8 @@ totalVisitorCount.textContent=
 Number(
 r?.total_visitors||0
 ).toLocaleString()+"명";
+
+visitorCounter.hidden=false;
 
 }
 catch(e){

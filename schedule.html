@@ -526,6 +526,7 @@ body:not(.site-view-event) #brandCard{display:none!important}
 }
 .visit-pill{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:5px 11px;border-radius:999px;background:#F5F2FF;border:1px solid #E4DEFA;font-size:12px;color:var(--sub)}
 .visit-pill[hidden]{display:none}
+.notif-pill{display:inline-flex;align-items:center;gap:4px;margin:10px 0 0 6px;padding:5px 11px;border-radius:999px;border:1px solid #F5C2C4;background:#FFF1F1;color:#B4232A;font:inherit;font-size:12px;font-weight:800;cursor:pointer;vertical-align:top}.notif-pill[hidden]{display:none}
 .visit-pill b{color:var(--purple-dark);font-weight:900;font-variant-numeric:tabular-nums}
 .live-dot{width:7px;height:7px;border-radius:50%;background:#22A55B;box-shadow:0 0 0 0 rgba(34,165,91,.5);animation:livePulse 2s infinite}
 @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(34,165,91,.5)}70%{box-shadow:0 0 0 7px rgba(34,165,91,0)}100%{box-shadow:0 0 0 0 rgba(34,165,91,0)}}
@@ -796,7 +797,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 .mention-menu button{padding:10px 12px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;font:inherit;font-size:13px;font-weight:800;color:var(--ink);cursor:pointer}.mention-menu button:hover{background:var(--purple-light)}
 .mention-menu small{margin-left:6px;font-size:10.5px;color:var(--purple-dark);font-weight:800}
 .notif-btn{position:relative}.notif-btn[hidden]{display:none}.notif-badge{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#E5484D;color:#fff;font-size:10px;font-weight:900;line-height:16px;text-align:center}.notif-badge[hidden]{display:none}
-.notif-list{display:grid}.notif-item{display:grid;gap:3px;padding:14px 17px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}.notif-item.unread{background:#FBFAFE}.notif-item span{font-size:11.5px;color:var(--mute)}
+.notif-list{display:grid}.notif-item{display:grid;gap:3px;padding:14px 17px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}.notif-item.unread{background:#FBFAFE}.myinfo-notif-pane{padding:0 0 8px}.myinfo-notif-pane .myinfo-note{margin:14px 17px 4px}.myinfo-tab-count{display:inline-block;margin-left:4px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#E5484D;color:#fff;font-size:10px;font-weight:900;line-height:16px;vertical-align:1px}.myinfo-tab-count[hidden]{display:none}.notif-item span{font-size:11.5px;color:var(--mute)}
 .meetup-hint{margin-left:4px;font-weight:600;color:var(--mute)}
 .meetup-section-title{padding:14px 16px 6px;font-size:12px;font-weight:900;color:var(--mute)}
 .meetup-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:14px 16px;border:0;border-bottom:1px solid var(--line);background:#fff;font:inherit;text-align:left;cursor:pointer}
@@ -848,6 +849,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
   <!-- 방문 현황: 어느 메뉴에서든 사이트가 살아 있다는 걸 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
   <div class="visit-pill" id="visitorCounter" hidden aria-label="사이트 방문 현황"><span class="live-dot" aria-hidden="true"></span><span>오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b> 방문</span></div>
+  <button class="notif-pill" type="button" id="notifPill" data-open-myinfo hidden>🔔 새 알림 <b id="notifPillCount">0</b></button>
 </div>
 
 <nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
@@ -857,8 +859,7 @@ body.site-view-network.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
   <button class="site-nav-btn" type="button" data-site-target="meetups" aria-label="번개·소모임">모임</button>
   <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
-  <button class="site-nav-btn notif-btn" type="button" id="notifBtn" hidden aria-label="알림">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
-  <button class="site-nav-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button>
+  <button class="site-nav-btn notif-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보<span class="notif-badge" id="notifBadge" hidden aria-label="새 알림">0</span></button>
 </nav>
 
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
@@ -1302,14 +1303,14 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="board-comments"><div class="board-comments-title" id="meetupCommentsTitle">댓글</div><div id="meetupComments"></div><form class="board-comment-form" id="meetupCommentForm"><input class="board-input" id="meetupCommentInput" maxlength="500" placeholder="시간·장소 의견이나 인사를 남겨주세요" required><button class="board-primary-btn" id="meetupCommentSubmit" type="submit">댓글 등록</button></form></div>
 </div></div>
 
-<div class="board-modal" id="notifModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="notifTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="notifTitle">알림</div><button class="board-close" type="button" data-board-close="notifModal" aria-label="닫기">×</button></div><div class="notif-list" id="notifList"></div></div></div>
 
 <div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
   <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small></div>
   <div class="myinfo-tabs" role="tablist">
     <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
-    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">운영 중인 내 업장</button>
+    <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">내 업장</button>
+    <button type="button" class="myinfo-tab" data-myinfo-tab="notif" role="tab" aria-selected="false">🔔 알림<span class="myinfo-tab-count" id="notifTabCount" hidden>0</span></button>
   </div>
 
   <form class="board-form myinfo-pane" id="myInfoProfilePane">
@@ -1376,6 +1377,11 @@ body.site-view-network.modal-open{overflow:auto!important}
       <button class="board-secondary-btn" id="myInfoPlaceAddBtn" type="button">내가 운영하는 업장 등록</button>
       <button class="board-secondary-btn" type="button" data-site-target="places">동문 업장 지도 열기</button>
     </div>
+  </div>
+
+  <div class="myinfo-pane myinfo-notif-pane" id="myInfoNotifPane" hidden>
+    <div class="myinfo-note">누가 나를 @태그하거나 내 글에 답변·댓글이 달리면 여기에 모여요. 누르면 그 글로 이동해요.</div>
+    <div class="notif-list" id="notifList"></div>
   </div>
 </div></div>
 
@@ -2746,8 +2752,7 @@ async function loadNotifications(){
   try{
     const data=await boardCall("notifications_list");
     notifItems=Array.isArray(data.items)?data.items:[];
-    const badge=document.getElementById("notifBadge");
-    if(badge){badge.textContent=data.unread>9?"9+":String(data.unread||0);badge.hidden=!data.unread;}
+    showNotifCount(Number(data.unread||0));
     renderNotifications();
   }catch{}
 }
@@ -2755,22 +2760,26 @@ function renderNotifications(){
   const box=document.getElementById("notifList");if(!box)return;
   box.innerHTML=notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>';
 }
+// 안 읽은 알림 수: 메뉴의 "내 정보" 버튼과 내 정보 안의 "알림" 탭에 함께 보여줍니다.
+function showNotifCount(n){
+  const text=n>9?"9+":String(n);
+  ["notifBadge","notifTabCount","notifPillCount"].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=text;el.hidden=!n;}});
+  const pill=document.getElementById("notifPill");if(pill)pill.hidden=!n;
+}
+function notifUnread(){return notifItems.filter(n=>!n.read).length;}
+async function markNotificationsRead(){
+  if(!notifItems.some(n=>!n.read))return;
+  try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);showNotifCount(0);}catch{}
+}
 function syncNotifications(){
-  const btn=document.getElementById("notifBtn");
   const ok=networkAccessState==="verified";
-  if(btn)btn.hidden=!ok;
+  if(!ok)showNotifCount(0);
   clearInterval(notifTimer);notifTimer=null;
   if(ok){loadNotifications();notifTimer=setInterval(loadNotifications,120000);}
 }
-document.getElementById("notifBtn")?.addEventListener("click",async()=>{
-  renderNotifications();openBoardModal("notifModal");
-  if(notifItems.some(n=>!n.read)){
-    try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);const badge=document.getElementById("notifBadge");if(badge)badge.hidden=true;}catch{}
-  }
-});
 document.getElementById("notifList")?.addEventListener("click",e=>{
   const b=e.target.closest("[data-notif-post]");if(!b||!b.dataset.notifPost)return;
-  closeBoardModal("notifModal");setSiteView("board");
+  closeBoardModal("myInfoModal");setSiteView("board");
   loadBoard(true).then(()=>openBoardDetail(Number(b.dataset.notifPost)));
 });
 
@@ -3359,7 +3368,10 @@ function setMyInfoTab(tab){
   });
   myInfoEl("myInfoProfilePane").hidden=tab!=="profile";
   myInfoEl("myInfoPlacePane").hidden=tab!=="place";
+  myInfoEl("myInfoNotifPane").hidden=tab!=="notif";
   if(tab==="place"&&!myInfoPlacesLoaded)loadMyPlaces();
+  // 알림 탭을 열면 목록을 보여준 뒤 읽음으로 표시합니다(보는 동안은 새 알림 색이 남아 있어요).
+  if(tab==="notif"){renderNotifications();markNotificationsRead();}
 }
 document.addEventListener("click",e=>{
   if(e.target.closest("[data-open-myinfo]"))myInfoEl("myInfoOpenBtn")?.click();
@@ -3374,7 +3386,7 @@ myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
   }
   myInfoEl("myInfoCurrentEmail").textContent=networkCurrentSession?.user?.email||"";
   openBoardModal("myInfoModal");
-  setMyInfoTab("profile");
+  setMyInfoTab(notifUnread()?"notif":"profile");
   if(!myInfoLoaded)loadMyInfo();
 });
 document.querySelector(".myinfo-tabs")?.addEventListener("click",e=>{

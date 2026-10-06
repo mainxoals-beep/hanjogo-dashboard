@@ -303,13 +303,17 @@ async function boardIdentity(
   return { name: specialName || email.split("@")[0], generation: null };
 }
 
-const BOARD_CATEGORIES = ["free", "jobs", "collab", "business", "notice", "question"];
+const BOARD_CATEGORIES = ["free", "jobs", "collab", "business", "notice", "question", "resource"];
 
-/** A "question" post must name one of the help fields; other posts carry none. */
+/**
+ * A "question" post names one of the help fields; a "resource"(자료 공유) post names a
+ * resource kind (원가·발주 …). Other posts carry none.
+ */
 function boardTopic(category: string, value: unknown) {
-  if (category !== "question") return { topic: null };
   const topic = String(value ?? "");
-  return HELP_TOPICS.includes(topic) ? { topic } : { error: "invalid_topic" };
+  if (category === "question") return HELP_TOPICS.includes(topic) ? { topic } : { error: "invalid_topic" };
+  if (category === "resource") return RESOURCE_CATEGORIES.includes(topic) ? { topic } : { error: "invalid_topic" };
+  return { topic: null };
 }
 
 function publicBoardPost(
@@ -328,6 +332,9 @@ function publicBoardPost(
   return {
     id: row.id, category: row.category, title: row.title, content: row.content,
     topic: row.topic ?? null, isResolved: Boolean(row.is_resolved),
+    // 자료 공유 글의 첨부. 저장 경로는 내보내지 않고, 받을 때 board_download 로 짧게 쓰는 주소를 만듭니다.
+    hasFile: Boolean(row.file_path), fileName: row.file_name ?? null, fileSize: row.file_size ?? null,
+    linkUrl: row.link_url ?? null, downloadCount: Number(row.download_count || 0),
     authorName: row.author_name, authorGeneration: row.author_generation,
     isNotice: Boolean(row.is_notice), createdAt: row.created_at, updatedAt: row.updated_at,
     canEdit: isAdmin || row.author_id === userId,
@@ -692,23 +699,16 @@ function resourceExtension(fileName: unknown) {
   return match && RESOURCE_EXTENSIONS.includes(match[1]) ? match[1] : "";
 }
 
-function cleanResourceInput(body: Record<string, unknown>) {
-  const title = cleanBoardText(body.title, 100);
-  if (!title) return { error: "title_required" } as const;
-  const category = String(body.category ?? "");
-  if (!RESOURCE_CATEGORIES.includes(category)) return { error: "invalid_category" } as const;
+/**
+ * The link of a "자료 공유" post. Other posts never carry a link or file.
+ * Whether the post ends up with a file or a link is checked by the caller,
+ * which also knows about a file already attached when editing.
+ */
+function boardAttachmentLink(category: string, body: Record<string, unknown>) {
+  if (category !== "resource") return { link: null } as const;
   const link = safeLink(cleanBoardText(body.linkUrl, 500));
   if (link === null) return { error: "invalid_link" } as const;
-  const hasFile = Boolean(body.filePath);
-  if (!hasFile && !link) return { error: "file_or_link_required" } as const;
-  return {
-    value: {
-      title,
-      category,
-      description: cleanBoardText(body.description, 1500) || null,
-      link_url: link || null,
-    },
-  } as const;
+  return { link: link || null } as const;
 }
 
 /** Alumni directory rows (name, cohort, email) for owner matching. */
@@ -1255,131 +1255,6 @@ Deno.serve(async (req: Request) => {
     return json({ error: "unknown_action" }, 400);
   }
 
-  // ---- 동문 실무 자료실 ------------------------------------------------------
-  // 파일은 비공개 저장소에 두고, 올릴 때·받을 때마다 함수가 짧게 쓰는 주소를 만들어 줍니다.
-  if (action.startsWith("resource_")) {
-    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
-    const bucket = adminClient.storage.from("hanjogo-resources");
-
-    if (action === "resource_list") {
-      const { data: resources, error } = await adminClient.from("hanjogo_resources")
-        .select("id,user_id,display_name,generation,title,category,description,file_path,file_name,file_size,link_url,download_count,created_at")
-        .eq("is_hidden", false).order("created_at", { ascending: false }).limit(300);
-      if (error) return json({ error: error.message }, 500);
-      const ids = (resources || []).map((r) => r.id);
-      let comments: Record<string, unknown>[] = [];
-      if (ids.length) {
-        const { data, error: commentError } = await adminClient.from("hanjogo_resource_comments")
-          .select("id,resource_id,user_id,display_name,generation,content,created_at")
-          .in("resource_id", ids).eq("is_hidden", false).order("created_at");
-        if (commentError) return json({ error: commentError.message }, 500);
-        comments = data || [];
-      }
-      const items = (resources || []).map((r) => ({
-        id: r.id, title: r.title, category: r.category, description: r.description,
-        hasFile: Boolean(r.file_path), fileName: r.file_name, fileSize: r.file_size, linkUrl: r.link_url,
-        downloadCount: r.download_count, name: r.display_name, generation: r.generation, createdAt: r.created_at,
-        canEdit: isAdmin || r.user_id === userId,
-        comments: comments.filter((c) => c.resource_id === r.id).map((c) => ({
-          id: c.id, name: c.display_name, generation: c.generation, content: c.content,
-          createdAt: c.created_at, canDelete: isAdmin || c.user_id === userId,
-        })),
-      }));
-      return json({ allowed: true, isAdmin, items });
-    }
-
-    if (action === "resource_upload_url") {
-      const ext = resourceExtension(body.fileName);
-      if (!ext) return json({ error: "invalid_file_type" }, 400);
-      const size = Number(body.fileSize);
-      if (!Number.isInteger(size) || size < 1 || size > RESOURCE_MAX_BYTES) return json({ error: "file_too_large" }, 400);
-      // 저장 경로는 올린 사람 폴더 아래에 둡니다. 원래 파일 이름은 표에만 적습니다.
-      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-      const { data, error } = await bucket.createSignedUploadUrl(path);
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true, path: data.path, token: data.token });
-    }
-
-    if (action === "resource_create") {
-      const cleaned = cleanResourceInput(body);
-      if ("error" in cleaned) return json({ error: cleaned.error }, 400);
-      let file: { file_path: string; file_name: string; file_size: number } | null = null;
-      if (body.filePath) {
-        const path = String(body.filePath);
-        const fileName = cleanBoardText(body.fileName, 200);
-        // 남의 폴더 파일을 자기 자료로 등록하지 못하게 합니다.
-        if (!path.startsWith(`${userId}/`) || path.includes("..") || !resourceExtension(path) || !resourceExtension(fileName)) {
-          return json({ error: "invalid_file" }, 400);
-        }
-        const { data: listed, error: listError } = await bucket.list(userId, { search: path.slice(userId.length + 1) });
-        if (listError) return json({ error: listError.message }, 500);
-        const object = (listed || []).find((item) => `${userId}/${item.name}` === path);
-        if (!object) return json({ error: "upload_missing" }, 400);
-        const size = Number((object.metadata as Record<string, unknown> | null)?.size || body.fileSize || 0);
-        file = { file_path: path, file_name: fileName, file_size: Math.min(Math.max(size, 1), RESOURCE_MAX_BYTES) };
-      }
-      const me = await displayIdentity();
-      const { data, error } = await adminClient.from("hanjogo_resources")
-        .insert({ ...cleaned.value, ...(file || {}), user_id: userId, email, ...me }).select("id").single();
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true, id: data.id });
-    }
-
-    const resourceId = Number(body.id);
-    if (!Number.isFinite(resourceId)) return json({ error: "invalid_resource" }, 400);
-    const { data: resource, error: resourceError } = await adminClient.from("hanjogo_resources")
-      .select("id,user_id,file_path,file_name,link_url,download_count").eq("id", resourceId).eq("is_hidden", false).maybeSingle();
-    if (resourceError) return json({ error: resourceError.message }, 500);
-    if (!resource) return json({ error: "not_found" }, 404);
-
-    if (action === "resource_download") {
-      let url = String(resource.link_url || "");
-      if (resource.file_path) {
-        const { data, error } = await bucket.createSignedUrl(String(resource.file_path), 300, { download: String(resource.file_name || "") || true });
-        if (error) return json({ error: error.message }, 500);
-        url = data.signedUrl;
-      }
-      if (!url) return json({ error: "not_found" }, 404);
-      await adminClient.from("hanjogo_resources")
-        .update({ download_count: Number(resource.download_count || 0) + 1 }).eq("id", resourceId);
-      return json({ ok: true, url });
-    }
-
-    if (action === "resource_delete") {
-      if (!isAdmin && resource.user_id !== userId) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_resources")
-        .update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", resourceId);
-      if (error) return json({ error: error.message }, 500);
-      if (resource.file_path) await bucket.remove([String(resource.file_path)]);
-      return json({ ok: true });
-    }
-
-    if (action === "resource_comment_create") {
-      const content = cleanBoardText(body.content, 1000);
-      if (!content) return json({ error: "content_required" }, 400);
-      const me = await displayIdentity();
-      const { error } = await adminClient.from("hanjogo_resource_comments")
-        .insert({ resource_id: resourceId, user_id: userId, content, ...me });
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true });
-    }
-
-    if (action === "resource_comment_delete") {
-      const commentId = Number(body.commentId);
-      if (!Number.isFinite(commentId)) return json({ error: "invalid_comment" }, 400);
-      const { data: target, error: lookupError } = await adminClient.from("hanjogo_resource_comments")
-        .select("id,user_id").eq("id", commentId).eq("resource_id", resourceId).eq("is_hidden", false).maybeSingle();
-      if (lookupError) return json({ error: lookupError.message }, 500);
-      if (!target) return json({ error: "not_found" }, 404);
-      if (!isAdmin && target.user_id !== userId) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_resource_comments").update({ is_hidden: true }).eq("id", commentId);
-      if (error) return json({ error: error.message }, 500);
-      return json({ ok: true });
-    }
-
-    return json({ error: "unknown_action" }, 400);
-  }
-
   // ---- 알림 (🔔) -----------------------------------------------------------
   // 본인 것만 봅니다. 태그됐을 때, 내 글에 답변·댓글이 달렸을 때 생깁니다.
   if (action === "notifications_list") {
@@ -1405,9 +1280,54 @@ Deno.serve(async (req: Request) => {
 
   if (action.startsWith("board_")) {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    // 자료 공유 첨부파일은 비공개 저장소에 두고, 올릴 때·받을 때마다 짧게 쓰는 주소를 만듭니다.
+    const bucket = adminClient.storage.from("hanjogo-resources");
+    /** Checks an uploaded file really is in this user's folder; returns the columns to save. */
+    const uploadedFile = async (): Promise<{ file_path: string; file_name: string; file_size: number } | { error: string }> => {
+      const path = String(body.filePath || "");
+      const fileName = cleanBoardText(body.fileName, 200);
+      // 남의 폴더 파일을 자기 자료로 등록하지 못하게 합니다.
+      if (!path.startsWith(`${userId}/`) || path.includes("..") || !resourceExtension(path) || !resourceExtension(fileName)) {
+        return { error: "invalid_file" };
+      }
+      const { data: listed, error: listError } = await bucket.list(userId, { search: path.slice(userId.length + 1) });
+      if (listError) return { error: listError.message };
+      const object = (listed || []).find((item) => `${userId}/${item.name}` === path);
+      if (!object) return { error: "upload_missing" };
+      const size = Number((object.metadata as Record<string, unknown> | null)?.size || body.fileSize || 0);
+      return { file_path: path, file_name: fileName, file_size: Math.min(Math.max(size, 1), RESOURCE_MAX_BYTES) };
+    };
+    if (action === "board_upload_url") {
+      const ext = resourceExtension(body.fileName);
+      if (!ext) return json({ error: "invalid_file_type" }, 400);
+      const size = Number(body.fileSize);
+      if (!Number.isInteger(size) || size < 1 || size > RESOURCE_MAX_BYTES) return json({ error: "file_too_large" }, 400);
+      // 저장 경로는 올린 사람 폴더 아래에 둡니다. 원래 파일 이름은 표에만 적습니다.
+      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+      const { data, error } = await bucket.createSignedUploadUrl(path);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, path: data.path, token: data.token });
+    }
+    if (action === "board_download") {
+      const id = Number(body.id);
+      if (!Number.isFinite(id)) return json({ error: "invalid_post" }, 400);
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts")
+        .select("id,category,file_path,file_name,link_url,download_count").eq("id", id).eq("is_hidden", false).maybeSingle();
+      if (postError) return json({ error: postError.message }, 500);
+      if (!post || post.category !== "resource") return json({ error: "not_found" }, 404);
+      let url = String(post.link_url || "");
+      if (post.file_path) {
+        const { data, error } = await bucket.createSignedUrl(String(post.file_path), 300, { download: String(post.file_name || "") || true });
+        if (error) return json({ error: error.message }, 500);
+        url = data.signedUrl;
+      }
+      if (!url) return json({ error: "not_found" }, 404);
+      await adminClient.from("hanjogo_board_posts").update({ download_count: Number(post.download_count || 0) + 1 }).eq("id", id);
+      return json({ ok: true, url });
+    }
     if (action === "board_list") {
       const { data: posts, error: postsError } = await adminClient.from("hanjogo_board_posts")
-        .select("id,author_id,author_name,author_generation,category,title,content,topic,is_resolved,is_notice,created_at,updated_at")
+        .select("id,author_id,author_name,author_generation,category,title,content,topic,is_resolved,is_notice,file_path,file_name,file_size,link_url,download_count,created_at,updated_at")
         .eq("is_hidden", false).order("is_notice", { ascending: false }).order("created_at", { ascending: false }).limit(100);
       if (postsError) return json({ error: postsError.message }, 500);
       const postIds = (posts || []).map((post) => post.id);
@@ -1489,10 +1409,20 @@ Deno.serve(async (req: Request) => {
       if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
       const picked = boardTopic(category, body.topic);
       if ("error" in picked) return json({ error: picked.error }, 400);
+      const attachment = boardAttachmentLink(category, body);
+      if ("error" in attachment) return json({ error: attachment.error }, 400);
+      let file: { file_path: string; file_name: string; file_size: number } | null = null;
+      if (category === "resource" && body.filePath) {
+        const checked = await uploadedFile();
+        if ("error" in checked) return json({ error: checked.error }, 400);
+        file = checked;
+      }
+      if (category === "resource" && !file && !attachment.link) return json({ error: "file_or_link_required" }, 400);
       const identity = await boardIdentity(email, special, await myOverride());
       const { data, error } = await adminClient.from("hanjogo_board_posts").insert({
         author_id: userId, author_email: email, author_name: identity.name,
         author_generation: identity.generation, category, title, content, topic: picked.topic, is_notice: category === "notice",
+        link_url: attachment.link, ...(file || {}),
       }).select("id").single();
       if (error) return json({ error: error.message }, 500);
       await notifyMentions(cleanMentions(body.mentions), data.id, title, identity, new Set());
@@ -1507,12 +1437,33 @@ Deno.serve(async (req: Request) => {
       if (category === "notice" && !isAdmin) return json({ error: "admin_only" }, 403);
       const picked = boardTopic(category, body.topic);
       if ("error" in picked) return json({ error: picked.error }, 400);
-      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id").eq("id", id).eq("is_hidden", false).maybeSingle();
+      const attachment = boardAttachmentLink(category, body);
+      if ("error" in attachment) return json({ error: attachment.error }, 400);
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id,file_path").eq("id", id).eq("is_hidden", false).maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
       if (!target) return json({ error: "not_found" }, 404);
       if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
-      const { error } = await adminClient.from("hanjogo_board_posts").update({ category, title, content, topic: picked.topic, is_notice: category === "notice", updated_at: new Date().toISOString() }).eq("id", id);
+      // 첨부: 새 파일을 올리면 바꾸고, 지우기를 고르면 빼고, 아니면 그대로 둡니다. 자료 공유가 아니면 첨부를 모두 뺍니다.
+      const oldPath = target.file_path ? String(target.file_path) : "";
+      let fileColumns: Record<string, unknown> = {};
+      let keepsFile = Boolean(oldPath);
+      if (category !== "resource" || body.removeFile) {
+        fileColumns = { file_path: null, file_name: null, file_size: null };
+        keepsFile = false;
+      }
+      if (category === "resource" && body.filePath) {
+        const checked = await uploadedFile();
+        if ("error" in checked) return json({ error: checked.error }, 400);
+        fileColumns = checked;
+        keepsFile = true;
+      }
+      if (category === "resource" && !keepsFile && !attachment.link) return json({ error: "file_or_link_required" }, 400);
+      const { error } = await adminClient.from("hanjogo_board_posts").update({
+        category, title, content, topic: picked.topic, is_notice: category === "notice",
+        link_url: attachment.link, ...fileColumns, updated_at: new Date().toISOString(),
+      }).eq("id", id);
       if (error) return json({ error: error.message }, 500);
+      if (oldPath && "file_path" in fileColumns && fileColumns.file_path !== oldPath) await bucket.remove([oldPath]);
       return json({ ok: true });
     }
     // 선후배 질문: 질문한 사람(또는 관리자)이 해결됨을 표시합니다.
@@ -1530,12 +1481,13 @@ Deno.serve(async (req: Request) => {
     if (action === "board_delete") {
       const id = Number(body.id);
       if (!Number.isFinite(id)) return json({ error: "invalid_post" }, 400);
-      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id").eq("id", id).eq("is_hidden", false).maybeSingle();
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id,file_path").eq("id", id).eq("is_hidden", false).maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
       if (!target) return json({ error: "not_found" }, 404);
       if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
       const { error } = await adminClient.from("hanjogo_board_posts").update({ is_hidden: true, updated_at: new Date().toISOString() }).eq("id", id);
       if (error) return json({ error: error.message }, 500);
+      if (target.file_path) await bucket.remove([String(target.file_path)]);
       return json({ ok: true });
     }
     if (action === "board_comment_create") {

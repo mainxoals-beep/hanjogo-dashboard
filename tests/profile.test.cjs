@@ -11,7 +11,7 @@ const body = source.slice(source.indexOf('function normalizeEmail'), source.inde
 assert(body.length > 1000, '함수 본문을 찾지 못했습니다');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanjogo-profile-'));
 const file = path.join(dir, 'helpers.ts');
-fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, boardTopic, cleanResourceInput, helpTopicsFor, cleanMentions, resourceExtension };\n');
+fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName, cleanMeetupInput, cleanHelpTopics, boardTopic, boardAttachmentLink, helpTopicsFor, cleanMentions, resourceExtension };\n');
 
 const baseDraft = {
   name: '김태민', generation: 2, displayMode: 'masked',
@@ -147,12 +147,13 @@ const baseDraft = {
   assert.equal(H.resourceExtension('오픈체크리스트.hwp'), 'hwp');
   assert.equal(H.resourceExtension('virus.exe'), '');
   assert.equal(H.resourceExtension('noext'), '');
-  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost', filePath: 'u/1.xlsx' }).value.link_url, null);
-  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost', linkUrl: 'https://drive.google.com/x' }).value.link_url, 'https://drive.google.com/x');
-  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost' }).error, 'file_or_link_required');
-  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'cost', linkUrl: 'javascript:alert(1)' }).error, 'invalid_link');
-  assert.equal(H.cleanResourceInput({ title: '원가표', category: 'nope', linkUrl: 'https://a.b' }).error, 'invalid_category');
-  assert.equal(H.cleanResourceInput({ title: ' ', category: 'cost', linkUrl: 'https://a.b' }).error, 'title_required');
+  // 자료실은 게시판의 "자료 공유" 분류로 합쳤습니다. 분야는 자료 종류, 첨부는 링크(또는 파일)입니다.
+  assert.deepEqual(H.boardTopic('resource', 'cost'), { topic: 'cost' });
+  assert.equal(H.boardTopic('resource', '창업 준비').error, 'invalid_topic', '자료 공유 글은 자료 종류를 골라야 합니다');
+  assert.deepEqual(H.boardAttachmentLink('resource', { linkUrl: 'https://drive.google.com/x' }), { link: 'https://drive.google.com/x' });
+  assert.deepEqual(H.boardAttachmentLink('resource', {}), { link: null }, '파일만 올리는 경우 링크는 비어 있습니다');
+  assert.equal(H.boardAttachmentLink('resource', { linkUrl: 'javascript:alert(1)' }).error, 'invalid_link');
+  assert.deepEqual(H.boardAttachmentLink('free', { linkUrl: 'https://a.b' }), { link: null }, '자료 공유가 아닌 글에는 첨부를 붙이지 않습니다');
 
   // ---- 도우미 분야(폼 연결 희망 분야 포함) · 태그 ------------------------------
   assert.deepEqual(H.helpTopicsFor(['매장 운영'], '정보 교류, 창업, 메뉴개발 / R&D'), ['창업 준비', '매장 운영', '메뉴 개발']);

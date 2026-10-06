@@ -783,6 +783,9 @@ body.site-view-network.modal-open{overflow:auto!important}
 .myinfo-check input{margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--purple)}
 .myinfo-check b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
 .myinfo-check small{display:block;margin-top:2px;color:var(--mute);font-size:11.5px}
+.board-subfilters{margin-top:-4px}.board-subfilters .board-filter{font-size:11px;padding:6px 10px}
+.board-attach{display:inline-block;margin-left:6px;font-size:11px;color:var(--purple-dark);font-weight:800}
+.board-file-current{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--sub)}.board-file-current[hidden]{display:none}.board-file-current label{display:inline-flex;align-items:center;gap:4px;font-weight:700}
 .resource-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border-bottom:1px solid var(--line)}.resource-row .board-row{border-bottom:0}
 .fav-star{margin-right:12px;width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:#c9c4bb;font-size:16px;cursor:pointer}.fav-star[aria-pressed="true"]{border-color:var(--purple);background:var(--purple-light);color:#E8A61E}
 .board-field[hidden]{display:none}
@@ -853,7 +856,6 @@ body.site-view-network.modal-open{overflow:auto!important}
   <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
   <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
   <button class="site-nav-btn" type="button" data-site-target="meetups" aria-label="번개·소모임">모임</button>
-  <button class="site-nav-btn" type="button" data-site-target="resources" aria-label="동문 실무 자료실">자료실</button>
   <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
   <button class="site-nav-btn notif-btn" type="button" id="notifBtn" hidden aria-label="알림">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
   <button class="site-nav-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button>
@@ -891,21 +893,17 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="site-home-card-value" id="homeMeetupCount">다음 만남</div>
       <div class="site-home-card-meta">날짜와 장소를 정해 동문을 모으고, 참석 버튼으로 함께하세요.</div><div class="site-home-card-link">모임 보기 →</div>
     </button>
-    <button class="site-home-card" type="button" data-site-target="resources">
-      <div class="site-home-card-kicker">RESOURCES</div><div class="site-home-card-title">동문 실무 자료실</div>
-      <div class="site-home-card-value" id="homeResourceCount">함께 쓰는 양식</div>
-      <div class="site-home-card-meta">원가 계산표, 발주 양식, 오픈 체크리스트, 이력서 양식을 나누고 저장하세요.</div><div class="site-home-card-link">자료 보기 →</div>
-    </button>
   </div>
 </section>
 
 <section class="board-page site-view" id="boardPage" data-site-view="board" hidden>
-  <div class="site-page-intro"><div class="site-page-kicker">ALUMNI BOARD</div><div class="site-page-title">동문 게시판</div><div class="site-page-desc">인증된 졸업생이 자유롭게 소식과 정보, 구인·구직 및 협업 기회를 나누는 공간입니다. 창업, 해외 취업, 메뉴 개발처럼 궁금한 건 "선후배 질문"으로 물어보세요. 그 분야를 도와줄 수 있는 동문이 함께 보여요.</div></div>
+  <div class="site-page-intro"><div class="site-page-kicker">ALUMNI BOARD</div><div class="site-page-title">동문 게시판</div><div class="site-page-desc">인증된 졸업생이 자유롭게 소식과 정보, 구인·구직 및 협업 기회를 나누는 공간입니다. 창업, 해외 취업, 메뉴 개발처럼 궁금한 건 "선후배 질문"으로 물어보세요. 원가표·발주 양식 같은 실무 자료는 "자료 공유"로 나눠요.</div></div>
   <div class="board-shell">
     <div class="board-gate" id="boardGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 게시글과 댓글을 확인하고 직접 작성할 수 있습니다.</div><button class="board-gate-btn" id="boardVerifyBtn" type="button">동문 이메일 인증하기</button></div>
     <div class="board-content" id="boardContent" hidden>
       <div class="board-toolbar"><div class="board-toolbar-copy"><strong>최근 게시글</strong><span>작성자 이름과 기수는 인증 정보로 표시됩니다.</span></div><button class="board-write-btn" id="boardWriteBtn" type="button">글쓰기</button></div>
-      <div class="board-filters" id="boardFilters" aria-label="게시글 분류"><button class="board-filter active" type="button" data-board-filter="all">전체</button><button class="board-filter" type="button" data-board-filter="free">자유</button><button class="board-filter" type="button" data-board-filter="jobs">구인·구직</button><button class="board-filter" type="button" data-board-filter="collab">협업·도움</button><button class="board-filter" type="button" data-board-filter="business">업체·행사</button><button class="board-filter" type="button" data-board-filter="question">선후배 질문</button></div>
+      <div class="board-filters" id="boardFilters" aria-label="게시글 분류"><button class="board-filter active" type="button" data-board-filter="all">전체</button><button class="board-filter" type="button" data-board-filter="free">자유</button><button class="board-filter" type="button" data-board-filter="jobs">구인·구직</button><button class="board-filter" type="button" data-board-filter="collab">협업·도움</button><button class="board-filter" type="button" data-board-filter="business">업체·행사</button><button class="board-filter" type="button" data-board-filter="question">선후배 질문</button><button class="board-filter" type="button" data-board-filter="resource">자료 공유</button></div>
+      <div class="board-filters board-subfilters" id="boardResourceFilters" aria-label="자료 종류" hidden></div>
       <div class="board-list" id="boardList"><div class="board-list-empty">게시글을 불러오는 중입니다.</div></div>
     </div>
   </div>
@@ -919,18 +917,6 @@ body.site-view-network.modal-open{overflow:auto!important}
       <div class="board-toolbar"><div class="board-toolbar-copy"><strong>다가오는 모임</strong><span>이름은 각자 프로필의 표시 방식대로 보입니다.</span></div><button class="board-write-btn" id="meetupCreateBtn" type="button">모임 만들기</button></div>
       <div class="board-filters" id="meetupFilters" aria-label="모임 분류"><button class="board-filter active" type="button" data-meetup-filter="all">전체</button><button class="board-filter" type="button" data-meetup-filter="food">식사·술</button><button class="board-filter" type="button" data-meetup-filter="tour">업장 투어</button><button class="board-filter" type="button" data-meetup-filter="hobby">운동·취미</button><button class="board-filter" type="button" data-meetup-filter="work">공부·일</button><button class="board-filter" type="button" data-meetup-filter="etc">기타</button><button class="board-filter" type="button" data-meetup-filter="mine">내가 참석</button></div>
       <div class="board-list" id="meetupList"><div class="board-list-empty">모임을 불러오는 중입니다.</div></div>
-    </div>
-  </div>
-</section>
-
-<section class="board-page site-view" id="resourcePage" data-site-view="resources" hidden>
-  <div class="site-page-intro"><div class="site-page-kicker">RESOURCES</div><div class="site-page-title">동문 실무 자료실</div><div class="site-page-desc">원가 계산표, 발주 양식, 매장 오픈 체크리스트, 이력서 양식처럼 일하면서 쓰는 자료를 나눠요. ☆로 저장해 두고 필요할 때 다시 찾고, 질문이나 개선 의견도 남겨보세요.</div></div>
-  <div class="board-shell">
-    <div class="board-gate" id="resourceGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 자료를 받고, 직접 올릴 수 있습니다.</div><button class="board-gate-btn" data-gate-verify type="button">동문 이메일 인증하기</button></div>
-    <div class="board-content" id="resourceContent" hidden>
-      <div class="board-toolbar"><div class="board-toolbar-copy"><strong>공유된 자료</strong><span>파일은 인증한 동문만 받을 수 있어요. 개인정보가 담긴 자료는 올리지 말아주세요.</span></div><button class="board-write-btn" id="resourceUploadBtn" type="button">자료 올리기</button></div>
-      <div class="board-filters" id="resourceFilters" aria-label="자료 분류"><button class="board-filter active" type="button" data-resource-filter="all">전체</button><button class="board-filter" type="button" data-resource-filter="cost">원가·메뉴</button><button class="board-filter" type="button" data-resource-filter="order">발주·재고</button><button class="board-filter" type="button" data-resource-filter="store">매장 오픈·운영</button><button class="board-filter" type="button" data-resource-filter="career">이력서·취업</button><button class="board-filter" type="button" data-resource-filter="hygiene">위생·안전</button><button class="board-filter" type="button" data-resource-filter="etc">기타</button><button class="board-filter" type="button" data-resource-filter="saved">☆ 저장한 자료</button></div>
-      <div class="board-list" id="resourceList"><div class="board-list-empty">자료를 불러오는 중입니다.</div></div>
     </div>
   </div>
 </section>
@@ -1296,7 +1282,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 
 </div>
 
-<div class="board-modal" id="boardWriteModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardWriteTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="boardWriteTitle">게시글 작성</div><button class="board-close" type="button" data-board-close="boardWriteModal" aria-label="닫기">×</button></div><form class="board-form" id="boardForm"><input type="hidden" id="boardEditId"><div class="board-field"><label for="boardCategory">분류</label><select class="board-select" id="boardCategory" required><option value="free">자유</option><option value="jobs">구인·구직</option><option value="collab">협업·도움</option><option value="business">업체·행사</option><option value="question">선후배 질문</option><option value="notice" id="boardNoticeOption" hidden>공지</option></select></div><div class="board-field" id="boardTopicField" hidden><label for="boardTopic">질문 분야</label><select class="board-select" id="boardTopic"></select><small class="meetup-hint" id="boardTopicHint"></small><div class="meetup-people" id="boardTopicHelpers"></div></div><div class="board-field"><label for="boardTitle">제목</label><input class="board-input" id="boardTitle" maxlength="120" placeholder="제목을 입력해주세요" required></div><div class="board-field"><label for="boardBody">내용</label><textarea class="board-textarea" id="boardBody" maxlength="5000" placeholder="동문들과 나눌 내용을 입력해주세요" required></textarea></div><div class="board-form-foot"><div class="board-form-status" id="boardFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="boardSubmitBtn" type="submit">등록하기</button></div></form></div></div>
+<div class="board-modal" id="boardWriteModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardWriteTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="boardWriteTitle">게시글 작성</div><button class="board-close" type="button" data-board-close="boardWriteModal" aria-label="닫기">×</button></div><form class="board-form" id="boardForm"><input type="hidden" id="boardEditId"><div class="board-field"><label for="boardCategory">분류</label><select class="board-select" id="boardCategory" required><option value="free">자유</option><option value="jobs">구인·구직</option><option value="collab">협업·도움</option><option value="business">업체·행사</option><option value="question">선후배 질문</option><option value="resource">자료 공유</option><option value="notice" id="boardNoticeOption" hidden>공지</option></select></div><div class="board-field" id="boardTopicField" hidden><label for="boardTopic">질문 분야</label><select class="board-select" id="boardTopic"></select><small class="meetup-hint" id="boardTopicHint"></small><div class="meetup-people" id="boardTopicHelpers"></div></div><div class="board-field" id="boardResourceField" hidden><label for="boardResourceKind">자료 종류</label><select class="board-select" id="boardResourceKind"></select></div><div class="board-field" id="boardFileField" hidden><label for="boardFile">파일 <small class="meetup-hint">10MB까지 · 엑셀, PDF, 워드, 한글, PPT, 이미지</small></label><input class="board-input" id="boardFile" type="file" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.pptx,.ppt,.hwp,.hwpx,.txt,.png,.jpg,.jpeg"><div class="board-file-current" id="boardFileCurrent" hidden></div></div><div class="board-field" id="boardLinkField" hidden><label for="boardLink">또는 링크 <small class="meetup-hint">구글 드라이브·노션 등</small></label><input class="board-input" id="boardLink" type="url" maxlength="500" placeholder="https://"></div><div class="board-field"><label for="boardTitle">제목</label><input class="board-input" id="boardTitle" maxlength="120" placeholder="제목을 입력해주세요" required></div><div class="board-field"><label for="boardBody">내용</label><textarea class="board-textarea" id="boardBody" maxlength="5000" placeholder="동문들과 나눌 내용을 입력해주세요" required></textarea></div><div class="board-form-foot"><div class="board-form-status" id="boardFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="boardSubmitBtn" type="submit">등록하기</button></div></form></div></div>
 
 <div class="board-modal" id="boardDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="boardDetailTitle"><div class="board-dialog-head"><div class="board-dialog-title">게시글</div><button class="board-close" type="button" data-board-close="boardDetailModal" aria-label="닫기">×</button></div><nav class="board-detail-nav" aria-label="게시글 이동"><button type="button" id="boardPrevBtn">← 이전 글</button><span class="board-detail-position" id="boardDetailPosition" aria-live="polite"></span><button type="button" id="boardNextBtn">다음 글 →</button></nav><article class="board-detail" id="boardDetail"></article><div class="board-comments"><div class="board-comments-title" id="boardCommentsTitle">댓글</div><div id="boardComments"></div><form class="board-comment-form" id="boardCommentForm"><input class="board-input" id="boardCommentInput" maxlength="1000" placeholder="댓글을 입력해주세요" required><button class="board-primary-btn" id="boardCommentSubmit" type="submit">댓글 등록</button></form></div></div></div>
 
@@ -1314,21 +1300,6 @@ body.site-view-network.modal-open{overflow:auto!important}
 <div class="board-modal" id="meetupDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="meetupDetailHeading"><div class="board-dialog-head"><div class="board-dialog-title" id="meetupDetailHeading">모임</div><button class="board-close" type="button" data-board-close="meetupDetailModal" aria-label="닫기">×</button></div>
 <article class="board-detail" id="meetupDetail"></article>
 <div class="board-comments"><div class="board-comments-title" id="meetupCommentsTitle">댓글</div><div id="meetupComments"></div><form class="board-comment-form" id="meetupCommentForm"><input class="board-input" id="meetupCommentInput" maxlength="500" placeholder="시간·장소 의견이나 인사를 남겨주세요" required><button class="board-primary-btn" id="meetupCommentSubmit" type="submit">댓글 등록</button></form></div>
-</div></div>
-
-<div class="board-modal" id="resourceFormModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="resourceFormTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="resourceFormTitle">자료 올리기</div><button class="board-close" type="button" data-board-close="resourceFormModal" aria-label="닫기">×</button></div>
-<form class="board-form" id="resourceForm">
-  <div class="board-field"><label for="resourceTitle">자료 이름</label><input class="board-input" id="resourceTitle" maxlength="100" placeholder="예: 메뉴 원가 계산표 (엑셀)" required></div>
-  <div class="board-field"><label for="resourceCategory">분류</label><select class="board-select" id="resourceCategory"><option value="cost">원가·메뉴</option><option value="order">발주·재고</option><option value="store">매장 오픈·운영</option><option value="career">이력서·취업</option><option value="hygiene">위생·안전</option><option value="etc">기타</option></select></div>
-  <div class="board-field"><label for="resourceFile">파일 <small class="meetup-hint">10MB까지 · 엑셀, PDF, 워드, 한글, PPT, 이미지</small></label><input class="board-input" id="resourceFile" type="file" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.pptx,.ppt,.hwp,.hwpx,.txt,.png,.jpg,.jpeg"></div>
-  <div class="board-field"><label for="resourceLink">또는 링크 <small class="meetup-hint">구글 드라이브·노션 등</small></label><input class="board-input" id="resourceLink" type="url" maxlength="500" placeholder="https://"></div>
-  <div class="board-field"><label for="resourceDescription">설명</label><textarea class="board-textarea" id="resourceDescription" maxlength="1500" placeholder="어떤 상황에 쓰는 자료인지, 쓰는 법을 적어주세요"></textarea></div>
-  <div class="board-form-foot"><div class="board-form-status" id="resourceFormStatus" aria-live="polite"></div><button class="board-primary-btn" id="resourceSubmitBtn" type="submit">올리기</button></div>
-</form></div></div>
-
-<div class="board-modal" id="resourceDetailModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="resourceDetailHeading"><div class="board-dialog-head"><div class="board-dialog-title" id="resourceDetailHeading">자료</div><button class="board-close" type="button" data-board-close="resourceDetailModal" aria-label="닫기">×</button></div>
-<article class="board-detail" id="resourceDetail"></article>
-<div class="board-comments"><div class="board-comments-title" id="resourceCommentsTitle">질문·개선 의견</div><div id="resourceComments"></div><form class="board-comment-form" id="resourceCommentForm"><input class="board-input" id="resourceCommentInput" maxlength="1000" placeholder="쓰면서 궁금한 점이나 고치면 좋을 점" required><button class="board-primary-btn" id="resourceCommentSubmit" type="submit">등록</button></form></div>
 </div></div>
 
 <div class="board-modal" id="notifModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="notifTitle"><div class="board-dialog-head"><div class="board-dialog-title" id="notifTitle">알림</div><button class="board-close" type="button" data-board-close="notifModal" aria-label="닫기">×</button></div><div class="notif-list" id="notifList"></div></div></div>
@@ -2472,7 +2443,6 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   syncHomeSummary();
   syncBoardAccess();
   syncMeetupAccess();
-  syncResourceAccess();
   syncNotifications();
 }
 
@@ -2707,7 +2677,7 @@ document.getElementById("networkProfileSizeBtn")?.addEventListener("click",e=>{
 
 const alumniDbModal=document.getElementById("alumniDbModal");
 
-const BOARD_CATEGORY_LABELS={free:"자유",jobs:"구인·구직",collab:"협업·도움",business:"업체·행사",question:"선후배 질문",notice:"공지"};
+const BOARD_CATEGORY_LABELS={free:"자유",jobs:"구인·구직",collab:"협업·도움",business:"업체·행사",question:"선후배 질문",resource:"자료 공유",notice:"공지"};
 let boardHelpers={},boardPeople=[];
 const BOARD_REACTIONS=[{key:"like",emoji:"👍",label:"좋아요"},{key:"heart",emoji:"❤️",label:"응원"},{key:"clap",emoji:"👏",label:"박수"},{key:"useful",emoji:"💡",label:"유용해요"}];
 const BOARD_CACHE_TTL=30*60*1000;
@@ -2806,136 +2776,76 @@ document.getElementById("notifList")?.addEventListener("click",e=>{
 
 document.querySelectorAll("[data-gate-verify]").forEach(b=>b.addEventListener("click",()=>setSiteView("network")));
 
-// ---- 동문 실무 자료실 -------------------------------------------------------
-// 파일은 비공개 저장소에 올리고, 받을 때마다 서버가 5분짜리 주소를 만들어 줍니다.
+// ---- 자료 공유 (게시판 "자료 공유" 분류) ------------------------------------------
+// 예전 자료실을 게시판으로 합쳤습니다. 파일은 비공개 저장소에 올리고, 받을 때마다 서버가 5분짜리 주소를 만들어 줍니다.
 const RESOURCE_CATEGORY_LABELS={cost:"원가·메뉴",order:"발주·재고",store:"매장 오픈·운영",career:"이력서·취업",hygiene:"위생·안전",etc:"기타"};
 const RESOURCE_EXTENSIONS=["pdf","xlsx","xls","csv","docx","doc","pptx","ppt","hwp","hwpx","txt","png","jpg","jpeg"];
 const RESOURCE_ERRORS={title_required:"자료 이름을 입력해주세요.",invalid_category:"분류를 골라주세요.",invalid_link:"링크는 https:// 로 시작하는 주소로 넣어주세요.",file_or_link_required:"파일을 고르거나 링크를 넣어주세요.",invalid_file_type:"올릴 수 없는 파일 형식이에요. 엑셀·PDF·워드·한글·PPT·이미지만 올릴 수 있어요.",file_too_large:"파일은 10MB까지 올릴 수 있어요.",upload_missing:"파일 올리기가 끝나지 않았어요. 다시 시도해주세요.",invalid_file:"파일을 다시 골라주세요.",not_found:"자료를 찾을 수 없어요. 새로고침 해주세요.",forbidden:"올린 분만 할 수 있어요."};
-let resources=[],resourceFilter="all",resourceLoaded=false,resourceLoadPromise=null,resourceSelectedId=null,savedResources=new Set();
+let resourceSubFilter="all",savedResources=new Set(),savedResourcesLoaded=false;
 function resourceErrorText(e){return RESOURCE_ERRORS[String(e?.message||e||"")]||"처리하지 못했어요. 잠시 후 다시 시도해주세요.";}
 function resourceSize(n){n=Number(n)||0;return n>=1048576?(n/1048576).toFixed(1)+"MB":Math.max(1,Math.round(n/1024))+"KB";}
-function syncResourceAccess(){
-  const ok=networkAccessState==="verified";
-  const gate=document.getElementById("resourceGate"),content=document.getElementById("resourceContent");
-  if(gate)gate.hidden=ok;if(content)content.hidden=!ok;
-  if(ok&&currentSiteView()==="resources")loadResources();
+function resourceAttachText(p){return p.hasFile?`📎 ${p.fileName||"파일"} · ${resourceSize(p.fileSize)}`:p.linkUrl?"🔗 링크":"";}
+/** 지금 고른 분류(와 자료 종류·저장 필터)에 맞는 글인지. 목록과 이전/다음 글 이동이 같이 씁니다. */
+function boardVisible(p){
+  if(boardFilter!=="all"&&p.category!==boardFilter)return false;
+  if(boardFilter!=="resource"||resourceSubFilter==="all")return true;
+  return resourceSubFilter==="saved"?savedResources.has(String(p.id)):p.topic===resourceSubFilter;
 }
-function loadResources(force=false){
-  if(resourceLoadPromise)return resourceLoadPromise;
-  if(resourceLoaded&&!force){renderResourceList();return Promise.resolve();}
-  const list=document.getElementById("resourceList");
-  resourceLoadPromise=Promise.all([meetupCall("resource_list"),meetupCall("favorites_list").catch(()=>null)]).then(([data,fav])=>{
-    resources=Array.isArray(data.items)?data.items:[];
-    if(fav&&Array.isArray(fav.resource))savedResources=new Set(fav.resource.map(String));
-    resourceLoaded=true;renderResourceList();
-    if(resourceSelectedId!=null&&!document.getElementById("resourceDetailModal")?.hidden)renderResourceDetail();
-  }).catch(()=>{if(list)list.innerHTML='<div class="board-list-empty">자료를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';})
-  .finally(()=>{resourceLoadPromise=null;});
-  return resourceLoadPromise;
+function renderResourceSubFilters(){
+  const box=document.getElementById("boardResourceFilters");if(!box)return;
+  box.hidden=boardFilter!=="resource";
+  if(box.hidden)return;
+  const options=[["all","전체 자료"],...Object.entries(RESOURCE_CATEGORY_LABELS),["saved","★ 저장한 자료"]];
+  box.innerHTML=options.map(([k,label])=>`<button class="board-filter${resourceSubFilter===k?" active":""}" type="button" data-resource-filter="${esc(k)}">${esc(label)}</button>`).join("");
 }
-function renderResourceList(){
-  const list=document.getElementById("resourceList");if(!list)return;
-  document.querySelectorAll("[data-resource-filter]").forEach(b=>b.classList.toggle("active",b.dataset.resourceFilter===resourceFilter));
-  const shown=resources.filter(r=>resourceFilter==="all"||(resourceFilter==="saved"?savedResources.has(String(r.id)):r.category===resourceFilter));
-  const home=document.getElementById("homeResourceCount");if(home)home.textContent=resources.length?"자료 "+resources.length+"개":"첫 자료를 올려보세요";
-  if(!shown.length){list.innerHTML='<div class="board-list-empty">'+(resourceFilter==="saved"?"저장한 자료가 없어요. 자료의 ☆를 눌러 저장해보세요.":resources.length?"이 분류의 자료가 아직 없어요.":"아직 올라온 자료가 없어요.<br>\"자료 올리기\"로 첫 자료를 나눠보세요.")+'</div>';return;}
-  list.innerHTML=shown.map(r=>{
-    const saved=savedResources.has(String(r.id));
-    const what=r.hasFile?`${r.fileName||"파일"} · ${resourceSize(r.fileSize)}`:"링크";
-    return `<div class="resource-row"><button type="button" class="board-row" data-resource-id="${esc(r.id)}"><span class="board-category">${esc(RESOURCE_CATEGORY_LABELS[r.category]||"기타")}</span><span class="board-row-main"><span class="board-row-title">${esc(r.title)}</span><span class="board-row-meta">${esc(what)} · ${esc(meetupPerson(r.name,r.generation))} · 받기 ${esc(r.downloadCount)} · 의견 ${esc(r.comments.length)}</span></span></button><button type="button" class="fav-star" data-resource-save="${esc(r.id)}" aria-pressed="${saved?"true":"false"}" aria-label="${esc(r.title)} ${saved?"저장 해제":"저장"}">${saved?"★":"☆"}</button></div>`;
-  }).join("");
+function loadSavedResources(){
+  if(savedResourcesLoaded)return;
+  savedResourcesLoaded=true;
+  meetupCall("favorites_list").then(fav=>{if(Array.isArray(fav?.resource)){savedResources=new Set(fav.resource.map(String));renderBoardList();}}).catch(()=>{savedResourcesLoaded=false;});
 }
-function renderResourceDetail(){
-  const r=resources.find(x=>String(x.id)===String(resourceSelectedId));
-  const box=document.getElementById("resourceDetail");if(!box)return;
-  if(!r){box.innerHTML='<div class="board-list-empty">자료를 찾을 수 없어요.</div>';return;}
-  const saved=savedResources.has(String(r.id));
-  box.innerHTML=`<div class="board-detail-category"><span class="board-category">${esc(RESOURCE_CATEGORY_LABELS[r.category]||"기타")}</span></div>
-    <div class="board-detail-title">${esc(r.title)}</div>
-    <div class="meetup-facts"><div><b>올린 분</b> ${esc(meetupPerson(r.name,r.generation))} · ${esc(boardDate(r.createdAt))}</div><div><b>${r.hasFile?"파일":"링크"}</b> ${r.hasFile?esc((r.fileName||"파일")+" · "+resourceSize(r.fileSize)):esc(r.linkUrl||"")}</div><div><b>받기</b> ${esc(r.downloadCount)}회</div></div>
-    ${r.description?`<div class="board-detail-body">${esc(r.description)}</div>`:""}
-    <div class="meetup-actions"><button class="board-primary-btn" type="button" data-resource-action="download">${r.hasFile?"⬇ 내려받기":"↗ 링크 열기"}</button><button class="meetup-secondary" type="button" data-resource-action="save">${saved?"★ 저장됨":"☆ 저장"}</button>${r.canEdit?'<button class="meetup-secondary danger" type="button" data-resource-action="delete">자료 삭제</button>':""}</div>
-    <div class="board-form-status" id="resourceActionStatus" aria-live="polite"></div>`;
-  document.getElementById("resourceCommentsTitle").textContent="질문·개선 의견 "+r.comments.length;
-  document.getElementById("resourceComments").innerHTML=r.comments.map(c=>`<div class="board-comment"><div class="board-comment-head"><span class="board-comment-author">${esc(meetupPerson(c.name,c.generation))}</span><span>${esc(boardDate(c.createdAt))}${c.canDelete?` · <button type="button" class="board-comment-delete" data-resource-comment-delete="${esc(c.id)}">삭제</button>`:""}</span></div><div class="board-comment-body">${esc(c.content)}</div></div>`).join("")||'<div class="board-list-empty" style="padding:14px 0">써보고 궁금한 점이나 고치면 좋을 점을 남겨주세요.</div>';
-}
-function openResourceDetail(id){resourceSelectedId=id;renderResourceDetail();openBoardModal("resourceDetailModal");}
 function toggleResourceSave(id){
   const key=String(id),on=!savedResources.has(key);
   if(on)savedResources.add(key);else savedResources.delete(key);
-  renderResourceList();renderResourceDetail();
+  renderBoardList();renderBoardDetail();
   meetupCall("favorites_set",{kind:"resource",refId:key,on}).catch(()=>{
     if(on)savedResources.delete(key);else savedResources.add(key);
-    renderResourceList();renderResourceDetail();alert("저장하지 못했어요. 잠시 후 다시 시도해주세요.");
+    renderBoardList();renderBoardDetail();alert("저장하지 못했어요. 잠시 후 다시 시도해주세요.");
   });
 }
-async function downloadResource(r){
-  // 링크는 새 창으로, 파일은 이 화면에서 바로 내려받습니다. 팝업 차단을 피하려고 창을 먼저 엽니다.
-  const win=r.hasFile?null:window.open("about:blank","_blank");
+async function downloadResource(p){
+  // 팝업 차단을 피하려고 창을 먼저 연 뒤 주소를 채웁니다.
+  const win=window.open("","_blank");
   try{
-    const data=await meetupCall("resource_download",{id:r.id});
-    if(win){win.opener=null;win.location.href=data.url;}else location.href=data.url;
-    r.downloadCount=(Number(r.downloadCount)||0)+1;renderResourceList();renderResourceDetail();
-  }catch(e){if(win)win.close();const s=document.getElementById("resourceActionStatus");if(s)s.textContent=resourceErrorText(e);}
+    const data=await meetupCall("board_download",{id:p.id});
+    if(win)win.location.href=data.url;else location.href=data.url;
+    p.downloadCount=(Number(p.downloadCount)||0)+1;renderBoardList();renderBoardDetail();
+  }catch(e){if(win)win.close();const s=document.getElementById("boardResourceStatus");if(s)s.textContent=resourceErrorText(e);}
 }
-document.getElementById("resourceFilters")?.addEventListener("click",e=>{const b=e.target.closest("[data-resource-filter]");if(b){resourceFilter=b.dataset.resourceFilter;renderResourceList();}});
-document.getElementById("resourceList")?.addEventListener("click",e=>{
-  const star=e.target.closest("[data-resource-save]");if(star){toggleResourceSave(star.dataset.resourceSave);return;}
-  const r=e.target.closest("[data-resource-id]");if(r)openResourceDetail(r.dataset.resourceId);
-});
-document.getElementById("resourceDetail")?.addEventListener("click",e=>{
-  const b=e.target.closest("[data-resource-action]");if(!b)return;
-  const r=resources.find(x=>String(x.id)===String(resourceSelectedId));if(!r)return;
-  const action=b.dataset.resourceAction;
-  if(action==="download")downloadResource(r);
-  if(action==="save")toggleResourceSave(r.id);
-  if(action==="delete"&&confirm("자료를 삭제할까요? 올린 파일도 함께 지워져요.")){
-    meetupCall("resource_delete",{id:r.id}).then(()=>{closeBoardModal("resourceDetailModal");return loadResources(true);})
-      .catch(err=>{const s=document.getElementById("resourceActionStatus");if(s)s.textContent=resourceErrorText(err);});
+function boardResourceHtml(p){
+  const saved=savedResources.has(String(p.id));
+  return `<div class="meetup-facts"><div><b>자료 종류</b> ${esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")}</div><div><b>${p.hasFile?"파일":"링크"}</b> ${esc(p.hasFile?`${p.fileName||"파일"} (${resourceSize(p.fileSize)})`:"외부 링크")}</div><div><b>받은 횟수</b> ${Number(p.downloadCount||0)}회</div></div>
+    <div class="meetup-actions"><button class="board-primary-btn" type="button" data-board-action="download">${p.hasFile?"⬇ 내려받기":"↗ 링크 열기"}</button><button class="board-secondary-btn" type="button" data-board-action="save" aria-pressed="${saved}">${saved?"★ 저장됨":"☆ 저장"}</button></div>
+    <div class="board-form-status" id="boardResourceStatus" aria-live="polite"></div>`;
+}
+/** 글쓰기 창: "자료 공유"를 고르면 자료 종류·파일·링크 칸이 보입니다. */
+function syncBoardResourceFields(p){
+  const cat=document.getElementById("boardCategory")?.value,on=cat==="resource";
+  const kind=document.getElementById("boardResourceKind");
+  if(kind&&!kind.options.length)kind.innerHTML=Object.entries(RESOURCE_CATEGORY_LABELS).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join("");
+  ["boardResourceField","boardFileField","boardLinkField"].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=!on;});
+  const body=document.getElementById("boardBody");
+  if(body)body.placeholder=on?"어떤 상황에 쓰는 자료인지, 쓰는 법을 적어주세요":"동문들과 나눌 내용을 입력해주세요";
+  if(p===undefined)return;
+  if(kind)kind.value=p?.category==="resource"&&RESOURCE_CATEGORY_LABELS[p.topic]?p.topic:(RESOURCE_CATEGORY_LABELS[resourceSubFilter]?resourceSubFilter:"cost");
+  const file=document.getElementById("boardFile");if(file)file.value="";
+  const link=document.getElementById("boardLink");if(link)link.value=p?.linkUrl||"";
+  const current=document.getElementById("boardFileCurrent");
+  if(current){
+    current.hidden=!p?.hasFile;
+    current.innerHTML=p?.hasFile?`지금 파일: ${esc(p.fileName||"파일")} (${esc(resourceSize(p.fileSize))}) · 새로 고르면 바뀌어요 <label><input type="checkbox" id="boardRemoveFile"> 파일 빼기</label>`:"";
   }
-});
-document.getElementById("resourceComments")?.addEventListener("click",e=>{
-  const b=e.target.closest("[data-resource-comment-delete]");if(!b||!confirm("의견을 삭제할까요?"))return;
-  meetupCall("resource_comment_delete",{id:resourceSelectedId,commentId:Number(b.dataset.resourceCommentDelete)}).then(()=>loadResources(true)).then(renderResourceDetail)
-    .catch(err=>{const s=document.getElementById("resourceActionStatus");if(s)s.textContent=resourceErrorText(err);});
-});
-document.getElementById("resourceCommentForm")?.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const input=document.getElementById("resourceCommentInput"),btn=document.getElementById("resourceCommentSubmit");
-  const content=input.value.trim();if(!content)return;btn.disabled=true;
-  try{await meetupCall("resource_comment_create",{id:resourceSelectedId,content});input.value="";await loadResources(true);renderResourceDetail();}
-  catch(err){const s=document.getElementById("resourceActionStatus");if(s)s.textContent=resourceErrorText(err);}
-  finally{btn.disabled=false;}
-});
-document.getElementById("resourceUploadBtn")?.addEventListener("click",()=>{
-  document.getElementById("resourceForm").reset();
-  if(RESOURCE_CATEGORY_LABELS[resourceFilter])document.getElementById("resourceCategory").value=resourceFilter;
-  document.getElementById("resourceFormStatus").textContent="";
-  openBoardModal("resourceFormModal");setTimeout(()=>document.getElementById("resourceTitle")?.focus(),50);
-});
-document.getElementById("resourceForm")?.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const status=document.getElementById("resourceFormStatus"),btn=document.getElementById("resourceSubmitBtn");
-  const file=document.getElementById("resourceFile").files?.[0]||null;
-  const payload={title:document.getElementById("resourceTitle").value.trim(),category:document.getElementById("resourceCategory").value,
-    description:document.getElementById("resourceDescription").value.trim(),linkUrl:document.getElementById("resourceLink").value.trim()};
-  if(file){
-    const ext=(file.name.toLowerCase().match(/\.([a-z0-9]{1,5})$/)||[])[1]||"";
-    if(!RESOURCE_EXTENSIONS.includes(ext)){status.textContent=RESOURCE_ERRORS.invalid_file_type;return;}
-    if(file.size>10*1024*1024){status.textContent=RESOURCE_ERRORS.file_too_large;return;}
-  }else if(!payload.linkUrl){status.textContent=RESOURCE_ERRORS.file_or_link_required;return;}
-  btn.disabled=true;status.textContent=file?"파일을 올리는 중입니다…":"저장하는 중입니다…";
-  try{
-    if(file){
-      const up=await meetupCall("resource_upload_url",{fileName:file.name,fileSize:file.size});
-      const {error}=await sb.storage.from("hanjogo-resources").uploadToSignedUrl(up.path,up.token,file,{contentType:file.type||"application/octet-stream"});
-      if(error)throw new Error("upload_missing");
-      Object.assign(payload,{filePath:up.path,fileName:file.name,fileSize:file.size});
-    }
-    const data=await meetupCall("resource_create",payload);
-    closeBoardModal("resourceFormModal");await loadResources(true);openResourceDetail(data.id);
-  }catch(err){status.textContent=resourceErrorText(err);}finally{btn.disabled=false;}
-});
+}
+document.getElementById("boardResourceFilters")?.addEventListener("click",e=>{const b=e.target.closest("[data-resource-filter]");if(b){resourceSubFilter=b.dataset.resourceFilter;renderBoardList();}});
 
 // ---- 번개·소모임 -----------------------------------------------------------
 // 서버 함수(hanjogo-access)가 동문 인증·주최자 확인을 합니다. 참석자 이메일은 주최자에게만 옵니다.
@@ -3171,9 +3081,9 @@ function boardQuestionHtml(p){
     <div class="meetup-people">${helpers.slice(0,40).map(h=>`<button type="button" class="meetup-person mention-chip" data-mention-id="${esc(h.profileId)}" data-mention-name="${esc(h.name)}" data-mention-target="boardCommentInput">@${esc(meetupPerson(h.name,h.generation))}</button>`).join("")||'<span class="meetup-hint">아직 없어요. 내 정보에서 "도와줄 수 있는 분야"를 골라주세요.</span>'}</div>
     ${helpers.length?'<div class="meetup-hint" style="margin:6px 0 0">이름을 누르면 답변 칸에 @태그돼요. 태그된 동문에게 알림이 가요.</div>':""}`;
 }
-document.getElementById("boardCategory")?.addEventListener("change",()=>syncBoardTopicField());
+document.getElementById("boardCategory")?.addEventListener("change",()=>{syncBoardTopicField();syncBoardResourceFields();});
 document.getElementById("boardTopic")?.addEventListener("change",()=>syncBoardTopicField());
-function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(p=>boardFilter==="all"||p.category===boardFilter);document.querySelectorAll(".board-filter").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}</span></span><span class="board-comment-count">반응 ${reactionTotal} · 조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
+function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 async function loadBoard(force=false){
   if(networkAccessState!=="verified")return;
   let cached=null;
@@ -3205,6 +3115,7 @@ async function loadBoard(force=false){
       boardLastLoadedAt=Date.now();
       networkIsAdmin=Boolean(r.isAdmin);
       writeBoardCache(boardPosts,networkIsAdmin);
+      loadSavedResources();
       const n=document.getElementById("boardNoticeOption");
       if(n)n.hidden=!networkIsAdmin;
       renderBoardList();
@@ -3220,9 +3131,9 @@ async function loadBoard(force=false){
 }
 function openBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=false;m.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");}
 function closeBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=true;m.setAttribute("aria-hidden","true");if(!document.querySelector(".board-modal:not([hidden])"))document.body.classList.remove("modal-open");}
-function openBoardWrite(p=null){pendingMentions.boardBody=new Map();document.getElementById("boardEditId").value=p?.id||"";document.getElementById("boardCategory").value=p?.category||(boardFilter==="question"?"question":"free");syncBoardTopicField(p?.topic);document.getElementById("boardTitle").value=p?.title||"";document.getElementById("boardBody").value=p?.content||"";document.getElementById("boardWriteTitle").textContent=p?"게시글 수정":"게시글 작성";document.getElementById("boardSubmitBtn").textContent=p?"수정하기":"등록하기";document.getElementById("boardFormStatus").textContent="";openBoardModal("boardWriteModal");setTimeout(()=>document.getElementById("boardTitle")?.focus(),30);}
-function renderBoardDetail(){renderBoardNavigation();const p=boardPosts.find(x=>String(x.id)===String(boardSelectedId)),detail=document.getElementById("boardDetail"),comments=document.getElementById("boardComments");if(!p||!detail||!comments)return;const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),own=new Set(p.ownReactions||[]);detail.innerHTML=`<div class="board-detail-category"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span></div><div class="board-detail-title" id="boardDetailTitle">${esc(p.title)}</div><div class="board-detail-meta">${esc(author)} · ${esc(boardDate(p.createdAt))}${p.updatedAt!==p.createdAt?" · 수정됨":""} · 조회 ${Number(p.viewCount||0)}</div><div class="board-detail-body">${withMentions(esc(p.content))}</div>${p.category==="question"?boardQuestionHtml(p):""}<div class="board-reactions" aria-label="게시글 반응">${BOARD_REACTIONS.map(r=>`<button class="board-reaction-btn ${own.has(r.key)?"active":""}" type="button" data-board-reaction="${r.key}" aria-pressed="${own.has(r.key)?"true":"false"}"><span class="board-reaction-emoji">${r.emoji}</span><span>${r.label}</span><span class="board-reaction-count">${Number(p.reactionCounts?.[r.key]||0)}</span></button>`).join("")}</div>${p.canEdit?'<div class="board-detail-actions">'+(p.category==="question"?`<button class="board-secondary-btn" type="button" data-board-action="resolve">${p.isResolved?"해결 표시 취소":"✓ 해결됐어요"}</button>`:"")+'<button class="board-secondary-btn" type="button" data-board-action="edit">수정</button><button class="board-danger-btn" type="button" data-board-action="delete">삭제</button></div>':""}`;const items=Array.isArray(p.comments)?p.comments:[];document.getElementById("boardCommentsTitle").textContent=(p.category==="question"?"답변 ":"댓글 ")+items.length;comments.innerHTML=items.length?items.map(c=>{const name=[c.authorGeneration?c.authorGeneration+"기":"",c.authorName].filter(Boolean).join(" · ");return `<div class="board-comment"><div class="board-comment-head"><span class="board-comment-author">${esc(name)} · ${esc(boardDate(c.createdAt))}</span>${c.canDelete?`<button class="board-comment-delete" type="button" data-comment-delete="${esc(c.id)}">삭제</button>`:""}</div><div class="board-comment-body">${withMentions(esc(c.content))}</div></div>`;}).join(""):'<div class="board-comment-empty">첫 댓글을 남겨보세요.</div>';}
-function boardNavigationItems(){return boardPosts.filter(p=>boardFilter==="all"||p.category===boardFilter);}
+function openBoardWrite(p=null){pendingMentions.boardBody=new Map();document.getElementById("boardEditId").value=p?.id||"";document.getElementById("boardCategory").value=p?.category||(boardFilter==="question"||boardFilter==="resource"?boardFilter:"free");syncBoardTopicField(p?.topic);syncBoardResourceFields(p||null);document.getElementById("boardTitle").value=p?.title||"";document.getElementById("boardBody").value=p?.content||"";document.getElementById("boardWriteTitle").textContent=p?"게시글 수정":"게시글 작성";document.getElementById("boardSubmitBtn").textContent=p?"수정하기":"등록하기";document.getElementById("boardFormStatus").textContent="";openBoardModal("boardWriteModal");setTimeout(()=>document.getElementById("boardTitle")?.focus(),30);}
+function renderBoardDetail(){renderBoardNavigation();const p=boardPosts.find(x=>String(x.id)===String(boardSelectedId)),detail=document.getElementById("boardDetail"),comments=document.getElementById("boardComments");if(!p||!detail||!comments)return;const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),own=new Set(p.ownReactions||[]);detail.innerHTML=`<div class="board-detail-category"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span></div><div class="board-detail-title" id="boardDetailTitle">${esc(p.title)}</div><div class="board-detail-meta">${esc(author)} · ${esc(boardDate(p.createdAt))}${p.updatedAt!==p.createdAt?" · 수정됨":""} · 조회 ${Number(p.viewCount||0)}</div><div class="board-detail-body">${withMentions(esc(p.content))}</div>${p.category==="question"?boardQuestionHtml(p):""}${p.category==="resource"?boardResourceHtml(p):""}<div class="board-reactions" aria-label="게시글 반응">${BOARD_REACTIONS.map(r=>`<button class="board-reaction-btn ${own.has(r.key)?"active":""}" type="button" data-board-reaction="${r.key}" aria-pressed="${own.has(r.key)?"true":"false"}"><span class="board-reaction-emoji">${r.emoji}</span><span>${r.label}</span><span class="board-reaction-count">${Number(p.reactionCounts?.[r.key]||0)}</span></button>`).join("")}</div>${p.canEdit?'<div class="board-detail-actions">'+(p.category==="question"?`<button class="board-secondary-btn" type="button" data-board-action="resolve">${p.isResolved?"해결 표시 취소":"✓ 해결됐어요"}</button>`:"")+'<button class="board-secondary-btn" type="button" data-board-action="edit">수정</button><button class="board-danger-btn" type="button" data-board-action="delete">삭제</button></div>':""}`;const items=Array.isArray(p.comments)?p.comments:[];document.getElementById("boardCommentsTitle").textContent=(p.category==="question"?"답변 ":"댓글 ")+items.length;comments.innerHTML=items.length?items.map(c=>{const name=[c.authorGeneration?c.authorGeneration+"기":"",c.authorName].filter(Boolean).join(" · ");return `<div class="board-comment"><div class="board-comment-head"><span class="board-comment-author">${esc(name)} · ${esc(boardDate(c.createdAt))}</span>${c.canDelete?`<button class="board-comment-delete" type="button" data-comment-delete="${esc(c.id)}">삭제</button>`:""}</div><div class="board-comment-body">${withMentions(esc(c.content))}</div></div>`;}).join(""):'<div class="board-comment-empty">첫 댓글을 남겨보세요.</div>';}
+function boardNavigationItems(){return boardPosts.filter(boardVisible);}
 function renderBoardNavigation(){
   const items=boardNavigationItems(),index=items.findIndex(p=>String(p.id)===String(boardSelectedId));
   const prev=document.getElementById("boardPrevBtn"),next=document.getElementById("boardNextBtn"),position=document.getElementById("boardDetailPosition");
@@ -3253,8 +3164,39 @@ async function openBoardDetail(id){
 
 document.getElementById("boardVerifyBtn")?.addEventListener("click",()=>setSiteView("network"));document.getElementById("boardWriteBtn")?.addEventListener("click",()=>openBoardWrite());
 document.getElementById("boardFilters")?.addEventListener("click",e=>{const b=e.target.closest("[data-board-filter]");if(b){boardFilter=b.dataset.boardFilter;renderBoardList();}});document.getElementById("boardList")?.addEventListener("click",e=>{const r=e.target.closest("[data-board-id]");if(r)openBoardDetail(r.dataset.boardId);});document.querySelectorAll("[data-board-close]").forEach(b=>b.addEventListener("click",()=>closeBoardModal(b.dataset.boardClose)));document.querySelectorAll(".board-modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeBoardModal(m.id);}));
-document.getElementById("boardForm")?.addEventListener("submit",async e=>{e.preventDefault();const id=Number(document.getElementById("boardEditId")?.value||0),category=document.getElementById("boardCategory")?.value||"free",title=document.getElementById("boardTitle")?.value.trim()||"",content=document.getElementById("boardBody")?.value.trim()||"",status=document.getElementById("boardFormStatus"),submit=document.getElementById("boardSubmitBtn");if(!title||!content)return;submit.disabled=true;status.textContent="저장 중입니다.";try{const topic=category==="question"?document.getElementById("boardTopic")?.value:"";const mentions=takeMentions("boardBody",content);const r=await boardCall(id?"board_update":"board_create",{id,category,title,content,topic,mentions});await loadBoard(true);closeBoardModal("boardWriteModal");openBoardDetail(id||r.id);}catch(err){console.error(err);status.textContent="저장하지 못했습니다. 잠시 후 다시 시도해주세요.";}finally{submit.disabled=false;}});
-document.getElementById("boardDetail")?.addEventListener("click",async e=>{const reaction=e.target.closest("[data-board-reaction]")?.dataset.boardReaction,p=boardPosts.find(x=>String(x.id)===String(boardSelectedId));if(reaction&&p){const button=e.target.closest("[data-board-reaction]");button.disabled=true;try{await boardCall("board_react",{postId:p.id,reaction});await loadBoard(true);renderBoardDetail();renderBoardList();}catch(err){alert("반응을 저장하지 못했습니다.");}finally{button.disabled=false;}return;}const action=e.target.closest("[data-board-action]")?.dataset.boardAction;if(!action||!p)return;if(action==="edit"){closeBoardModal("boardDetailModal");openBoardWrite(p);return;}if(action==="resolve"){try{await boardCall("board_resolve",{id:p.id,resolved:!p.isResolved});await loadBoard(true);renderBoardDetail();renderBoardList();}catch(err){alert("저장하지 못했습니다.");}return;}if(action==="delete"&&confirm("이 게시글을 삭제할까요?")){try{await boardCall("board_delete",{id:p.id});closeBoardModal("boardDetailModal");boardSelectedId=null;await loadBoard(true);}catch(err){alert("삭제하지 못했습니다.");}}});
+document.getElementById("boardForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const id=Number(document.getElementById("boardEditId")?.value||0),category=document.getElementById("boardCategory")?.value||"free",title=document.getElementById("boardTitle")?.value.trim()||"",content=document.getElementById("boardBody")?.value.trim()||"",status=document.getElementById("boardFormStatus"),submit=document.getElementById("boardSubmitBtn");
+  if(!title||!content)return;
+  const payload={id,category,title,content,topic:category==="question"?document.getElementById("boardTopic")?.value:""};
+  const file=category==="resource"?document.getElementById("boardFile")?.files?.[0]||null:null;
+  if(category==="resource"){
+    const editing=boardPosts.find(x=>String(x.id)===String(id));
+    payload.topic=document.getElementById("boardResourceKind")?.value||"etc";
+    payload.linkUrl=document.getElementById("boardLink")?.value.trim()||"";
+    payload.removeFile=Boolean(document.getElementById("boardRemoveFile")?.checked);
+    const keepsFile=editing?.hasFile&&!payload.removeFile;
+    if(file){
+      const ext=(file.name.toLowerCase().match(/\.([a-z0-9]{1,5})$/)||[])[1]||"";
+      if(!RESOURCE_EXTENSIONS.includes(ext)){status.textContent=RESOURCE_ERRORS.invalid_file_type;return;}
+      if(file.size>10*1024*1024){status.textContent=RESOURCE_ERRORS.file_too_large;return;}
+    }else if(!payload.linkUrl&&!keepsFile){status.textContent=RESOURCE_ERRORS.file_or_link_required;return;}
+  }
+  submit.disabled=true;status.textContent=file?"파일을 올리는 중입니다…":"저장 중입니다.";
+  try{
+    if(file){
+      const up=await meetupCall("board_upload_url",{fileName:file.name,fileSize:file.size});
+      const {error}=await sb.storage.from("hanjogo-resources").uploadToSignedUrl(up.path,up.token,file,{contentType:file.type||"application/octet-stream"});
+      if(error)throw new Error("upload_missing");
+      Object.assign(payload,{filePath:up.path,fileName:file.name,fileSize:file.size});
+    }
+    payload.mentions=takeMentions("boardBody",content);
+    const r=await meetupCall(id?"board_update":"board_create",payload);
+    await loadBoard(true);closeBoardModal("boardWriteModal");openBoardDetail(id||r.id);
+  }catch(err){console.error(err);status.textContent=category==="resource"?resourceErrorText(err):"저장하지 못했습니다. 잠시 후 다시 시도해주세요.";}
+  finally{submit.disabled=false;}
+});
+document.getElementById("boardDetail")?.addEventListener("click",async e=>{const reaction=e.target.closest("[data-board-reaction]")?.dataset.boardReaction,p=boardPosts.find(x=>String(x.id)===String(boardSelectedId));if(reaction&&p){const button=e.target.closest("[data-board-reaction]");button.disabled=true;try{await boardCall("board_react",{postId:p.id,reaction});await loadBoard(true);renderBoardDetail();renderBoardList();}catch(err){alert("반응을 저장하지 못했습니다.");}finally{button.disabled=false;}return;}const action=e.target.closest("[data-board-action]")?.dataset.boardAction;if(!action||!p)return;if(action==="download"){downloadResource(p);return;}if(action==="save"){toggleResourceSave(p.id);return;}if(action==="edit"){closeBoardModal("boardDetailModal");openBoardWrite(p);return;}if(action==="resolve"){try{await boardCall("board_resolve",{id:p.id,resolved:!p.isResolved});await loadBoard(true);renderBoardDetail();renderBoardList();}catch(err){alert("저장하지 못했습니다.");}return;}if(action==="delete"&&confirm("이 게시글을 삭제할까요?")){try{await boardCall("board_delete",{id:p.id});closeBoardModal("boardDetailModal");boardSelectedId=null;await loadBoard(true);}catch(err){alert("삭제하지 못했습니다.");}}});
 document.getElementById("boardCommentForm")?.addEventListener("submit",async e=>{e.preventDefault();const input=document.getElementById("boardCommentInput"),button=document.getElementById("boardCommentSubmit"),content=input?.value.trim()||"";if(!content||!boardSelectedId)return;button.disabled=true;try{await boardCall("board_comment_create",{postId:boardSelectedId,content,mentions:takeMentions("boardCommentInput",content)});input.value="";await loadBoard(true);renderBoardDetail();}catch(err){alert("댓글을 등록하지 못했습니다.");}finally{button.disabled=false;}});
 document.getElementById("boardComments")?.addEventListener("click",async e=>{const b=e.target.closest("[data-comment-delete]");if(!b||!confirm("이 댓글을 삭제할까요?"))return;try{await boardCall("board_comment_delete",{id:Number(b.dataset.commentDelete)});await loadBoard(true);renderBoardDetail();}catch(err){alert("댓글을 삭제하지 못했습니다.");}});
 
@@ -3521,7 +3463,7 @@ myInfoEl("myInfoPlaceForm")?.addEventListener("submit",async e=>{
   }finally{button.disabled=false;}
 });
 
-const SITE_VIEWS=new Set(["home","event","network","board","meetups","resources","places"]);
+const SITE_VIEWS=new Set(["home","event","network","board","meetups","places"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
@@ -3554,10 +3496,13 @@ function currentSiteView(){
   if(SITE_VIEWS.has(queryView))return queryView;
   const raw=String(location.hash||"#home").replace(/^#/,"").toLowerCase();
   if(raw==="alumni")return "network";
+  if(raw==="resources"||queryView==="resources")return "resources";
   return SITE_VIEWS.has(raw)?raw:"home";
 }
 
 function setSiteView(view,{updateHash=true}={}){
+  // 예전 자료실 주소(#resources)는 게시판의 "자료 공유"로 보냅니다.
+  if(view==="resources"){boardFilter="resource";resourceSubFilter="all";view="board";updateHash=true;}
   const next=SITE_VIEWS.has(view)?view:"home";
 
   document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-meetups","site-view-resources","site-view-alumni","site-view-places","modal-open");
@@ -3601,9 +3546,6 @@ function setSiteView(view,{updateHash=true}={}){
   if(next!=="meetups"){
     ["meetupFormModal","meetupDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
   }else{syncMeetupAccess();if(networkAccessState==="verified")loadMeetups();}
-  if(next!=="resources"){
-    ["resourceFormModal","resourceDetailModal"].forEach(id=>{const m=document.getElementById(id);if(m){m.hidden=true;m.setAttribute("aria-hidden","true");}});
-  }else{syncResourceAccess();if(networkAccessState==="verified")loadResources();}
 
   const placesFrame=document.getElementById("alumniPlacesFrame");
   if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-new";

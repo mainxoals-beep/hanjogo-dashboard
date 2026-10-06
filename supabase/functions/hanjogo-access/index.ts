@@ -248,6 +248,15 @@ function cleanBoardText(value: unknown, maxLength: number) {
   return String(value ?? "").replace(/\r\n/g, "\n").trim().slice(0, maxLength);
 }
 
+/** The person's name from the alumni directory's 이름 answer. Early respondents
+ * (before the form was split into separate questions) typed "이름/기수/연락처"
+ * into this one box, so keep only the leading Korean name when there is one. */
+function alumniName(value: unknown) {
+  const text = String(value ?? "").trim();
+  const korean = text.match(/^([가-힣]{2,5})(?![가-힣])/);
+  return korean ? korean[1] : text;
+}
+
 function numberFromText(value: unknown) {
   const match = String(value ?? "").match(/\d+/);
   return match ? Number(match[0]) : null;
@@ -282,7 +291,7 @@ async function boardIdentity(
     if (row) {
       const nameKey = Object.keys(row).find((key) => /(^|\s)이름(\s|$)|성명/.test(key));
       const genKey = Object.keys(row).find((key) => /기수/.test(key));
-      const name = cleanBoardText(nameKey ? row[nameKey] : "", 40);
+      const name = cleanBoardText(alumniName(nameKey ? row[nameKey] : ""), 40);
       const generation = numberFromText(genKey ? row[genKey] : "");
       if (name) return { name, generation };
     }
@@ -589,7 +598,7 @@ async function alumniPeople() {
     const genKey = Object.keys(row).find((key) => /기수/.test(key));
     const emailKey = Object.keys(row).find((key) => /이메일|email/i.test(key));
     return {
-      name: String(nameKey ? row[nameKey] : "").trim(),
+      name: alumniName(nameKey ? row[nameKey] : ""),
       generation: numberFromText(genKey ? row[genKey] : ""),
       email: normalizeEmail(emailKey ? row[emailKey] : ""),
     };

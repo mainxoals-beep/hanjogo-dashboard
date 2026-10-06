@@ -11,7 +11,7 @@ const body = source.slice(source.indexOf('function normalizeEmail'), source.inde
 assert(body.length > 1000, '함수 본문을 찾지 못했습니다');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanjogo-profile-'));
 const file = path.join(dir, 'helpers.ts');
-fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName };\n');
+fs.writeFileSync(file, body + '\nexport { cleanProfileDraft, cleanPlaceInput, safeLink, buildProfileFromDraft, profileDraftFromOverride, maskName, alumniName };\n');
 
 const baseDraft = {
   name: '김태민', generation: 2, displayMode: 'masked',
@@ -107,6 +107,13 @@ const baseDraft = {
   assert.equal(H.safeLink(''), '');
   assert.equal(H.safeLink('data:text/html,x'), null);
 
+  // ---- 졸업생 DB 이름: 초기 응답자는 이름 칸에 "이름/기수/연락처"를 함께 적었습니다 ----
+  assert.equal(H.alumniName('강민성/8기/010-0000-0000'), '강민성');
+  assert.equal(H.alumniName(" 김윤곤 / '010"), '김윤곤');
+  assert.equal(H.alumniName('김호영'), '김호영');
+  assert.equal(H.alumniName('Jenny Kim'), 'Jenny Kim');
+  assert.equal(H.alumniName(''), '');
+
   fs.rmSync(dir, { recursive: true, force: true });
-  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증');
+  console.log('PASS: 프로필 입력 검증, 공개 범위(마스킹/비공개/실명), 동의 없으면 비공개, 저장·복원, 업장 입력과 링크 검증, 졸업생 DB 이름 추출');
 })().catch((e) => { console.error(e); process.exit(1); });

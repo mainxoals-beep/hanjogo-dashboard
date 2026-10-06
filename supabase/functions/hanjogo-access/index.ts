@@ -827,6 +827,41 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  /** Owner emails for the map's "이메일로 연락" button. Only owners who allowed
+   * email contact (site profile first, then the contact-consent table, then the
+   * form answer) are listed, and only to verified alumni. Anyone else's
+   * owner_email never leaves the server. */
+  if (action === "place_contacts") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const [places, overrideRows, consentRows] = await Promise.all([
+      adminClient.from("hanjogo_alumni_places").select("id,owner_email").eq("is_published", true),
+      adminClient.from("hanjogo_profile_overrides").select("email,allow_email_contact"),
+      adminClient.from("hanjogo_email_contact_consent").select("email,allow_email_contact"),
+    ]);
+    for (const result of [places, overrideRows, consentRows]) {
+      if (result.error) return json({ error: result.error.message }, 500);
+    }
+    const consent = new Map<string, boolean>();
+    (consentRows.data || []).forEach((row) => consent.set(normalizeEmail(row.email), Boolean(row.allow_email_contact)));
+    (overrideRows.data || []).forEach((row) => consent.set(normalizeEmail(row.email), Boolean(row.allow_email_contact)));
+    const owners = new Set((places.data || []).map((place) => normalizeEmail(place.owner_email)).filter(Boolean));
+    if ([...owners].some((owner) => !consent.has(owner))) {
+      try {
+        latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL))).forEach((row) => {
+          const rowEmail = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
+          if (!rowEmail || consent.has(rowEmail) || !owners.has(rowEmail)) return;
+          const answer = getField(row, "동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
+          consent.set(rowEmail, answer.includes("허용합니다"));
+        });
+      } catch { /* 폼을 못 읽으면 사이트·동의 표에 있는 사람만 보여줍니다. */ }
+    }
+    const contacts = (places.data || [])
+      .map((place) => ({ id: place.id, email: normalizeEmail(place.owner_email) }))
+      .filter((place) => place.email && consent.get(place.email) === true);
+    const me = await boardIdentity(email, special, await myOverride());
+    return json({ allowed: true, contacts, me });
+  }
+
   if (action === "place_save") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
     const id = Number(body.id);

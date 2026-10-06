@@ -88,3 +88,25 @@ test('owner status reads as a state, and only an unclaimed place offers the requ
   // 상태 표시는 버튼이 아니어야 합니다.
   assert(!/<button[^>]*class="[^"]*owner-tag/.test(html),'상태 표시가 버튼이면 다시 헷갈립니다');
 });
+
+// 이메일 연락: 서버가 알려준(연락을 허용한) 업장에만 버튼이 나오고, 내 업장에는 나오지 않습니다.
+test('email contact button only for owners who allowed contact, never on my own place',async()=>{
+  const rows=[{id:1,name:'내 가게',owner_name:'김태민',owner_generation:'2기',region:'서울',owner_linked:true},
+              {id:2,name:'연락 허용 가게',owner_name:'손혜지',owner_generation:'7기',region:'서울',owner_linked:true},
+              {id:3,name:'연락 비허용 가게',owner_name:'이서현',owner_generation:'19기',region:'경기',owner_linked:true}];
+  const h=harness({data:rows,error:null});
+  await new Promise(setImmediate);
+  const run=expr=>vm.runInContext(expr,h.context);
+  // 로그인 전에는 아무 업장에도 연락 버튼이 없습니다.
+  assert(!h.el('grid').innerHTML.includes('이메일로 연락'));
+  run("myPlaceIds=new Set([1]);session={user:{email:'me@example.com',email_confirmed_at:'2026-10-05'}};placeContacts=new Map([['1','me@example.com'],['2','owner@example.com']]);contactMe={name:'김태민',generation:2};draw()");
+  const html=h.el('grid').innerHTML;
+  const card=name=>html.split('<article').find(part=>part.includes(name))||'';
+  assert(card('연락 허용 가게').includes('이메일로 연락'));
+  assert(card('연락 허용 가게').includes('mailto:owner@example.com?subject='));
+  assert(!card('연락 비허용 가게').includes('이메일로 연락'),'허용하지 않은 업장에는 버튼이 없어야 합니다');
+  assert(!card('내 가게').includes('이메일로 연락'),'내 업장에는 연락 버튼이 없어야 합니다');
+  const href=run("contactHref(places[1])");
+  assert(decodeURIComponent(href).includes('7기 손혜지 동문님 안녕하세요.'));
+  assert(decodeURIComponent(href).includes('저는 2기 김태민입니다.'));
+});

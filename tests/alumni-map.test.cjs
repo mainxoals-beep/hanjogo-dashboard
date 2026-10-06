@@ -103,7 +103,8 @@ test('email contact button only for owners who allowed contact, never on my own 
   const html=h.el('grid').innerHTML;
   const card=name=>html.split('<article').find(part=>part.includes(name))||'';
   assert(card('연락 허용 가게').includes('이메일로 연락'));
-  assert(card('연락 허용 가게').includes('mailto:owner@example.com?subject='));
+  assert(card('연락 허용 가게').includes('https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=owner%40example.com&amp;su='));
+  assert(card('연락 허용 가게').includes('target="_blank"'));
   assert(!card('연락 비허용 가게').includes('이메일로 연락'),'허용하지 않은 업장에는 버튼이 없어야 합니다');
   assert(!card('내 가게').includes('이메일로 연락'),'내 업장에는 연락 버튼이 없어야 합니다');
   const href=run("contactHref(places[1])");

@@ -517,6 +517,10 @@ body.modal-open{overflow:hidden}
 }
 .site-nav-btn:hover{border-color:#cfc8e9;color:var(--purple-dark)}
 .site-nav-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.site-nav-btn{position:relative}
+.nav-new{position:absolute;top:-4px;right:-2px;min-width:17px;height:17px;padding:0 5px;border-radius:999px;background:#E5484D;color:#fff;font-size:10px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff}
+.nav-new[hidden]{display:none}
+.fresh-tag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#E5484D;color:#fff;font-size:10px;font-weight:900;vertical-align:1px}
 .site-view[hidden]{display:none!important}
 body:not(.site-view-event) #brandCard{display:none!important}
 .site-home{display:grid;gap:14px}
@@ -2745,6 +2749,50 @@ document.addEventListener("click",e=>{
 });
 
 // ---- 알림 (🔔) ---------------------------------------------------------------
+// ---- 새 글 표시 ----------------------------------------------------------
+// 탭(게시판·모임·업장 지도)마다 마지막으로 본 글 번호를 이 브라우저에 저장해 두고,
+// 그보다 새 글이 올라오면 메뉴에 빨간 숫자를, 브라우저 탭 제목에 (N)을 붙입니다.
+// 처음 방문한 사람은 지금 있는 글을 모두 본 것으로 시작합니다(전부 "새 글"로 뜨지 않게).
+const SEEN_KEY="hanjogo_seen_v1",BASE_TITLE=document.title;
+const newIds={},prevSeen={};
+function seenGet(){try{return JSON.parse(localStorage.getItem(SEEN_KEY)||"{}")||{};}catch(e){return {};}}
+function seenSet(o){try{localStorage.setItem(SEEN_KEY,JSON.stringify(o));}catch(e){}}
+function noteLatest(tab,ids){
+  const list=(ids||[]).map(Number).filter(n=>Number.isFinite(n)&&n>0);
+  newIds[tab]=list;
+  const seen=seenGet();
+  if(seen[tab]==null&&list.length){seen[tab]=Math.max(...list);seenSet(seen);}
+  if(prevSeen[tab]==null)prevSeen[tab]=Number(seen[tab]||0);
+  if(currentSiteView()===tab){freshShown[tab]=true;markSeen(tab);}else renderNewMarks();
+}
+function newCount(tab){const seen=Number(seenGet()[tab]||0);return (newIds[tab]||[]).filter(id=>id>seen).length;}
+function markSeen(tab){
+  const list=newIds[tab];if(!list||!list.length){renderNewMarks();return;}
+  const seen=seenGet(),max=Math.max(...list);
+  if(Number(seen[tab]||0)<max){seen[tab]=max;seenSet(seen);}
+  renderNewMarks();
+}
+// 탭을 열기 직전까지 안 본 글: 게시판 목록에서 "N" 표시에 씁니다.
+function isFresh(tab,id){return !!freshShown[tab]&&prevSeen[tab]!=null&&Number(id)>Number(prevSeen[tab]);}
+const freshShown={};
+function renderNewMarks(){
+  let total=0;
+  document.querySelectorAll("#siteNav [data-site-target]").forEach(b=>{
+    const tab=b.dataset.siteTarget,n=newIds[tab]?newCount(tab):0;
+    let badge=b.querySelector(".nav-new");
+    if(!badge&&n){badge=document.createElement("span");badge.className="nav-new";b.appendChild(badge);}
+    if(badge){badge.textContent=n>9?"9+":String(n);badge.hidden=!n;badge.setAttribute("aria-label","새 글 "+n+"개");}
+    total+=n;
+  });
+  let unread=0;try{unread=notifUnread();}catch(e){}
+  const sum=total+unread;
+  document.title=(sum?"("+(sum>99?"99+":sum)+") ":"")+BASE_TITLE;
+}
+function loadPlaceIds(){
+  sb.from("hanjogo_alumni_places").select("id").eq("is_published",true)
+    .then(({data,error})=>{if(!error&&Array.isArray(data))noteLatest("places",data.map(r=>r.id));}).catch(()=>{});
+}
+
 let notifItems=[],notifTimer=null;
 const NOTIF_TEXT={mention:"님이 회원님을 태그했어요",answer:"님이 질문에 답변했어요",comment:"님이 글에 댓글을 남겼어요"};
 async function loadNotifications(){
@@ -2762,6 +2810,7 @@ function renderNotifications(){
 }
 // 안 읽은 알림 수: 메뉴의 "내 정보" 버튼과 내 정보 안의 "알림" 탭에 함께 보여줍니다.
 function showNotifCount(n){
+  setTimeout(renderNewMarks,0);
   const text=n>9?"9+":String(n);
   ["notifBadge","notifTabCount","notifPillCount"].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=text;el.hidden=!n;}});
   const pill=document.getElementById("notifPill");if(pill)pill.hidden=!n;
@@ -2775,7 +2824,7 @@ function syncNotifications(){
   const ok=networkAccessState==="verified";
   if(!ok)showNotifCount(0);
   clearInterval(notifTimer);notifTimer=null;
-  if(ok){loadNotifications();notifTimer=setInterval(loadNotifications,120000);}
+  if(ok){loadNotifications();notifTimer=setInterval(()=>{loadNotifications();loadBoard();loadMeetups(true);},120000);}
 }
 document.getElementById("notifList")?.addEventListener("click",e=>{
   const b=e.target.closest("[data-notif-post]");if(!b||!b.dataset.notifPost)return;
@@ -2897,7 +2946,7 @@ function syncMeetupAccess(){
   const ok=networkAccessState==="verified";
   const gate=document.getElementById("meetupGate"),content=document.getElementById("meetupContent");
   if(gate)gate.hidden=ok;if(content)content.hidden=!ok;
-  if(ok&&currentSiteView()==="meetups")loadMeetups();
+  if(ok)loadMeetups();
 }
 function loadMeetups(force=false){
   if(meetupLoadPromise)return meetupLoadPromise;
@@ -2905,7 +2954,7 @@ function loadMeetups(force=false){
   const list=document.getElementById("meetupList");
   if(list&&!meetupLoaded)list.innerHTML='<div class="board-list-empty">모임을 불러오는 중입니다.</div>';
   meetupLoadPromise=meetupCall("meetup_list").then(data=>{
-    meetups=Array.isArray(data.items)?data.items:[];meetupIsAdmin=!!data.isAdmin;meetupLoaded=true;renderMeetupList();
+    meetups=Array.isArray(data.items)?data.items:[];meetupIsAdmin=!!data.isAdmin;meetupLoaded=true;renderMeetupList();noteLatest("meetups",meetups.map(m=>m.id));
     if(meetupSelectedId!=null&&!document.getElementById("meetupDetailModal")?.hidden)renderMeetupDetail();
   }).catch(()=>{
     if(list)list.innerHTML='<div class="board-list-empty">모임을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
@@ -3092,14 +3141,14 @@ function boardQuestionHtml(p){
 }
 document.getElementById("boardCategory")?.addEventListener("change",()=>{syncBoardTopicField();syncBoardResourceFields();});
 document.getElementById("boardTopic")?.addEventListener("change",()=>syncBoardTopicField());
-function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
+function renderBoardList(){const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isFresh("board",p.id)?'<span class="fresh-tag">N</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 async function loadBoard(force=false){
   if(networkAccessState!=="verified")return;
   let cached=null;
   if(!boardLoaded){
     cached=readBoardCache();
     if(cached){
-      boardPosts=cached.items;
+      boardPosts=cached.items;noteLatest("board",boardPosts.map(p=>p.id));
       boardHelpers=cached.helpers||{};boardPeople=Array.isArray(cached.people)?cached.people:[];
       boardLoaded=true;
       boardLastLoadedAt=Number(cached.savedAt||0);
@@ -3117,7 +3166,7 @@ async function loadBoard(force=false){
   boardLoadPromise=(async()=>{
     try{
       const r=await boardCall("board_list");
-      boardPosts=Array.isArray(r.items)?r.items:[];
+      boardPosts=Array.isArray(r.items)?r.items:[];noteLatest("board",boardPosts.map(p=>p.id));
       boardHelpers=r.helpersByTopic||{};
       boardPeople=Array.isArray(r.people)?r.people:[];
       boardLoaded=true;
@@ -3562,6 +3611,7 @@ function setSiteView(view,{updateHash=true}={}){
   const placesFrame=document.getElementById("alumniPlacesFrame");
   if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-new";
   syncHomeSummary();
+  if(newIds[next]){freshShown[next]=true;markSeen(next);if(next==="board")renderBoardList();}
 
   if(updateHash){
     history.replaceState(null,"","#"+next);
@@ -4569,6 +4619,7 @@ if(rafflePreviewMode){
   window.addEventListener("hashchange",startRafflePreview);
 }else startPublicApp();
 setSiteView(currentSiteView(),{updateHash:false});
+loadPlaceIds();
 if(new URLSearchParams(location.search).get("raffle")==="1"){
   setSiteView("event",{updateHash:false});
   setTimeout(()=>document.getElementById("rafflePublicCard")?.scrollIntoView({behavior:"smooth",block:"center"}),250);

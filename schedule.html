@@ -4112,6 +4112,13 @@ function setupRaffleSound(){
  document.addEventListener("visibilitychange",()=>{if(document.hidden)raffleStopSound();});
 }
 setupRaffleSound();
+function raffleFastPolling(){
+  const overlay=document.getElementById("raffleLiveOverlay");
+  if(overlay&&!overlay.hidden)return true;
+  if(new URLSearchParams(location.search).get("raffle")==="1")return true;
+  const now=Date.now();
+  return now>=Date.parse("2026-10-18T17:00:00+09:00")&&now<=Date.parse("2026-10-18T23:59:00+09:00");
+}
 function closeRaffleOverlay(){
  raffleStopSound();
  clearInterval(raffleAnimationTimer);clearTimeout(raffleRevealTimer);
@@ -4625,6 +4632,12 @@ function startPublicApp(){
 
   setInterval(loadPublicInfo,60000);
   setInterval(loadPublicRaffle,60000);
+  // 행사 당일 추첨 시간대이거나 추첨 화면을 보고 있으면 10초마다 확인합니다.
+  // 실시간 알림을 놓친 휴대폰도 10초 안에 추첨 화면을 따라옵니다(120명 기준 초당 약 12건).
+  setInterval(()=>{
+    if(document.visibilityState!=="visible"||!raffleFastPolling())return;
+    setTimeout(loadPublicRaffle,Math.random()*2000);
+  },10000);
 
   if(openAttendeesAfterAuth)setTimeout(openAttendeeModal,180);
 }

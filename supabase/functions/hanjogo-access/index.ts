@@ -690,7 +690,9 @@ function cleanHelpTopics(value: unknown) {
 }
 
 const RESOURCE_CATEGORIES = ["cost", "order", "store", "career", "hygiene", "etc"];
-const RESOURCE_EXTENSIONS = ["pdf", "xlsx", "xls", "csv", "docx", "doc", "pptx", "ppt", "hwp", "hwpx", "txt", "png", "jpg", "jpeg"];
+// HTML·ZIP도 받습니다. 내려받기 주소는 항상 첨부(download)로 만들어 브라우저가 화면에 띄우지 않고 저장합니다.
+// 실행 파일(exe·apk·js 등)은 받지 않습니다.
+const RESOURCE_EXTENSIONS = ["pdf", "xlsx", "xls", "csv", "docx", "doc", "pptx", "ppt", "hwp", "hwpx", "txt", "md", "json", "html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp"];
 const RESOURCE_MAX_BYTES = 10 * 1024 * 1024;
 
 /** The extension of an uploaded file, or "" when it is not one we accept. */

@@ -2874,13 +2874,33 @@ function toggleResourceSave(id){
   });
 }
 async function downloadResource(p){
-  // 팝업 차단을 피하려고 창을 먼저 연 뒤 주소를 채웁니다.
-  const win=window.open("","_blank");
+  const status=document.getElementById("boardResourceStatus");
+  // 링크만 있는 자료: 팝업 차단을 피하려고 창을 먼저 연 뒤 주소를 채웁니다.
+  if(!p.hasFile){
+    const win=window.open("","_blank");
+    try{
+      const data=await meetupCall("board_download",{id:p.id});
+      if(win)win.location.href=data.url;else location.href=data.url;
+      p.downloadCount=(Number(p.downloadCount)||0)+1;renderBoardList();renderBoardDetail();
+    }catch(e){if(win)win.close();if(status)status.textContent=resourceErrorText(e);}
+    return;
+  }
+  // 파일: 저장소 주소로 바로 받으면 휴대폰·일부 브라우저가 한글 이름을 깨뜨리거나
+  // 긴 저장 번호로 저장합니다. 파일을 먼저 받아 올린 사람이 붙인 원래 이름으로 저장합니다.
+  if(status)status.textContent="파일을 받는 중이에요…";
+  let url="";
   try{
-    const data=await meetupCall("board_download",{id:p.id});
-    if(win)win.location.href=data.url;else location.href=data.url;
+    const data=await meetupCall("board_download",{id:p.id});url=data.url;
+    const res=await fetch(url);if(!res.ok)throw new Error("download_failed");
+    const blob=await res.blob(),href=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=href;a.download=p.fileName||"자료";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(href),60000);
+    if(status)status.textContent="";
     p.downloadCount=(Number(p.downloadCount)||0)+1;renderBoardList();renderBoardDetail();
-  }catch(e){if(win)win.close();const s=document.getElementById("boardResourceStatus");if(s)s.textContent=resourceErrorText(e);}
+  }catch(e){
+    if(url&&status){status.innerHTML='자동으로 받지 못했어요. <a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">여기를 눌러 받기</a>';}
+    else if(status)status.textContent=resourceErrorText(e);
+  }
 }
 function boardResourceHtml(p){
   const saved=savedResources.has(String(p.id));

@@ -788,6 +788,7 @@ body.site-view-network.modal-open{overflow:auto!important}
 .myinfo-check input{margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--purple)}
 .myinfo-check b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
 .myinfo-check small{display:block;margin-top:2px;color:var(--mute);font-size:11.5px}
+a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .board-subfilters{margin-top:-4px}.board-subfilters .board-filter{font-size:11px;padding:6px 10px}
 .board-attach{display:inline-block;margin-left:6px;font-size:11px;color:var(--purple-dark);font-weight:800}
 .board-file-current{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--sub)}.board-file-current[hidden]{display:none}.board-file-current label{display:inline-flex;align-items:center;gap:4px;font-weight:700}
@@ -2844,7 +2845,7 @@ const RESOURCE_ERRORS={title_required:"자료 이름을 입력해주세요.",inv
 let resourceSubFilter="all",savedResources=new Set(),savedResourcesLoaded=false;
 function resourceErrorText(e){return RESOURCE_ERRORS[String(e?.message||e||"")]||"처리하지 못했어요. 잠시 후 다시 시도해주세요.";}
 function resourceSize(n){n=Number(n)||0;return n>=1048576?(n/1048576).toFixed(1)+"MB":Math.max(1,Math.round(n/1024))+"KB";}
-function resourceAttachText(p){return p.hasFile?`📎 ${p.fileName||"파일"} · ${resourceSize(p.fileSize)}`:p.linkUrl?"🔗 링크":"";}
+function resourceAttachText(p){return [p.hasFile?`📎 ${p.fileName||"파일"} · ${resourceSize(p.fileSize)}`:"",p.linkUrl?"🔗 링크":""].filter(Boolean).join("  ");}
 /** 지금 고른 분류(와 자료 종류·저장 필터)에 맞는 글인지. 목록과 이전/다음 글 이동이 같이 씁니다. */
 function boardVisible(p){
   if(boardFilter!=="all"&&p.category!==boardFilter)return false;
@@ -2883,8 +2884,8 @@ async function downloadResource(p){
 }
 function boardResourceHtml(p){
   const saved=savedResources.has(String(p.id));
-  return `<div class="meetup-facts"><div><b>자료 종류</b> ${esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")}</div><div><b>${p.hasFile?"파일":"링크"}</b> ${esc(p.hasFile?`${p.fileName||"파일"} (${resourceSize(p.fileSize)})`:"외부 링크")}</div><div><b>받은 횟수</b> ${Number(p.downloadCount||0)}회</div></div>${p.hasFile&&/\.html?$/i.test(String(p.fileName||""))?`<div class="meetup-hint">웹 브라우저로 여는 도구 파일이에요. 내려받은 뒤 휴대폰·PC의 크롬이나 사파리로 열어주세요(카카오톡 안에서 열면 저장이 안 될 수 있어요). 입력한 내용은 내 기기에만 저장됩니다.</div>`:""}
-    <div class="meetup-actions"><button class="board-primary-btn" type="button" data-board-action="download">${p.hasFile?"⬇ 내려받기":"↗ 링크 열기"}</button><button class="board-secondary-btn" type="button" data-board-action="save" aria-pressed="${saved}">${saved?"★ 저장됨":"☆ 저장"}</button></div>
+  return `<div class="meetup-facts"><div><b>자료 종류</b> ${esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")}</div>${p.hasFile?`<div><b>파일</b> ${esc(`${p.fileName||"파일"} (${resourceSize(p.fileSize)})`)}</div>`:""}${p.linkUrl?`<div><b>링크</b> 바로 열 수 있어요</div>`:""}<div><b>받은 횟수</b> ${Number(p.downloadCount||0)}회</div></div>${p.hasFile&&/\.html?$/i.test(String(p.fileName||""))?`<div class="meetup-hint">웹 브라우저로 여는 도구 파일이에요. 내려받은 뒤 휴대폰·PC의 크롬이나 사파리로 열어주세요(카카오톡 안에서 열면 저장이 안 될 수 있어요). 입력한 내용은 내 기기에만 저장됩니다.</div>`:""}
+    <div class="meetup-actions">${p.hasFile&&p.linkUrl?`<a class="board-primary-btn" href="${esc(p.linkUrl)}" target="_blank" rel="noopener noreferrer">🔗 바로 열기</a><button class="board-secondary-btn" type="button" data-board-action="download">⬇ 파일 내려받기</button>`:`<button class="board-primary-btn" type="button" data-board-action="download">${p.hasFile?"⬇ 내려받기":"↗ 링크 열기"}</button>`}<button class="board-secondary-btn" type="button" data-board-action="save" aria-pressed="${saved}">${saved?"★ 저장됨":"☆ 저장"}</button></div>
     <div class="board-form-status" id="boardResourceStatus" aria-live="polite"></div>`;
 }
 /** 글쓰기 창: "자료 공유"를 고르면 자료 종류·파일·링크 칸이 보입니다. */

@@ -189,6 +189,7 @@ body.modal-open{overflow:hidden}
 .network-profile-empty{padding:16px 0;text-align:center;color:var(--mute);font-size:13px}
 .network-profile-privacy{margin-top:10px;color:var(--mute);font-size:12px;line-height:1.6}
 .network-access-panel{padding:20px;border-top:1px solid var(--line);background:#FCFBFE}
+.network-access-top{margin:0 0 16px}body #networkProfileModal.needs-verify,body.site-view-network #networkProfileModal.needs-verify{display:none!important}.network-access-top .network-access-panel{padding:0;border:0;background:transparent}
 .network-access-panel[hidden],.network-profile-protected[hidden]{display:none!important}
 .network-access-card{max-width:480px;margin:0 auto;padding:22px;border:1px solid #DDD7F4;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(30,28,26,.05)}
 .network-access-kicker{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--purple-dark)}
@@ -954,6 +955,44 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 </div>
 
 
+<!-- 동문 인증: 인증 전에는 네트워크 화면 맨 위에 보입니다. 인증되면 숨겨지고 아래 프로필 목록이 열립니다. -->
+<div class="network-access-top site-view" data-site-view="network">
+    <div class="network-access-panel" id="networkAccessPanel">
+      <div class="network-access-loading" id="networkAccessLoading">
+        <span class="network-access-spinner" aria-hidden="true"></span>
+        <span>동문 인증 상태를 확인하고 있습니다.</span>
+      </div>
+      <div class="network-access-card" id="networkAccessSignedOut" hidden>
+        <div class="network-access-kicker">ALUMNI VERIFICATION</div>
+        <div class="network-access-title">등록한 이메일로 동문 인증</div>
+        <div class="network-access-desc">졸업생 DB에 등록된 이메일로 인증하면 운영자 승인 없이 바로 공개 프로필을 볼 수 있습니다.</div>
+        <form class="network-access-form" id="networkAccessForm">
+          <input class="network-access-input" id="networkAccessEmail" type="email" inputmode="email" autocomplete="email" placeholder="졸업생 DB에 등록한 이메일" required>
+          <button class="network-access-btn" id="networkAccessSubmit" type="submit">인증메일 받기</button>
+        </form>
+        <div class="network-access-status" id="networkAccessStatus" aria-live="polite"></div>
+        <div class="network-access-register">
+          <p>졸업생 DB에 등록한 이메일이 없다면 먼저 등록해주세요. 이미 등록한 이메일이 바뀌었다면 운영진에게 문의해주세요.</p>
+          <a class="network-access-btn secondary" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+        </div>
+      </div>
+      <div class="network-access-card" id="networkAccessDenied" hidden>
+        <div class="network-access-kicker">EMAIL NOT FOUND</div>
+        <div class="network-access-title">등록된 이메일을 확인해주세요</div>
+        <div class="network-access-desc">인증한 이메일이 졸업생 DB에서 확인되지 않습니다. 졸업생 DB에 등록한 뒤 다시 인증해주세요. 이미 등록하셨다면 운영진에게 문의해주세요.</div>
+        <div class="network-access-status" id="networkAccessDeniedEmail"></div>
+        <div class="network-access-register">
+          <a class="network-access-btn" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+          <button class="network-access-btn secondary" id="networkAccessSwitch" type="button">다른 이메일로 인증</button>
+        </div>
+      </div>
+      <div class="network-access-card" id="networkAccessError" hidden>
+        <div class="network-access-title">인증 확인이 지연되고 있습니다</div>
+        <div class="network-access-desc">잠시 후 다시 시도해주세요. 홈과 2026 모임 정보는 계속 이용할 수 있습니다.</div>
+        <button class="network-access-btn secondary" id="networkAccessRetry" type="button" style="width:100%;margin-top:16px">다시 확인</button>
+      </div>
+    </div>
+</div>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
     <div class="network-hub-kicker">ALUMNI NETWORK</div>
@@ -1175,41 +1214,6 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
       <div class="modal-head-actions">
         <button type="button" class="modal-size-btn" id="networkProfileSizeBtn" aria-label="팝업 크게 보기">크게 보기</button>
         <button type="button" class="attendee-close" id="networkProfileCloseBtn" aria-label="닫기">×</button>
-      </div>
-    </div>
-    <div class="network-access-panel" id="networkAccessPanel">
-      <div class="network-access-loading" id="networkAccessLoading">
-        <span class="network-access-spinner" aria-hidden="true"></span>
-        <span>동문 인증 상태를 확인하고 있습니다.</span>
-      </div>
-      <div class="network-access-card" id="networkAccessSignedOut" hidden>
-        <div class="network-access-kicker">ALUMNI VERIFICATION</div>
-        <div class="network-access-title">등록한 이메일로 동문 인증</div>
-        <div class="network-access-desc">졸업생 DB에 등록된 이메일로 인증하면 운영자 승인 없이 바로 공개 프로필을 볼 수 있습니다.</div>
-        <form class="network-access-form" id="networkAccessForm">
-          <input class="network-access-input" id="networkAccessEmail" type="email" inputmode="email" autocomplete="email" placeholder="졸업생 DB에 등록한 이메일" required>
-          <button class="network-access-btn" id="networkAccessSubmit" type="submit">인증메일 받기</button>
-        </form>
-        <div class="network-access-status" id="networkAccessStatus" aria-live="polite"></div>
-        <div class="network-access-register">
-          <p>졸업생 DB에 등록한 이메일이 없다면 먼저 등록해주세요. 이미 등록한 이메일이 바뀌었다면 운영진에게 문의해주세요.</p>
-          <a class="network-access-btn secondary" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-        </div>
-      </div>
-      <div class="network-access-card" id="networkAccessDenied" hidden>
-        <div class="network-access-kicker">EMAIL NOT FOUND</div>
-        <div class="network-access-title">등록된 이메일을 확인해주세요</div>
-        <div class="network-access-desc">인증한 이메일이 졸업생 DB에서 확인되지 않습니다. 졸업생 DB에 등록한 뒤 다시 인증해주세요. 이미 등록하셨다면 운영진에게 문의해주세요.</div>
-        <div class="network-access-status" id="networkAccessDeniedEmail"></div>
-        <div class="network-access-register">
-          <a class="network-access-btn" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
-          <button class="network-access-btn secondary" id="networkAccessSwitch" type="button">다른 이메일로 인증</button>
-        </div>
-      </div>
-      <div class="network-access-card" id="networkAccessError" hidden>
-        <div class="network-access-title">인증 확인이 지연되고 있습니다</div>
-        <div class="network-access-desc">잠시 후 다시 시도해주세요. 홈과 2026 모임 정보는 계속 이용할 수 있습니다.</div>
-        <button class="network-access-btn secondary" id="networkAccessRetry" type="button" style="width:100%;margin-top:16px">다시 확인</button>
       </div>
     </div>
     <div class="network-profile-protected" id="networkProfileProtected" hidden>
@@ -2441,6 +2445,8 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   if(errorBox)errorBox.hidden=state!=="error";
   if(panel)panel.hidden=state==="verified";
   if(protectedArea)protectedArea.hidden=state!=="verified";
+  // 인증 전에는 인증 칸이 화면 맨 위에 있으므로, 아래 프로필 목록 상자는 숨깁니다.
+  document.getElementById("networkProfileModal")?.classList.toggle("needs-verify",state!=="verified");
   const status=document.getElementById("networkAccessStatus");
   if(status&&message)status.textContent=message;
   const deniedEmail=document.getElementById("networkAccessDeniedEmail");

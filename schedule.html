@@ -3638,7 +3638,7 @@ function setSiteView(view,{updateHash=true}={}){
   }else{syncMeetupAccess();if(networkAccessState==="verified")loadMeetups();}
 
   const placesFrame=document.getElementById("alumniPlacesFrame");
-  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261006-new";
+  if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261008-align";
   syncHomeSummary();
   if(newIds[next]){freshShown[next]=true;markSeen(next);if(next==="board")renderBoardList();}
 

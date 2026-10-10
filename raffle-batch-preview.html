@@ -1,11 +1,27 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>추첨 진행 화면</title><link rel="stylesheet" href="assets/raffle-batch.css?v=20261010-random"><style>body{margin:0;background:#19112e;color:white;font-family:system-ui,sans-serif}#raffleLivePanel{padding:24px;text-align:center}h2{font-size:23px;line-height:1.5}#raffleLiveFoot{color:#d4c5ed;line-height:1.6}.badge{font-size:14px;color:#ffe395}</style></head><body><div id="raffleLivePanel"><p class="badge" id="previewLabel"></p><h2 id="prize"></h2><div id="raffleLiveName"></div><p id="raffleLiveFoot"></p></div><script src="assets/raffle-batch.js?v=20261010-random"></script><script>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>추첨 진행 화면</title><link rel="stylesheet" href="assets/raffle-presentation.css?v=20261010-unified"><link rel="stylesheet" href="assets/raffle-batch.css?v=20261010-unified"><style>body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif}*{box-sizing:border-box}</style></head><body><div class="raffle-live-overlay" id="raffleLiveOverlay" aria-hidden="false">
+
+  <div class="raffle-confetti" id="raffleConfetti" aria-hidden="true"></div>
+  <div class="raffle-live-panel" id="raffleLivePanel" role="dialog" aria-modal="true" aria-labelledby="raffleLivePrize">
+    <div class="raffle-live-kicker" id="raffleLiveKicker">HANJOGO LIVE RAFFLE</div>
+    <div class="raffle-live-prize" id="raffleLivePrize">현장 경품 추첨</div>
+    <div class="raffle-live-pool" id="raffleLivePool">추첨 대기 중</div>
+    <div class="raffle-live-name" id="raffleLiveName">10월 18일 현장에서 만나요</div>
+    <div class="raffle-live-foot" id="raffleLiveFoot">모든 화면에 같은 결과가 표시됩니다.</div>
+  </div>
+</div>
+<script src="assets/raffle-batch.js?v=20261010-unified"></script><script>
 let live,stop;
+function setPrize(value){
+ const el=document.getElementById('raffleLivePrize');el.replaceChildren();const parts=String(value).split(' · ');
+ if(parts.length>1){const sponsor=document.createElement('span');sponsor.className='raffle-prize-sponsor';sponsor.textContent=parts.shift();el.append(sponsor);}
+ const title=document.createElement('span');title.textContent=parts.join(' · ');el.append(title);
+}
 window.addEventListener('message',event=>{
  if(event.source!==parent||event.data?.type!=='raffle-batch-preview')return;
  live=event.data.live;if(!live?.batch||!Array.isArray(live.winners))return;
- document.getElementById('previewLabel').textContent=event.data.test?'내부 테스트 · 실제 당첨 아님':'실제 추첨 · 외부 화면과 동시 공개';
- document.getElementById('prize').textContent=live.prize;
- if(!stop)stop=HanjogoBatch.mount(document,()=>live);
+ document.getElementById('raffleLiveKicker').textContent=event.data.test?'TEST PREVIEW · 실제 당첨 아님':'HANJOGO LIVE RAFFLE';
+ document.getElementById('raffleLivePool').textContent=live.poolLabel||'전체 참여자';
+ setPrize(live.prize);if(!stop)stop=HanjogoBatch.mount(document,()=>live);
  parent.postMessage({type:'raffle-test-audio',action:'batch',live},'*');
 });
 parent.postMessage({type:'raffle-batch-ready'},'*');

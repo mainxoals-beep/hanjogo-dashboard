@@ -32,53 +32,69 @@
     const pool=options.length?options:candidates;
     return pool[Math.floor(Math.random()*pool.length)];
   }
+  function celebrate(doc){
+    const confetti=doc.getElementById('raffleConfetti');if(!confetti)return;
+    confetti.replaceChildren();
+    const colors=['#ffe395','#e2d7ff','#ffabc9','#b3f0e7','#ffffff','#ffca70'];
+    for(let i=0;i<120;i++){
+      const piece=doc.createElement('i');
+      piece.setAttribute('style','--x:'+(i*37%100)+'%;--c:'+colors[i%6]+';--s:'+(5+i%7)+'px;--t:'+(3.8+i%9*.12)+'s;--d:'+(Math.floor(i/40)*.7+i%8*.07)+'s;--drift:'+((i%2?1:-1)*(25+i%65))+'px;--r:'+((i%2?1:-1)*(400+i*13))+'deg');
+      confetti.append(piece);
+    }
+  }
   function mount(doc,getLive){
-    const host=doc.getElementById('raffleLivePanel');
-    const name=doc.getElementById('raffleLiveName');
+    const host=doc.getElementById('raffleLivePanel'),name=doc.getElementById('raffleLiveName');
     if(!host||!name)return ()=>{};
-    const stage=doc.createElement('div');stage.className='raffle-batch-stage';
-    const current=doc.createElement('div'),list=doc.createElement('div');
-    current.className='raffle-batch-current';list.className='raffle-batch-list';
-    stage.append(current,list);host.insertBefore(stage,name);name.hidden=true;
+    const stage=doc.createElement('div'),progress=doc.createElement('div'),current=doc.createElement('div'),list=doc.createElement('div');
+    stage.className='raffle-batch-stage';progress.className='raffle-live-pool raffle-batch-progress';
+    current.className='raffle-live-name raffle-batch-current';list.className='raffle-batch-list';
+    stage.append(progress,current,list);host.insertBefore(stage,name);name.hidden=true;
     let last='',lastSpin=-1,lastPerson='';
+    function personCard(person,animate=false){
+      current.replaceChildren();
+      const value=doc.createElement('span'),generation=doc.createElement('span');
+      value.className='raffle-person-name';generation.className='raffle-person-gen';
+      value.textContent=person.name;generation.textContent=person.generation+'기';current.append(value,generation);
+      if(animate&&!(root.matchMedia?.('(prefers-reduced-motion: reduce)').matches))
+        value.animate?.([{transform:'translateY(22px)',opacity:.12},{transform:'translateY(0)',opacity:1}],{duration:180,easing:'cubic-bezier(.16,1,.3,1)'});
+    }
     const tick=()=>{
       const live=getLive(),people=live.winners||[],f=frame(live);
       const signature=[live.drawId,f.phase,f.index,f.revealed,!!live.batch.paused].join('|');
       if(signature!==last){
-        last=signature;current.replaceChildren();list.replaceChildren();
-        stage.dataset.phase=f.phase;
+        last=signature;current.replaceChildren();list.replaceChildren();stage.dataset.phase=f.phase;
+        current.className='raffle-live-name raffle-batch-current'+
+          (f.phase==='countdown'?' countdown':f.phase==='spin'?' spinning':f.phase==='generation'?' generation-reveal':f.phase==='transition'?' pre-generation':f.phase==='name'||f.phase==='complete'?' winner':'');
         host.classList.toggle('suspense',f.phase==='generation'||f.phase==='transition');
-        host.classList.toggle('celebrating',f.phase==='complete');
+        host.classList.toggle('celebrating',f.phase==='name'||f.phase==='complete');
+        progress.textContent=f.phase==='complete'?'전체 당첨자':(f.index+1)+' / '+people.length+'번째 당첨자';
+        list.hidden=!f.revealed;
         people.slice(0,f.revealed).forEach((p,i)=>{
-          const card=doc.createElement('div');card.className='raffle-batch-card';
-          const gen=doc.createElement('span'),person=doc.createElement('strong');
-          gen.textContent=(i+1)+'. '+p.generation+'기';person.textContent=p.name;
-          card.append(gen,person);list.append(card);
+          const card=doc.createElement('div'),gen=doc.createElement('span'),person=doc.createElement('strong');
+          card.className='raffle-batch-card';gen.textContent=(i+1)+'. '+p.generation+'기';person.textContent=p.name;card.append(gen,person);list.append(card);
         });
-        const label=doc.createElement('span'),value=doc.createElement('strong');
-        label.className='raffle-batch-label';value.className='raffle-batch-value';
-        label.textContent=f.phase==='complete'?'당첨을 축하합니다!':(f.index+1)+' / '+people.length+'번째 당첨자';
-        if(f.phase==='transition')value.textContent=f.index===0?'첫 행운의 주인공은…':'다음 행운의 주인공은…';
-        if(f.phase==='generation')value.textContent=people[f.index].generation+'기';
-        if(f.phase==='name'){value.textContent=people[f.index].name;
-          const cheer=doc.createElement('div');cheer.className='raffle-batch-cheer';cheer.textContent='✦  축하합니다!  ✦';value.append(cheer);
+        if(f.phase==='name')personCard(people[f.index]);
+        else{
+          const label=doc.createElement('span'),value=doc.createElement('strong');
+          label.className='raffle-generation-label';value.className=f.phase==='generation'?'raffle-generation-value':'raffle-person-name';
+          if(f.phase==='generation'){label.textContent='당첨자의 기수는';value.textContent=people[f.index].generation+'기';}
+          if(f.phase==='transition')value.textContent=f.index===0?'첫 행운의 주인공은…':'다음 행운의 주인공은…';
+          if(f.phase==='complete'){label.textContent='당첨을 축하합니다!';value.textContent=people.length+'명 모두 공개';}
+          current.append(label,value);
         }
-        if(f.phase==='complete')value.textContent=people.length+'명 모두 공개';
-        current.append(label,value);
+        if(f.phase==='name'||f.phase==='complete')celebrate(doc);
+        else doc.getElementById('raffleConfetti')?.replaceChildren();
         const foot=doc.getElementById('raffleLiveFoot');
-        if(foot)foot.textContent=live.batch.paused?'진행자가 잠시 공개를 멈췄습니다':
-          f.phase==='transition'?'드럼 소리와 함께 다음 당첨자를 기다려주세요':f.phase==='name'?'당첨을 축하합니다! 박수 부탁드립니다.':f.phase==='generation'?'잠시 후 이름을 공개합니다…':f.phase==='complete'?'차례로 간단한 자기소개와 인사를 부탁드립니다.':'행운의 주인공을 차례로 공개합니다';
+        if(foot)foot.textContent=live.batch.paused?'진행자가 잠시 공개를 멈췄습니다':f.phase==='generation'?'잠시 후 이름을 공개합니다…':f.phase==='complete'?'차례로 간단한 자기소개와 인사를 부탁드립니다.':f.phase==='name'?'축하합니다! 박수 부탁드립니다.':'행운의 주인공은…';
       }
       if(f.phase==='countdown')current.lastChild.textContent=String(Math.ceil((5000-f.t)/1000));
       if(f.phase==='spin'&&Math.floor(f.t/220)!==lastSpin){
-        lastSpin=Math.floor(f.t/220);const candidates=live.candidates||[];
-        const p=spinPerson(candidates,lastPerson);
-        if(p){lastPerson=p.name+'|'+p.generation;current.lastChild.textContent=p.name+' · '+p.generation+'기';}
-        else current.lastChild.textContent='두근두근…';
+        lastSpin=Math.floor(f.t/220);const p=spinPerson(live.candidates||[],lastPerson);
+        if(p){lastPerson=p.name+'|'+p.generation;personCard(p,true);}else current.textContent='두근두근…';
       }
     };
     tick();const timer=setInterval(tick,50);
-    return ()=>{clearInterval(timer);stage.remove();name.hidden=false;};
+    return ()=>{clearInterval(timer);stage.remove();name.hidden=false;host.classList.remove('suspense','celebrating');doc.getElementById('raffleConfetti')?.replaceChildren();};
   }
   // PCM WAV keeps the mobile playback path used by the existing raffle sounds.
   const scores=new Map();

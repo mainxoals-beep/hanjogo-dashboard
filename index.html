@@ -1151,8 +1151,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
-  <script src="./assets/raffle-batch.js?v=20261010-random"></script>
-  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010-random">
+  <script src="./assets/raffle-batch.js?v=20261010-unified"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010-unified">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -1674,7 +1674,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
               <input class="lockable" id="rafflePrizeName" maxlength="60" placeholder="경품을 선택하거나 직접 입력해주세요">
               <label class="raffle-field-label" for="rafflePoolSelect">추첨 대상</label>
               <select class="lockable" id="rafflePoolSelect"><option value="confirmed">전체 참가자</option><option value="story">인스타 스토리 참여자</option></select>
-              <p style="margin:8px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</p>
+              <p style="margin:8px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 경품: 올리브영 상품권 5만원 · 신세계 상품권 5만원 (각 1명).<br>스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</p>
               <div class="raffle-live-action"><button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작</button><span id="raffleDrawHint">선택한 경품으로 추첨 · 외부 화면에 실시간 송출</span></div>
             </div>
             <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
@@ -4015,7 +4015,7 @@ function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':
 function sendBatchFrame(frame,live,test){
   if(!frame)return;
   frame.hidden=false;
-  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010-random';
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010-unified';
   frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
 }
 window.addEventListener('message',event=>{
@@ -4083,7 +4083,7 @@ function applyRafflePlanSelection(){
   const input=document.getElementById("rafflePrizeName");
   input.readOnly=!!plan;
   if(plan)input.value=plan.prize;
-  if(plan)document.getElementById("rafflePoolSelect").value=plan.id==="event-story-pending"?"story":"confirmed";
+  if(plan)document.getElementById("rafflePoolSelect").value=plan.id.startsWith("event-story-")?"story":"confirmed";
   const count=raffleBatchCount(plan);
   document.getElementById('raffleDrawBtn').textContent=count>1?count+'명 일괄 추첨 시작':'실제 추첨 시작';
   document.getElementById('raffleDrawHint').textContent=count>1?'예고 3초 → 기수 5초 → 이름 7초 · 차례로 공개 · 외부 실시간 송출':'선택한 경품으로 1명 추첨 · 외부 실시간 송출';

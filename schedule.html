@@ -842,9 +842,9 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 }
 .myinfo-settings-icon{display:inline-block;font-size:1.1em;line-height:1;vertical-align:-.05em}.myinfo-account{display:grid;gap:6px;margin:12px 0}.myinfo-account #myInfoCurrentEmail{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}.myinfo-account small{font-size:11px;color:var(--sub)}
 </style>
-<script src="assets/raffle-batch.js?v=20261011-fix1"></script>
-<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fix1">
-<link rel="stylesheet" href="assets/raffle-batch.css?v=20261011-fix1">
+<script src="assets/raffle-batch.js?v=20261011-fx1"></script>
+<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx1">
+<link rel="stylesheet" href="assets/raffle-batch.css?v=20261011-fx1">
 </head>
 <body>
 <div class="wrap">
@@ -4106,7 +4106,7 @@ function rafflePlayScore(live){
  if(!raffleSoundEnabled||!live||live.status!=="drawing")return;
  if(live.batch){
    raffleStopSound();if(live.batch.paused||HanjogoBatch.frame(live).phase==='complete')return;
-   rafflePlayer.src=HanjogoBatch.score(live.winners.length);rafflePlayer.currentTime=HanjogoBatch.elapsed(live)/1000;
+   rafflePlayer.src=HanjogoBatch.score(live.winners.length,HanjogoBatch.isGrand(live));rafflePlayer.currentTime=HanjogoBatch.elapsed(live)/1000;
    rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});return;
  }
  const elapsed=Math.max(0,(Date.now()-(Number(live.startedAt||Number(live.revealAt)-11000)))/1000);if(elapsed>=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?24:17))return;
@@ -4661,6 +4661,7 @@ function startPublicApp(){
   // 실시간 알림을 놓친 휴대폰도 10초 안에 추첨 화면을 따라옵니다(120명 기준 초당 약 12건).
   setInterval(()=>{
     if(document.visibilityState!=="visible"||!raffleFastPolling())return;
+    HanjogoBatch.prepare(false);HanjogoBatch.prepare(true);
     setTimeout(loadPublicRaffle,Math.random()*2000);
   },10000);
 

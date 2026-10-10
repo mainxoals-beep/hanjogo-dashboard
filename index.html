@@ -1151,8 +1151,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
-  <script src="./assets/raffle-batch.js?v=20261011-fix1"></script>
-  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261011-fix1">
+  <script src="./assets/raffle-batch.js?v=20261011-fx1"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261011-fx1">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -4015,7 +4015,7 @@ function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':
 function sendBatchFrame(frame,live,test){
   if(!frame)return;
   frame.hidden=false;
-  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261011-fix1';
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261011-fx1';
   frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
 }
 window.addEventListener('message',event=>{
@@ -6659,7 +6659,7 @@ checkInitialPasswordState();
   enabled=!enabled;button.textContent=enabled?"소리 끄기":"소리 켜기";button.setAttribute("aria-pressed",String(enabled));
   if(enabled){
     const live=document.getElementById('raffleBatchControls')?.dataset.test==='true'?raffleBatchTestLive:state.raffleCenter.live;
-    if(live?.batch&&!live.batch.paused&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
+    if(live?.batch&&!live.batch.paused&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length,HanjogoBatch.isGrand(live)),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
     else play(check,"확인음 재생 중 · 휴대폰 미디어 음량을 확인해주세요.");
   }
   else{serial++;audio.pause();status.textContent="소리가 꺼졌습니다.";}
@@ -6671,7 +6671,7 @@ checkInitialPasswordState();
     if(live?.batch?.paused){serial++;audio.pause();return;}
     const key=live?.drawId+'|'+live?.batch?.version;
     if(key===audio.dataset.batchKey)return;audio.dataset.batchKey=key;
-    if(enabled&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
+    if(enabled&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length,HanjogoBatch.isGrand(live)),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
     return;
   }
   if(event.data.action==="start"&&enabled)play(event.data.grand?grand:event.data.spirit?spirits:normal,"추첨 소리 재생 중");

@@ -1151,8 +1151,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
-  <script src="./assets/raffle-batch.js?v=20261010"></script>
-  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010">
+  <script src="./assets/raffle-batch.js?v=20261010-slow"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010-slow">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -4015,7 +4015,7 @@ function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':
 function sendBatchFrame(frame,live,test){
   if(!frame)return;
   frame.hidden=false;
-  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010';
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010-slow';
   frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
 }
 window.addEventListener('message',event=>{
@@ -4086,7 +4086,7 @@ function applyRafflePlanSelection(){
   if(plan)document.getElementById("rafflePoolSelect").value=plan.id==="event-story-pending"?"story":"confirmed";
   const count=raffleBatchCount(plan);
   document.getElementById('raffleDrawBtn').textContent=count>1?count+'명 일괄 추첨 시작':'실제 추첨 시작';
-  document.getElementById('raffleDrawHint').textContent=count>1?'기수 3초 → 이름 3초 · 차례로 공개 · 외부 실시간 송출':'선택한 경품으로 1명 추첨 · 외부 실시간 송출';
+  document.getElementById('raffleDrawHint').textContent=count>1?'예고 3초 → 기수 5초 → 이름 7초 · 차례로 공개 · 외부 실시간 송출':'선택한 경품으로 1명 추첨 · 외부 실시간 송출';
 }
 document.getElementById("rafflePlanReload").addEventListener("click",loadPrivateRafflePlan);
 document.getElementById("rafflePlanLogin").addEventListener("click",()=>{
@@ -4234,7 +4234,7 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
       raffleTestWinnerKeys.push(...raffleBatchTestLive.winners.map(HanjogoRaffle.key));saveRaffleTestKeys();
       const frame=document.getElementById('raffleTestPreview');frame.removeAttribute('srcdoc');
       sendBatchFrame(frame,raffleBatchTestLive,true);renderBatchControls(true);
-      result.textContent='[테스트] '+count+'명 · 기수 3초 → 이름 3초 · 실제 기록 없음';return;
+      result.textContent='[테스트] '+count+'명 · 예고 3초 → 기수 5초 → 이름 7초 · 실제 기록 없음';return;
     }
     const {data,error}=await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:"",p_plan_id:"",p_previous_draw_id:"",p_test:true,p_test_keys:raffleTestWinnerKeys});
     if(error)throw error;

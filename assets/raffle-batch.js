@@ -1,6 +1,6 @@
 (function(root){
   'use strict';
-  const INTRO=7000, TRANSITION=3000, GENERATION=5000, HOLD=7000, STEP=TRANSITION+GENERATION+HOLD;
+  const INTRO=9000, TRANSITION=3000, GENERATION=5000, HOLD=7000, STEP=TRANSITION+GENERATION+HOLD;
   const duration=count=>INTRO+STEP*count;
   function elapsed(live,now=Date.now()){
     const b=live.batch||{};
@@ -26,6 +26,12 @@
     }
     return {...live,batch:{...b,elapsed:Math.min(end,next),anchor:now,paused,version:Number(b.version||0)+1}};
   }
+  function spinPerson(candidates,previous){
+    if(!candidates.length)return null;
+    const options=candidates.length>1?candidates.filter(p=>p.name+'|'+p.generation!==previous):candidates;
+    const pool=options.length?options:candidates;
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
   function mount(doc,getLive){
     const host=doc.getElementById('raffleLivePanel');
     const name=doc.getElementById('raffleLiveName');
@@ -34,7 +40,7 @@
     const current=doc.createElement('div'),list=doc.createElement('div');
     current.className='raffle-batch-current';list.className='raffle-batch-list';
     stage.append(current,list);host.insertBefore(stage,name);name.hidden=true;
-    let last='',lastSpin=-1;
+    let last='',lastSpin=-1,lastPerson='';
     const tick=()=>{
       const live=getLive(),people=live.winners||[],f=frame(live);
       const signature=[live.drawId,f.phase,f.index,f.revealed,!!live.batch.paused].join('|');
@@ -66,7 +72,9 @@
       if(f.phase==='countdown')current.lastChild.textContent=String(Math.ceil((5000-f.t)/1000));
       if(f.phase==='spin'&&Math.floor(f.t/220)!==lastSpin){
         lastSpin=Math.floor(f.t/220);const candidates=live.candidates||[];
-        const p=candidates[lastSpin%candidates.length];current.lastChild.textContent=p?p.name:'두근두근…';
+        const p=spinPerson(candidates,lastPerson);
+        if(p){lastPerson=p.name+'|'+p.generation;current.lastChild.textContent=p.name+' · '+p.generation+'기';}
+        else current.lastChild.textContent='두근두근…';
       }
     };
     tick();const timer=setInterval(tick,50);
@@ -90,7 +98,7 @@
       }
     }
     for(let s=0;s<5;s++){note(s,523,.18,.23);note(s,65,.22,.35,'tom');}
-    for(let s=5;s<7;s+=.18){note(s,155,.1,.25,'snare');note(s+.07,659,.1,.15);}
+    for(let s=5;s<INTRO/1000;s+=.18){note(s,155,.1,.25,'snare');note(s+.07,659,.1,.15);}
     for(let i=0;i<count;i++){
       const transition=INTRO/1000+i*STEP/1000,start=transition+TRANSITION/1000,reveal=start+GENERATION/1000;
       [0,.65,1.3,2.1].forEach((t,j)=>note(transition+t,80+j*20,.28,.24,'tom'));
@@ -112,6 +120,6 @@
     for(let i=0;i<length;i++)view.setInt16(44+i*2,Math.tanh(samples[i]*1.4)*32767,true);
     const url=URL.createObjectURL(new Blob([bytes],{type:'audio/wav'}));scores.set(count,url);return url;
   }
-  root.HanjogoBatch={INTRO,TRANSITION,GENERATION,HOLD,STEP,duration,elapsed,frame,control,mount,score};
+  root.HanjogoBatch={INTRO,TRANSITION,GENERATION,HOLD,STEP,duration,elapsed,frame,control,spinPerson,mount,score};
   if(typeof module!=='undefined')module.exports=root.HanjogoBatch;
 })(typeof window!=='undefined'?window:globalThis);

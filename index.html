@@ -1151,8 +1151,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
-  <script src="./assets/raffle-batch.js?v=20261010-slow"></script>
-  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010-slow">
+  <script src="./assets/raffle-batch.js?v=20261010-random"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010-random">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -4015,7 +4015,7 @@ function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':
 function sendBatchFrame(frame,live,test){
   if(!frame)return;
   frame.hidden=false;
-  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010-slow';
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010-random';
   frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
 }
 window.addEventListener('message',event=>{
@@ -4230,7 +4230,7 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
     if(count>1){
       const {data,error}=await sbAdmin.rpc('perform_raffle_batch',{p_plan_id:plan.id,p_previous_draw_id:'',p_test:true,p_test_keys:raffleTestWinnerKeys});
       if(error)throw error;
-      const now=Date.now();raffleBatchTestLive={...data.live,startedAt:now,batch:{elapsed:0,anchor:now,paused:false,version:0}};
+      const now=Date.now();raffleBatchTestLive={...data.live,candidates:confirmedRaffleEntries().map(person=>({name:person.name,generation:person.generation})),startedAt:now,batch:{elapsed:0,anchor:now,paused:false,version:0}};
       raffleTestWinnerKeys.push(...raffleBatchTestLive.winners.map(HanjogoRaffle.key));saveRaffleTestKeys();
       const frame=document.getElementById('raffleTestPreview');frame.removeAttribute('srcdoc');
       sendBatchFrame(frame,raffleBatchTestLive,true);renderBatchControls(true);

@@ -13,16 +13,24 @@
   const SLOT_TICKS=slowing(0,SLOT_END,45,1.12),ROULETTE_TICKS=slowing(ROULETTE_START,GENERATION,75,1.11);
   const duration=count=>INTRO+STEP*count;
   const isGrand=live=>/갤럭시\s*탭|Galaxy\s*Tab/i.test(live?.prize||'');
+  // One-winner draws keep their original reveal (11s, 갤럭시탭 18s) but share the grouped screen and its effects.
+  const SINGLE={slotEnd:1500,rouletteStart:2000,intro:7000,transition:0,generation:4000};
+  const SINGLE_GRAND={slotEnd:2200,rouletteStart:3000,intro:10000,transition:2000,generation:6000};
+  const BATCH={slotEnd:SLOT_END,rouletteStart:ROULETTE_START,intro:INTRO,transition:TRANSITION,generation:GENERATION,step:STEP,slot:SLOT_TICKS,roulette:ROULETTE_TICKS};
+  for(const c of [SINGLE,SINGLE_GRAND]){c.step=Infinity;c.single=true;c.slot=slowing(0,c.slotEnd,45,1.12);c.roulette=slowing(c.rouletteStart,c.generation,75,1.11);}
+  const timing=live=>live.batch?BATCH:isGrand(live)?SINGLE_GRAND:SINGLE;
+  const winnersOf=live=>Array.isArray(live.winners)&&live.winners.length?live.winners:live.winner?[live.winner]:[];
   function elapsed(live,now=Date.now()){
-    const b=live.batch||{};
+    if(!live.batch){const c=timing(live);return Math.max(0,now-(Number(live.revealAt)-c.intro-c.transition-c.generation));}
+    const b=live.batch;
     return Math.max(0,Number(b.elapsed||0)+(b.paused?0:Math.max(0,now-Number(b.anchor||live.startedAt))));
   }
   function frame(live,now=Date.now()){
-    const people=live.winners||[],t=elapsed(live,now),total=duration(people.length);
-    if(t>=total)return {phase:'complete',index:people.length-1,revealed:people.length,t};
-    if(t<INTRO)return {phase:t<5000?'countdown':'spin',index:0,revealed:0,t};
-    const index=Math.floor((t-INTRO)/STEP),offset=(t-INTRO)%STEP,name=offset>=TRANSITION+GENERATION;
-    return {phase:offset<TRANSITION?'transition':name?'name':'generation',index,revealed:index+(name?1:0),t};
+    const c=timing(live),people=winnersOf(live),t=elapsed(live,now),total=c.single?Infinity:duration(people.length);
+    if(t>=total)return {phase:'complete',index:people.length-1,revealed:people.length,t,offset:0};
+    if(t<c.intro)return {phase:t<5000?'countdown':'spin',index:0,revealed:0,t,offset:t};
+    const index=c.single?0:Math.floor((t-c.intro)/c.step),offset=c.single?t-c.intro:(t-c.intro)%c.step,name=offset>=c.transition+c.generation;
+    return {phase:offset<c.transition?'transition':name?'name':'generation',index,revealed:index+(name?1:0),t,offset};
   }
   function control(live,action,now=Date.now()){
     const b=live.batch,t=elapsed(live,now),end=duration(live.winners.length);
@@ -51,13 +59,13 @@
     return out;
   }
   function slotValues(live,index){
-    const winner=live.winners[index],own=Number(winner.generation);
-    let gens=[...new Set((live.candidates||[]).concat(live.winners).map(p=>Number(p.generation)).filter(g=>g>0&&g!==own))];
+    const winners=winnersOf(live),winner=winners[index],own=Number(winner.generation);
+    let gens=[...new Set((live.candidates||[]).concat(winners).map(p=>Number(p.generation)).filter(g=>g>0&&g!==own))];
     if(gens.length<3)gens=Array.from({length:20},(_,i)=>i+1).filter(g=>g!==own);
     return shuffled(gens,live.drawId+'|slot|'+index);
   }
   function rouletteNames(live,index){
-    const winner=live.winners[index];
+    const winner=winnersOf(live)[index];
     const names=[...new Set((live.candidates||[]).filter(p=>Number(p.generation)===Number(winner.generation)&&p.name!==winner.name).map(p=>p.name))];
     return names.length?shuffled(names,live.drawId+'|names|'+index):['? ? ?'];
   }
@@ -101,8 +109,8 @@
       if(animate)slide(value,'22px');
     }
     const tick=()=>{
-      const live=getLive(),people=live.winners||[],f=frame(live),grand=isGrand(live);
-      const signature=[live.drawId,f.phase,f.index,f.revealed,!!live.batch.paused].join('|');
+      const live=getLive(),people=winnersOf(live),f=frame(live),grand=isGrand(live),c=timing(live),paused=!!live.batch?.paused;
+      const signature=[live.drawId,live.revealAt,f.phase,f.index,f.revealed,paused].join('|');
       if(signature!==last){
         last=signature;lastCount='';lastRoll='';roll=null;current.replaceChildren();list.replaceChildren();fx.replaceChildren();stage.dataset.phase=f.phase;
         current.className='raffle-live-name raffle-batch-current'+
@@ -111,9 +119,9 @@
         host.classList.toggle('suspense',f.phase==='generation'||f.phase==='transition');
         host.classList.toggle('celebrating',f.phase==='name'||f.phase==='complete');
         overlay?.classList.toggle('raffle-spotlight',f.phase==='generation'||f.phase==='transition');
-        progress.textContent=f.phase==='complete'?'전체 당첨자':(f.index+1)+' / '+people.length+'번째 당첨자';
-        list.hidden=!f.revealed;
-        people.slice(0,f.revealed).forEach((p,i)=>{
+        progress.textContent=c.single?'':f.phase==='complete'?'전체 당첨자':(f.index+1)+' / '+people.length+'번째 당첨자';progress.hidden=c.single;
+        list.hidden=!f.revealed||c.single;
+        if(!c.single)people.slice(0,f.revealed).forEach((p,i)=>{
           const card=doc.createElement('div'),gen=doc.createElement('span'),person=doc.createElement('strong');
           card.className='raffle-batch-card';gen.textContent=(i+1)+'. '+p.generation+'기';person.textContent=p.name;card.append(gen,person);list.append(card);
         });
@@ -123,8 +131,8 @@
           label.className='raffle-generation-label';value.className=f.phase==='generation'?'raffle-generation-value':'raffle-person-name';
           if(f.phase==='generation'){label.textContent='당첨자의 기수는';roll=doc.createElement('span');roll.className='raffle-roulette-name';roll.hidden=true;}
           if(f.phase==='transition'){
-            value.textContent=f.index===0?'첫 행운의 주인공은…':'다음 행운의 주인공은…';value.className+=' raffle-heartbeat';
-            value.setAttribute('style','animation-delay:-'+((f.t-INTRO)%STEP%1000)+'ms');
+            value.textContent=c.single?'과연 오늘의 주인공은…':f.index===0?'첫 행운의 주인공은…':'다음 행운의 주인공은…';value.className+=' raffle-heartbeat';
+            value.setAttribute('style','animation-delay:-'+(f.offset%1000)+'ms');
           }
           if(f.phase==='complete'){label.textContent='당첨을 축하합니다!';value.textContent=people.length+'명 모두 공개';}
           current.append(label,value);if(roll)current.append(roll);
@@ -132,12 +140,12 @@
         if(f.phase==='name'||f.phase==='complete')celebrate(doc,grand);
         else doc.getElementById('raffleConfetti')?.replaceChildren();
         // Only screens that are watching at the moment of the reveal get the flash and shake.
-        if(f.phase==='name'&&(f.t-INTRO)%STEP-TRANSITION-GENERATION<1500&&!live.batch.paused){
+        if(f.phase==='name'&&f.offset-c.transition-c.generation<1500&&!paused){
           flash(doc,fx,grand);
           if(!calm()){clearTimeout(shake);host.classList.toggle('reveal-shake',true);shake=setTimeout(()=>host.classList.toggle('reveal-shake',false),grand?900:650);}
         }
         const foot=doc.getElementById('raffleLiveFoot');
-        if(foot)foot.textContent=live.batch.paused?'진행자가 잠시 공개를 멈췄습니다':f.phase==='generation'?'잠시 후 이름을 공개합니다…':f.phase==='complete'?'차례로 간단한 자기소개와 인사를 부탁드립니다.':f.phase==='name'?'축하합니다! 박수 부탁드립니다.':'행운의 주인공은…';
+        if(foot)foot.textContent=paused?'진행자가 잠시 공개를 멈췄습니다':f.phase==='generation'?'잠시 후 이름을 공개합니다…':f.phase==='complete'?'차례로 간단한 자기소개와 인사를 부탁드립니다.':f.phase==='name'?(!c.single?'축하합니다! 박수 부탁드립니다.':/^(preview|test)-/.test(live.drawId||'')?'화면 미리보기입니다 · 실제 당첨이 아닙니다':'축하합니다! 현장에서 경품을 받아주세요.'):'행운의 주인공은…';
       }
       if(f.phase==='countdown'){
         const n=String(Math.ceil((5000-f.t)/1000));
@@ -152,12 +160,12 @@
         if(p){lastPerson=p.name+'|'+p.generation;personCard(p,true);}else current.textContent='두근두근…';
       }
       if(f.phase==='generation'&&roll){
-        const g=f.t-INTRO-f.index*STEP-TRANSITION,value=current.children[1],slot=countAt(SLOT_TICKS,g),names=countAt(ROULETTE_TICKS,g);
-        const key=g<SLOT_END?'s'+slot:'r'+names;
+        const g=f.offset-c.transition,value=current.children[1],slot=countAt(c.slot,g),names=countAt(c.roulette,g),slotEnd=c.slotEnd;
+        const key=g<slotEnd?'s'+slot:'r'+names;
         if(key!==lastRoll){
-          const landing=g>=SLOT_END&&lastRoll[0]!=='r';lastRoll=key;
-          current.classList.toggle('slot-rolling',g<SLOT_END);current.classList.toggle('name-rolling',g>=SLOT_END);
-          if(g<SLOT_END){
+          const landing=g>=slotEnd&&lastRoll[0]!=='r';lastRoll=key;
+          current.classList.toggle('slot-rolling',g<slotEnd);current.classList.toggle('name-rolling',g>=slotEnd);
+          if(g<slotEnd){
             const gens=slotValues(live,f.index);value.textContent=gens[(slot-1)%gens.length]+'기';value.className='raffle-generation-value slot-roll';slide(value,'-45%');
           }else{
             value.textContent=people[f.index].generation+'기';
@@ -293,19 +301,23 @@
     x.applause(R+.12,grand?6.5:4.6,grand?.6:.48,grand?1.6:1);
     [.6,1.7].concat(grand?[1.1,2.5,3.4]:[]).forEach(o=>x.whistle(R+o,.12));
   }
+  // Heartbeat-free part shared by every reveal: 기수 slot ticks, landing ding, name roulette ticks, then the climax.
+  function generation(x,G,c,root,grand){
+    const R=G+c.generation/1000,land=G+c.slotEnd/1000;
+    x.pad(G,116.54,R-G-.15,.28);x.pad(G,174.61,R-G-.15,.2);x.pad(G,233.08,R-G-.15,.12);
+    c.slot.forEach((ms,i)=>x.click(G+ms/1000,i%2?1700:1500,.42));
+    x.bell(land,1568,.5,.35,1.4);x.bell(land,2093,.45,.2,1.4);x.kick(land,.7);x.crash(land,.25,.6);
+    [1,1.25,1.5].forEach(m=>x.brass(land,root*2*m,.14,.1));
+    c.roulette.forEach(ms=>{x.click(G+ms/1000,1100,.5);x.hat(G+ms/1000,.25);});
+    climax(x,G+c.rouletteStart/1000,R,root,grand);
+  }
   function winnerSegment(root,grand,seed){
-    const T=TRANSITION/1000,G=T,R=T+GENERATION/1000;
+    const T=TRANSITION/1000;
     return render(STEP/1000+3,x=>{
       [0,1,2].forEach(s=>x.heart(s,grand?1:.8));
       if(grand)[2.5,2.75].forEach(s=>x.heart(s,.6));
       x.pad(0,110,T,.28);x.pad(0,164.81,T,.18);
-      x.pad(G,116.54,R-G-.15,.28);x.pad(G,174.61,R-G-.15,.2);x.pad(G,233.08,R-G-.15,.12);
-      SLOT_TICKS.forEach((ms,i)=>x.click(G+ms/1000,i%2?1700:1500,.42));
-      const land=G+SLOT_END/1000;
-      x.bell(land,1568,.5,.35,1.4);x.bell(land,2093,.45,.2,1.4);x.kick(land,.7);x.crash(land,.25,.6);
-      [1,1.25,1.5].forEach(m=>x.brass(land,root*2*m,.14,.1));
-      ROULETTE_TICKS.forEach(ms=>{x.click(G+ms/1000,1100,.5);x.hat(G+ms/1000,.25);});
-      climax(x,G+ROULETTE_START/1000,R,root,grand);
+      generation(x,T,BATCH,root,grand);
     },seed);
   }
   const PARTS={
@@ -347,14 +359,11 @@
   function single(grand=false){
     const key='single|'+(grand?1:0);
     if(scores.has(key))return scores.get(key);
-    const R=grand?18:11,shown=grand?12:7;
+    const c=grand?SINGLE_GRAND:SINGLE,G=(c.intro+c.transition)/1000,R=G+c.generation/1000;
     const samples=render(R+8,x=>{
-      countdown(x);groove(x,5,grand?10:shown);
+      countdown(x);groove(x,5,c.intro/1000);
       if(grand){[10,11].forEach(s=>x.heart(s,1));[11.5,11.75].forEach(s=>x.heart(s,.6));x.pad(10,110,2,.28);x.pad(10,164.81,2,.18);}
-      x.bell(shown,1568,.5,.35,1.4);x.bell(shown,2093,.45,.2,1.4);x.kick(shown,.7);x.crash(shown,.25,.6);
-      x.pad(shown,116.54,R-shown-.15,.28);x.pad(shown,174.61,R-shown-.15,.2);
-      if(grand)[12.5,13.5].forEach(s=>x.heart(s,.8));
-      climax(x,shown+(grand?2.2:.4),R,261.63,grand);
+      generation(x,G,c,261.63,grand);
     },grand?71:67);
     const url=wav(samples);scores.set(key,url);return url;
   }

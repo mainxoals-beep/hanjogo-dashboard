@@ -842,9 +842,9 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 }
 .myinfo-settings-icon{display:inline-block;font-size:1.1em;line-height:1;vertical-align:-.05em}.myinfo-account{display:grid;gap:6px;margin:12px 0}.myinfo-account #myInfoCurrentEmail{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}.myinfo-account small{font-size:11px;color:var(--sub)}
 </style>
-<script src="assets/raffle-batch.js?v=20261011-fx2"></script>
-<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx2">
-<link rel="stylesheet" href="assets/raffle-batch.css?v=20261011-fx2">
+<script src="assets/raffle-batch.js?v=20261011-fx3"></script>
+<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
+<link rel="stylesheet" href="assets/raffle-batch.css?v=20261011-fx3">
 </head>
 <body>
 <div class="wrap">
@@ -4129,24 +4129,6 @@ function setRafflePrize(element,value){
   const title=document.createElement("span");title.textContent=parts.join(" · ");element.append(title);
 }
 
-function showRaffleWinner(live){
-  document.getElementById("raffleLivePanel")?.classList.remove("suspense");
-  clearInterval(raffleAnimationTimer);raffleAnimationTimer=null;
-  const name=document.getElementById("raffleLiveName");
-  if(!name||name.classList.contains("winner"))return;
-  const winner=live?.winner;
-  if(winner)setRafflePerson(name,winner);else name.textContent="추첨 결과를 확인해주세요";
-  name.classList.remove("countdown","spinning","generation-reveal","pre-generation");
-  name.classList.add("winner");
-  raffleFanfare(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||""));
-  const confetti=document.getElementById("raffleConfetti");
-  document.getElementById("raffleLivePanel")?.classList.add("celebrating");
-  const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
-  const colors=grand?["#ffe395","#fff4ce","#eabb57","#ffffff","#f4ce75","#ffca70"]:["#ffe395","#e2d7ff","#ffabc9","#b3f0e7","#ffffff","#ffca70"];
-  if(confetti)confetti.innerHTML=Array.from({length:grand?200:120},(_,i)=>`<i style="--x:${(i*37)%100}%;--c:${colors[i%6]};--s:${5+i%7}px;--t:${3.8+(i%9)*.12}s;--d:${Math.floor(i/40)*.7+(i%8)*.07}s;--drift:${(i%2?1:-1)*(25+i%65)}px;--r:${(i%2?1:-1)*(400+i*13)}deg"></i>`).join("")+Array.from({length:grand?14:8},(_,i)=>`<b class="raffle-burst" style="--x:${12+(i*29)%76}%;--y:${14+(i*19)%60}%;--c:${colors[i%6]};--d:${.12+i*.24}s"></b>`).join("");
-  const foot=document.getElementById("raffleLiveFoot");
-  if(foot)foot.textContent=rafflePreviewMode?"화면 미리보기입니다 · 실제 당첨이 아닙니다":"축하합니다! 현장에서 경품을 받아주세요.";
-}
 function openRaffleOverlay(forceWaiting=false){
   if(raffleBatchStop){raffleBatchStop();raffleBatchStop=null;}
   const overlay=document.getElementById("raffleLiveOverlay");
@@ -4176,66 +4158,9 @@ function openRaffleOverlay(forceWaiting=false){
     if(foot)foot.textContent=live.winner?"최근 당첨 결과입니다.":(raffleEventStarted()?"현장 추첨이 시작되면 이 화면이 자동으로 바뀝니다.":"여러 경품의 추첨 결과가 행사 당일 여기에 표시됩니다.");
     return;
   }
-  const candidates=Array.isArray(live.candidates)?live.candidates.filter(person=>person.name!==live.winner.name||Number(person.generation)!==Number(live.winner.generation)):[];
-  const revealAt=Number(live.revealAt||0);
-  let lastSpinAt=0, lastPersonKey="",lastCount=0;
+  // One-winner draws use the same screen and effects as grouped draws, timed from revealAt.
+  raffleBatchStop=HanjogoBatch.mount(document,()=>publicRaffleCenter.live||live);
   raffleDrumAt=0;raffleStopSound();rafflePlayScore(live);
-  const spin=()=>{
-    const remaining=revealAt-Date.now();
-    if(remaining<=0){showRaffleWinner(live);return;}
-    if(remaining<=2600&&remaining>1200&&Date.now()-raffleDrumAt>110){raffleDrumAt=Date.now();rafflePercussion("snare",.17);}
-    if(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")&&remaining>6000&&remaining<=8000){
-      if(!name.classList.contains("pre-generation")){
-        name.getAnimations?.().forEach(a=>a.cancel());name.replaceChildren();
-        name.classList.remove("countdown","spinning");name.classList.add("pre-generation");
-        name.textContent="잠시 후…";
-      }
-      document.getElementById("raffleLivePanel")?.classList.add("suspense");
-      if(foot)foot.textContent="행운의 기수는…";
-      return;
-    }
-    if(remaining<=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?6000:4000)){
-      if(remaining>180&&Date.now()-raffleDrumAt>Math.max(32,35+remaining*.055)){raffleDrumAt=Date.now();raffleDrum();}
-      document.getElementById("raffleLivePanel")?.classList.add("suspense");
-      const staged=true;
-      if(staged){
-        if(!name.classList.contains("generation-reveal")){
-          name.getAnimations?.().forEach(a=>a.cancel());
-          name.replaceChildren();
-          name.classList.remove("countdown","spinning");
-          name.classList.remove("pre-generation");name.classList.add("generation-reveal");
-          const label=document.createElement("span");label.className="raffle-generation-label";label.textContent="당첨자의 기수는";
-          const value=document.createElement("strong");value.className="raffle-generation-value";value.textContent=live.winner.generation+"기";
-          name.append(label,value);
-        }
-        if(foot)foot.textContent="잠시 후 이름을 공개합니다…";
-        return;
-      }
-
-      if(foot)foot.textContent=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?"오늘의 주인공은…":"과연, 행운의 주인공은…";
-      return;
-    }
-    const rollWindow=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?13000:6000;
-    if(remaining>rollWindow){
-      name.classList.add("countdown");name.classList.remove("spinning");
-      name.textContent=Math.min(5,Math.ceil((remaining-rollWindow)/1000));
-      if(Number(name.textContent)!==lastCount){lastCount=Number(name.textContent);raffleTone(523,.14,0,.075,"triangle");raffleTone(1047,.09,0,.025);}
-      if(foot)foot.textContent="잠시 후 당첨자를 공개합니다";
-    }else{
-      name.classList.remove("countdown");name.classList.add("spinning");
-      const pace=160+Math.pow(1-remaining/rollWindow,2)*300;
-      if(Date.now()-lastSpinAt<pace)return;
-      lastSpinAt=Date.now();
-      let person=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
-      if(person&&candidates.length>1&&person.name+"|"+person.generation===lastPersonKey)person=candidates[(candidates.indexOf(person)+1)%candidates.length];
-      if(person){lastPersonKey=person.name+"|"+person.generation;setRafflePerson(name,person,true,Math.min(pace*.85,320));raffleTone(659+(Math.floor(remaining/400)%3)*125,.1,0,.085,"triangle");raffleTone(1318,.065,.025,.025,"sine");}else name.textContent="두근두근…";
-      if(foot)foot.textContent="행운의 주인공은…";
-    }
-  };
-  if(revealAt>Date.now()){
-    spin();raffleAnimationTimer=setInterval(spin,30);
-    raffleRevealTimer=setTimeout(()=>showRaffleWinner(live),Math.max(0,revealAt-Date.now()));
-  }else showRaffleWinner(live);
 }
 function raffleEventStarted(){
   return raffleEventDate()>="2026-10-18";

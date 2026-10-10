@@ -1151,8 +1151,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
-  <script src="./assets/raffle-batch.js?v=20261011-fx2"></script>
-  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261011-fx2">
+  <script src="./assets/raffle-batch.js?v=20261011-fx3"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261011-fx3">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -3991,12 +3991,13 @@ function setupRaffleSound(){
 function showRaffleTestPreview(winner,pool){
   const frame=document.getElementById("raffleTestPreview");
   if(!frame)return;
-  raffleBatchTestLive=null;frame.removeAttribute('src');renderBatchControls(false);
+  raffleBatchTestLive=null;frame.removeAttribute('src');frame.removeAttribute('srcdoc');renderBatchControls(false);
   const prize=document.getElementById("rafflePrizeName")?.value.trim()||"경품 추첨";
   const candidates=raffleAnimationCandidates(pool,winner);
-  const payload=JSON.stringify({winner,prize,candidates}).replace(/</g,"\\u003c");
-  frame.srcdoc=RAFFLE_TEST_TEMPLATE.replace("__PAYLOAD__",()=>payload);
-  frame.hidden=false;
+  // Same screen as the public page: one-winner draws reveal at 11s (갤럭시탭 18s).
+  const now=Date.now();
+  raffleSingleTestLive={status:"drawing",drawId:"test-"+now,prize,poolLabel:"내부 테스트 추첨 · 실제 당첨 아님",winner,candidates,startedAt:now,revealAt:now+(HanjogoBatch.isGrand({prize})?18000:11000)};
+  sendBatchFrame(frame,raffleSingleTestLive,true);
   frame.scrollIntoView?.({behavior:"smooth",block:"center"});
 }
 
@@ -4010,18 +4011,18 @@ function secureRandomIndex(length){
 }
 
 let privateRafflePlan=[];
-let raffleBatchPreview=null,raffleBatchTestLive=null,raffleBatchControlBusy=false;
+let raffleBatchPreview=null,raffleBatchTestLive=null,raffleSingleTestLive=null,raffleBatchControlBusy=false;
 function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':2,'event-prize-5':5};return plan&&plan.winners===totals[plan.id]?Math.max(1,plan.winners-plan.draw_ids.length):1;}
 function sendBatchFrame(frame,live,test){
   if(!frame)return;
   frame.hidden=false;
-  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261011-fx2';
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261011-fx3';
   frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
 }
 window.addEventListener('message',event=>{
   if(event.data?.type!=='raffle-batch-ready')return;
   const test=document.getElementById('raffleTestPreview'),actual=document.getElementById('raffleBatchLivePreview');
-  if(event.source===test?.contentWindow&&raffleBatchTestLive)sendBatchFrame(test,raffleBatchTestLive,true);
+  if(event.source===test?.contentWindow&&(raffleBatchTestLive||raffleSingleTestLive))sendBatchFrame(test,raffleBatchTestLive||raffleSingleTestLive,true);
   if(event.source===actual?.contentWindow&&state.raffleCenter.live?.batch)sendBatchFrame(actual,state.raffleCenter.live,false);
 });
 function renderBatchControls(test=false){
@@ -4212,7 +4213,7 @@ document.getElementById("raffleSyncBtn")?.addEventListener("click",async()=>{
 });
 document.getElementById("raffleTestResetBtn")?.addEventListener("click",()=>{
   if(raffleActionBusy)return;
-  raffleBatchTestLive=null;document.getElementById('raffleTestPreview').removeAttribute('src');renderBatchControls(false);
+  raffleBatchTestLive=null;raffleSingleTestLive=null;document.getElementById('raffleTestPreview').removeAttribute('src');renderBatchControls(false);
   raffleTestWinnerKeys=[];saveRaffleTestKeys();
   document.getElementById("raffleTestResult").textContent="테스트 기록을 초기화했습니다. 실제 당첨 기록은 유지됩니다.";
   document.getElementById("raffleTestPreview").hidden=true;
@@ -4230,11 +4231,11 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
     if(count>1){
       const {data,error}=await sbAdmin.rpc('perform_raffle_batch',{p_plan_id:plan.id,p_previous_draw_id:'',p_test:true,p_test_keys:raffleTestWinnerKeys});
       if(error)throw error;
-      const now=Date.now();raffleBatchTestLive={...data.live,candidates:confirmedRaffleEntries().map(person=>({name:person.name,generation:person.generation})),startedAt:now,batch:{elapsed:0,anchor:now,paused:false,version:0}};
+      const now=Date.now();raffleSingleTestLive=null;raffleBatchTestLive={...data.live,candidates:confirmedRaffleEntries().map(person=>({name:person.name,generation:person.generation})),startedAt:now,batch:{elapsed:0,anchor:now,paused:false,version:0}};
       raffleTestWinnerKeys.push(...raffleBatchTestLive.winners.map(HanjogoRaffle.key));saveRaffleTestKeys();
       const frame=document.getElementById('raffleTestPreview');frame.removeAttribute('srcdoc');
       sendBatchFrame(frame,raffleBatchTestLive,true);renderBatchControls(true);
-      result.textContent='[테스트] '+count+'명 · 예고 3초 → 기수 5초 → 이름 7초 · 실제 기록 없음';return;
+      result.textContent='[테스트] '+count+'명 · 예고 3초 → 기수·이름 7초 → 축하 7초 · 실제 기록 없음';return;
     }
     const {data,error}=await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:"",p_plan_id:"",p_previous_draw_id:"",p_test:true,p_test_keys:raffleTestWinnerKeys});
     if(error)throw error;
@@ -4275,7 +4276,7 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
     :await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:prize,p_plan_id:selectedPlanId||"",p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]});
   if(error)throw error;
   state.raffleCenter=data.center;
-  raffleBatchTestLive=null;
+  raffleBatchTestLive=null;raffleSingleTestLive=null;
   const preview=document.getElementById('raffleTestPreview');preview.hidden=true;preview.removeAttribute('src');preview.srcdoc='';
   if(selectedPlanId)await loadPrivateRafflePlan();
   renderRaffleCenter();
@@ -6640,7 +6641,8 @@ checkInitialPasswordState();
     if(live?.batch?.paused){serial++;audio.pause();return;}
     const key=live?.drawId+'|'+live?.batch?.version;
     if(key===audio.dataset.batchKey)return;audio.dataset.batchKey=key;
-    if(enabled&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length,HanjogoBatch.isGrand(live)),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
+    if(enabled&&!live?.batch){if(HanjogoBatch.elapsed(live)<(HanjogoBatch.isGrand(live)?25000:18000))play(HanjogoBatch.single(HanjogoBatch.isGrand(live)),"추첨 소리 재생 중",HanjogoBatch.elapsed(live)/1000);}
+    else if(enabled&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length,HanjogoBatch.isGrand(live)),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
     return;
   }
   if(event.data.action==="start"&&enabled)play(HanjogoBatch.single(!!event.data.grand),"추첨 소리 재생 중");

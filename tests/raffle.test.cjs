@@ -56,7 +56,8 @@ const serverDraw=async(name,args)=>{
 const context=vm.createContext({sessionStorage:{getItem:k=>testStorage.get(k)||null,setItem:(k,v)=>testStorage.set(k,v)},state:structuredClone({...current,editMode:true}),DEFAULT_RAFFLE_CENTER:{history:[],storyEntries:[],live:{status:'idle'}},HanjogoRaffle:R,crypto:require('node:crypto').webcrypto,document:{getElementById:node,querySelectorAll:()=>operating.map(x=>({children:[{textContent:x.name},{textContent:x.generation+'기'}]}))},escapeHtml:x=>String(x??''),applyEditLock(){},uid:()=>String(Math.random()),setTimeout(){},DASHBOARD_TABLE:'dashboard_state',DASHBOARD_ID:'main',dSet:async()=>{writes++},sb:{from:()=>({select:()=>({eq:()=>({single:async()=>fail?{error:Error('offline')}:{data:structuredClone(current)}})})})},sbAdmin:{auth:{onAuthStateChange(){}},rpc:serverDraw,from:()=>({select:()=>({order:()=>({order:async()=>({data:[]})})})})}});
 context.window={addEventListener(){}};
 context.HanjogoBatch=require('../assets/raffle-batch.js');
-for(const id of ['raffleBatchControls','raffleTestPreview']){node(id).dataset={};node(id).removeAttribute=()=>{};}
+const posted=[];
+for(const id of ['raffleBatchControls','raffleTestPreview']){node(id).dataset={};node(id).removeAttribute=()=>{};node(id).getAttribute=k=>node(id)[k];node(id).contentWindow={postMessage:m=>posted.push(m)};}
 vm.runInContext(html.slice(html.indexOf('function raffleGeneration('),html.indexOf('document.getElementById("raffleResetDisplayBtn")')),context);
 (async()=>{
   // 테스트 추첨: 서버에 p_test로 요청, 실제 기록·저장 없음, 앞선 테스트 당첨자는 다음 요청에 제외 목록으로 전달.
@@ -65,7 +66,8 @@ vm.runInContext(html.slice(html.indexOf('function raffleGeneration('),html.index
   assert.equal(writes,0);assert.equal(JSON.stringify(context.state.raffleCenter.history),initialHistory);
   assert(node('raffleTestResult').textContent.includes('[테스트 결과]'));
   const firstKeys=JSON.parse(testStorage.get('hanjogo-raffle-test-v1'));assert.equal(firstKeys.length,1);
-  assert(node('raffleTestPreview').srcdoc.includes(firstKeys[0].split('|')[0]));assert.equal(node('raffleTestPreview').hidden,false);
+  // 한 명 테스트도 일괄 추첨과 같은 화면(raffle-batch-preview.html)에 보냅니다.
+  assert(node('raffleTestPreview').src.startsWith('raffle-batch-preview.html'));assert.equal(posted.at(-1).live.winner.name,firstKeys[0].split('|')[0]);assert.equal(posted.at(-1).test,true);assert.equal(node('raffleTestPreview').hidden,false);
   await handlers.get('raffleTestBtn:click')();
   assert.deepEqual(rpcCalls[1].args.p_test_keys,firstKeys);
   const secondKeys=JSON.parse(testStorage.get('hanjogo-raffle-test-v1'));assert.equal(secondKeys.length,2);assert.notEqual(secondKeys[0],secondKeys[1]);

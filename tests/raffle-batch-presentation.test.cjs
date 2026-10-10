@@ -20,7 +20,7 @@ try{
  now=13000;tick();assert(current.className.includes('generation-reveal'));assert.match(current.children[1].textContent,/^\d+기$/);assert.notEqual(current.children[1].textContent,'2기');
  now=13000+B.SLOT_END+50;tick();assert.equal(current.children[1].textContent,'2기');assert(current.children[1].className.includes('slot-landed'));
  now=13000+B.ROULETTE_START+50;tick();assert.equal(current.children[2].hidden,false);assert.equal(current.children[2].textContent,'? ? ?');
- now=18000;tick();assert(current.className.includes('winner'));assert.equal(current.children[0].textContent,'당첨자');assert.equal(current.children[1].textContent,'2기');assert.equal(nodes.raffleConfetti.children.length,120);
+ now=20000;tick();assert(current.className.includes('winner'));assert.equal(current.children[0].textContent,'당첨자');assert.equal(current.children[1].textContent,'2기');assert.equal(nodes.raffleConfetti.children.length,120);
  assert.equal(stage.children[2].children.length,1);stop();assert.equal(nodes.raffleLiveName.hidden,false);
 }finally{Date.now=realNow;global.setInterval=realInterval;global.clearInterval=realClear;}
 const roster={drawId:'d1',winners:[{name:'가',generation:3}],candidates:[{name:'가',generation:3},{name:'나',generation:3},{name:'다',generation:3},{name:'라',generation:4}]};
@@ -29,4 +29,5 @@ assert(!B.slotValues(roster,0).includes(3));assert.deepEqual(B.slotValues(roster
 assert(B.SLOT_TICKS.every((t,i)=>!i||t>B.SLOT_TICKS[i-1])&&B.SLOT_TICKS.at(-1)<B.SLOT_END);
 assert(B.ROULETTE_TICKS[0]===B.ROULETTE_START&&B.ROULETTE_TICKS.at(-1)<B.GENERATION);
 assert(B.isGrand({prize:'삼성 갤럭시탭 S10'})&&!B.isGrand({prize:'위스키'}));
+assert.match(B.single(true),/^blob:/);
 console.log('PASS: original presentation CSS, matching card states, name/generation, slot/roulette, confetti and story pool selection');

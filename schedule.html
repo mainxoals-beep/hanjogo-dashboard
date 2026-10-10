@@ -842,9 +842,9 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 }
 .myinfo-settings-icon{display:inline-block;font-size:1.1em;line-height:1;vertical-align:-.05em}.myinfo-account{display:grid;gap:6px;margin:12px 0}.myinfo-account #myInfoCurrentEmail{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}.myinfo-account small{font-size:11px;color:var(--sub)}
 </style>
-<script src="assets/raffle-batch.js?v=20261011-fx1"></script>
-<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx1">
-<link rel="stylesheet" href="assets/raffle-batch.css?v=20261011-fx1">
+<script src="assets/raffle-batch.js?v=20261011-fx2"></script>
+<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx2">
+<link rel="stylesheet" href="assets/raffle-batch.css?v=20261011-fx2">
 </head>
 <body>
 <div class="wrap">
@@ -4067,38 +4067,7 @@ const rafflePlayer=document.createElement("audio");rafflePlayer.preload="auto";r
   return URL.createObjectURL(new Blob([bytes],{type:"audio/wav"}));
  }
  const check=wave(1.2,[[0,523,.3,.45],[.3,659,.3,.45],[.6,784,.5,.45]]);
- function track(grand,pause=grand?6:4){
-  const reveal=grand?18:11,shift=reveal-11;
-  const notes=[],add=(at,f,d,v,k)=>notes.push([at,f,d,v,k]);
-  for(let i=0;i<5;i++){add(i,523,.2,.32);add(i,1047,.12,.12);add(i,62,.2,.3,"drum");}
-  const stop=reveal-pause,pattern=[523,659,784,988,880,784,659,587];
-  let step=0;
-  for(let at=5;at<(grand?stop-2:stop);at+=.17+(at-5)*.055){
-   const f=pattern[step%8];add(at,f,.15,.3);add(at+.08,f*2,.12,.09);
-   add(at,step%2?155:65,.12,.25,step%2?"snare":"drum");step++;
-  }
-  [131,196,262].forEach(f=>add(5,f,reveal-5.3,.09,"pad"));
-  const rollStart=stop-(grand?2.3:.3);
-  add(rollStart,180,reveal-.2-rollStart,.18,"rise");
-  let roll=0;
-  for(let at=rollStart;at<reveal-.18;at+=Math.max(.028,.12-(at-rollStart)*.045)){
-   const progress=(at-rollStart)/(reveal-.18-rollStart);
-   add(at,roll%2?190:155,.095,.22+progress*.19,"snare");
-   if(roll%3===0)add(at,roll%2?100:135,.17,.32,"tom");roll++;
-  }
-  add(reveal,55,.5,.55,"drum");add(reveal,320,1.8,.28,"cymbal");
-  const chords=[[262,330,392],[220,262,330],[175,220,262],[196,247,294],[262,330,392]];
-  chords.forEach((ch,i)=>ch.forEach(f=>{add(reveal+i*.46,f,.72,.115,"brass");add(reveal+i*.46,f/2,.55,.07,"pad");}));
-  const melody=grand?[523,659,784,1047,988,1175,1319,1568,1319,1568,2093]:[523,659,784,1047,988,880,784,1047];
-  melody.forEach((f,i)=>{add(reveal+i*.2,f,.4,.29,"brass");add(reveal+i*.2+.13,f,.36,.07);});
-  const end=13.35+shift;
-  [131,262,523,659,784,1047].forEach(f=>add(end,f,grand?2.2:1.6,.11,"pad"));
-  for(let i=0;i<(grand?12:6);i++)add(end+i*.1,[1047,1319,1568,2093][i%4],.6,.13);
-  if(grand){add(end,320,2,.27,"cymbal");add(end,60,.5,.4,"drum");}
-  return wave(17+shift,notes);
- }
 
-const raffleScores={normal:track(false),grand:track(true),spirits:track(false)};
 function raffleStopSound(){rafflePlayer.pause();}
 function raffleTone(){} function raffleDrum(){} function rafflePercussion(){} function raffleFanfare(){}
 function raffleUpdateSoundButton(){const b=document.getElementById("raffleSoundToggle");if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}}
@@ -4111,7 +4080,7 @@ function rafflePlayScore(live){
  }
  const elapsed=Math.max(0,(Date.now()-(Number(live.startedAt||Number(live.revealAt)-11000)))/1000);if(elapsed>=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?24:17))return;
  const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");
- rafflePlayer.src=grand?raffleScores.grand:/위스키|브라클라|데킬라|테킬라|패트론|페트론|whisk(?:y|ey)|brackla|tequila|patr[oó]n/i.test(live.prize||"")?raffleScores.spirits:raffleScores.normal;rafflePlayer.currentTime=elapsed;
+ rafflePlayer.src=HanjogoBatch.single(grand);rafflePlayer.currentTime=elapsed;
  rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});
 }
 function setupRaffleSound(){

@@ -1,8 +1,8 @@
 (function(root){
   'use strict';
-  const INTRO=9000, TRANSITION=3000, GENERATION=5000, HOLD=7000, STEP=TRANSITION+GENERATION+HOLD;
+  const INTRO=9000, TRANSITION=3000, GENERATION=7000, HOLD=7000, STEP=TRANSITION+GENERATION+HOLD;
   // Inside the generation phase: the 기수 slot lands at SLOT_END, then same-기수 names roll until the reveal.
-  const SLOT_END=1800, ROULETTE_START=2100;
+  const SLOT_END=2500, ROULETTE_START=3300;
   function slowing(start,end,first,grow){
     let count=1,sum=first;
     while(sum+first*Math.pow(grow,count)<=end-start){sum+=first*Math.pow(grow,count);count++;}
@@ -10,7 +10,7 @@
     for(let i=0;i<count;i++){out.push(Math.round(at));at+=first*Math.pow(grow,i)*scale;}
     return out;
   }
-  const SLOT_TICKS=slowing(0,SLOT_END,40,1.13),ROULETTE_TICKS=slowing(ROULETTE_START,GENERATION,60,1.12);
+  const SLOT_TICKS=slowing(0,SLOT_END,45,1.12),ROULETTE_TICKS=slowing(ROULETTE_START,GENERATION,75,1.11);
   const duration=count=>INTRO+STEP*count;
   const isGrand=live=>/갤럭시\s*탭|Galaxy\s*Tab/i.test(live?.prize||'');
   function elapsed(live,now=Date.now()){
@@ -269,6 +269,30 @@
     }
     for(let i=0;i<(grand?18:10);i++)x.bell(hold+.15+i*.12,[4,5,6,8,10,12][i%6]*r,.35,.08);
   }
+  function countdown(x){
+    for(let s=0;s<5;s++){x.beep(s,s<4?880:1318.5,s<4?.16:.4,s<4?.28:.36);x.kick(s,.55+s*.08);if(s<4)x.click(s+.5,1200,.22);}
+    x.pad(0,110,5,.22);x.pad(0,220,5,.12);x.riser(3,1.92,.38);
+    x.kick(5,1);x.crash(5,.65);[1,1.25,1.5,2].forEach(m=>x.brass(5,261.63*m,.3,.12));
+  }
+  function groove(x,from,to){
+    for(let s=from;s<to-.65;s+=.25){
+      const beat=Math.round((s-from)/.25);x.hat(s,.22);x.bass(s,beat%4<2?110:130.81,.22);
+      if(beat%2===0)x.kick(s,.6);if(beat%4===2)x.snare(s,.42);
+    }
+    for(let s=to-.8;s<to-.15;s+=.05)x.snare(s,.15+(s-to+.8)*.6);
+  }
+  // Snare roll, riser and tom fill that end just before the reveal at R, then the fanfare and the crowd.
+  function climax(x,from,R,root,grand){
+    const rollEnd=R-.8;
+    for(let s=from,u;s<rollEnd;s+=Math.max(.034,.12-u*.09)){
+      u=(s-from)/(rollEnd-from);x.snare(s,.12+u*.4+(grand?.1:0));if(grand&&Math.round(s*20)%3===0)x.tom(s,90+u*40,.25);
+    }
+    [220,180,150,120].forEach((f,i)=>x.tom(R-.75+i*.15,f*(grand?.85:1),.55+i*.07));
+    x.riser(R-(grand?3.2:2.4),(grand?3.2:2.4)-.15,grand?.55:.42);
+    fanfare(x,R,root,grand);
+    x.applause(R+.12,grand?6.5:4.6,grand?.6:.48,grand?1.6:1);
+    [.6,1.7].concat(grand?[1.1,2.5,3.4]:[]).forEach(o=>x.whistle(R+o,.12));
+  }
   function winnerSegment(root,grand,seed){
     const T=TRANSITION/1000,G=T,R=T+GENERATION/1000;
     return render(STEP/1000+3,x=>{
@@ -281,28 +305,13 @@
       x.bell(land,1568,.5,.35,1.4);x.bell(land,2093,.45,.2,1.4);x.kick(land,.7);x.crash(land,.25,.6);
       [1,1.25,1.5].forEach(m=>x.brass(land,root*2*m,.14,.1));
       ROULETTE_TICKS.forEach(ms=>{x.click(G+ms/1000,1100,.5);x.hat(G+ms/1000,.25);});
-      const rollEnd=R-.8;
-      for(let s=G+ROULETTE_START/1000,u;s<rollEnd;s+=Math.max(.034,.12-u*.09)){
-        u=(s-G)/(rollEnd-G);x.snare(s,.12+u*.4+(grand?.1:0));if(grand&&Math.round(s*20)%3===0)x.tom(s,90+u*40,.25);
-      }
-      [220,180,150,120].forEach((f,i)=>x.tom(R-.75+i*.15,f*(grand?.85:1),.55+i*.07));
-      x.riser(R-(grand?3.2:2.4),(grand?3.2:2.4)-.15,grand?.55:.42);
-      fanfare(x,R,root,grand);
-      x.applause(R+.12,grand?6.5:4.6,grand?.6:.48,grand?1.6:1);
-      [.6,1.7].concat(grand?[1.1,2.5,3.4]:[]).forEach(o=>x.whistle(R+o,.12));
+      climax(x,G+ROULETTE_START/1000,R,root,grand);
     },seed);
   }
   const PARTS={
     intro:()=>render(INTRO/1000+3,x=>{
-      for(let s=0;s<5;s++){x.beep(s,s<4?880:1318.5,s<4?.16:.4,s<4?.28:.36);x.kick(s,.55+s*.08);if(s<4)x.click(s+.5,1200,.22);}
-      x.pad(0,110,5,.22);x.pad(0,220,5,.12);x.riser(3,1.92,.38);
-      x.kick(5,1);x.crash(5,.65);[1,1.25,1.5,2].forEach(m=>x.brass(5,261.63*m,.3,.12));
+      countdown(x);groove(x,5,INTRO/1000);
       for(let k=Math.ceil(5/.22);k*.22<INTRO/1000-.15;k++)x.click(k*.22,1600,.3);
-      for(let s=5;s<8.2;s+=.25){
-        const beat=Math.round((s-5)/.25);x.hat(s,.22);x.bass(s,beat%4<2?110:130.81,.22);
-        if(beat%2===0)x.kick(s,.6);if(beat%4===2)x.snare(s,.42);
-      }
-      for(let s=8.2;s<8.85;s+=.05)x.snare(s,.15+(s-8.2)*.6);
     },11),
     a:()=>winnerSegment(261.63,false,31),
     b:()=>winnerSegment(293.66,false,47),
@@ -315,19 +324,13 @@
   const part=name=>parts.get(name)||(parts.set(name,PARTS[name]()),parts.get(name));
   // Renders the shared pieces one at a time while the page is idle, so starting the draw does not stall phones.
   function prepare(grand=false){
-    const queue=['intro',...(grand?['grand']:['a','b']),'finale'].filter(name=>!parts.has(name));
-    const next=()=>{const name=queue.shift();if(!name)return;part(name);setTimeout(next,60);};
+    const queue=['intro',...(grand?['grand']:['a','b']),'finale'].filter(name=>!parts.has(name)).map(name=>()=>part(name));
+    if(!scores.has('single|'+(grand?1:0)))queue.push(()=>single(grand));
+    const next=()=>{const job=queue.shift();if(!job)return;job();setTimeout(next,60);};
     if(queue.length)setTimeout(next,0);
   }
-  function score(count,grand=false){
-    const key=count+'|'+(grand?1:0);
-    if(scores.has(key))return scores.get(key);
-    const end=duration(count)/1000,length=Math.ceil((end+9)*RATE),samples=new Float32Array(length);
-    const mix=(segment,at)=>{const first=Math.round(at*RATE);for(let i=0;i<segment.length&&first+i<length;i++)samples[first+i]+=segment[i];};
-    mix(part('intro'),0);
-    const segments=grand?[part('grand')]:[part('a'),part('b')];
-    for(let i=0;i<count;i++)mix(segments[i%segments.length],(INTRO+i*STEP)/1000);
-    mix(part('finale'),end);
+  function wav(samples){
+    const length=samples.length;
     let peak=0;for(let i=0;i<length;i++)peak=Math.max(peak,Math.abs(samples[i]));
     const gain=Math.min(3,1.6/(peak||1)),bytes=new ArrayBuffer(44+length*2),view=new DataView(bytes);
     function word(at,str){for(let i=0;i<str.length;i++)view.setUint8(at+i,str.charCodeAt(i));}
@@ -338,8 +341,35 @@
     const pcm=new Int16Array(bytes,44,length);
     for(let i=0;i<length;i++){const x=Math.max(-3,Math.min(3,samples[i]*gain));pcm[i]=x*(27+x*x)/(27+9*x*x)*30800;}
     const blob=new Blob([bytes],{type:'audio/wav'}),url=typeof URL!=='undefined'&&URL.createObjectURL?URL.createObjectURL(blob):blob;
+    return url;
+  }
+  // One-winner draws (갤럭시탭 included): countdown 0-5s, names roll, 기수 shown, name at 11s (grand 18s).
+  function single(grand=false){
+    const key='single|'+(grand?1:0);
+    if(scores.has(key))return scores.get(key);
+    const R=grand?18:11,shown=grand?12:7;
+    const samples=render(R+8,x=>{
+      countdown(x);groove(x,5,grand?10:shown);
+      if(grand){[10,11].forEach(s=>x.heart(s,1));[11.5,11.75].forEach(s=>x.heart(s,.6));x.pad(10,110,2,.28);x.pad(10,164.81,2,.18);}
+      x.bell(shown,1568,.5,.35,1.4);x.bell(shown,2093,.45,.2,1.4);x.kick(shown,.7);x.crash(shown,.25,.6);
+      x.pad(shown,116.54,R-shown-.15,.28);x.pad(shown,174.61,R-shown-.15,.2);
+      if(grand)[12.5,13.5].forEach(s=>x.heart(s,.8));
+      climax(x,shown+(grand?2.2:.4),R,261.63,grand);
+    },grand?71:67);
+    const url=wav(samples);scores.set(key,url);return url;
+  }
+  function score(count,grand=false){
+    const key=count+'|'+(grand?1:0);
+    if(scores.has(key))return scores.get(key);
+    const end=duration(count)/1000,length=Math.ceil((end+9)*RATE),samples=new Float32Array(length);
+    const mix=(segment,at)=>{const first=Math.round(at*RATE);for(let i=0;i<segment.length&&first+i<length;i++)samples[first+i]+=segment[i];};
+    mix(part('intro'),0);
+    const segments=grand?[part('grand')]:[part('a'),part('b')];
+    for(let i=0;i<count;i++)mix(segments[i%segments.length],(INTRO+i*STEP)/1000);
+    mix(part('finale'),end);
+    const url=wav(samples);
     scores.set(key,url);return url;
   }
-  root.HanjogoBatch={INTRO,TRANSITION,GENERATION,HOLD,STEP,SLOT_END,ROULETTE_START,SLOT_TICKS,ROULETTE_TICKS,duration,elapsed,frame,control,spinPerson,slotValues,rouletteNames,isGrand,mount,prepare,score};
+  root.HanjogoBatch={INTRO,TRANSITION,GENERATION,HOLD,STEP,SLOT_END,ROULETTE_START,SLOT_TICKS,ROULETTE_TICKS,duration,elapsed,frame,control,spinPerson,slotValues,rouletteNames,isGrand,mount,prepare,score,single};
   if(typeof module!=='undefined')module.exports=root.HanjogoBatch;
 })(typeof window!=='undefined'?window:globalThis);

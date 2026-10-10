@@ -2,16 +2,16 @@ const assert=require('node:assert/strict');
 const B=require('../assets/raffle-batch.js');
 const people=Array.from({length:5},(_,i)=>({name:'테스트'+i,generation:i+2}));
 let live={drawId:'test',startedAt:1000,winners:people,batch:{elapsed:0,anchor:1000,paused:false,version:0}};
-assert.equal(B.duration(5),84000);assert.equal(B.duration(2),39000);
+assert.equal(B.duration(5),94000);assert.equal(B.duration(2),43000);
 for(let i=0;i<5;i++){
- const start=10000+i*15000;
+ const start=10000+i*17000;
  assert.equal(B.frame(live,start).phase,'transition');
  assert.equal(B.frame(live,start+3000).phase,'generation');
- assert.equal(B.frame(live,start+7999).revealed,i);
- assert.equal(B.frame(live,start+8000).phase,'name');
- assert.equal(B.frame(live,start+14999).revealed,i+1);
+ assert.equal(B.frame(live,start+9999).revealed,i);
+ assert.equal(B.frame(live,start+10000).phase,'name');
+ assert.equal(B.frame(live,start+16999).revealed,i+1);
 }
-assert.equal(B.frame(live,85000).phase,'complete');
+assert.equal(B.frame(live,95000).phase,'complete');
 live=B.control(live,'pause',11500);assert.equal(B.elapsed(live,100000),10500);
 live=B.control(live,'next',100000);assert.equal(B.frame(live,100000).phase,'generation');
 live=B.control(live,'next',100000);assert.equal(B.frame(live,100000).phase,'name');

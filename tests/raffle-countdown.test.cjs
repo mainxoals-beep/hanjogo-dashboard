@@ -4,6 +4,7 @@ const node=id=>{if(!nodes.has(id)){const classes=new Set();nodes.set(id,{textCon
 // 이름과 기수는 별도 span으로 그려집니다. 화면에 보이는 순서대로 ' · '로 이어 비교합니다.
 const shown=id=>node(id).children.length?node(id).children.map(c=>c.textContent).join(' · '):node(id).textContent;
 const ctx=vm.createContext({Date:{now:()=>now},Math,document:{getElementById:node,createElement:()=>({className:'',textContent:''})},rafflePreviewMode:false,raffleDrumAt:0,raffleStopSound(){},rafflePlayScore(){},raffleTone(){},raffleDrum(){},rafflePercussion(){},raffleFanfare(){},matchMedia:()=>({matches:true}),raffleAnimationTimer:null,raffleRevealTimer:null,publicRaffleCenter:{live:{status:'drawing',prize:'테스트 경품',winner:{name:'당첨예시',generation:2},candidates:[{name:'후보',generation:7}],revealAt:11000}},setInterval:f=>{tick=f;return 1},clearInterval(){},setTimeout:()=>2,clearTimeout(){}});
+ctx.raffleBatchStop=null;
 vm.runInContext(source.slice(source.indexOf('function closeRaffleOverlay('),source.indexOf('function raffleEventStarted(')),ctx);
 ctx.openRaffleOverlay();assert.equal(node('raffleLiveName').textContent,5);assert(!node('raffleLiveName').classList.contains('winner'));
 now=1000;tick();assert.equal(node('raffleLiveName').textContent,4);now=4999;tick();assert.equal(node('raffleLiveName').textContent,1);

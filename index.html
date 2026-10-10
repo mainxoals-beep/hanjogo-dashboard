@@ -1151,6 +1151,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
+  <script src="./assets/raffle-batch.js?v=20261010"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261010">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -1673,9 +1675,14 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
               <label class="raffle-field-label" for="rafflePoolSelect">추첨 대상</label>
               <select class="lockable" id="rafflePoolSelect"><option value="confirmed">전체 참가자</option><option value="story">인스타 스토리 참여자</option></select>
               <p style="margin:8px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</p>
-              <div class="raffle-live-action"><button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작</button><span>선택한 경품으로 1명 추첨 · 외부 화면에 실시간 송출</span></div>
+              <div class="raffle-live-action"><button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작</button><span id="raffleDrawHint">선택한 경품으로 추첨 · 외부 화면에 실시간 송출</span></div>
             </div>
             <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
+            <div class="raffle-batch-controls" id="raffleBatchControls" hidden>
+              <button type="button" id="raffleBatchPause">자동 공개 일시정지</button>
+              <button type="button" id="raffleBatchNext">다음 단계 공개</button>
+            </div>
+            <iframe id="raffleBatchLivePreview" title="실제 일괄 추첨 진행 화면" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:640px;border:0;border-radius:16px"></iframe>
             <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기 ↗</button>
           </div>
           <details class="raffle-admin-box raffle-disclosure raffle-rehearsal" id="raffleRehearsalPanel">
@@ -3984,6 +3991,7 @@ function setupRaffleSound(){
 function showRaffleTestPreview(winner,pool){
   const frame=document.getElementById("raffleTestPreview");
   if(!frame)return;
+  raffleBatchTestLive=null;frame.removeAttribute('src');renderBatchControls(false);
   const prize=document.getElementById("rafflePrizeName")?.value.trim()||"경품 추첨";
   const candidates=raffleAnimationCandidates(pool,winner);
   const payload=JSON.stringify({winner,prize,candidates}).replace(/</g,"\\u003c");
@@ -4002,6 +4010,48 @@ function secureRandomIndex(length){
 }
 
 let privateRafflePlan=[];
+let raffleBatchPreview=null,raffleBatchTestLive=null,raffleBatchControlBusy=false;
+function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':2,'event-prize-5':5};return plan&&plan.winners===totals[plan.id]?Math.max(1,plan.winners-plan.draw_ids.length):1;}
+function sendBatchFrame(frame,live,test){
+  if(!frame)return;
+  frame.hidden=false;
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261010';
+  frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
+}
+window.addEventListener('message',event=>{
+  if(event.data?.type!=='raffle-batch-ready')return;
+  const test=document.getElementById('raffleTestPreview'),actual=document.getElementById('raffleBatchLivePreview');
+  if(event.source===test?.contentWindow&&raffleBatchTestLive)sendBatchFrame(test,raffleBatchTestLive,true);
+  if(event.source===actual?.contentWindow&&state.raffleCenter.live?.batch)sendBatchFrame(actual,state.raffleCenter.live,false);
+});
+function renderBatchControls(test=false){
+  const live=test?raffleBatchTestLive:state.raffleCenter.live;
+  const active=!!live?.batch&&HanjogoBatch.frame(live).phase!=='complete';
+  const controls=document.getElementById('raffleBatchControls');controls.hidden=!active;
+  controls.dataset.test=String(test);
+  document.getElementById('raffleBatchPause').textContent=live?.batch?.paused?'자동 공개 재개':'자동 공개 일시정지';
+  if(active&&!test)sendBatchFrame(document.getElementById('raffleBatchLivePreview'),live,false);
+}
+async function controlBatch(action){
+  if(raffleBatchControlBusy)return;raffleBatchControlBusy=true;
+  try{
+    const test=document.getElementById('raffleBatchControls').dataset.test==='true';
+    const live=test?raffleBatchTestLive:state.raffleCenter.live;
+    if(!live?.batch)return;
+    if(action==='toggle')action=live.batch.paused?'resume':'pause';
+    if(test){raffleBatchTestLive=HanjogoBatch.control(live,action);sendBatchFrame(document.getElementById('raffleTestPreview'),raffleBatchTestLive,true);}
+    else{
+      if(!state.editMode)return;
+      const {data,error}=await sbAdmin.rpc('control_raffle_batch',{p_draw_id:live.drawId,p_version:live.batch.version,p_action:action});
+      if(error)throw error;state.raffleCenter=data.center;
+      sendBatchFrame(document.getElementById('raffleBatchLivePreview'),state.raffleCenter.live,false);
+    }
+    renderBatchControls(test);
+  }catch(e){await refreshRaffleSources().catch(()=>{});renderRaffleCenter();document.getElementById('raffleAdminStatus').textContent=e.message||'공개 상태를 확인해주세요.';}
+  finally{raffleBatchControlBusy=false;}
+}
+document.getElementById('raffleBatchPause').addEventListener('click',()=>controlBatch('toggle'));
+document.getElementById('raffleBatchNext').addEventListener('click',()=>controlBatch('next'));
 async function loadPrivateRafflePlan(){
   privateRafflePlan=[];
   const {data,error}=await sbAdmin.from("raffle_prize_plan").select("id,part,position,prize,winners,units_per_winner,finale,draw_ids").order("part").order("position");
@@ -4034,6 +4084,9 @@ function applyRafflePlanSelection(){
   input.readOnly=!!plan;
   if(plan)input.value=plan.prize;
   if(plan)document.getElementById("rafflePoolSelect").value=plan.id==="event-story-pending"?"story":"confirmed";
+  const count=raffleBatchCount(plan);
+  document.getElementById('raffleDrawBtn').textContent=count>1?count+'명 일괄 추첨 시작':'실제 추첨 시작';
+  document.getElementById('raffleDrawHint').textContent=count>1?'기수 3초 → 이름 3초 · 차례로 공개 · 외부 실시간 송출':'선택한 경품으로 1명 추첨 · 외부 실시간 송출';
 }
 document.getElementById("rafflePlanReload").addEventListener("click",loadPrivateRafflePlan);
 document.getElementById("rafflePlanLogin").addEventListener("click",()=>{
@@ -4121,6 +4174,8 @@ function renderRaffleCenter(){
   if(summary)summary.textContent=`통합 대상 ${confirmedRaffleEntries().length}명 · 스토리 참여 ${entries.length}명 · 추첨 ${history.length}회`;
   const status=document.getElementById("raffleAdminStatus");
   const live=center.live||{};
+  if(live.batch){if(!raffleBatchTestLive)renderBatchControls(false);sendBatchFrame(document.getElementById('raffleBatchLivePreview'),live,false);}
+  else{document.getElementById('raffleBatchLivePreview').hidden=true;if(!raffleBatchTestLive)document.getElementById('raffleBatchControls').hidden=true;}
   if(status){
     if(live.status==="drawing"&&Number(live.revealAt||0)>Date.now()) status.textContent=`${live.prize||"경품"} 추첨 중… 외부 화면에 표시되고 있습니다.`;
     else if(live.winner) status.textContent=`최근 당첨: ${live.winner.name} · ${live.winner.generation}기 (${live.prize||"경품"})`;
@@ -4157,6 +4212,7 @@ document.getElementById("raffleSyncBtn")?.addEventListener("click",async()=>{
 });
 document.getElementById("raffleTestResetBtn")?.addEventListener("click",()=>{
   if(raffleActionBusy)return;
+  raffleBatchTestLive=null;document.getElementById('raffleTestPreview').removeAttribute('src');renderBatchControls(false);
   raffleTestWinnerKeys=[];saveRaffleTestKeys();
   document.getElementById("raffleTestResult").textContent="테스트 기록을 초기화했습니다. 실제 당첨 기록은 유지됩니다.";
   document.getElementById("raffleTestPreview").hidden=true;
@@ -4169,6 +4225,17 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
     result.textContent="최신 명단 확인 후 테스트 추첨 중…";
     await refreshRaffleSources();
     const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
+    const plan=privateRafflePlan.find(r=>r.id===document.getElementById('rafflePlanSelect').value);
+    const count=raffleBatchCount(plan);
+    if(count>1){
+      const {data,error}=await sbAdmin.rpc('perform_raffle_batch',{p_plan_id:plan.id,p_previous_draw_id:'',p_test:true,p_test_keys:raffleTestWinnerKeys});
+      if(error)throw error;
+      const now=Date.now();raffleBatchTestLive={...data.live,startedAt:now,batch:{elapsed:0,anchor:now,paused:false,version:0}};
+      raffleTestWinnerKeys.push(...raffleBatchTestLive.winners.map(HanjogoRaffle.key));saveRaffleTestKeys();
+      const frame=document.getElementById('raffleTestPreview');frame.removeAttribute('srcdoc');
+      sendBatchFrame(frame,raffleBatchTestLive,true);renderBatchControls(true);
+      result.textContent='[테스트] '+count+'명 · 기수 3초 → 이름 3초 · 실제 기록 없음';return;
+    }
     const {data,error}=await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:"",p_plan_id:"",p_previous_draw_id:"",p_test:true,p_test_keys:raffleTestWinnerKeys});
     if(error)throw error;
     const winner=data?.winner;
@@ -4176,7 +4243,7 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
       raffleTestWinnerKeys.push(HanjogoRaffle.key(winner));saveRaffleTestKeys();showRaffleTestPreview(winner,pool);
       result.textContent=`[테스트 결과] ${raffleTestWinnerKeys.length}회차 · 아래 화면에서 당첨자를 공개합니다. 외부 송출·실제 기록 없음`;
     }else result.textContent="테스트 가능한 대상이 없습니다. 다시 연습하려면 테스트 기록을 초기화해주세요.";
-  }catch(e){result.textContent="최신 명단을 확인하지 못해 테스트를 중단했습니다. 다시 시도해주세요.";}
+  }catch(e){result.textContent="테스트를 시작하지 못했습니다. "+(e.message||'다시 시도해주세요.');}
   finally{raffleActionBusy=false;}
 });
 document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
@@ -4202,9 +4269,14 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
     if(status)status.textContent="현재 추첨이 진행 중입니다. 결과가 나온 뒤 다시 눌러주세요.";
     return;
   }
-  const {data,error}=await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:prize,p_plan_id:selectedPlanId||"",p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]});
+  const count=raffleBatchCount(privateRafflePlan.find(r=>r.id===selectedPlanId));
+  const {data,error}=count>1
+    ?await sbAdmin.rpc('perform_raffle_batch',{p_plan_id:selectedPlanId,p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]})
+    :await sbAdmin.rpc("perform_raffle",{p_pool:pool,p_prize:prize,p_plan_id:selectedPlanId||"",p_previous_draw_id:previousDrawId,p_test:false,p_test_keys:[]});
   if(error)throw error;
   state.raffleCenter=data.center;
+  raffleBatchTestLive=null;
+  const preview=document.getElementById('raffleTestPreview');preview.hidden=true;preview.removeAttribute('src');preview.srcdoc='';
   if(selectedPlanId)await loadPrivateRafflePlan();
   renderRaffleCenter();
   setTimeout(renderRaffleCenter,Math.max(0,Number(state.raffleCenter?.live?.revealAt||0)-Date.now())+200);
@@ -6577,18 +6649,31 @@ checkInitialPasswordState();
   return wave(17+shift,notes);
  }
  const normal=track(false),grand=track(true),spirits=track(false);
- async function play(url,label){
+ async function play(url,label,offset=0){
   const id=++serial;audio.pause();audio.src=url;
+  audio.currentTime=offset;
   try{await audio.play();if(id===serial)status.textContent=label;}
   catch(error){if(id===serial){status.textContent= "재생 실패: "+(error.name||"오류")+" · 새로고침 후 다시 눌러주세요.";enabled=false;button.textContent="소리 켜기";button.setAttribute("aria-pressed","false");}}
  }
  button.addEventListener("click",()=>{
   enabled=!enabled;button.textContent=enabled?"소리 끄기":"소리 켜기";button.setAttribute("aria-pressed",String(enabled));
-  if(enabled)play(check,"확인음 재생 중 · 휴대폰 미디어 음량을 확인해주세요.");
+  if(enabled){
+    const live=document.getElementById('raffleBatchControls')?.dataset.test==='true'?raffleBatchTestLive:state.raffleCenter.live;
+    if(live?.batch&&!live.batch.paused&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
+    else play(check,"확인음 재생 중 · 휴대폰 미디어 음량을 확인해주세요.");
+  }
   else{serial++;audio.pause();status.textContent="소리가 꺼졌습니다.";}
  });
  window.addEventListener("message",event=>{
-  const frame=document.getElementById("raffleTestPreview");if(!frame||event.source!==frame.contentWindow||event.data?.type!=="raffle-test-audio")return;
+  const frame=document.getElementById("raffleTestPreview"),actual=document.getElementById('raffleBatchLivePreview');if((event.source!==frame?.contentWindow&&event.source!==actual?.contentWindow)||event.data?.type!=="raffle-test-audio")return;
+  if(event.data.action==='batch'){
+    const live=event.data.live;
+    if(live?.batch?.paused){serial++;audio.pause();return;}
+    const key=live?.drawId+'|'+live?.batch?.version;
+    if(key===audio.dataset.batchKey)return;audio.dataset.batchKey=key;
+    if(enabled&&HanjogoBatch.frame(live).phase!=='complete')play(HanjogoBatch.score(live.winners.length),'일괄 추첨 드럼 재생 중',HanjogoBatch.elapsed(live)/1000);
+    return;
+  }
   if(event.data.action==="start"&&enabled)play(event.data.grand?grand:event.data.spirit?spirits:normal,"추첨 소리 재생 중");
  });
  document.getElementById("raffleTestResetBtn")?.addEventListener("click",()=>{serial++;audio.pause();});

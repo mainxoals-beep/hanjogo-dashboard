@@ -54,6 +54,9 @@ const serverDraw=async(name,args)=>{
   return {data:{center:{...current.raffleCenter,winnerKeys:[...taken,R.key(picked)],history:[...(current.raffleCenter.history||[]),{id:'draw-test',prize:args.p_prize,winner:picked}],live:{status:'drawing',drawId:'draw-test',prize:args.p_prize,winner:picked,revealAt:Date.now()+11000}}}};
 };
 const context=vm.createContext({sessionStorage:{getItem:k=>testStorage.get(k)||null,setItem:(k,v)=>testStorage.set(k,v)},state:structuredClone({...current,editMode:true}),DEFAULT_RAFFLE_CENTER:{history:[],storyEntries:[],live:{status:'idle'}},HanjogoRaffle:R,crypto:require('node:crypto').webcrypto,document:{getElementById:node,querySelectorAll:()=>operating.map(x=>({children:[{textContent:x.name},{textContent:x.generation+'기'}]}))},escapeHtml:x=>String(x??''),applyEditLock(){},uid:()=>String(Math.random()),setTimeout(){},DASHBOARD_TABLE:'dashboard_state',DASHBOARD_ID:'main',dSet:async()=>{writes++},sb:{from:()=>({select:()=>({eq:()=>({single:async()=>fail?{error:Error('offline')}:{data:structuredClone(current)}})})})},sbAdmin:{auth:{onAuthStateChange(){}},rpc:serverDraw,from:()=>({select:()=>({order:()=>({order:async()=>({data:[]})})})})}});
+context.window={addEventListener(){}};
+context.HanjogoBatch=require('../assets/raffle-batch.js');
+for(const id of ['raffleBatchControls','raffleTestPreview']){node(id).dataset={};node(id).removeAttribute=()=>{};}
 vm.runInContext(html.slice(html.indexOf('function raffleGeneration('),html.indexOf('document.getElementById("raffleResetDisplayBtn")')),context);
 (async()=>{
   // 테스트 추첨: 서버에 p_test로 요청, 실제 기록·저장 없음, 앞선 테스트 당첨자는 다음 요청에 제외 목록으로 전달.

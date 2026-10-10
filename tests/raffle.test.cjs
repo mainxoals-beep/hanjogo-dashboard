@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 require('../assets/raffle-roster.js');const R=globalThis.HanjogoRaffle;
-// 실제 당첨자 선택(준비위원 확률 절반, 준비위원 당첨 최대 2명, 1기 제외 등)은 서버 함수 raffle_private.draw가 합니다.
+// 실제 당첨자 선택 규칙은 서버 함수 raffle_private.draw가 처리하며 저장소에 적지 않습니다.
 // 이 테스트는 화면 쪽 명단 정리와, 화면이 서버 추첨을 올바르게 부르는지만 확인합니다.
 const sample={participantPayments:[{name:'가나다',generation:'2기',status:'paid'},{name:'가나다',generation:2,status:'paid'},{name:'위원가',generation:3,status:'exempt'},{name:'취소자',generation:4,status:'cancelled'}],committee:[{name:'위원가',gen:3}],donations:[{name:'가나다',generation:2},{name:'후원자',generation:5},{name:'취소자',generation:4}],sponsors:[{name:'브랜드 / 후원자(5기)'},{name:'개인 불명'}],raffleCenter:{storyEntries:[],history:[]}};
 
@@ -12,7 +12,7 @@ assert(!roster.entries.some(p=>p.name==='취소자'));
 assert.deepEqual(roster.entries.find(x=>x.name==='위원가').roles,['참가자','준비위원']);
 assert.deepEqual(roster.entries.find(x=>x.name==='후원자').roles,['후원','협찬']);
 assert.deepEqual(roster.entries.find(x=>x.name==='운영가').roles,['운영위원']);
-// 화면 명단은 준비위원 가중치를 계산하지 않습니다(서버가 처리).
+// 화면 명단은 당첨자 선택 규칙을 계산하지 않습니다(서버가 처리).
 assert(roster.entries.every(p=>p.weight===2));
 
 // 추첨권: weight 2는 2장, weight 1은 1장. 기수 인원이 많아도 사람별 장수는 그대로.
@@ -27,7 +27,7 @@ sample.raffleCenter.storyEntries=[{name:'위원가',generation:3},{name:'위원�
 // 이미 당첨된 사람은 기록을 지우거나 저장/불러오기를 해도 모든 추첨에서 빠집니다.
 const won={history:[{winner:{name:'위원가',generation:3}}],live:{},storyEntries:sample.raffleCenter.storyEntries};won.winnerKeys=R.winnerKeys(won);won.history=[];
 const restored=JSON.parse(JSON.stringify({...sample,raffleCenter:won}));assert.equal(R.pool(restored,[],'story').length,0);assert(!R.pool(restored,[],'confirmed').some(p=>p.name==='위원가'));
-// 같은 기수 다른 사람은 화면 명단에서 빠지지 않습니다(같은 기수 확률 조정은 서버가 처리).
+// 같은 기수 다른 사람은 화면 명단에서 빠지지 않습니다.
 restored.participantPayments.push({name:'같은기수',generation:3,status:'paid'});assert(R.pool(restored,[],'confirmed').some(p=>p.name==='같은기수'));
 // 모두 당첨되면 추첨 대상이 없습니다.
 restored.raffleCenter.winnerKeys=R.roster(restored,[]).entries.map(p=>R.key(p));

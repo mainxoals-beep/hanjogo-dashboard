@@ -28,8 +28,9 @@ create policy "daily news public read" on public.hanjogo_daily_news for select
   using (not hidden and news_date >= (now() at time zone 'Asia/Seoul')::date - 14);
 -- Editors (internal dashboard accounts) may hide an item or add a link by hand.
 drop policy if exists "daily news editor read" on public.hanjogo_daily_news;
+-- Editors see what visitors see (hidden items stay hidden for them too).
 create policy "daily news editor read" on public.hanjogo_daily_news for select to authenticated
-  using (public.is_hanjogo_dashboard_editor());
+  using (public.is_hanjogo_dashboard_editor() and not hidden);
 drop policy if exists "daily news editor hide" on public.hanjogo_daily_news;
 create policy "daily news editor hide" on public.hanjogo_daily_news for update to authenticated
   using (public.is_hanjogo_dashboard_editor()) with check (public.is_hanjogo_dashboard_editor());

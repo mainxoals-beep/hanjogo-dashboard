@@ -2458,6 +2458,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
     return true;
   }catch(e){
     console.error("동문 프로필 불러오기 실패",e);
+    networkProfilesFailed=true;renderHomeSpotlight();
     if(meta)meta.textContent="동문 프로필을 불러오지 못했습니다.";
     if(list)list.innerHTML='<div class="network-profile-empty">프로필을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</div>';
     return false;
@@ -2752,7 +2753,7 @@ function syncBoardAccess(){const ok=networkAccessState==="verified";const gate=d
 
 // ---- 오늘의 동문 · 우리 기수 ------------------------------------------------
 // 같은 날에는 모두에게 같은 사람이 나오고, 후보 전원이 한 번씩 나올 때까지 겹치지 않습니다.
-let spotlightPlaces=[],spotlightPlacesLoaded=false,genSelected=null,genTouched=false;
+let networkProfilesFailed=false,spotlightPlaces=[],spotlightPlacesLoaded=false,genSelected=null,genTouched=false;
 function stableHash(text){let h=2166136261;for(const c of String(text))h=Math.imul(h^c.codePointAt(0),16777619)>>>0;return h;}
 function pickOfDay(list,key){
   if(!list.length)return null;
@@ -2776,6 +2777,9 @@ function placeGeneration(p){const n=parseInt(String(p?.owner_generation||"").rep
 function placeMarks(p){return [PLACE_MICHELIN[p.michelin]?`<span class="spot-mark michelin">${esc(PLACE_MICHELIN[p.michelin])}</span>`:"",Number(p.blue_ribbon)>0?`<span class="spot-mark ribbon">블루리본 ${esc(p.blue_ribbon)}</span>`:""].join("");}
 function renderHomeSpotlight(){
   const box=document.getElementById("homeSpotlight");if(!box)return;
+  // 인증 확인이나 프로필 불러오기가 끝나기 전에는 업장 카드를 잠깐 보여주지 않습니다(깜빡임 방지).
+  const settled=["signed-out","denied","error"].includes(networkAccessState)||(networkAccessState==="verified"&&(networkProfilesLoaded||networkProfilesFailed));
+  if(!settled){box.hidden=true;return;}
   if(networkAccessState==="verified"&&networkProfilesLoaded){
     const person=pickOfDay(networkProfiles.filter(p=>p.spotlight&&(p.company||p.work||p.bio||p.activity)),p=>p.profileId);
     if(person){

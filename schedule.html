@@ -523,6 +523,14 @@ body.modal-open{overflow:hidden}
 .nav-new[hidden]{display:none}
 .fresh-tag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#E5484D;color:#fff;font-size:10px;font-weight:900;vertical-align:1px}
 .site-view[hidden]{display:none!important}
+.event-retired{display:none!important}
+body.event-phase-after .event-not-after{display:none!important}
+body.event-phase-after #applicationCta .application-status-row,body.event-phase-after #applicationBtn,body.event-phase-after #applicationSub,body.event-phase-after #applicationCountdown{display:none!important}
+body:not(.event-phase-after) #eventAfterCard{display:none!important}
+.event-after-card{margin:0 0 18px;padding:24px;border:1px solid var(--line,#e7e3d9);border-radius:20px;background:#fff}.event-after-card h2{font-size:24px;margin:8px 0 10px;letter-spacing:-.02em}.event-after-card p{margin:0;color:#57525f;line-height:1.7;word-break:keep-all}
+.event-results{margin-top:20px;padding-top:18px;border-top:1px solid #eee9f3}.event-results[hidden]{display:none}.event-results-title{font-size:17px;font-weight:800}.event-results-note{margin:6px 0 14px;font-size:13px;color:#7b7684;line-height:1.6;word-break:keep-all}
+.event-results-list{display:grid;gap:10px}.event-result{padding:14px 16px;border-radius:14px;background:#f7f5fc}.event-result-prize{font-weight:700;line-height:1.45;word-break:keep-all}.event-result-prize small{display:block;font-size:12px;font-weight:600;color:#6e5fcb}.event-result-pool{font-size:12px;color:#7b7684;margin-top:2px}.event-result-winners{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.event-result-winners span{padding:5px 10px;border-radius:999px;background:#fff;border:1px solid #e4def2;font-size:14px;font-weight:600}
+body.event-phase-day #rafflePublicCard{border:2px solid #6e5fcb;box-shadow:0 10px 30px #6e5fcb26}body.event-phase-day #raffleWatchBtn{font-size:16px;padding:14px 20px}
 body:not(.site-view-event) #brandCard{display:none!important}
 .site-home{display:grid;gap:14px}
 .site-home-hero{
@@ -939,8 +947,19 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 <div class="hero-dday" id="eventDday">D-</div>
 </div>
 
-<section class="event-ready-card site-view" data-site-view="event">
- <div class="event-ready-kicker">10월 18일, 곧 만나요</div>
+<section class="event-after-card site-view" id="eventAfterCard" data-site-view="event">
+ <div class="event-ready-kicker">2026. 10. 18. 한조고 동문 네트워크 모임</div>
+ <h2>함께해주셔서 감사합니다</h2>
+ <p>참석해주신 동문, 협찬과 후원으로 힘을 보태주신 모든 분께 감사드립니다.<br>다음 모임에서 다시 만나요.</p>
+ <div class="event-results" id="eventResults" hidden>
+  <div class="event-results-title">경품 추첨 결과</div>
+  <div class="event-results-note">당첨자 개인정보 보호를 위해 이름 일부를 가려 표시합니다. 경품 수령 관련 문의는 준비위원에게 연락해주세요.</div>
+  <div class="event-results-list" id="eventResultsList"></div>
+ </div>
+</section>
+
+<section class="event-ready-card event-not-after site-view" id="eventReadyCard" data-site-view="event">
+ <div class="event-ready-kicker" id="eventReadyKicker">10월 18일, 곧 만나요</div>
  <h2>한조고 동문 네트워크 모임</h2>
  <p>참가와 협찬에 함께해주셔서 감사합니다.<br>참가자분들께 발송한 행사 안내 메일을 확인해주세요.</p>
  <div class="event-ready-grid">
@@ -950,6 +969,21 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
   <div><span>모임 형태</span><strong>캐주얼 스탠딩</strong><small>음식·음료와 함께 자유롭게 교류합니다.</small></div>
  </div>
  <div class="event-ready-notes"><p><b>주차</b> 현장 주차가 어려우니 다산동 공영주차장(동호로15길 60)을 이용해주세요. 대중교통 이용을 권장합니다.</p><p><b>협찬품 반입</b> 카페는 오후 6시까지 영업합니다. 협찬 관계자분들은 세팅을 위해 6시 전후로 도착 부탁드립니다.</p><p><b>동문회 회원 등록</b> 자세한 안내는 별도로 전해드리겠습니다.</p></div>
+</section>
+<section class="raffle-public-card event-not-after site-view" id="rafflePublicCard" data-site-view="event">
+  <div class="raffle-public-kicker">2026 HANJOGO · EVENT RAFFLE</div>
+  <div class="raffle-public-title">행사 경품 추첨 안내</div>
+  <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 경품: 올리브영 상품권 5만원 · 신세계 상품권 5만원 (각 1명).<br>스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</div>
+  <div class="raffle-public-desc">경품 추첨은 <strong>1부·2부</strong>로 나누어 진행합니다. 전체 참가자 추첨과 인스타그램 스토리 참여 추첨이 준비되어 있으며, 현장에서 당첨 결과를 실시간으로 확인할 수 있습니다.</div>
+  <div class="raffle-public-steps">
+    <div class="raffle-public-step"><b>전체 참가자 추첨</b>참가 확정 동문을 대상으로 진행</div>
+    <div class="raffle-public-step"><b>스토리 참여 추첨</b>한조고 인스타그램 @kcas_archived 팔로우 → 행사 사진을 스토리에 올리고 계정 태그 → DM으로 이름·기수 전송</div>
+    <div class="raffle-public-step"><b>현장 실시간 확인</b>경품별 추첨과 당첨 결과를 이 화면에서 확인</div>
+  </div>
+  <div class="raffle-public-meta">
+    <span><strong id="rafflePublicStatus">10월 18일 행사 현장에서 진행 예정</strong></span>
+    <button class="raffle-watch-btn" id="raffleWatchBtn" type="button">추첨 화면 미리보기</button>
+  </div>
 </section>
 
 <div class="top-actions site-view" data-site-view="home">
@@ -1013,6 +1047,26 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
   <div class="network-hub-meta" id="networkProfileMeta">공개 동의한 동문 프로필을 불러오는 중입니다.</div>
 </div>
 
+
+<div class="public-fold event-not-after site-view" data-site-view="event">
+<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="true">
+  <span><span class="public-fold-title">행사 프로그램</span><span class="public-fold-sub">프로그램 순서와 주요 구성 보기</span></span>
+  <span class="public-fold-icon">▾</span>
+</button>
+<div class="public-fold-body" id="publicProgramBody">
+  <div class="program-card">
+  <div class="program-list">
+  <div class="program-item">입장 및<br>자유 네트워킹</div>
+  <div class="program-item">행사·협찬사<br>소개</div>
+  <div class="program-item">동문<br>스포트라이트</div>
+  <div class="program-item">1·2부 경품 추첨<br>스토리 참여 추첨</div>
+  <div class="program-item">자유 교류 및<br>마무리</div>
+  </div>
+  <div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
+  </div>
+</div>
+</div>
+
 <div class="application-cta site-view" id="applicationCta" data-site-view="event">
 <div class="application-status-row">
   <div>
@@ -1038,41 +1092,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 <div class="application-countdown" id="applicationCountdown" hidden></div>
 </div>
 
-<div class="public-fold site-view" data-site-view="event">
-<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="true">
-  <span><span class="public-fold-title">행사 프로그램</span><span class="public-fold-sub">프로그램 순서와 주요 구성 보기</span></span>
-  <span class="public-fold-icon">▾</span>
-</button>
-<div class="public-fold-body" id="publicProgramBody">
-  <div class="program-card">
-  <div class="program-list">
-  <div class="program-item">입장 및<br>자유 네트워킹</div>
-  <div class="program-item">행사·협찬사<br>소개</div>
-  <div class="program-item">동문<br>스포트라이트</div>
-  <div class="program-item">1·2부 경품 추첨<br>스토리 참여 추첨</div>
-  <div class="program-item">자유 교류 및<br>마무리</div>
-  </div>
-  <div class="program-note">※ 세부 프로그램은 준비 상황에 따라 일부 변경될 수 있습니다.</div>
-  </div>
-</div>
-</div>
 
-
-<section class="raffle-public-card site-view" id="rafflePublicCard" data-site-view="event">
-  <div class="raffle-public-kicker">2026 HANJOGO · EVENT RAFFLE</div>
-  <div class="raffle-public-title">행사 경품 추첨 안내</div>
-  <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 경품: 올리브영 상품권 5만원 · 신세계 상품권 5만원 (각 1명).<br>스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</div>
-  <div class="raffle-public-desc">경품 추첨은 <strong>1부·2부</strong>로 나누어 진행합니다. 전체 참가자 추첨과 인스타그램 스토리 참여 추첨이 준비되어 있으며, 현장에서 당첨 결과를 실시간으로 확인할 수 있습니다.</div>
-  <div class="raffle-public-steps">
-    <div class="raffle-public-step"><b>전체 참가자 추첨</b>참가 확정 동문을 대상으로 진행</div>
-    <div class="raffle-public-step"><b>스토리 참여 추첨</b>한조고 인스타그램 @kcas_archived 팔로우 → 행사 사진을 스토리에 올리고 계정 태그 → DM으로 이름·기수 전송</div>
-    <div class="raffle-public-step"><b>현장 실시간 확인</b>경품별 추첨과 당첨 결과를 이 화면에서 확인</div>
-  </div>
-  <div class="raffle-public-meta">
-    <span><strong id="rafflePublicStatus">10월 18일 행사 현장에서 진행 예정</strong></span>
-    <button class="raffle-watch-btn" id="raffleWatchBtn" type="button">추첨 화면 미리보기</button>
-  </div>
-</section>
 
 <div class="attendee-modal" id="attendeeModal" hidden aria-hidden="true">
   <div class="attendee-dialog" role="dialog" aria-modal="true" aria-labelledby="attendeeModalTitle">
@@ -1254,7 +1274,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
   </div>
 </div>
 
-<div class="next-card site-view" data-site-view="event">
+<div class="next-card event-retired site-view" data-site-view="event">
 <div>
 <div class="next-kicker">NEXT</div>
 <div class="next-title" id="nextTitle"></div>
@@ -1263,7 +1283,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 <div class="next-date" id="nextDate"></div>
 </div>
 
-<div class="public-fold site-view" data-site-view="event">
+<div class="public-fold event-retired site-view" data-site-view="event">
 <button class="public-fold-head" type="button" data-fold-target="publicScheduleBody" aria-expanded="false">
   <span><span class="public-fold-title">준비 일정</span><span class="public-fold-sub">주요 일정과 8~10월 캘린더 확인</span></span>
   <span class="public-fold-icon">▾</span>
@@ -4170,6 +4190,53 @@ function raffleEventDate(){
   const values=Object.fromEntries(parts.map(({type,value})=>[type,value]));
   return `${values.year}-${values.month}-${values.day}`;
 }
+// 행사 전/당일/후에 맞춰 2026 모임 화면을 바꿉니다(한국 시간 기준).
+function eventPhase(){
+  const date=raffleEventDate();
+  return date<"2026-10-18"?"before":date==="2026-10-18"?"day":"after";
+}
+function applyEventPhase(){
+  const phase=eventPhase();
+  document.body.classList.remove("event-phase-before","event-phase-day","event-phase-after");
+  document.body.classList.add("event-phase-"+phase);
+  const kicker=document.getElementById("eventReadyKicker");
+  if(kicker)kicker.textContent=phase==="day"?"오늘 저녁, 와일드덕에서 만나요":"10월 18일, 곧 만나요";
+  const ready=document.getElementById("eventReadyCard"),raffle=document.getElementById("rafflePublicCard");
+  // 당일에는 실시간 추첨 화면 버튼을 행사 안내보다 위에 둡니다.
+  if(ready&&raffle){
+    if(phase==="day"&&raffle.nextElementSibling!==ready)ready.before(raffle);
+    if(phase!=="day"&&ready.nextElementSibling!==raffle)ready.after(raffle);
+  }
+  const brandTitle=document.querySelector("#brandCard .brand-title");
+  if(brandTitle)brandTitle.textContent=phase==="after"?"함께해주신 브랜드":"함께하는 브랜드";
+  renderEventResults();
+}
+// 행사 후 결과는 서버가 이름을 가려 보낸 경우(namesMasked)에만 표시합니다.
+function renderEventResults(){
+  const box=document.getElementById("eventResults"),list=document.getElementById("eventResultsList");
+  if(!box||!list)return;
+  const history=Array.isArray(publicRaffleCenter?.history)?publicRaffleCenter.history:[];
+  if(eventPhase()!=="after"||publicRaffleCenter?.namesMasked!==true||!history.length){box.hidden=true;return;}
+  const groups=new Map();
+  for(const item of history){
+    if(!item?.winner?.name)continue;
+    const key=String(item.prize||"경품");
+    if(!groups.has(key))groups.set(key,{prize:key,story:item.pool==="story",winners:[]});
+    groups.get(key).winners.push(item.winner);
+  }
+  list.replaceChildren(...[...groups.values()].map(group=>{
+    const card=document.createElement("div");card.className="event-result";
+    const title=document.createElement("div");title.className="event-result-prize";
+    const parts=group.prize.split(" · ");
+    if(parts.length>1){const sponsor=document.createElement("small");sponsor.textContent=parts.shift();title.append(sponsor);}
+    title.append(parts.join(" · "));
+    const meta=document.createElement("div");meta.className="event-result-pool";meta.textContent=(group.story?"인스타 스토리 참여 추첨":"전체 참가자 추첨")+" · "+group.winners.length+"명";
+    const winners=document.createElement("div");winners.className="event-result-winners";
+    group.winners.forEach(w=>{const chip=document.createElement("span");chip.textContent=w.name+(w.generation?" · "+w.generation+"기":"");winners.append(chip);});
+    card.append(title,meta,winners);return card;
+  }));
+  box.hidden=!groups.size;
+}
 function renderPublicRaffle(){
   const date=raffleEventDate();
   const started=date>="2026-10-18";
@@ -4194,8 +4261,8 @@ async function loadPublicRaffle(){
     const {data,error}=await sb.rpc("get_hanjogo_story_raffle");
     if(error)throw error;
     const payload=(data&&typeof data==="object")?data:{};
-    publicRaffleCenter={storyEntries:[],history:[],live:{status:"idle",drawId:"",winner:null,candidates:[]},...(payload.storyRaffle||{})};
-    renderPublicRaffle();
+    publicRaffleCenter={history:[],live:{status:"idle",drawId:"",winner:null,candidates:[]},...(payload.storyRaffle||{})};
+    renderPublicRaffle();renderEventResults();
   }catch(e){console.error("경품 추첨 정보를 불러오지 못했습니다.",e);}
 }
 
@@ -4551,6 +4618,7 @@ function startPublicApp(){
 
   setInterval(loadPublicInfo,60000);
   setInterval(loadPublicRaffle,60000);
+  setInterval(applyEventPhase,60000);
   // 행사 당일 추첨 시간대이거나 추첨 화면을 보고 있으면 10초마다 확인합니다.
   // 실시간 알림을 놓친 휴대폰도 10초 안에 추첨 화면을 따라옵니다(120명 기준 초당 약 12건).
   setInterval(()=>{
@@ -4570,6 +4638,7 @@ function startRafflePreview(){
   publicRaffleCenter={history:[],storyEntries:[],live:{status:"drawing",drawId:"preview-"+now,prize:String(payload.prize||"경품 추첨").slice(0,60),poolLabel:"테스트 추첨",winner,startedAt:now,revealAt:now+11000,candidates}};
   openRaffleOverlay();
 }
+applyEventPhase();
 if(rafflePreviewMode){
   startRafflePreview();
   window.addEventListener("hashchange",startRafflePreview);

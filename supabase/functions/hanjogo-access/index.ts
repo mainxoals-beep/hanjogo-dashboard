@@ -303,7 +303,8 @@ async function boardIdentity(
   return { name: specialName || email.split("@")[0], generation: null };
 }
 
-const BOARD_CATEGORIES = ["free", "jobs", "collab", "business", "notice", "question", "resource"];
+// "generation"(우리 기수)은 같은 기수 동문만 보고 쓸 수 있습니다.
+const BOARD_CATEGORIES = ["free", "jobs", "collab", "business", "notice", "question", "resource", "generation"];
 
 /**
  * A "question" post names one of the help fields; a "resource"(자료 공유) post names a
@@ -336,6 +337,7 @@ function publicBoardPost(
     hasFile: Boolean(row.file_path), fileName: row.file_name ?? null, fileSize: row.file_size ?? null,
     linkUrl: row.link_url ?? null, downloadCount: Number(row.download_count || 0),
     authorName: row.author_name, authorGeneration: row.author_generation,
+    targetGeneration: row.target_generation ?? null,
     isNotice: Boolean(row.is_notice), createdAt: row.created_at, updatedAt: row.updated_at,
     canEdit: isAdmin || row.author_id === userId,
     viewCount,
@@ -394,7 +396,8 @@ async function buildProfile(
     isOwnProfile: Boolean(normalizedEmail) && normalizedEmail === viewerEmail,
     isNew: Boolean(firstPublicDate) && firstPublicDate === todayKey,
     isRecent: dateKeyWithinDays(firstPublicDate, todayKey, 7),
-    sortGen: Number(generation) || 999,
+    // 기수를 공개하지 않은 사람은 정렬값으로도 기수가 드러나지 않게 합니다.
+    sortGen: isAllowed(fields, "졸업 기수") ? Number(generation) || 999 : 999,
     sortName: name,
   };
 }
@@ -511,7 +514,7 @@ async function buildProfileFromDraft(
     isOwnProfile: Boolean(email) && email === viewerEmail,
     isNew: Boolean(firstPublicDate) && firstPublicDate === todayKey,
     isRecent: dateKeyWithinDays(firstPublicDate, todayKey, 7),
-    sortGen: Number(generation) || 999,
+    sortGen: shows("gen") ? Number(generation) || 999 : 999,
     sortName: name,
   };
 }
@@ -899,7 +902,14 @@ Deno.serve(async (req: Request) => {
           );
         }),
       );
-      const profiles = [...fromCsv, ...fromSite].filter(Boolean);
+      const profiles = [...fromCsv, ...fromSite].filter(Boolean) as Record<string, unknown>[];
+      // 오늘의 동문: 이름을 공개(전체 또는 일부)했고 소개를 거부하지 않은 사람만 후보입니다.
+      const { data: optOutRows, error: optOutError } = await adminClient.from("hanjogo_spotlight_optout").select("email");
+      if (optOutError) throw optOutError;
+      const optedOut = new Set(await Promise.all((optOutRows || []).map((row) => stableProfileId(normalizeEmail(row.email)))));
+      profiles.forEach((profile) => {
+        profile.spotlight = profile.name !== "이름 비공개" && !optedOut.has(String(profile.profileId));
+      });
       return json({ allowed: true, profiles, count: profiles.length });
     } catch {
       return json({ allowed: true, error: "profiles_unavailable" }, 503);
@@ -907,11 +917,22 @@ Deno.serve(async (req: Request) => {
   }
 
   // ---- 내 정보: 본인 프로필 보기와 저장 ----------------------------------
+  if (action === "spotlight_set") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const { error } = body.optOut
+      ? await adminClient.from("hanjogo_spotlight_optout").upsert({ email }, { onConflict: "email", ignoreDuplicates: true })
+      : await adminClient.from("hanjogo_spotlight_optout").delete().eq("email", email);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true, spotlightOptOut: Boolean(body.optOut) });
+  }
+
   if (action === "profile_me") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const { data: optOutRow } = await adminClient.from("hanjogo_spotlight_optout").select("email").eq("email", email).maybeSingle();
+    const spotlightOptOut = Boolean(optOutRow);
     const override = await myOverride();
     if (override) {
-      return json({ allowed: true, source: "site", email, draft: profileDraftFromOverride(override) });
+      return json({ allowed: true, source: "site", email, spotlightOptOut, draft: profileDraftFromOverride(override) });
     }
     // 아직 사이트에서 고친 적이 없으면 구글 폼 답변을 가져와 채워줍니다.
     try {
@@ -919,7 +940,7 @@ Deno.serve(async (req: Request) => {
       const row = rows.find((item) =>
         normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email
       );
-      if (row) return json({ allowed: true, source: "form", email, draft: profileDraftFromCsv(row) });
+      if (row) return json({ allowed: true, source: "form", email, spotlightOptOut, draft: profileDraftFromCsv(row) });
     } catch {
       return json({ allowed: true, source: "unavailable", email, error: "profile_source_unavailable" }, 503);
     }
@@ -937,6 +958,7 @@ Deno.serve(async (req: Request) => {
       allowed: true,
       source: "new",
       email,
+      spotlightOptOut,
       draft: {
         name, generation, displayMode: "masked", publicFields: ["gen"],
         company: "", work: "", activity: "", region: "", instagram: "", bio: "", connect: "",
@@ -1282,6 +1304,14 @@ Deno.serve(async (req: Request) => {
 
   if (action.startsWith("board_")) {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    // 우리 기수 글: 보는 사람의 기수는 인증 정보(프로필·졸업생 DB)로 정합니다. 관리자는 모두 봅니다.
+    let viewerGeneration: number | null | undefined;
+    const myGeneration = async () => {
+      if (viewerGeneration === undefined) viewerGeneration = validGeneration((await boardIdentity(email, special, await myOverride())).generation);
+      return viewerGeneration;
+    };
+    const canSee = async (post: Record<string, unknown>) =>
+      post.category !== "generation" || isAdmin || (post.target_generation != null && Number(post.target_generation) === await myGeneration());
     // 자료 공유 첨부파일은 비공개 저장소에 두고, 올릴 때·받을 때마다 짧게 쓰는 주소를 만듭니다.
     const bucket = adminClient.storage.from("hanjogo-resources");
     /** Checks an uploaded file really is in this user's folder; returns the columns to save. */
@@ -1328,10 +1358,13 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, url });
     }
     if (action === "board_list") {
-      const { data: posts, error: postsError } = await adminClient.from("hanjogo_board_posts")
-        .select("id,author_id,author_name,author_generation,category,title,content,topic,is_resolved,is_notice,file_path,file_name,file_size,link_url,download_count,created_at,updated_at")
-        .eq("is_hidden", false).order("is_notice", { ascending: false }).order("created_at", { ascending: false }).limit(100);
+      const { data: rawPosts, error: postsError } = await adminClient.from("hanjogo_board_posts")
+        .select("id,author_id,author_name,author_generation,category,target_generation,title,content,topic,is_resolved,is_notice,file_path,file_name,file_size,link_url,download_count,created_at,updated_at")
+        .eq("is_hidden", false).order("is_notice", { ascending: false }).order("created_at", { ascending: false }).limit(150);
       if (postsError) return json({ error: postsError.message }, 500);
+      const visible: Record<string, unknown>[] = [];
+      for (const post of rawPosts || []) if (await canSee(post)) visible.push(post);
+      const posts = visible.slice(0, 100);
       const postIds = (posts || []).map((post) => post.id);
       let comments: Record<string, unknown>[] = [];
       let reactions: Record<string, unknown>[] = [];
@@ -1360,7 +1393,7 @@ Deno.serve(async (req: Request) => {
         helpersByTopic[topic].push({ profileId: person.profileId, name: person.name, generation: person.generation });
       }));
       const mentionable = people.map((person) => ({ profileId: person.profileId, name: person.name, generation: person.generation }));
-      return json({ allowed: true, isAdmin, helpTopics: HELP_TOPICS, helpersByTopic, people: mentionable, items: (posts || []).map((post) => publicBoardPost(
+      return json({ allowed: true, isAdmin, myGeneration: await myGeneration(), helpTopics: HELP_TOPICS, helpersByTopic, people: mentionable, items: (posts || []).map((post) => publicBoardPost(
         post,
         comments.filter((comment) => comment.post_id === post.id),
         reactions.filter((reaction) => reaction.post_id === post.id),
@@ -1372,9 +1405,9 @@ Deno.serve(async (req: Request) => {
     if (action === "board_view") {
       const postId = Number(body.postId);
       if (!Number.isFinite(postId)) return json({ error: "invalid_post" }, 400);
-      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id,category,target_generation").eq("id", postId).eq("is_hidden", false).maybeSingle();
       if (postError) return json({ error: postError.message }, 500);
-      if (!post) return json({ error: "post_not_found" }, 404);
+      if (!post || !await canSee(post)) return json({ error: "post_not_found" }, 404);
       const { error } = await adminClient.from("hanjogo_board_views").upsert(
         { post_id: postId, user_id: userId },
         { onConflict: "post_id,user_id", ignoreDuplicates: true },
@@ -1388,9 +1421,9 @@ Deno.serve(async (req: Request) => {
       const postId = Number(body.postId);
       const reaction = cleanBoardText(body.reaction, 20);
       if (!Number.isFinite(postId) || !["like", "heart", "clap", "useful"].includes(reaction)) return json({ error: "invalid_reaction" }, 400);
-      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id,category,target_generation").eq("id", postId).eq("is_hidden", false).maybeSingle();
       if (postError) return json({ error: postError.message }, 500);
-      if (!post) return json({ error: "post_not_found" }, 404);
+      if (!post || !await canSee(post)) return json({ error: "post_not_found" }, 404);
       const { data: existing, error: lookupError } = await adminClient.from("hanjogo_board_reactions")
         .select("post_id").eq("post_id", postId).eq("user_id", userId).eq("reaction", reaction).maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
@@ -1421,13 +1454,17 @@ Deno.serve(async (req: Request) => {
       }
       if (category === "resource" && !file && !attachment.link) return json({ error: "file_or_link_required" }, 400);
       const identity = await boardIdentity(email, special, await myOverride());
+      // 우리 기수 글은 쓴 사람의 기수로만 올라갑니다. 기수를 알 수 없으면 쓸 수 없습니다.
+      const targetGeneration = category === "generation" ? validGeneration(identity.generation) : null;
+      if (category === "generation" && targetGeneration == null) return json({ error: "generation_unknown" }, 400);
       const { data, error } = await adminClient.from("hanjogo_board_posts").insert({
         author_id: userId, author_email: email, author_name: identity.name,
-        author_generation: identity.generation, category, title, content, topic: picked.topic, is_notice: category === "notice",
+        author_generation: identity.generation, category, target_generation: targetGeneration, title, content, topic: picked.topic, is_notice: category === "notice",
         link_url: attachment.link, ...(file || {}),
       }).select("id").single();
       if (error) return json({ error: error.message }, 500);
-      await notifyMentions(cleanMentions(body.mentions), data.id, title, identity, new Set());
+      // 다른 기수에게 보이지 않는 글이라 @태그 알림은 보내지 않습니다.
+      if (category !== "generation") await notifyMentions(cleanMentions(body.mentions), data.id, title, identity, new Set());
       return json({ ok: true, id: data.id });
     }
     if (action === "board_update") {
@@ -1441,10 +1478,12 @@ Deno.serve(async (req: Request) => {
       if ("error" in picked) return json({ error: picked.error }, 400);
       const attachment = boardAttachmentLink(category, body);
       if ("error" in attachment) return json({ error: attachment.error }, 400);
-      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id,file_path").eq("id", id).eq("is_hidden", false).maybeSingle();
+      const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id,file_path,category").eq("id", id).eq("is_hidden", false).maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
       if (!target) return json({ error: "not_found" }, 404);
       if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
+      // 우리 기수 글과 다른 분류 사이로는 옮길 수 없습니다(보는 사람 범위가 바뀌기 때문).
+      if ((target.category === "generation") !== (category === "generation")) return json({ error: "category_locked" }, 400);
       // 첨부: 새 파일을 올리면 바꾸고, 지우기를 고르면 빼고, 아니면 그대로 둡니다. 자료 공유가 아니면 첨부를 모두 뺍니다.
       const oldPath = target.file_path ? String(target.file_path) : "";
       let fileColumns: Record<string, unknown> = {};
@@ -1496,9 +1535,9 @@ Deno.serve(async (req: Request) => {
       const postId = Number(body.postId);
       const content = cleanBoardText(body.content, 1000);
       if (!Number.isFinite(postId) || !content) return json({ error: "invalid_comment" }, 400);
-      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id,title,category,author_email").eq("id", postId).eq("is_hidden", false).maybeSingle();
+      const { data: post, error: postError } = await adminClient.from("hanjogo_board_posts").select("id,title,category,target_generation,author_email").eq("id", postId).eq("is_hidden", false).maybeSingle();
       if (postError) return json({ error: postError.message }, 500);
-      if (!post) return json({ error: "post_not_found" }, 404);
+      if (!post || !await canSee(post)) return json({ error: "post_not_found" }, 404);
       const identity = await boardIdentity(email, special, await myOverride());
       const { error } = await adminClient.from("hanjogo_board_comments").insert({
         post_id: postId, author_id: userId, author_email: email, author_name: identity.name,
@@ -1515,7 +1554,7 @@ Deno.serve(async (req: Request) => {
           title: cleanBoardText(post.title, 120), actor_name: identity.name, actor_generation: validGeneration(identity.generation),
         });
       }
-      await notifyMentions(cleanMentions(body.mentions), postId, String(post.title || ""), identity, notified);
+      if (post.category !== "generation") await notifyMentions(cleanMentions(body.mentions), postId, String(post.title || ""), identity, notified);
       return json({ ok: true });
     }
     if (action === "board_comment_delete") {

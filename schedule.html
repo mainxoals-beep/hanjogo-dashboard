@@ -525,7 +525,6 @@ body.modal-open{overflow:hidden}
 .site-view[hidden]{display:none!important}
 .event-retired{display:none!important}
 body.event-phase-after .event-not-after{display:none!important}
-body.event-phase-after #applicationCta .application-status-row,body.event-phase-after #applicationBtn,body.event-phase-after #applicationSub,body.event-phase-after #applicationCountdown{display:none!important}
 body:not(.event-phase-after) #eventAfterCard{display:none!important}
 .event-after-card{margin:0 0 18px;padding:24px;border:1px solid var(--line,#e7e3d9);border-radius:20px;background:#fff}.event-after-card h2{font-size:24px;margin:8px 0 10px;letter-spacing:-.02em}.event-after-card p{margin:0;color:#57525f;line-height:1.7;word-break:keep-all}
 .event-results{margin-top:20px;padding-top:18px;border-top:1px solid #eee9f3}.event-results[hidden]{display:none}.event-results-title{font-size:17px;font-weight:800}.event-results-note{margin:6px 0 14px;font-size:13px;color:#7b7684;line-height:1.6;word-break:keep-all}
@@ -1067,7 +1066,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 </div>
 </div>
 
-<div class="application-cta site-view" id="applicationCta" data-site-view="event">
+<div class="application-cta event-not-after site-view" id="applicationCta" data-site-view="event">
 <div class="application-status-row">
   <div>
     <div class="status-kicker">참가 안내</div>
@@ -4513,7 +4512,8 @@ async function refreshAttendeeProfiles(){
     : "최신 설정을 확인하지 못했습니다. 마지막으로 확인한 명단을 표시합니다. 잠시 후 다시 열어주세요.";
 }
 function openAttendeeModal(){
-  if(!attendeeModal)return;
+  // 행사가 끝나면 참가자 명단을 열지 않습니다.
+  if(!attendeeModal||eventPhase()==="after")return;
   attendeeGenerationFilter=null;
   if(attendeeSearch)attendeeSearch.value="";
   renderPublicAttendees("");

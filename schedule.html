@@ -931,6 +931,11 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 }
 @media(max-width:720px){.toast{bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));z-index:1300}}
 @media(max-width:380px){.site-nav{flex-wrap:nowrap}}
+.place-req{margin:12px 17px 4px;padding:12px 14px;border:1px solid #F5C2C4;border-radius:var(--r-md);background:#FFF8F8}.place-req[hidden]{display:none}
+.place-req-title{font-size:var(--fs-sm);font-weight:800;color:#B4232A}.place-req-title small{margin-left:4px;font-weight:500;color:var(--mute)}
+.place-req-item{margin-top:10px;padding-top:10px;border-top:1px solid #F3DADA;font-size:var(--fs-sm)}.place-req-item b{font-size:var(--fs-md)}
+.place-req-kind{font-size:var(--fs-xs);font-weight:800;color:var(--purple-dark)}.place-req-meta{margin-top:2px;font-size:var(--fs-xs);color:var(--sub);word-break:keep-all;overflow-wrap:anywhere}
+.place-req-actions{display:flex;gap:6px;margin-top:8px}.place-req-actions button{min-height:36px;padding:6px 14px}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1504,6 +1509,7 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 
   <div class="myinfo-pane myinfo-notif-pane" id="myInfoNotifPane" hidden>
     <div class="myinfo-note">누가 나를 @태그하거나 내 글에 답변·댓글이 달리면 여기에 모여요. 누르면 그 글로 이동해요.</div>
+    <div class="place-req" id="placeReqBox" hidden></div>
     <div class="notif-list" id="notifList"></div>
   </div>
 </div></div>
@@ -3091,17 +3097,50 @@ function loadPlaceIds(){
     .then(({data,error})=>{if(!error&&Array.isArray(data))noteLatest("places",data.map(r=>r.id));}).catch(()=>{});
 }
 
-let notifItems=[],notifTimer=null;
+let notifItems=[],notifTimer=null,placeReqs={submissions:[],claims:[]};
 const NOTIF_TEXT={mention:"님이 회원님을 태그했어요",answer:"님이 질문에 답변했어요",comment:"님이 글에 댓글을 남겼어요"};
 async function loadNotifications(){
   if(networkAccessState!=="verified")return;
   try{
     const data=await boardCall("notifications_list");
     notifItems=Array.isArray(data.items)?data.items:[];
-    showNotifCount(Number(data.unread||0));
+    showNotifCount(Number(data.unread||0)+placeReqCount());
     renderNotifications();
   }catch{}
+  loadPlaceRequests();
 }
+// 관리자: 업장 등록 신청·운영자 인증 요청을 공개 사이트의 🔔 알림에서 바로 확인하고 처리합니다.
+function placeReqCount(){return placeReqs.submissions.length+placeReqs.claims.length;}
+async function loadPlaceRequests(){
+  if(!networkIsAdmin||networkAccessState!=="verified"){placeReqs={submissions:[],claims:[]};renderPlaceRequests();return;}
+  try{
+    const data=await boardCall("place_requests");
+    placeReqs={submissions:Array.isArray(data.submissions)?data.submissions:[],claims:Array.isArray(data.claims)?data.claims:[]};
+  }catch{return;}
+  renderPlaceRequests();
+  showNotifCount(notifUnread());
+}
+function renderPlaceRequests(){
+  const box=document.getElementById("placeReqBox");if(!box)return;
+  const n=placeReqCount();box.hidden=!n;if(!n){box.innerHTML="";return;}
+  const meta=(...xs)=>xs.filter(Boolean).map(esc).join(" · ");
+  const btns=(kind,id)=>`<div class="place-req-actions"><button type="button" class="board-primary-btn" data-place-req="${kind}" data-id="${esc(id)}" data-approve="1">승인</button><button type="button" class="board-secondary-btn" data-place-req="${kind}" data-id="${esc(id)}" data-approve="0">거절</button></div>`;
+  box.innerHTML=`<div class="place-req-title">업장 확인 대기 ${n}건 <small>관리자에게만 보여요</small></div>`
+    +placeReqs.submissions.map(r=>`<div class="place-req-item"><div class="place-req-kind">업장 등록 신청</div><b>${esc(r.name||"")}</b><div class="place-req-meta">${meta(r.owner_name&&(r.owner_generation?r.owner_generation+"기 ":"")+r.owner_name,r.category,r.region)}</div>${r.address?`<div class="place-req-meta">${esc(r.address)}</div>`:""}${r.description?`<div class="place-req-meta">${esc(r.description)}</div>`:""}<div class="place-req-meta">${meta(r.email,boardDate(r.created_at))}</div>${btns("submission",r.id)}</div>`).join("")
+    +placeReqs.claims.map(r=>`<div class="place-req-item"><div class="place-req-kind">운영자 인증 요청</div><b>${esc(r.place?.name||"업장")}</b><div class="place-req-meta">${meta(r.place&&r.place.owner_name&&("지도상 운영자 "+(r.place.owner_generation?r.place.owner_generation+" ":"")+r.place.owner_name))}</div><div class="place-req-meta">${meta("요청 "+(r.email||""),boardDate(r.created_at))}</div>${btns("claim",r.id)}</div>`).join("");
+}
+document.getElementById("placeReqBox")?.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-place-req]");if(!b)return;
+  const approve=b.dataset.approve==="1",kind=b.dataset.placeReq;
+  const msg=kind==="submission"?(approve?"이 업장을 지도에 공개할까요? 신청한 분이 수정 권한을 받아요.":"이 등록 신청을 거절할까요?"):(approve?"요청한 이메일을 이 업장의 운영자로 연결할까요? 수정 권한이 열려요.":"이 운영자 인증 요청을 거절할까요?");
+  if(!confirm(msg))return;
+  b.closest(".place-req-item").querySelectorAll("button").forEach(x=>x.disabled=true);
+  try{
+    await boardCall(kind==="submission"?"place_submission_decide":"place_claim_decide",{id:Number(b.dataset.id),approve});
+    showToast(approve?"승인했어요.":"거절했어요.");
+  }catch(err){alert("처리하지 못했어요. 잠시 후 다시 시도해주세요. ("+(err?.message||"오류")+")");}
+  await loadPlaceRequests();
+});
 function renderNotifications(){
   const box=document.getElementById("notifList");if(!box)return;
   box.innerHTML=notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>';
@@ -3113,10 +3152,10 @@ function showNotifCount(n){
   ["notifBadge","notifTabCount","notifPillCount"].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=text;el.hidden=!n;}});
   const pill=document.getElementById("notifPill");if(pill)pill.hidden=!n;
 }
-function notifUnread(){return notifItems.filter(n=>!n.read).length;}
+function notifUnread(){return notifItems.filter(n=>!n.read).length+placeReqCount();}
 async function markNotificationsRead(){
   if(!notifItems.some(n=>!n.read))return;
-  try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);showNotifCount(0);}catch{}
+  try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);showNotifCount(placeReqCount());}catch{}
 }
 function syncNotifications(){
   const ok=networkAccessState==="verified";

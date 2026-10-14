@@ -866,6 +866,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
   border:var(--card-line);border-radius:var(--r-lg);background:#fff;box-shadow:none
 }
 .home-spotlight{background:#fff}
+.spot-help{display:block;margin-top:1px;font-size:var(--fs-xs);font-weight:500;color:var(--mute)}
 .raffle-public-card{background:#fff;border-color:#DDD7F4}
 .site-home-card:hover{transform:none;border-color:#cfc8e9}
 /* 소제목(작은 보라 글씨): 한글, 같은 크기 */
@@ -953,15 +954,18 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 <nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
   <button class="site-nav-btn" type="button" data-site-target="home"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg><span>홈</span></button>
   <button class="site-nav-btn" type="button" data-site-target="event"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>2026 모임</span></button>
-  <button class="site-nav-btn" type="button" data-site-target="network" data-nav-group="network places meetups" data-new-tabs="places meetups"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15 15.2c2.6-.5 4.8.9 5.5 3.8"/></svg><span>동문</span></button>
-  <button class="site-nav-btn" type="button" data-site-target="board"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/></svg><span>게시판</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="network" data-nav-group="network places" data-new-tabs="places"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15 15.2c2.6-.5 4.8.9 5.5 3.8"/></svg><span>동문</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="board" data-nav-group="board meetups" data-new-tabs="board meetups"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/></svg><span>게시판</span></button>
   <button class="site-nav-btn notif-btn" type="button" data-open-myinfo><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 정보</span><span class="notif-badge" id="notifBadge" hidden aria-label="새 알림">0</span></button>
 </nav>
 
-<!-- 동문 메뉴 안의 세 화면(동문 찾기·업장 지도·번개 모임)을 오가는 작은 탭 -->
-<div class="alumni-subnav site-view" data-site-view="network places meetups" role="tablist" aria-label="동문 메뉴">
+<!-- 메뉴 안의 작은 탭: 동문(동문 찾기·업장 지도), 게시판(게시글·번개 모임) -->
+<div class="alumni-subnav site-view" data-site-view="network places" role="tablist" aria-label="동문 메뉴">
   <button class="alumni-subnav-btn" type="button" data-site-target="network">동문 찾기</button>
   <button class="alumni-subnav-btn" type="button" data-site-target="places">업장 지도</button>
+</div>
+<div class="alumni-subnav site-view" data-site-view="board meetups" role="tablist" aria-label="게시판 메뉴">
+  <button class="alumni-subnav-btn" type="button" data-site-target="board">게시글</button>
   <button class="alumni-subnav-btn" type="button" data-site-target="meetups">번개 모임</button>
 </div>
 
@@ -2857,7 +2861,7 @@ function renderHomeSpotlight(){
     const person=pickOfDay(networkProfiles.filter(p=>p.spotlight&&(p.company||p.work||p.bio||p.activity)),p=>p.profileId);
     if(person){
       const line=[person.company,person.work].filter(Boolean).join(" · ");
-      box.innerHTML=`<div class="spot-kicker">오늘의 동문</div>
+      box.innerHTML=`<div class="spot-kicker">오늘의 동문 <span class="spot-help">프로필을 공개한 동문을 매일 한 분씩 소개해요</span></div>
         <div class="spot-name">${esc(person.name)}${person.gen?`<span class="spot-gen">${esc(person.gen)}기</span>`:""}</div>
         ${line?`<div class="spot-line">${esc(line)}</div>`:""}
         ${person.bio?`<div class="spot-bio">${esc(person.bio)}</div>`:(person.activity?`<div class="spot-bio">${esc(person.activity)}</div>`:"")}
@@ -2869,7 +2873,7 @@ function renderHomeSpotlight(){
   const place=pickOfDay(spotlightPlaces.filter(p=>p.name&&(p.category||p.description)),p=>p.id);
   if(!place){box.hidden=true;return;}
   const owner=[placeGeneration(place)?placeGeneration(place)+"기":"",place.owner_name].filter(Boolean).join(" ");
-  box.innerHTML=`<div class="spot-kicker">오늘의 동문 업장</div>
+  box.innerHTML=`<div class="spot-kicker">오늘의 동문 업장 <span class="spot-help">동문이 운영하는 가게를 매일 한 곳씩 소개해요</span></div>
     <div class="spot-name">${esc(place.name)}${placeMarks(place)}</div>
     <div class="spot-line">${esc([owner&&owner+" 동문",place.category,place.region].filter(Boolean).join(" · "))}</div>
     ${place.description?`<div class="spot-bio">${esc(place.description)}</div>`:""}

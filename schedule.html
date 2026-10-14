@@ -852,6 +852,84 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
   .network-access-session-actions{gap:5px}
 }
 .myinfo-settings-icon{display:inline-block;font-size:1.1em;line-height:1;vertical-align:-.05em}.myinfo-account{display:grid;gap:6px;margin:12px 0}.myinfo-account #myInfoCurrentEmail{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}.myinfo-account small{font-size:11px;color:var(--sub)}
+
+/* 2026-10 디자인 정리: 글씨 크기·모서리·카드 모양을 몇 가지로 맞춥니다 (이 블록이 위 규칙보다 우선합니다) */
+:root{
+  --fs-xs:12px; --fs-sm:13px; --fs-md:15px; --fs-lg:18px; --fs-xl:22px;
+  --r-sm:10px; --r-md:14px; --r-lg:18px;
+  --card-line:1px solid var(--line);
+  --nav-h:62px;
+}
+/* 카드: 흰 바탕 + 얇은 테두리 한 가지 */
+.home-spotlight,.home-news,.site-home-card,.event-ready-card,.event-after-card,.raffle-public-card,.gen-page,
+.board-shell,.public-fold,.network-hub,.network-access-top,.application-cta,.next-card,.resource-card,.info-card,.calendar-detail,.faq{
+  border:var(--card-line);border-radius:var(--r-lg);background:#fff;box-shadow:none
+}
+.home-spotlight{background:#fff}
+.raffle-public-card{background:#fff;border-color:#DDD7F4}
+.site-home-card:hover{transform:none;border-color:#cfc8e9}
+/* 소제목(작은 보라 글씨): 한글, 같은 크기 */
+.spot-kicker,.event-ready-kicker,.raffle-public-kicker,.network-access-kicker,.network-hub-kicker,.status-kicker,.next-kicker,.info-label,.parking-label,.detail-date{
+  font-size:var(--fs-xs);font-weight:800;letter-spacing:0;color:var(--purple-dark)
+}
+/* 제목 굵기·크기 통일 */
+.site-page-title,.network-hub-title,.gen-title,.event-ready-card h2,.event-after-card h2,.raffle-public-title{font-size:var(--fs-xl);font-weight:800;letter-spacing:-.02em}
+.site-page-intro{margin:4px 0 12px}
+.board-gate-title{font-size:var(--fs-lg);font-weight:800}
+.site-page-desc,.network-hub-desc,.raffle-public-desc,.event-ready-card>p{font-size:var(--fs-sm);line-height:1.65}
+.board-row-title,.meetup-row-title{font-weight:800}
+.board-category{font-size:11px;font-weight:800}
+
+/* 머리글: 짧게 */
+.head{margin-bottom:12px}
+.head h1{font-size:22px}
+.head>p:not(.eyebrow){font-size:var(--fs-sm)}
+.visit-pill{margin-top:8px;padding:4px 10px}
+
+/* 메뉴 (PC: 위쪽) */
+.site-nav{margin:0 0 14px;padding:8px 0;gap:6px}
+.site-nav-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:9px 15px;font-size:var(--fs-sm)}
+.nav-ico{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.site-nav .notif-btn{margin-left:auto}
+.site-nav .notif-badge{top:-3px;right:-3px}
+/* 동문 메뉴 안의 작은 탭 */
+.alumni-subnav{display:flex;gap:4px;margin:0 0 14px;padding:4px;border-radius:var(--r-md);background:#EFEDE8}
+.alumni-subnav[hidden]{display:none!important}
+.alumni-subnav-btn{position:relative;flex:1;min-height:38px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--sub);font:inherit;font-size:var(--fs-sm);font-weight:800;cursor:pointer}
+.alumni-subnav-btn.active{background:#fff;color:var(--purple-dark);box-shadow:0 1px 3px rgba(30,28,26,.08)}
+
+/* 홈: 오늘의 동문 → F&B 소식 → 바로가기 4칸 → 아래 작은 줄 */
+.site-home{gap:12px;margin-bottom:12px}
+.home-spotlight,.home-news{margin:0}
+.site-home-grid{grid-template-columns:repeat(4,1fr);gap:10px}
+.site-home-card{min-height:0;padding:14px 15px;border-radius:var(--r-md);gap:2px}
+.site-home-card-title{margin:0;font-size:var(--fs-xs);font-weight:800;color:var(--sub)}
+.site-home-card-value{margin:2px 0 0;font-size:var(--fs-lg);font-weight:800;color:var(--ink);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-home-card-meta{margin:0;font-size:var(--fs-xs);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.site-view-home .top-actions{margin:0 0 10px;gap:8px}
+body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-actions>.top-action{min-height:40px;border:var(--card-line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font-size:var(--fs-sm);font-weight:700;box-shadow:none}
+
+@media(max-width:720px){
+  /* 휴대폰: 아래쪽 고정 메뉴 */
+  body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+  .site-nav{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:1200;margin:0;padding:4px 4px calc(4px + env(safe-area-inset-bottom));
+    gap:0;flex-wrap:nowrap;overflow:visible;background:rgba(255,255,255,.96);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(30,28,26,.05)}
+  .site-nav-btn{flex:1 1 0;flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:54px;padding:4px 2px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--mute);font-size:11px;font-weight:700}
+  .site-nav-btn:hover{color:var(--purple-dark)}
+  .site-nav-btn.active{background:transparent;color:var(--purple-dark)}
+  .site-nav-btn.active .nav-ico{stroke-width:2.3}
+  .nav-ico{width:22px;height:22px}
+  .site-nav .notif-btn{margin-left:0}
+  .site-nav .nav-new,.site-nav .notif-badge{top:3px;right:calc(50% - 22px)}
+  .head .eyebrow,.head>p:not(.eyebrow){display:none}
+  .head h1{font-size:20px}
+  .head-logo{width:32px;height:32px}
+  .site-home-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .site-home-card{min-height:0}
+  .wrap{padding-bottom:24px}
+}
+@media(max-width:720px){.toast{bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));z-index:1300}}
+@media(max-width:380px){.site-nav{flex-wrap:nowrap}}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -873,54 +951,50 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 </div>
 
 <nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
-  <button class="site-nav-btn" type="button" data-site-target="home">홈</button>
-  <button class="site-nav-btn" type="button" data-site-target="event">2026 모임</button>
-  <button class="site-nav-btn" type="button" data-site-target="network" aria-label="동문 네트워크"><span class="nav-long">동문 </span>네트워크</button>
-  <button class="site-nav-btn" type="button" data-site-target="board">게시판</button>
-  <button class="site-nav-btn" type="button" data-site-target="meetups" aria-label="번개·소모임">모임</button>
-  <button class="site-nav-btn" type="button" data-site-target="places" aria-label="동문 업장 지도"><span class="nav-long">동문 </span>업장 지도</button>
-  <button class="site-nav-btn notif-btn" type="button" data-open-myinfo><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보<span class="notif-badge" id="notifBadge" hidden aria-label="새 알림">0</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="home"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg><span>홈</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="event"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>2026 모임</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="network" data-nav-group="network places meetups" data-new-tabs="places meetups"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15 15.2c2.6-.5 4.8.9 5.5 3.8"/></svg><span>동문</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="board"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/></svg><span>게시판</span></button>
+  <button class="site-nav-btn notif-btn" type="button" data-open-myinfo><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 정보</span><span class="notif-badge" id="notifBadge" hidden aria-label="새 알림">0</span></button>
 </nav>
+
+<!-- 동문 메뉴 안의 세 화면(동문 찾기·업장 지도·번개 모임)을 오가는 작은 탭 -->
+<div class="alumni-subnav site-view" data-site-view="network places meetups" role="tablist" aria-label="동문 메뉴">
+  <button class="alumni-subnav-btn" type="button" data-site-target="network">동문 찾기</button>
+  <button class="alumni-subnav-btn" type="button" data-site-target="places">업장 지도</button>
+  <button class="alumni-subnav-btn" type="button" data-site-target="meetups">번개 모임</button>
+</div>
 
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
 <section class="site-home site-view" id="siteHome" data-site-view="home">
-  <div class="site-home-hero">
-    <div class="site-home-kicker">KCAS ALUMNI NETWORK</div>
-    <div class="site-home-title">졸업 이후에도 이어지는 한조고 네트워크</div>
-    <div class="site-home-desc">2026 네트워크 모임 정보와 졸업생 DB·공개 동문 프로필을 한곳에서 확인할 수 있습니다.</div>
-  </div>
   <div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div>
   <div class="home-news" id="homeNews" hidden></div>
   <div class="site-home-grid">
     <button class="site-home-card" type="button" data-site-target="event">
-      <div class="site-home-card-kicker">2026 NETWORK EVENT</div>
-      <div class="site-home-card-title">2026 네트워크 모임</div>
-      <div class="site-home-card-value">10.18 · 카페 와일드덕</div>
-      <div class="site-home-card-meta" id="homeEventMeta">참가 현황을 불러오는 중입니다.</div>
-      <div class="site-home-card-link">행사 자세히 보기 →</div>
+      <div class="site-home-card-title">2026 모임</div>
+      <div class="site-home-card-value">10.18 · 와일드덕</div>
+      <div class="site-home-card-meta" id="homeEventMeta">참가 현황 확인</div>
     </button>
     <button class="site-home-card" type="button" data-site-target="network">
-      <div class="site-home-card-kicker">ALUMNI NETWORK</div>
-      <div class="site-home-card-title">동문 네트워크</div>
+      <div class="site-home-card-title">동문 찾기</div>
       <div class="site-home-card-value" id="homeNetworkCount">-</div>
-      <div class="site-home-card-meta" id="homeNetworkMeta">졸업생 DB 현황과 공개 동문 프로필을 함께 확인할 수 있습니다.</div>
-      <div class="site-home-card-link">동문 정보 보기 →</div>
+      <div class="site-home-card-meta" id="homeNetworkMeta">공개 프로필</div>
     </button>
     <button class="site-home-card" type="button" data-site-target="board">
-      <div class="site-home-card-kicker">ALUMNI BOARD</div><div class="site-home-card-title">동문 게시판</div>
-      <div class="site-home-card-value" id="homeBoardCount">새로운 소식</div>
-      <div class="site-home-card-meta">자유글, 구인·구직, 협업, 업체 소식과 선후배 질문을 나눌 수 있습니다.</div><div class="site-home-card-link">게시판 보기 →</div>
+      <div class="site-home-card-title">게시판</div>
+      <div class="site-home-card-value" id="homeBoardCount">동문 전용</div>
+      <div class="site-home-card-meta">동문 소식·질문</div>
     </button>
     <button class="site-home-card" type="button" data-site-target="meetups">
-      <div class="site-home-card-kicker">ALUMNI MEETUPS</div><div class="site-home-card-title">번개·소모임</div>
-      <div class="site-home-card-value" id="homeMeetupCount">다음 만남</div>
-      <div class="site-home-card-meta">날짜와 장소를 정해 동문을 모으고, 참석 버튼으로 함께하세요.</div><div class="site-home-card-link">모임 보기 →</div>
+      <div class="site-home-card-title">번개 모임</div>
+      <div class="site-home-card-value" id="homeMeetupCount">동문 전용</div>
+      <div class="site-home-card-meta">함께 만나요</div>
     </button>
   </div>
 </section>
 
 <section class="board-page site-view" id="boardPage" data-site-view="board" hidden>
-  <div class="site-page-intro"><div class="site-page-kicker">ALUMNI BOARD</div><div class="site-page-title">동문 게시판</div><div class="site-page-desc">인증된 졸업생이 자유롭게 소식과 정보, 구인·구직 및 협업 기회를 나누는 공간입니다. 창업, 해외 취업, 메뉴 개발처럼 궁금한 건 "선후배 질문"으로 물어보세요. 원가표·발주 양식 같은 실무 자료는 "자료 공유"로 나눠요.</div></div>
+  <div class="site-page-intro"><div class="site-page-title">동문 게시판</div><div class="site-page-desc">인증된 졸업생이 자유롭게 소식과 정보, 구인·구직 및 협업 기회를 나누는 공간입니다. 창업, 해외 취업, 메뉴 개발처럼 궁금한 건 "선후배 질문"으로 물어보세요. 원가표·발주 양식 같은 실무 자료는 "자료 공유"로 나눠요.</div></div>
   <div class="board-shell">
     <div class="board-gate" id="boardGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 게시글과 댓글을 확인하고 직접 작성할 수 있습니다.</div><button class="board-gate-btn" id="boardVerifyBtn" type="button">동문 이메일 인증하기</button></div>
     <div class="board-content" id="boardContent" hidden>
@@ -934,7 +1008,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 </section>
 
 <section class="board-page site-view" id="meetupPage" data-site-view="meetups" hidden>
-  <div class="site-page-intro"><div class="site-page-kicker">ALUMNI MEETUPS</div><div class="site-page-title">동문 번개·소모임</div><div class="site-page-desc">"서울 동문 와인 모임", "베이커리 투어"처럼 누구나 날짜·장소·정원을 정해 모임을 열 수 있어요. 참석 버튼으로 신청하고 댓글로 약속을 맞춰보세요.</div></div>
+  <div class="site-page-intro"><div class="site-page-title">동문 번개·소모임</div><div class="site-page-desc">"서울 동문 와인 모임", "베이커리 투어"처럼 누구나 날짜·장소·정원을 정해 모임을 열 수 있어요. 참석 버튼으로 신청하고 댓글로 약속을 맞춰보세요.</div></div>
   <div class="board-shell">
     <div class="board-gate" id="meetupGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 모임을 보고, 직접 열거나 참석할 수 있습니다.</div><button class="board-gate-btn" id="meetupVerifyBtn" type="button">동문 이메일 인증하기</button></div>
     <div class="board-content" id="meetupContent" hidden>
@@ -977,7 +1051,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
  <div class="event-ready-notes"><p><b>주차</b> 현장 주차가 어려우니 다산동 공영주차장(동호로15길 60)을 이용해주세요. 대중교통 이용을 권장합니다.</p><p><b>협찬품 반입</b> 카페는 오후 6시까지 영업합니다. 협찬 관계자분들은 세팅을 위해 6시 전후로 도착 부탁드립니다.</p><p><b>동문회 회원 등록</b> 자세한 안내는 별도로 전해드리겠습니다.</p></div>
 </section>
 <section class="raffle-public-card event-not-after site-view" id="rafflePublicCard" data-site-view="event">
-  <div class="raffle-public-kicker">2026 HANJOGO · EVENT RAFFLE</div>
+  <div class="raffle-public-kicker">현장 추첨</div>
   <div class="raffle-public-title">행사 경품 추첨 안내</div>
   <div style="margin:12px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 경품: 올리브영 상품권 5만원 · 신세계 상품권 5만원 (각 1명).<br>스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</div>
   <div class="raffle-public-desc">경품 추첨은 <strong>1부·2부</strong>로 나누어 진행합니다. 전체 참가자 추첨과 인스타그램 스토리 참여 추첨이 준비되어 있으며, 현장에서 당첨 결과를 실시간으로 확인할 수 있습니다.</div>
@@ -1006,7 +1080,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
         <span>동문 인증 상태를 확인하고 있습니다.</span>
       </div>
       <div class="network-access-card" id="networkAccessSignedOut" hidden>
-        <div class="network-access-kicker">ALUMNI VERIFICATION</div>
+        <div class="network-access-kicker">동문 인증</div>
         <div class="network-access-title">등록한 이메일로 동문 인증</div>
         <div class="network-access-desc">졸업생 DB에 등록된 이메일로 인증하면 운영자 승인 없이 바로 공개 프로필을 볼 수 있습니다.</div>
         <form class="network-access-form" id="networkAccessForm">
@@ -1020,7 +1094,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
         </div>
       </div>
       <div class="network-access-card" id="networkAccessDenied" hidden>
-        <div class="network-access-kicker">EMAIL NOT FOUND</div>
+        <div class="network-access-kicker">등록되지 않은 이메일</div>
         <div class="network-access-title">등록된 이메일을 확인해주세요</div>
         <div class="network-access-desc">인증한 이메일이 졸업생 DB에서 확인되지 않습니다. 졸업생 DB에 등록한 뒤 다시 인증해주세요. 이미 등록하셨다면 운영진에게 문의해주세요.</div>
         <div class="network-access-status" id="networkAccessDeniedEmail"></div>
@@ -1038,8 +1112,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 </div>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
-    <div class="network-hub-kicker">ALUMNI NETWORK</div>
-    <div class="network-hub-title">한조고 동문 네트워크</div>
+        <div class="network-hub-title">한조고 동문 네트워크</div>
     <div class="network-hub-desc">기수, 소속, 활동 분야를 기준으로 동문을 찾아보고 서로의 현재 활동을 확인해보세요.</div>
   </div>
   <div class="network-hub-stats">
@@ -1289,7 +1362,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 
 <div class="next-card event-retired site-view" data-site-view="event">
 <div>
-<div class="next-kicker">NEXT</div>
+<div class="next-kicker">다음 일정</div>
 <div class="next-title" id="nextTitle"></div>
 <div class="next-meta" id="nextMeta"></div>
 </div>
@@ -2996,13 +3069,14 @@ function markSeen(tab){
 function isFresh(tab,id){return !!freshShown[tab]&&prevSeen[tab]!=null&&Number(id)>Number(prevSeen[tab]);}
 const freshShown={};
 function renderNewMarks(){
-  let total=0;
-  document.querySelectorAll("#siteNav [data-site-target]").forEach(b=>{
-    const tab=b.dataset.siteTarget,n=newIds[tab]?newCount(tab):0;
+  const counted=new Set();let total=0;
+  document.querySelectorAll("#siteNav [data-site-target],.alumni-subnav [data-site-target]").forEach(b=>{
+    const tabs=String(b.dataset.newTabs||b.dataset.siteTarget).split(" ");
+    const n=tabs.reduce((sum,tab)=>sum+(newIds[tab]?newCount(tab):0),0);
     let badge=b.querySelector(".nav-new");
     if(!badge&&n){badge=document.createElement("span");badge.className="nav-new";b.appendChild(badge);}
     if(badge){badge.textContent=n>9?"9+":String(n);badge.hidden=!n;badge.setAttribute("aria-label","새 글 "+n+"개");}
-    total+=n;
+    tabs.forEach(tab=>{if(!counted.has(tab)){counted.add(tab);total+=newIds[tab]?newCount(tab):0;}});
   });
   let unread=0;try{unread=notifUnread();}catch(e){}
   const sum=total+unread;
@@ -3226,7 +3300,7 @@ function renderMeetupList(){
   const upcoming=shown.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").sort((a,b)=>a.startsAt.localeCompare(b.startsAt));
   const done=shown.filter(m=>meetupIsPast(m)||m.status==="cancelled").sort((a,b)=>b.startsAt.localeCompare(a.startsAt));
   const homeCount=document.getElementById("homeMeetupCount");
-  if(homeCount){const n=meetups.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").length;homeCount.textContent=n?"다가오는 모임 "+n+"개":"첫 모임을 열어보세요";}
+  if(homeCount){const n=meetups.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").length;homeCount.textContent=n?n+"개 예정":"모임 열기";}
   if(!upcoming.length&&!done.length){
     list.innerHTML='<div class="board-list-empty">'+(meetupFilter==="all"?"아직 열린 모임이 없어요.<br>\"모임 만들기\"로 첫 모임을 열어보세요.":"조건에 맞는 모임이 없어요.")+'</div>';
     return;
@@ -3383,7 +3457,7 @@ function boardQuestionHtml(p){
 }
 document.getElementById("boardCategory")?.addEventListener("change",()=>{syncBoardTopicField();syncBoardResourceFields();});
 document.getElementById("boardTopic")?.addEventListener("change",()=>syncBoardTopicField());
-function renderBoardList(){renderBoardGenCard();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 소식을 기다려요";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isFresh("board",p.id)?'<span class="fresh-tag">N</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
+function renderBoardList(){renderBoardGenCard();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 글 쓰기";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isFresh("board",p.id)?'<span class="fresh-tag">N</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 async function loadBoard(force=false){
   if(networkAccessState!=="verified")return;
   let cached=null;
@@ -3790,19 +3864,17 @@ function syncHomeSummary(){
 
   if(eventMeta){
     const count=String(participant?.querySelector("strong")?.textContent||"").trim();
-    eventMeta.textContent=count
-      ? "현재 참석 예상 "+count+"명"
-      : "10월 18일 행사 참가 현황을 확인해보세요.";
+    eventMeta.textContent=document.body.classList.contains("event-phase-after")
+      ? "추첨 결과 보기"
+      : count ? "참석 예상 "+count+"명" : "참가 현황 확인";
   }
   if(networkCount){
     const txt=String(publicCount?.textContent||"").trim();
-    networkCount.textContent=txt&&txt!=="-" ? "공개 프로필 "+txt : "-";
+    networkCount.textContent=txt&&txt!=="-" ? txt : "-";
   }
   if(networkMeta){
     const txt=String(alumniSource?.textContent||"").trim();
-    networkMeta.textContent=txt&&txt!=="-"
-      ? "졸업생 DB "+txt+" 등록 · 공개 동문을 함께 확인할 수 있습니다."
-      : "졸업생 DB 현황과 공개 동문 프로필을 함께 확인할 수 있습니다.";
+    networkMeta.textContent=txt&&txt!=="-" ? "공개 프로필 · DB "+txt : "공개 프로필";
   }
 }
 
@@ -3824,11 +3896,12 @@ function setSiteView(view,{updateHash=true}={}){
   document.body.classList.add("site-view-"+next);
 
   document.querySelectorAll(".site-view").forEach(el=>{
-    el.hidden=el.dataset.siteView!==next;
+    el.hidden=!String(el.dataset.siteView||"").split(" ").includes(next);
   });
 
   document.querySelectorAll("[data-site-target]").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.siteTarget===next && btn.classList.contains("site-nav-btn"));
+    const group=String(btn.dataset.navGroup||btn.dataset.siteTarget).split(" ");
+    btn.classList.toggle("active",group.includes(next) && (btn.classList.contains("site-nav-btn")||btn.classList.contains("alumni-subnav-btn")));
   });
 
   if(networkProfileModal){

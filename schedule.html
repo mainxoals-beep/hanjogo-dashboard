@@ -3989,11 +3989,11 @@ function setSiteView(view,{updateHash=true}={}){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-document.querySelectorAll("[data-site-target]").forEach(el=>{
-  el.addEventListener("click",()=>{
-    closeBoardModal("myInfoModal");
-    setSiteView(el.dataset.siteTarget||"home");
-  });
+// 나중에 그려지는 버튼(오늘의 동문, 우리 기수 등)도 동작하도록 문서 전체에서 받습니다.
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-site-target]");if(!el)return;
+  closeBoardModal("myInfoModal");
+  setSiteView(el.dataset.siteTarget||"home");
 });
 
 window.addEventListener("hashchange",()=>setSiteView(currentSiteView(),{updateHash:false}));

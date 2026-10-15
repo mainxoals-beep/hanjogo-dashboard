@@ -959,6 +959,50 @@ body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-
 .fold-inline-btn{display:block;margin:12px 0 0;padding:0;border:0;background:none;color:var(--purple-dark);font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
 .join-steps{margin-top:10px}
 .join-steps[hidden],.event-ready-notes[hidden]{display:none!important}
+
+/* 동문 화면: 검색 + 필터, 한 줄 목록 (커리어리 참고) */
+body.site-view-network .network-hub-actions{display:none}
+body.net-verified.site-view-network .network-hub{display:none!important}
+body.site-view-network #networkProfileModal .attendee-head{display:none}
+body.site-view-network #networkProfileModal .network-access-session{display:none}
+body.site-view-network #networkProfileModal .attendee-dialog{border:var(--card-line);border-radius:var(--r-lg)!important;overflow:hidden}
+.np-searchbar{display:flex;gap:8px;padding:14px 14px 0}
+.np-searchbar .network-profile-search{flex:1;min-width:0;height:44px;margin:0;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:#F7F6F3;font:inherit;font-size:var(--fs-sm)}
+.np-searchbar .network-profile-search:focus{outline:none;border-color:var(--purple);background:#fff}
+.np-filter-btn{position:relative;display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--sub);font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
+.np-filter-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.np-filter-btn.on,.np-filter-btn[aria-expanded="true"]{border-color:var(--purple);color:var(--purple-dark);background:var(--purple-light)}
+.np-filter-count{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--purple);color:#fff;font-size:11px;line-height:18px;text-align:center}
+.np-filter-count[hidden]{display:none}
+.np-stats{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:10px 16px 8px;font-size:var(--fs-xs);color:var(--sub)}
+.np-stats b{color:var(--ink)}.np-dot{color:var(--mute)}
+.np-new-link,.np-db-link{padding:0;border:0;background:none;color:var(--purple-dark);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
+.np-new-link{color:#C2332F}
+.np-filter-panel{margin:0 14px 8px;padding:4px 0;border:1px solid var(--line);border-radius:var(--r-md);background:#FBFAF8}
+.np-filter-panel[hidden]{display:none}
+.np-filter-panel .network-generation-nav,.np-filter-panel .network-connect-nav,.np-filter-panel .attendee-tools{border:0;background:transparent;padding:10px 12px}
+.np-filter-panel .network-generation-sub{display:none}
+.np-row{padding:0!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:#fff!important;box-shadow:none!important;margin:0!important}
+.network-profile-list:has(.np-row){grid-template-columns:1fr!important;gap:0!important;margin-top:0;border-top:1px solid var(--line)}
+.np-top{display:flex;align-items:center}
+.np-summary{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 4px 12px 16px;border:0;background:none;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.np-avatar{flex:0 0 auto;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;font-size:13px;font-weight:800;color:#fff;background:#8A7FD6}
+.np-avatar.g1{background:#6E5FCB}.np-avatar.g2{background:#C0794E}.np-avatar.g3{background:#4E8F7A}.np-avatar.g4{background:#5A7FB8}.np-avatar.g5{background:#B0607E}.np-avatar.g0{background:#8C8577}
+.np-main{min-width:0;display:flex;flex-direction:column;gap:2px}
+.np-name{display:flex;align-items:center;gap:6px;font-size:var(--fs-md);font-weight:800;color:var(--ink)}
+.np-gen{font-size:var(--fs-xs);font-weight:600;color:var(--mute)}
+.np-name .network-profile-own{padding:1px 6px;border-radius:6px;background:var(--purple-light);color:var(--purple-dark);font-size:11px;font-weight:800}
+.np-name .network-profile-new{font-size:10px}
+.np-sub{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:var(--fs-sm);color:var(--sub)}
+.np-row .network-favorite-btn{position:static;flex:0 0 auto;margin-right:10px}
+.np-detail{padding:0 16px 14px 68px}
+.np-detail[hidden]{display:none}
+.np-detail .network-profile-line{font-size:var(--fs-sm)}
+.np-detail .network-profile-bio{margin-top:6px;font-size:var(--fs-sm);line-height:1.6}
+.np-row.is-open{background:#FCFBFE!important}
+.myinfo-logout{justify-self:start;margin-top:4px;padding:6px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
+body.net-verified .network-access-top{display:none!important}
+.network-profile-more[hidden]{display:none!important}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1371,6 +1415,12 @@ body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-
     </div>
     <div class="network-profile-protected" id="networkProfileProtected" hidden>
       <div class="network-access-session"><span><strong>동문 인증 완료</strong> · <span id="networkAccessVerifiedEmail"></span></span><span class="network-access-session-actions"><button class="network-access-myinfo" id="myInfoOpenBtn" type="button"><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보</button><button class="network-access-logout" id="networkAccessLogout" type="button">로그아웃</button></span></div>
+    <div class="np-searchbar">
+      <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="이름 · 소속 · 활동 분야 검색">
+      <button type="button" class="np-filter-btn" id="npFilterBtn" aria-expanded="false" aria-controls="npFilterPanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>필터<span class="np-filter-count" id="npFilterCount" hidden></span></button>
+    </div>
+    <div class="np-stats" id="npStats"></div>
+    <div class="np-filter-panel" id="npFilterPanel" hidden>
     <div class="network-generation-nav">
       <div class="network-generation-head">
         <div>
@@ -1391,7 +1441,7 @@ body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-
         <button type="button" class="network-quick-btn" id="networkFavoritesBtn">관심 동문 0</button>
         <button type="button" class="network-quick-btn" id="networkOwnBtn" hidden>내 프로필</button>
       </div>
-      <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="이름 · 소속 · 활동 분야 검색">
+    </div>
     </div>
     <div class="network-profile-modal-body">
       <div class="network-profile-list" id="networkProfileList">
@@ -1468,7 +1518,7 @@ body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-
 
 <div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
-  <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small></div>
+  <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small><button type="button" class="myinfo-logout" id="myInfoLogoutBtn">로그아웃</button></div>
   <div class="myinfo-tabs" role="tablist">
     <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
     <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">내 업장</button>
@@ -2452,6 +2502,7 @@ function renderNetworkGenerationNav(){
   renderNetworkConnectNav();
   updateNetworkQuickFilters();
 }
+const networkOpenProfiles=new Set();
 function renderNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
@@ -2481,6 +2532,7 @@ function renderNetworkProfiles(){
     networkNewCount.setAttribute("aria-pressed",networkNewOnly?"true":"false");
   }
 
+  syncNetworkStatsLine(todayNewCount);
   const q=networkNorm(search?.value||"");
   if(networkGenerationFilter==="none"&&!q){
     list.innerHTML='<div class="network-profile-empty">기수를 선택하거나 <b>전체 기수 보기</b>를 눌러주세요.</div>';
@@ -2506,9 +2558,7 @@ function renderNetworkProfiles(){
   const visible=filtered.slice(0,networkProfileLimit);
   list.innerHTML=visible.map(p=>{
     const lines=[];
-    if(p.company)lines.push(`<div class="network-profile-line"><span class="network-profile-label">소속</span><span class="network-profile-value">${esc(p.company)}</span></div>`);
-    if(p.work)lines.push(`<div class="network-profile-line"><span class="network-profile-label">하는 일</span><span class="network-profile-value">${esc(p.work)}</span></div>`);
-    if(p.activity)lines.push(`<div class="network-profile-line"><span class="network-profile-label">분야</span><span class="network-profile-value">${esc(p.activity)}</span></div>`);
+    if(p.activity&&(p.company||p.work))lines.push(`<div class="network-profile-line"><span class="network-profile-label">분야</span><span class="network-profile-value">${esc(p.activity)}</span></div>`);
     if(p.region)lines.push(`<div class="network-profile-line"><span class="network-profile-label">지역</span><span class="network-profile-value">${esc(p.region)}</span></div>`);
     if(p.instagram){
       const v=esc(p.instagram.label);
@@ -2516,20 +2566,28 @@ function renderNetworkProfiles(){
     }
     if(p.connect)lines.push(`<div class="network-profile-line"><span class="network-profile-label">연결 희망</span><span class="network-profile-value">${esc(p.connect)}</span></div>`);
     if(Array.isArray(p.helpTopics)&&p.helpTopics.length)lines.push(`<div class="network-profile-line"><span class="network-profile-label">도와줄 수 있어요</span><span class="network-profile-value">${esc(p.helpTopics.join(", "))}</span></div>`);
-    return `<div class="network-profile-item${p.isOwnProfile?" network-profile-is-own":""}">
-      <div class="network-profile-top">
-        ${p.gen?`<span class="network-profile-gen">${esc(p.gen)}기</span>`:""}
-        <span class="network-profile-name">${esc(p.name)}</span>
-        ${p.isOwnProfile?'<span class="network-profile-own">내 프로필</span>':""}
-        ${p.isNew?'<span class="network-profile-new" aria-label="오늘 새로 등록된 프로필">NEW</span>':""}
-        <button type="button" class="network-favorite-btn ${networkFavoriteIds.has(String(p.profileId||""))?"active":""}" data-favorite-id="${esc(p.profileId||"")}" aria-label="${esc(p.name)} 관심 동문 저장" aria-pressed="${networkFavoriteIds.has(String(p.profileId||""))?"true":"false"}">${networkFavoriteIds.has(String(p.profileId||""))?"★":"☆"}</button>
+    const fav=networkFavoriteIds.has(String(p.profileId||""));
+    const sub=[p.company,p.work].filter(Boolean).join(" · ")||p.activity||"";
+    const open=networkOpenProfiles.has(String(p.profileId||""));
+    return `<div class="network-profile-item np-row${p.isOwnProfile?" network-profile-is-own":""}${open?" is-open":""}">
+      <div class="np-top">
+        <button type="button" class="np-summary" data-np-toggle="${esc(p.profileId||"")}" aria-expanded="${open?"true":"false"}">
+          <span class="np-avatar g${Number(p.gen||0)%6}" aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
+          <span class="np-main">
+            <span class="np-name">${esc(p.name)}${p.gen?`<span class="np-gen">${esc(p.gen)}기</span>`:""}${p.isOwnProfile?'<span class="network-profile-own">나</span>':""}${p.isNew?'<span class="network-profile-new" aria-label="오늘 새로 등록된 프로필">NEW</span>':""}</span>
+            ${sub?`<span class="np-sub">${esc(sub)}</span>`:""}
+          </span>
+        </button>
+        <button type="button" class="network-favorite-btn ${fav?"active":""}" data-favorite-id="${esc(p.profileId||"")}" aria-label="${esc(p.name)} 관심 동문 저장" aria-pressed="${fav?"true":"false"}">${fav?"★":"☆"}</button>
       </div>
-      ${lines.join("")}
-      ${p.bio?`<div class="network-profile-bio">${esc(p.bio)}</div>${p.bio.length>80?'<button type="button" class="network-profile-bio-toggle" aria-expanded="false">소개 더 보기</button>':""}`:""}
-      ${(p.allowEmailContact&&p.email)||p.isOwnProfile?`<div class="network-profile-actions">
-        ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
-        ${p.isOwnProfile?'<button type="button" class="network-own-edit" data-open-myinfo>내 프로필 수정</button>':""}
-      </div>`:""}
+      <div class="np-detail"${open?"":" hidden"}>
+        ${lines.join("")}
+        ${p.bio?`<div class="network-profile-bio expanded">${esc(p.bio)}</div>`:""}
+        ${(p.allowEmailContact&&p.email)||p.isOwnProfile?`<div class="network-profile-actions">
+          ${p.allowEmailContact&&p.email?`<button type="button" class="network-profile-contact" data-contact-email="${esc(p.email)}" data-contact-name="${esc(p.name)}" data-contact-gen="${esc(p.gen||"")}">이메일로 연락하기</button>`:""}
+          ${p.isOwnProfile?'<button type="button" class="network-own-edit" data-open-myinfo>내 프로필 수정</button>':""}
+        </div>`:""}
+      </div>
     </div>`;
   }).join("");
   if(more){
@@ -2587,6 +2645,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
 
 function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
+  document.body.classList.toggle("net-verified",state==="verified");
   networkAccessEmail=email;
   setTimeout(syncProfileNudge,0);
   const panel=document.getElementById("networkAccessPanel");
@@ -2725,6 +2784,7 @@ async function resetNetworkAccess(){
   setNetworkAccessView("signed-out");
 }
 document.getElementById("networkAccessLogout")?.addEventListener("click",resetNetworkAccess);
+document.getElementById("myInfoLogoutBtn")?.addEventListener("click",()=>{if(!confirm("로그아웃할까요?"))return;closeBoardModal("myInfoModal");resetNetworkAccess();});
 document.getElementById("networkAccessSwitch")?.addEventListener("click",resetNetworkAccess);
 document.getElementById("networkAccessRetry")?.addEventListener("click",initializeNetworkAccess);
 
@@ -2803,6 +2863,14 @@ document.getElementById("networkProfileList")?.addEventListener("click",e=>{
         renderNetworkProfiles();
       });
     }
+    return;
+  }
+  const rowToggle=e.target.closest("[data-np-toggle]");
+  if(rowToggle){
+    const id=String(rowToggle.dataset.npToggle||""),row=rowToggle.closest(".np-row"),detail=row?.querySelector(".np-detail");
+    const open=!!detail?.hidden;if(detail)detail.hidden=!open;row?.classList.toggle("is-open",open);
+    rowToggle.setAttribute("aria-expanded",String(open));
+    if(open)networkOpenProfiles.add(id);else networkOpenProfiles.delete(id);
     return;
   }
   const bioToggle=e.target.closest(".network-profile-bio-toggle");
@@ -4043,6 +4111,42 @@ function syncContactLinks(){
   document.querySelectorAll("[data-contact-mail]").forEach(a=>{a.href=href;a.title=email;});
 }
 syncContactLinks();
+// 동문 목록 위 한 줄 요약과 "필터" 버튼(켜진 조건 수)을 맞춥니다.
+function syncNetworkStatsLine(todayNewCount=0){
+  const stats=document.getElementById("npStats");
+  if(stats){
+    const db=String(document.getElementById("networkAlumniCount")?.textContent||"").trim();
+    const parts=[`공개 프로필 <b>${networkProfiles.length.toLocaleString()}명</b>`];
+    if(todayNewCount)parts.push(`<button type="button" class="np-new-link" data-np-new>오늘 NEW ${todayNewCount}</button>`);
+    if(db&&db!=="-")parts.push(`<button type="button" class="np-db-link" data-np-db>졸업생 DB ${esc(db)}</button>`);
+    stats.innerHTML=parts.join('<span class="np-dot">·</span>');
+  }
+  const labels=[];
+  if(typeof networkGenerationFilter==="number")labels.push(networkGenerationFilter+"기");
+  if(networkConnectFilter)labels.push(networkConnectFilter);
+  if(networkRecentOnly)labels.push("최근 7일");
+  if(networkFavoritesOnly)labels.push("관심 동문");
+  if(networkOwnOnly)labels.push("내 프로필");
+  if(networkNewOnly)labels.push("오늘 NEW");
+  const count=document.getElementById("npFilterCount"),btn=document.getElementById("npFilterBtn");
+  if(count){count.hidden=!labels.length;count.textContent=String(labels.length);}
+  btn?.classList.toggle("on",labels.length>0);
+  if(btn)btn.title=labels.join(", ");
+}
+document.getElementById("npFilterBtn")?.addEventListener("click",()=>{
+  const panel=document.getElementById("npFilterPanel"),btn=document.getElementById("npFilterBtn");
+  if(!panel)return;panel.hidden=!panel.hidden;btn?.setAttribute("aria-expanded",String(!panel.hidden));
+});
+document.getElementById("npStats")?.addEventListener("click",e=>{
+  if(e.target.closest("[data-np-new]"))document.getElementById("networkNewCount")?.click();
+  if(e.target.closest("[data-np-db]"))document.getElementById("networkAlumniStatBtn")?.click();
+});
+// 동문 목록이 먼저 오고, 우리 기수 모아보기와 졸업생 DB 현황은 그 아래에 둡니다.
+(()=>{
+  const list=document.getElementById("networkProfileModal");if(!list)return;
+  const gen=document.getElementById("generationPage"),db=document.getElementById("alumniDbModal");
+  if(db)list.after(db);if(gen)list.after(gen);
+})();
 // 나중에 그려지는 버튼(오늘의 동문, 우리 기수 등)도 동작하도록 문서 전체에서 받습니다.
 document.addEventListener("click",e=>{
   const el=e.target.closest("[data-site-target]");if(!el)return;

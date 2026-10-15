@@ -936,6 +936,17 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 .place-req-item{margin-top:10px;padding-top:10px;border-top:1px solid #F3DADA;font-size:var(--fs-sm)}.place-req-item b{font-size:var(--fs-md)}
 .place-req-kind{font-size:var(--fs-xs);font-weight:800;color:var(--purple-dark)}.place-req-meta{margin-top:2px;font-size:var(--fs-xs);color:var(--sub);word-break:keep-all;overflow-wrap:anywhere}
 .place-req-actions{display:flex;gap:6px;margin-top:8px}.place-req-actions button{min-height:36px;padding:6px 14px}
+.join-steps-title{margin-top:2px;font-size:var(--fs-sm);font-weight:800;color:var(--ink)}
+.join-steps{margin:8px 0 12px;padding:0;list-style:none;counter-reset:js;display:grid;gap:8px}
+.join-steps li{position:relative;padding-left:30px;font-size:var(--fs-sm);line-height:1.5;counter-increment:js}
+.join-steps li::before{content:counter(js);position:absolute;left:0;top:1px;width:21px;height:21px;border-radius:50%;background:var(--purple-light);color:var(--purple-dark);font-size:var(--fs-xs);font-weight:800;line-height:21px;text-align:center}
+.join-steps b{display:block;color:var(--ink)}.join-steps span{display:block;color:var(--sub);font-size:var(--fs-xs)}
+.join-help{margin:10px 0 0;font-size:var(--fs-xs);color:var(--mute)}.join-help a{color:var(--purple-dark);font-weight:700}
+.profile-nudge{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid #DDD7F4;border-radius:var(--r-md);background:var(--purple-light)}
+.profile-nudge[hidden],.profile-nudge:not(.show){display:none!important}.profile-nudge b{display:block;font-size:var(--fs-sm);color:var(--purple-dark)}.profile-nudge span{display:block;margin-top:2px;font-size:var(--fs-xs);color:var(--sub);word-break:keep-all}
+.profile-nudge .spot-btn{flex:0 0 auto}
+a.top-action.contact-mail{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font-size:var(--fs-sm);font-weight:700}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1076,8 +1087,9 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 </section>
 
 <div class="top-actions site-view" data-site-view="home">
-<button class="event-guide-reopen" type="button" id="eventGuideOpen">10월 18일 행사 안내</button>
+<button class="event-guide-reopen" type="button" id="eventGuideOpen">행사 안내</button>
 <button class="top-action primary" id="shareBtn">공유하기</button>
+<a class="top-action contact-mail" href="mailto:mainxoals@gmail.com" data-contact-mail>문의하기</a>
 </div>
 
 
@@ -1098,18 +1110,25 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
         </form>
         <div class="network-access-status" id="networkAccessStatus" aria-live="polite"></div>
         <div class="network-access-register">
-          <p>졸업생 DB에 등록한 이메일이 없다면 먼저 등록해주세요. 이미 등록한 이메일이 바뀌었다면 운영진에게 문의해주세요.</p>
+          <div class="join-steps-title">처음이신가요? 3단계면 돼요</div>
+          <ol class="join-steps">
+            <li><b>졸업생 DB 등록</b><span>구글폼, 1분이면 끝나요.</span></li>
+            <li><b>10분쯤 뒤 이메일 인증</b><span>DB에 적은 이메일로 위에서 인증메일을 받아요.</span></li>
+            <li><b>내 정보에서 프로필 공개</b><span>소속·소개를 적고 공개를 켜면 동문 목록에 보여요. 프로필 구글폼은 따로 안 해도 돼요.</span></li>
+          </ol>
           <a class="network-access-btn secondary" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
+          <p class="join-help">등록한 이메일이 바뀌었거나 인증이 안 되면 <a href="mailto:mainxoals@gmail.com" data-contact-mail>운영진에게 문의</a>해주세요.</p>
         </div>
       </div>
       <div class="network-access-card" id="networkAccessDenied" hidden>
         <div class="network-access-kicker">등록되지 않은 이메일</div>
         <div class="network-access-title">등록된 이메일을 확인해주세요</div>
-        <div class="network-access-desc">인증한 이메일이 졸업생 DB에서 확인되지 않습니다. 졸업생 DB에 등록한 뒤 다시 인증해주세요. 이미 등록하셨다면 운영진에게 문의해주세요.</div>
+        <div class="network-access-desc">인증한 이메일이 졸업생 DB에서 확인되지 않습니다. 아직이라면 졸업생 DB에 먼저 등록해주세요. <b>방금 등록했다면 반영까지 10분쯤 걸려요.</b> 잠시 뒤 다시 인증해주시고, 그래도 안 되면 운영진에게 문의해주세요.</div>
         <div class="network-access-status" id="networkAccessDeniedEmail"></div>
         <div class="network-access-register">
           <a class="network-access-btn" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록하기</a>
           <button class="network-access-btn secondary" id="networkAccessSwitch" type="button">다른 이메일로 인증</button>
+          <a class="network-access-btn secondary contact-mail" href="mailto:mainxoals@gmail.com" data-contact-mail>운영진에게 문의하기</a>
         </div>
       </div>
       <div class="network-access-card" id="networkAccessError" hidden>
@@ -1118,6 +1137,10 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
         <button class="network-access-btn secondary" id="networkAccessRetry" type="button" style="width:100%;margin-top:16px">다시 확인</button>
       </div>
     </div>
+</div>
+<div class="profile-nudge site-view" id="profileNudge" data-site-view="network">
+  <div><b>내 프로필이 아직 목록에 없어요</b><span>소속·소개를 적고 공개를 켜면 다른 동문이 나를 찾을 수 있어요.</span></div>
+  <button type="button" class="spot-btn primary" data-open-myinfo>프로필 만들기</button>
 </div>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
@@ -2533,7 +2556,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
       .sort((a,b)=>Number(Boolean(b.isOwnProfile))-Number(Boolean(a.isOwnProfile))||Number(Boolean(b.isNew))-Number(Boolean(a.isNew))||a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
     loadNetworkFavorites();
     syncNetworkFavorites().then(renderNetworkProfiles);
-    networkProfilesLoaded=true;
+    networkProfilesLoaded=true;syncProfileNudge();
     networkGenerationFilter="all";
     renderNetworkProfiles();
     renderHomeSpotlight();renderGenerationPage();
@@ -2553,6 +2576,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
 function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   networkAccessEmail=email;
+  setTimeout(syncProfileNudge,0);
   const panel=document.getElementById("networkAccessPanel");
   const protectedArea=document.getElementById("networkProfileProtected");
   const loading=document.getElementById("networkAccessLoading");
@@ -3989,6 +4013,19 @@ function setSiteView(view,{updateHash=true}={}){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
+// 내 공개 프로필이 아직 없으면 동문 화면 위에 "프로필 만들기"를 보여줍니다.
+function syncProfileNudge(){
+  const el=document.getElementById("profileNudge");if(!el)return;
+  // hidden 은 화면 전환 때 다시 풀리므로 class 로 켜고 끕니다.
+  el.classList.toggle("show",networkAccessState==="verified"&&networkProfilesLoaded&&!networkProfiles.some(p=>p.isOwnProfile));
+}
+// 문의하기: 공개 정보의 운영진 이메일로 메일 쓰기 창을 엽니다.
+function syncContactLinks(){
+  const email=String(publicInfo?.contactEmail||"mainxoals@gmail.com").trim();
+  const href="mailto:"+email+"?subject="+encodeURIComponent("[한조고 동문 사이트] 문의");
+  document.querySelectorAll("[data-contact-mail]").forEach(a=>{a.href=href;a.title=email;});
+}
+syncContactLinks();
 // 나중에 그려지는 버튼(오늘의 동문, 우리 기수 등)도 동작하도록 문서 전체에서 받습니다.
 document.addEventListener("click",e=>{
   const el=e.target.closest("[data-site-target]");if(!el)return;
@@ -4613,6 +4650,7 @@ publicInfo=
 mergePublicInfo(
 payload.publicInfo||{}
 );
+syncContactLinks();
 
 applicationSchedule={
 ...DEFAULT_APPLICATION_SCHEDULE,

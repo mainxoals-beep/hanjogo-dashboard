@@ -1017,6 +1017,29 @@ body:not(.net-verified) .page-head-action[data-needs-auth]{display:none}
 /* 원래 화면 안의 제목·버튼 줄은 위 제목 줄로 대신합니다. */
 #boardPage .board-toolbar,#meetupPage .board-toolbar{display:none}
 body.site-view-network .network-hub-copy{display:none}
+
+/* 버튼 3종: 주 버튼(보라) · 보조 버튼(테두리) · 글자 버튼 */
+.board-primary-btn,.board-gate-btn,.board-write-btn,.spot-btn.primary,.network-access-btn:not(.secondary),.raffle-watch-btn,.network-profile-open-btn{
+  min-height:42px;border:1px solid var(--purple);border-radius:var(--r-sm);background:var(--purple);color:#fff;font-size:var(--fs-sm);font-weight:700;box-shadow:none}
+.board-secondary-btn,.spot-btn:not(.primary),.network-access-btn.secondary,.meetup-secondary,.link-btn:not(.primary),.network-own-edit,.network-profile-contact,.payment-account-btn,.attendee-open-btn,.news-more,.network-profile-more{
+  min-height:40px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;color:var(--purple-dark);font-size:var(--fs-sm);font-weight:700;box-shadow:none}
+.board-danger-btn{min-height:40px;border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:700}
+.spot-btn{min-height:38px;padding:6px 14px}
+.board-secondary-btn:hover,.spot-btn:not(.primary):hover,.network-access-btn.secondary:hover,.meetup-secondary:hover,.network-own-edit:hover,.network-profile-contact:hover,.payment-account-btn:hover,.attendee-open-btn:hover{border-color:#cfc8e9;background:#FBFAFF}
+.board-primary-btn:hover,.spot-btn.primary:hover,.network-access-btn:not(.secondary):hover,.raffle-watch-btn:hover{background:var(--purple-dark);border-color:var(--purple-dark)}
+
+/* 게시판·모임 목록: 상자 대신 얇은 선, 분류는 작은 글씨로 */
+#boardList .board-row{grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:14px 16px}
+#boardList .board-category{grid-row:1;grid-column:1;justify-self:start;min-width:0;padding:0;background:none;color:var(--purple-dark);font-size:var(--fs-xs);font-weight:700}
+#boardList .board-category.notice{background:none;color:#C2332F}
+#boardList .board-row-main{grid-column:1}
+#boardList .board-row-title{font-size:var(--fs-md);font-weight:700}
+#boardList .board-row-meta{font-size:var(--fs-xs)}
+#boardList .board-comment-count{grid-column:1;font-size:var(--fs-xs);font-weight:500;color:var(--mute)}
+.board-shell,.board-filters{border-color:var(--line)}
+.board-filter{min-height:34px;font-size:var(--fs-xs);font-weight:700}
+.meetup-row-title{font-weight:700}
+.board-filters[hidden]{display:none!important}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">

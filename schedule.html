@@ -947,6 +947,18 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 .profile-nudge .spot-btn{flex:0 0 auto}
 a.top-action.contact-mail{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font-size:var(--fs-sm);font-weight:700}
+.fold-card{padding:0!important;overflow:hidden}
+.fold-card-head{background:transparent}
+.fold-card-head .public-fold-title{display:block;margin:0;font-size:var(--fs-md);font-weight:800;color:var(--ink)}
+.fold-card-body{padding:0 16px 16px}
+.fold-card-body[hidden]{display:none}
+.fold-card-keep{margin:0 16px 14px!important}
+.fold-card.is-open .fold-card-keep{margin-top:0!important}
+.raffle-public-meta.fold-card-keep{padding-top:0;border-top:0}
+#applicationCta.fold-card .fold-card-body{padding-top:0}
+.fold-inline-btn{display:block;margin:12px 0 0;padding:0;border:0;background:none;color:var(--purple-dark);font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
+.join-steps{margin-top:10px}
+.join-steps[hidden],.event-ready-notes[hidden]{display:none!important}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1167,11 +1179,11 @@ body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-
 
 
 <div class="public-fold event-not-after site-view" data-site-view="event">
-<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="true">
+<button class="public-fold-head" type="button" data-fold-target="publicProgramBody" aria-expanded="false">
   <span><span class="public-fold-title">행사 프로그램</span><span class="public-fold-sub">프로그램 순서와 주요 구성 보기</span></span>
   <span class="public-fold-icon">▾</span>
 </button>
-<div class="public-fold-body" id="publicProgramBody">
+<div class="public-fold-body" id="publicProgramBody" hidden>
   <div class="program-card">
   <div class="program-list">
   <div class="program-item">입장 및<br>자유 네트워킹</div>
@@ -3935,6 +3947,11 @@ function syncHomeSummary(){
       ? "추첨 결과 보기"
       : count ? "참석 예상 "+count+"명" : "참가 현황 확인";
   }
+  const applySub=document.getElementById("applyFoldSub");
+  if(applySub){
+    const count=String(participant?.querySelector("strong")?.textContent||"").trim();
+    applySub.textContent=count?"참석 예상 "+count+"명 · 명단 · 입금 계좌":"참가자 명단과 입금 계좌 보기";
+  }
   if(networkCount){
     const txt=String(publicCount?.textContent||"").trim();
     networkCount.textContent=txt&&txt!=="-" ? txt : "-";
@@ -4946,6 +4963,37 @@ function setupPublicFolds(){
   });
 }
 setupPublicFolds();
+// 긴 카드는 제목만 보이게 접어 둡니다. 제목을 누르면 펼쳐집니다.
+// keep: 접혀 있어도 항상 보일 부분(예: 추첨 화면 버튼). titleFrom: 제목으로 쓸 기존 요소.
+function foldCard(el,{title="",sub="",subId="",titleFrom="",keep="",open=false}={}){
+  if(!el||el.dataset.folded)return;el.dataset.folded="1";
+  const head=document.createElement("button");head.type="button";head.className="public-fold-head fold-card-head";
+  const label=document.createElement("span");
+  const t=titleFrom&&el.querySelector(titleFrom);
+  if(t){t.classList.add("public-fold-title");label.appendChild(t);}else{const x=document.createElement("span");x.className="public-fold-title";x.textContent=title;label.appendChild(x);}
+  const subEl=document.createElement("span");subEl.className="public-fold-sub";subEl.textContent=sub;if(subId)subEl.id=subId;label.appendChild(subEl);
+  const icon=document.createElement("span");icon.className="public-fold-icon";head.append(label,icon);
+  const body=document.createElement("div");body.className="fold-card-body";
+  const kept=keep?[...el.querySelectorAll(":scope > "+keep)]:[];
+  [...el.childNodes].forEach(n=>{if(!kept.includes(n))body.appendChild(n);});
+  el.classList.add("fold-card");el.prepend(head);head.after(body);kept.forEach(k=>{k.classList.add("fold-card-keep");el.appendChild(k);});
+  const sync=()=>{body.hidden=!open;head.setAttribute("aria-expanded",String(open));icon.textContent=open?"▴":"▾";el.classList.toggle("is-open",open);};
+  head.addEventListener("click",()=>{open=!open;sync();});sync();
+}
+// 카드 안 일부만 접기: 버튼 하나로 그 부분을 보였다 숨깁니다.
+function foldInline(el,label,{open=false}={}){
+  if(!el||el.dataset.folded)return;el.dataset.folded="1";
+  const btn=document.createElement("button");btn.type="button";btn.className="fold-inline-btn";
+  const sync=()=>{el.hidden=!open;btn.setAttribute("aria-expanded",String(open));btn.textContent=label+(open?" ▴":" ▾");};
+  btn.addEventListener("click",()=>{open=!open;sync();});el.before(btn);sync();
+}
+foldCard(document.getElementById("rafflePublicCard"),{titleFrom:".raffle-public-title",sub:"경품 · 스토리 참여 방법 보기",keep:".raffle-public-meta"});
+foldCard(document.getElementById("applicationCta"),{title:"참가 현황 · 입금 계좌",sub:"참가자 명단과 입금 계좌 보기",subId:"applyFoldSub"});
+foldCard(document.getElementById("brandCard"),{titleFrom:".brand-title",sub:"협찬·후원 브랜드 보기"});
+foldCard(document.getElementById("generationPage"),{title:"우리 기수 모아보기",sub:"기수별 동문 · 업장 · 글"});
+foldInline(document.querySelector("#eventReadyCard .event-ready-notes"),"주차 · 협찬품 반입 · 회원 등록 안내");
+document.querySelector(".join-steps-title")?.remove();
+foldInline(document.querySelector(".join-steps"),"처음이신가요? 가입 3단계 보기");
 document.getElementById("networkAlumniStatBtn")?.addEventListener("click",()=>{
   const body=document.getElementById("alumniDbModalBody");
   const fold=document.querySelector('[data-fold-target="alumniDbModalBody"]');

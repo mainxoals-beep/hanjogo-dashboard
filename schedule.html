@@ -1003,6 +1003,20 @@ body.site-view-network #networkProfileModal .attendee-dialog{border:var(--card-l
 .myinfo-logout{justify-self:start;margin-top:4px;padding:6px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
 body.net-verified .network-access-top{display:none!important}
 .network-profile-more[hidden]{display:none!important}
+
+/* 화면 제목 줄: 제목 + 오른쪽 버튼 1개 */
+.page-head{margin:2px 0 12px}
+.page-head-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.page-head-title{margin:0;font-size:var(--fs-xl);font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.page-head-desc{margin:4px 0 0;font-size:var(--fs-sm);line-height:1.55;color:var(--sub);word-break:keep-all}
+.page-head-action{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--purple-dark);font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap}
+.page-head-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.page-head-action.primary,#boardPage .page-head-action,#meetupPage .page-head-action{border-color:var(--purple);background:var(--purple);color:#fff}
+body:not(.net-verified) .page-head-action[data-needs-auth]{display:none}
+.profile-nudge{display:none!important}
+/* 원래 화면 안의 제목·버튼 줄은 위 제목 줄로 대신합니다. */
+#boardPage .board-toolbar,#meetupPage .board-toolbar{display:none}
+body.site-view-network .network-hub-copy{display:none}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1041,6 +1055,8 @@ body.net-verified .network-access-top{display:none!important}
   <button class="alumni-subnav-btn" type="button" data-site-target="meetups">번개 모임</button>
 </div>
 
+<div class="site-view" data-site-view="network"><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">동문 찾기</h2><button type="button" class="page-head-action" id="netHeadAction" data-needs-auth data-open-myinfo><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 프로필</span></button></div><p class="page-head-desc">기수·소속·분야로 동문을 찾고 연결해요.</p></div></div>
+<div class="site-view" data-site-view="places" hidden><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">업장 지도</h2><button type="button" class="page-head-action" data-place-add><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>내 업장 등록</button></div><p class="page-head-desc">동문이 운영하는 가게를 지도에서 찾아요.</p></div></div>
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
 <section class="site-home site-view" id="siteHome" data-site-view="home">
   <div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div>
@@ -1070,7 +1086,7 @@ body.net-verified .network-access-top{display:none!important}
 </section>
 
 <section class="board-page site-view" id="boardPage" data-site-view="board" hidden>
-  <div class="site-page-intro"><div class="site-page-title">동문 게시판</div><div class="site-page-desc">인증된 졸업생이 자유롭게 소식과 정보, 구인·구직 및 협업 기회를 나누는 공간입니다. 창업, 해외 취업, 메뉴 개발처럼 궁금한 건 "선후배 질문"으로 물어보세요. 원가표·발주 양식 같은 실무 자료는 "자료 공유"로 나눠요.</div></div>
+  <div class="page-head"><div class="page-head-row"><h2 class="page-head-title">동문 게시판</h2><button type="button" class="page-head-action" data-needs-auth data-click="boardWriteBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>글쓰기</button></div><p class="page-head-desc">소식·질문·구인구직·자료를 나눠요. "선후배 질문"으로 궁금한 걸 물어보세요.</p></div>
   <div class="board-shell">
     <div class="board-gate" id="boardGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 게시글과 댓글을 확인하고 직접 작성할 수 있습니다.</div><button class="board-gate-btn" id="boardVerifyBtn" type="button">동문 이메일 인증하기</button></div>
     <div class="board-content" id="boardContent" hidden>
@@ -1084,7 +1100,7 @@ body.net-verified .network-access-top{display:none!important}
 </section>
 
 <section class="board-page site-view" id="meetupPage" data-site-view="meetups" hidden>
-  <div class="site-page-intro"><div class="site-page-title">동문 번개·소모임</div><div class="site-page-desc">"서울 동문 와인 모임", "베이커리 투어"처럼 누구나 날짜·장소·정원을 정해 모임을 열 수 있어요. 참석 버튼으로 신청하고 댓글로 약속을 맞춰보세요.</div></div>
+  <div class="page-head"><div class="page-head-row"><h2 class="page-head-title">번개 모임</h2><button type="button" class="page-head-action" data-needs-auth data-click="meetupCreateBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>모임 만들기</button></div><p class="page-head-desc">누구나 날짜·장소·정원을 정해 모임을 열고, 참석 버튼으로 함께해요.</p></div>
   <div class="board-shell">
     <div class="board-gate" id="meetupGate"><div class="board-gate-title">동문 인증 후 이용할 수 있습니다</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 모임을 보고, 직접 열거나 참석할 수 있습니다.</div><button class="board-gate-btn" id="meetupVerifyBtn" type="button">동문 이메일 인증하기</button></div>
     <div class="board-content" id="meetupContent" hidden>
@@ -4102,7 +4118,10 @@ function setSiteView(view,{updateHash=true}={}){
 function syncProfileNudge(){
   const el=document.getElementById("profileNudge");if(!el)return;
   // hidden 은 화면 전환 때 다시 풀리므로 class 로 켜고 끕니다.
-  el.classList.toggle("show",networkAccessState==="verified"&&networkProfilesLoaded&&!networkProfiles.some(p=>p.isOwnProfile));
+  const missing=networkAccessState==="verified"&&networkProfilesLoaded&&!networkProfiles.some(p=>p.isOwnProfile);
+  el.classList.toggle("show",missing);
+  const head=document.getElementById("netHeadAction");
+  if(head){head.classList.toggle("primary",missing);const t=head.querySelector("span");if(t)t.textContent=missing?"프로필 만들기":"내 프로필";}
 }
 // 문의하기: 공개 정보의 운영진 이메일로 메일 쓰기 창을 엽니다.
 function syncContactLinks(){
@@ -4147,6 +4166,14 @@ document.getElementById("npStats")?.addEventListener("click",e=>{
   const gen=document.getElementById("generationPage"),db=document.getElementById("alumniDbModal");
   if(db)list.after(db);if(gen)list.after(gen);
 })();
+// 화면 제목 줄 오른쪽 버튼: 그 화면에 있던 원래 버튼을 대신 눌러 줍니다.
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".page-head-action[data-click]");if(b){document.getElementById(b.dataset.click)?.click();return;}
+  if(e.target.closest("[data-place-add]")){
+    if(networkAccessState!=="verified"){setSiteView("network");return;}
+    myInfoEl("myInfoOpenBtn")?.click();setTimeout(()=>{setMyInfoTab("place");myInfoEl("myInfoPlaceAddBtn")?.click();},0);
+  }
+});
 // 나중에 그려지는 버튼(오늘의 동문, 우리 기수 등)도 동작하도록 문서 전체에서 받습니다.
 document.addEventListener("click",e=>{
   const el=e.target.closest("[data-site-target]");if(!el)return;

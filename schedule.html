@@ -1040,6 +1040,42 @@ body.site-view-network .network-hub-copy{display:none}
 .board-filter{min-height:34px;font-size:var(--fs-xs);font-weight:700}
 .meetup-row-title{font-weight:700}
 .board-filters[hidden]{display:none!important}
+
+/* 행사 사진 */
+.photo-card{margin:0 0 14px;padding:16px;border:var(--card-line);border-radius:var(--r-lg);background:#fff}
+.photo-title{margin:0;font-size:var(--fs-md);font-weight:800;color:var(--ink)}.photo-count{margin-left:4px;font-size:var(--fs-sm);font-weight:600;color:var(--mute)}
+.photo-gate{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:12px 14px;border-radius:var(--r-md);background:#F7F6F3;font-size:var(--fs-sm);color:var(--sub)}
+.photo-gate[hidden],.photo-grid[hidden],.photo-empty[hidden],.photo-more[hidden]{display:none!important}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin:12px -16px 0}
+.photo-tile{position:relative;aspect-ratio:1;padding:0;border:0;background:#EEEBE5;overflow:hidden;cursor:pointer}
+.photo-tile img{display:block;width:100%;height:100%;object-fit:cover}
+.photo-tile-like{position:absolute;right:5px;bottom:4px;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;font-weight:700}
+.photo-empty{margin-top:12px;padding:18px;border-radius:var(--r-md);background:#F7F6F3;text-align:center;font-size:var(--fs-sm);color:var(--sub)}
+.photo-more{display:block;width:100%;margin-top:12px}
+@media(min-width:721px){.photo-grid{grid-template-columns:repeat(4,1fr);margin:12px 0 0;gap:6px}.photo-tile{border-radius:8px}}
+body.photo-open{overflow:hidden}
+.photo-viewer{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:#0B0A0E}
+.photo-viewer[hidden],.photo-sheet[hidden]{display:none!important}
+.photo-viewer-img{max-width:100%;max-height:calc(100% - 140px);object-fit:contain}
+.photo-viewer-close{position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;cursor:pointer}
+.photo-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:34px;cursor:pointer}
+.photo-nav.prev{left:0;border-radius:0 10px 10px 0}.photo-nav.next{right:0;border-radius:10px 0 0 10px}.photo-nav[hidden]{display:none}
+.photo-viewer-info{position:absolute;left:0;right:0;bottom:0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+.photo-viewer-row{display:flex;align-items:center;gap:10px}
+.photo-like{min-height:36px;padding:4px 12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:transparent;color:#fff;font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
+.photo-like[aria-pressed="true"]{border-color:#FF6B81;color:#FF6B81}
+.photo-viewer-author{flex:1;min-width:0;font-size:var(--fs-sm);opacity:.9}
+.photo-delete{padding:4px 10px;border:1px solid rgba(255,255,255,.35);border-radius:var(--r-sm);background:transparent;color:#fff;font:inherit;font-size:var(--fs-xs);cursor:pointer}
+.photo-viewer-caption{margin-top:6px;font-size:var(--fs-sm);line-height:1.5;word-break:keep-all}
+.photo-sheet{position:fixed;inset:0;z-index:10040;display:flex;align-items:flex-end;justify-content:center;background:rgba(24,18,28,.5)}
+.photo-sheet-box{width:min(520px,100%);max-height:90vh;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;background:#fff}
+@media(min-width:721px){.photo-sheet{align-items:center}.photo-sheet-box{border-radius:18px}}
+.photo-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:var(--fs-md)}
+.photo-sheet-previews{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:12px}
+.photo-sheet-previews img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:#EEE}
+.photo-sheet-note{margin:8px 0;font-size:var(--fs-xs);color:var(--mute);line-height:1.5}
+.photo-sheet-status{min-height:18px;font-size:var(--fs-sm);color:var(--purple-dark)}
+.photo-sheet-submit{width:100%;margin-top:8px}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1180,6 +1216,38 @@ body.site-view-network .network-hub-copy{display:none}
     <button class="raffle-watch-btn" id="raffleWatchBtn" type="button">추첨 화면 미리보기</button>
   </div>
 </section>
+
+<section class="photo-card site-view" id="eventPhotos" data-site-view="event">
+  <div class="page-head-row">
+    <h3 class="photo-title">행사 사진 <span class="photo-count" id="photoCount"></span></h3>
+    <button type="button" class="page-head-action primary" id="photoAddBtn" data-needs-auth><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>사진 올리기</button>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" multiple hidden>
+  <div class="photo-gate" id="photoGate"><span>동문 인증 후 사진을 보고 올릴 수 있어요.</span><button type="button" class="board-secondary-btn" data-site-target="network">동문 인증하기</button></div>
+  <div class="photo-grid" id="photoGrid" hidden></div>
+  <div class="photo-empty" id="photoEmpty" hidden>아직 올라온 사진이 없어요. 첫 사진을 올려주세요!</div>
+  <button type="button" class="board-secondary-btn photo-more" id="photoMore" hidden>사진 더 보기</button>
+</section>
+<div class="photo-sheet" id="photoSheet" hidden role="dialog" aria-modal="true" aria-labelledby="photoSheetTitle">
+  <div class="photo-sheet-box">
+    <div class="photo-sheet-head"><b id="photoSheetTitle">사진 올리기</b><button type="button" class="board-close" id="photoSheetClose" aria-label="닫기">×</button></div>
+    <div class="photo-sheet-previews" id="photoPreviews"></div>
+    <input class="board-input" id="photoCaption" maxlength="200" placeholder="한 줄 설명 (선택) · 모든 사진에 같이 붙어요">
+    <p class="photo-sheet-note">동문 인증한 분들만 볼 수 있어요. 사진은 휴대폰에서 줄여서 올라가요. 내가 올린 사진은 언제든 지울 수 있어요.</p>
+    <div class="photo-sheet-status" id="photoSheetStatus" aria-live="polite"></div>
+    <button type="button" class="board-primary-btn photo-sheet-submit" id="photoSubmit">올리기</button>
+  </div>
+</div>
+<div class="photo-viewer" id="photoViewer" hidden role="dialog" aria-modal="true" aria-label="사진 크게 보기">
+  <button type="button" class="photo-viewer-close" id="photoViewerClose" aria-label="닫기">×</button>
+  <button type="button" class="photo-nav prev" id="photoPrev" aria-label="이전 사진">‹</button>
+  <img class="photo-viewer-img" id="photoViewerImg" alt="">
+  <button type="button" class="photo-nav next" id="photoNext" aria-label="다음 사진">›</button>
+  <div class="photo-viewer-info">
+    <div class="photo-viewer-row"><button type="button" class="photo-like" id="photoLike" aria-pressed="false">♡ <span id="photoLikeCount">0</span></button><span class="photo-viewer-author" id="photoViewerAuthor"></span><button type="button" class="photo-delete" id="photoDelete" hidden>삭제</button></div>
+    <div class="photo-viewer-caption" id="photoViewerCaption"></div>
+  </div>
+</div>
 
 <div class="top-actions site-view" data-site-view="home">
 <button class="event-guide-reopen" type="button" id="eventGuideOpen">행사 안내</button>
@@ -2685,6 +2753,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
 function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   document.body.classList.toggle("net-verified",state==="verified");
+  setTimeout(syncPhotoAccess,0);
   networkAccessEmail=email;
   setTimeout(syncProfileNudge,0);
   const panel=document.getElementById("networkAccessPanel");
@@ -4129,6 +4198,8 @@ function setSiteView(view,{updateHash=true}={}){
   const placesFrame=document.getElementById("alumniPlacesFrame");
   if(next==="places" && placesFrame && !placesFrame.hasAttribute("src")) placesFrame.src="alumni-map.html?embedded=1&v=20261008-align";
   syncHomeSummary();
+  if(next==="event"&&networkAccessState==="verified"&&!eventPhotosLoaded)loadEventPhotos();
+  if(next!=="event")closePhoto();
   if(newIds[next]){freshShown[next]=true;markSeen(next);if(next==="board")renderBoardList();}
 
   if(updateHash){
@@ -4195,6 +4266,127 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-place-add]")){
     if(networkAccessState!=="verified"){setSiteView("network");return;}
     myInfoEl("myInfoOpenBtn")?.click();setTimeout(()=>{setMyInfoTab("place");myInfoEl("myInfoPlaceAddBtn")?.click();},0);
+  }
+});
+// ---- 행사 사진 --------------------------------------------------------------
+// 동문 인증한 사람만 봅니다. 휴대폰에서 큰 사진(긴 쪽 1600px)과 바둑판용 정사각 작은 사진으로 줄여 올립니다.
+var eventPhotos=[],eventPhotoTotal=0,eventPhotosLoaded=false,photoViewIndex=-1,photoPending=[];
+const PHOTO_BUCKET="hanjogo-event-photos";
+function syncPhotoAccess(){
+  const ok=networkAccessState==="verified";
+  const gate=document.getElementById("photoGate");if(gate)gate.hidden=ok;
+  if(!ok){eventPhotos=[];eventPhotosLoaded=false;renderEventPhotos();return;}
+  if(currentSiteView()==="event"&&!eventPhotosLoaded)loadEventPhotos();
+}
+async function loadEventPhotos(more=false){
+  if(networkAccessState!=="verified")return;
+  try{
+    const before=more&&eventPhotos.length?eventPhotos[eventPhotos.length-1].id:0;
+    const data=await boardCall("photo_list",before?{before}:{});
+    const items=Array.isArray(data.items)?data.items:[];
+    eventPhotos=more?eventPhotos.concat(items):items;eventPhotoTotal=Number(data.total||eventPhotos.length);eventPhotosLoaded=true;
+    renderEventPhotos();
+  }catch(e){const empty=document.getElementById("photoEmpty");if(empty){empty.hidden=false;empty.textContent="사진을 불러오지 못했어요. 잠시 후 다시 시도해주세요.";}}
+}
+function renderEventPhotos(){
+  const grid=document.getElementById("photoGrid"),empty=document.getElementById("photoEmpty"),more=document.getElementById("photoMore"),count=document.getElementById("photoCount");
+  if(!grid)return;
+  const ok=networkAccessState==="verified";
+  if(count)count.textContent=ok&&eventPhotoTotal?eventPhotoTotal+"장":"";
+  grid.hidden=!ok||!eventPhotos.length;
+  if(empty){empty.hidden=!ok||!eventPhotosLoaded||eventPhotos.length>0;if(!empty.hidden)empty.textContent="아직 올라온 사진이 없어요. 첫 사진을 올려주세요!";}
+  if(more)more.hidden=!ok||eventPhotos.length>=eventPhotoTotal;
+  grid.innerHTML=eventPhotos.map((p,i)=>`<button type="button" class="photo-tile" data-photo-index="${i}" aria-label="${esc((p.authorGeneration?p.authorGeneration+"기 ":"")+(p.authorName||""))} 사진 크게 보기"><img src="${esc(p.thumbUrl)}" alt="" loading="lazy" decoding="async">${p.likeCount?`<span class="photo-tile-like">♥ ${p.likeCount}</span>`:""}</button>`).join("");
+}
+function openPhoto(i){
+  const v=document.getElementById("photoViewer");if(!v||!eventPhotos[i])return;
+  photoViewIndex=i;const p=eventPhotos[i];
+  const img=document.getElementById("photoViewerImg");img.src=p.thumbUrl;const full=new Image();full.onload=()=>{if(photoViewIndex===i)img.src=p.url;};full.src=p.url;
+  document.getElementById("photoViewerAuthor").textContent=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName,boardDate(p.createdAt)].filter(Boolean).join(" · ");
+  document.getElementById("photoViewerCaption").textContent=p.caption||"";
+  const like=document.getElementById("photoLike");like.setAttribute("aria-pressed",String(!!p.liked));like.firstChild.textContent=p.liked?"♥ ":"♡ ";
+  document.getElementById("photoLikeCount").textContent=String(p.likeCount||0);
+  document.getElementById("photoDelete").hidden=!p.canDelete;
+  document.getElementById("photoPrev").hidden=i<=0;document.getElementById("photoNext").hidden=i>=eventPhotos.length-1;
+  v.hidden=false;document.body.classList.add("photo-open");
+}
+function closePhoto(){const v=document.getElementById("photoViewer");if(v)v.hidden=true;photoViewIndex=-1;document.body.classList.remove("photo-open");}
+document.getElementById("photoGrid")?.addEventListener("click",e=>{const t=e.target.closest("[data-photo-index]");if(t)openPhoto(Number(t.dataset.photoIndex));});
+document.getElementById("photoMore")?.addEventListener("click",()=>loadEventPhotos(true));
+document.getElementById("photoViewerClose")?.addEventListener("click",closePhoto);
+document.getElementById("photoPrev")?.addEventListener("click",()=>openPhoto(photoViewIndex-1));
+document.getElementById("photoNext")?.addEventListener("click",()=>openPhoto(photoViewIndex+1));
+document.getElementById("photoViewer")?.addEventListener("click",e=>{if(e.target.id==="photoViewer")closePhoto();});
+document.addEventListener("keydown",e=>{if(photoViewIndex<0)return;if(e.key==="Escape")closePhoto();if(e.key==="ArrowLeft"&&photoViewIndex>0)openPhoto(photoViewIndex-1);if(e.key==="ArrowRight"&&photoViewIndex<eventPhotos.length-1)openPhoto(photoViewIndex+1);});
+(()=>{let x0=null;const v=document.getElementById("photoViewer");if(!v)return;
+  v.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;},{passive:true});
+  v.addEventListener("touchend",e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<50)return;if(dx<0&&photoViewIndex<eventPhotos.length-1)openPhoto(photoViewIndex+1);if(dx>0&&photoViewIndex>0)openPhoto(photoViewIndex-1);});})();
+document.getElementById("photoLike")?.addEventListener("click",async()=>{
+  const p=eventPhotos[photoViewIndex];if(!p)return;const on=!p.liked,i=photoViewIndex;
+  p.liked=on;p.likeCount=Math.max(0,(p.likeCount||0)+(on?1:-1));openPhoto(i);renderEventPhotos();
+  try{const r=await boardCall("photo_like",{id:p.id,on});p.likeCount=Number(r.likeCount||0);}catch{p.liked=!on;p.likeCount=Math.max(0,(p.likeCount||0)+(on?-1:1));}
+  if(photoViewIndex===i)openPhoto(i);renderEventPhotos();
+});
+document.getElementById("photoDelete")?.addEventListener("click",async()=>{
+  const p=eventPhotos[photoViewIndex];if(!p||!confirm("이 사진을 지울까요?"))return;
+  try{await boardCall("photo_delete",{id:p.id});eventPhotos=eventPhotos.filter(x=>x.id!==p.id);eventPhotoTotal=Math.max(0,eventPhotoTotal-1);closePhoto();renderEventPhotos();showToast("사진을 지웠어요.");}
+  catch(err){alert("지우지 못했어요. 잠시 후 다시 시도해주세요.");}
+});
+// 사진 줄이기: 방향(EXIF)을 반영해 그린 뒤 JPEG로 저장합니다.
+async function loadPhotoBitmap(file){
+  try{return await createImageBitmap(file,{imageOrientation:"from-image"});}catch{}
+  return await new Promise((res,rej)=>{const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{URL.revokeObjectURL(url);res(img);};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("decode"));};img.src=url;});
+}
+function canvasBlob(canvas,quality){return new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error("encode")),"image/jpeg",quality));}
+async function shrinkPhoto(file){
+  const bmp=await loadPhotoBitmap(file);const w0=bmp.width,h0=bmp.height;
+  const k=Math.min(1,1600/Math.max(w0,h0)),w=Math.round(w0*k),h=Math.round(h0*k);
+  const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(bmp,0,0,w,h);
+  const side=Math.min(w0,h0),t=document.createElement("canvas");t.width=t.height=360;
+  t.getContext("2d").drawImage(bmp,(w0-side)/2,(h0-side)/2,side,side,0,0,360,360);
+  return {photo:await canvasBlob(c,.82),thumb:await canvasBlob(t,.75),width:w,height:h};
+}
+function closePhotoSheet(){const s=document.getElementById("photoSheet");if(s)s.hidden=true;photoPending.forEach(x=>URL.revokeObjectURL(x.preview));photoPending=[];document.body.classList.remove("photo-open");}
+document.getElementById("photoAddBtn")?.addEventListener("click",()=>{if(networkAccessState!=="verified"){setSiteView("network");return;}document.getElementById("photoInput")?.click();});
+document.getElementById("photoInput")?.addEventListener("change",e=>{
+  const files=[...(e.target.files||[])].filter(f=>/^image\//.test(f.type)||/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));e.target.value="";
+  if(!files.length)return;
+  if(files.length>10)alert("한 번에 10장까지 올릴 수 있어요. 앞의 10장만 골랐어요.");
+  photoPending=files.slice(0,10).map(f=>({file:f,preview:URL.createObjectURL(f)}));
+  document.getElementById("photoPreviews").innerHTML=photoPending.map(x=>`<img src="${x.preview}" alt="">`).join("");
+  document.getElementById("photoSheetTitle").textContent=`사진 ${photoPending.length}장 올리기`;
+  document.getElementById("photoSheetStatus").textContent="";document.getElementById("photoCaption").value="";
+  document.getElementById("photoSubmit").disabled=false;
+  document.getElementById("photoSheet").hidden=false;document.body.classList.add("photo-open");
+});
+document.getElementById("photoSheetClose")?.addEventListener("click",closePhotoSheet);
+document.getElementById("photoSubmit")?.addEventListener("click",async()=>{
+  const btn=document.getElementById("photoSubmit"),status=document.getElementById("photoSheetStatus");
+  if(!photoPending.length)return;btn.disabled=true;
+  const caption=document.getElementById("photoCaption").value.trim();
+  try{
+    status.textContent="사진을 줄이는 중이에요…";
+    const ready=[];let failed=0;
+    for(const x of photoPending){try{ready.push(await shrinkPhoto(x.file));}catch{failed++;}}
+    if(!ready.length)throw new Error("decode");
+    const {slots}=await boardCall("photo_upload_urls",{count:ready.length});
+    const items=[];
+    for(let i=0;i<ready.length;i++){
+      status.textContent=`올리는 중… ${i+1}/${ready.length}`;
+      const r=ready[i],slot=slots[i];
+      const a=await sb.storage.from(PHOTO_BUCKET).uploadToSignedUrl(slot.photo.path,slot.photo.token,r.photo,{contentType:"image/jpeg"});
+      if(a.error)throw a.error;
+      const b=await sb.storage.from(PHOTO_BUCKET).uploadToSignedUrl(slot.thumb.path,slot.thumb.token,r.thumb,{contentType:"image/jpeg"});
+      if(b.error)throw b.error;
+      items.push({photoPath:slot.photo.path,width:r.width,height:r.height,caption});
+    }
+    await boardCall("photo_create",{items});
+    closePhotoSheet();showToast(`사진 ${items.length}장을 올렸어요.`+(failed?` (${failed}장은 열 수 없는 형식이라 뺐어요)`:""));
+    await loadEventPhotos();
+  }catch(err){
+    btn.disabled=false;
+    const m=String(err?.message||"");
+    status.textContent=m==="photo_limit"?"한 사람당 60장까지 올릴 수 있어요.":m==="decode"?"이 사진 형식은 열 수 없어요. JPG·PNG로 다시 골라주세요.":"올리지 못했어요. 잠시 후 다시 시도해주세요.";
   }
 });
 // 나중에 그려지는 버튼(오늘의 동문, 우리 기수 등)도 동작하도록 문서 전체에서 받습니다.

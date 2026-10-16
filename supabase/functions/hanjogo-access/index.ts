@@ -979,6 +979,138 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, draft: cleaned });
   }
 
+  // ---- 행사 사진 ------------------------------------------------------------
+  // 동문 인증한 사람만 보고 올립니다. 파일은 비공개 저장소에 두고 짧게 쓰는 주소만 내려보냅니다.
+  // 휴대폰에서 줄인 큰 사진(.jpg)과 바둑판용 작은 사진(_t.jpg)을 한 쌍으로 올립니다.
+  if (action.startsWith("photo_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const photoBucket = adminClient.storage.from("hanjogo-event-photos");
+    const EVENT_KEY = "2026-10-18";
+    const PHOTO_LIMIT_PER_PERSON = 60;
+    const URL_SECONDS = 60 * 60;
+
+    if (action === "photo_upload_urls") {
+      const count = Number(body.count);
+      if (!Number.isInteger(count) || count < 1 || count > 10) return json({ error: "invalid_count" }, 400);
+      const { count: mine, error: countError } = await adminClient.from("hanjogo_event_photos")
+        .select("id", { count: "exact", head: true }).eq("user_id", userId);
+      if (countError) return json({ error: countError.message }, 500);
+      if (!isAdmin && (mine || 0) + count > PHOTO_LIMIT_PER_PERSON) return json({ error: "photo_limit" }, 400);
+      const slots = [];
+      for (let i = 0; i < count; i++) {
+        const id = crypto.randomUUID();
+        const photo = await photoBucket.createSignedUploadUrl(`${userId}/${id}.jpg`);
+        const thumb = await photoBucket.createSignedUploadUrl(`${userId}/${id}_t.jpg`);
+        if (photo.error || thumb.error) return json({ error: (photo.error || thumb.error)!.message }, 500);
+        slots.push({ photo: { path: photo.data.path, token: photo.data.token }, thumb: { path: thumb.data.path, token: thumb.data.token } });
+      }
+      return json({ ok: true, slots });
+    }
+
+    if (action === "photo_create") {
+      const items = Array.isArray(body.items) ? body.items.slice(0, 10) as Record<string, unknown>[] : [];
+      if (!items.length) return json({ error: "invalid_request" }, 400);
+      // 자기 폴더에 실제로 올라간 파일 쌍만 등록합니다.
+      const { data: listed, error: listError } = await photoBucket.list(userId, { limit: 1000 });
+      if (listError) return json({ error: listError.message }, 500);
+      const present = new Set((listed || []).map((item) => `${userId}/${item.name}`));
+      const me = await displayIdentity();
+      const rows = [];
+      for (const item of items) {
+        const photoPath = String(item.photoPath || "");
+        const match = photoPath.match(/^([0-9a-f-]{36})\/([0-9a-f-]{36})\.jpg$/);
+        if (!match || match[1] !== userId) return json({ error: "invalid_file" }, 400);
+        const thumbPath = `${userId}/${match[2]}_t.jpg`;
+        if (!present.has(photoPath) || !present.has(thumbPath)) return json({ error: "upload_missing" }, 400);
+        const width = Number(item.width), height = Number(item.height);
+        rows.push({
+          event_key: EVENT_KEY, user_id: userId, author_name: me.display_name, author_generation: me.generation,
+          photo_path: photoPath, thumb_path: thumbPath,
+          width: Number.isInteger(width) && width > 0 && width <= 10000 ? width : null,
+          height: Number.isInteger(height) && height > 0 && height <= 10000 ? height : null,
+          caption: cleanBoardText(item.caption, 200) || null,
+        });
+      }
+      const { error } = await adminClient.from("hanjogo_event_photos").insert(rows);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, added: rows.length });
+    }
+
+    if (action === "photo_list") {
+      const before = Number(body.before);
+      let query = adminClient.from("hanjogo_event_photos")
+        .select("id,user_id,author_name,author_generation,photo_path,thumb_path,width,height,caption,created_at")
+        .eq("event_key", EVENT_KEY).order("id", { ascending: false }).limit(60);
+      if (Number.isFinite(before) && before > 0) query = query.lt("id", before);
+      const [{ data: photos, error }, { count: total }] = await Promise.all([
+        query,
+        adminClient.from("hanjogo_event_photos").select("id", { count: "exact", head: true }).eq("event_key", EVENT_KEY),
+      ]);
+      if (error) return json({ error: error.message }, 500);
+      const list = photos || [];
+      if (!list.length) return json({ allowed: true, items: [], total: total || 0 });
+      const ids = list.map((photo) => photo.id);
+      const [{ data: likes, error: likeError }, thumbs, fulls] = await Promise.all([
+        adminClient.from("hanjogo_event_photo_likes").select("photo_id,user_id").in("photo_id", ids),
+        photoBucket.createSignedUrls(list.map((photo) => String(photo.thumb_path)), URL_SECONDS),
+        photoBucket.createSignedUrls(list.map((photo) => String(photo.photo_path)), URL_SECONDS),
+      ]);
+      if (likeError) return json({ error: likeError.message }, 500);
+      if (thumbs.error || fulls.error) return json({ error: (thumbs.error || fulls.error)!.message }, 500);
+      const urlOf = (rows: { path: string | null; signedUrl: string }[] | null) =>
+        new Map((rows || []).map((row) => [String(row.path || ""), row.signedUrl]));
+      const thumbUrls = urlOf(thumbs.data), fullUrls = urlOf(fulls.data);
+      return json({
+        allowed: true,
+        total: total || list.length,
+        items: list.map((photo) => {
+          const photoLikes = (likes || []).filter((like) => like.photo_id === photo.id);
+          return {
+            id: photo.id,
+            thumbUrl: thumbUrls.get(String(photo.thumb_path)) || "",
+            url: fullUrls.get(String(photo.photo_path)) || "",
+            width: photo.width, height: photo.height,
+            caption: photo.caption || "",
+            authorName: photo.author_name, authorGeneration: photo.author_generation,
+            createdAt: photo.created_at,
+            likeCount: photoLikes.length,
+            liked: photoLikes.some((like) => like.user_id === userId),
+            canDelete: isAdmin || photo.user_id === userId,
+          };
+        }),
+      });
+    }
+
+    const id = Number(body.id);
+    if (!Number.isFinite(id)) return json({ error: "invalid_request" }, 400);
+
+    if (action === "photo_like") {
+      const on = Boolean(body.on);
+      const { data: photo } = await adminClient.from("hanjogo_event_photos").select("id").eq("id", id).maybeSingle();
+      if (!photo) return json({ error: "not_found" }, 404);
+      const result = on
+        ? await adminClient.from("hanjogo_event_photo_likes").upsert({ photo_id: id, user_id: userId }, { onConflict: "photo_id,user_id" })
+        : await adminClient.from("hanjogo_event_photo_likes").delete().eq("photo_id", id).eq("user_id", userId);
+      if (result.error) return json({ error: result.error.message }, 500);
+      const { count } = await adminClient.from("hanjogo_event_photo_likes").select("photo_id", { count: "exact", head: true }).eq("photo_id", id);
+      return json({ ok: true, liked: on, likeCount: count || 0 });
+    }
+
+    if (action === "photo_delete") {
+      const { data: photo, error: lookupError } = await adminClient.from("hanjogo_event_photos")
+        .select("id,user_id,photo_path,thumb_path").eq("id", id).maybeSingle();
+      if (lookupError) return json({ error: lookupError.message }, 500);
+      if (!photo) return json({ error: "not_found" }, 404);
+      if (!isAdmin && photo.user_id !== userId) return json({ error: "forbidden" }, 403);
+      const { error } = await adminClient.from("hanjogo_event_photos").delete().eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      await photoBucket.remove([String(photo.photo_path), String(photo.thumb_path)]);
+      return json({ ok: true });
+    }
+
+    return json({ error: "unknown_action" }, 400);
+  }
+
   // ---- 즐겨찾기 (관심 동문 · 관심 업장) ------------------------------------
   // 본인 것만 읽고 씁니다. 어떤 요청이 와도 email 은 로그인한 사람의 것입니다.
   if (action.startsWith("favorites_")) {

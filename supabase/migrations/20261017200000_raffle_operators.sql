@@ -5,7 +5,8 @@ create table if not exists raffle_private.operators (
   email text primary key check (email = lower(btrim(email))),
   expires_at timestamptz not null
 );
-revoke all on table raffle_private.operators from public, anon, authenticated;
+-- 정책 없이 RLS만 켜 둬서 함수 외에는 읽지도 쓰지도 못합니다(anon은 이 스키마에 접근도 못 합니다).
+alter table raffle_private.operators enable row level security;
 
 create or replace function raffle_private.is_operator()
 returns boolean language sql stable security definer set search_path='' as $fn$
@@ -17,10 +18,8 @@ returns boolean language sql stable security definer set search_path='' as $fn$
     )
   )
 $fn$;
-revoke all on function raffle_private.is_operator() from public, anon;
 grant execute on function raffle_private.is_operator() to authenticated;
 
-drop policy if exists "operator_read" on public.raffle_prize_plan;
 create policy "operator_read" on public.raffle_prize_plan for select to authenticated
   using ((select raffle_private.is_operator()));
 

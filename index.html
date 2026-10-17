@@ -4090,9 +4090,15 @@ function applyRafflePlanSelection(){
   document.getElementById('raffleDrawHint').textContent=count>1?'예고 3초 → 기수 5초 → 이름 7초 · 차례로 공개 · 외부 실시간 송출':'선택한 경품으로 1명 추첨 · 외부 실시간 송출';
 }
 document.getElementById("rafflePlanReload").addEventListener("click",loadPrivateRafflePlan);
-document.getElementById("rafflePlanLogin").addEventListener("click",()=>{
-  document.getElementById("accessAdminLoginBtn").click();
-  document.getElementById("rafflePlanStatus").textContent="관리자 이메일의 로그인 링크를 확인해주세요.";
+// 추첨 로그인: 관리자 외에 운영 DB에 등록된 추첨 진행자도 자기 이메일로 링크를 받아 로그인합니다.
+document.getElementById("rafflePlanLogin").addEventListener("click",async()=>{
+  const status=document.getElementById("rafflePlanStatus");
+  const email=String(prompt("로그인 링크를 받을 이메일을 입력해주세요.\n(이 노트북의 브라우저에서 메일 속 링크를 눌러야 로그인됩니다)","mainxoals@gmail.com")||"").trim().toLowerCase();
+  if(!email)return;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){status.textContent="이메일 주소를 확인해주세요.";return;}
+  status.textContent="로그인 링크를 보내는 중입니다.";
+  const {error}=await sbAdmin.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
+  status.textContent=error?"발송 실패: "+error.message:email+" 로 보낸 로그인 링크를 이 브라우저에서 눌러주세요.";
 });
 document.getElementById("rafflePartSelect").addEventListener("change",renderPrivateRafflePlan);
 document.getElementById("rafflePlanSelect").addEventListener("change",applyRafflePlanSelection);

@@ -1076,6 +1076,21 @@ body.photo-open{overflow:hidden}
 .photo-sheet-note{margin:8px 0;font-size:var(--fs-xs);color:var(--mute);line-height:1.5}
 .photo-sheet-status{min-height:18px;font-size:var(--fs-sm);color:var(--purple-dark)}
 .photo-sheet-submit{width:100%;margin-top:8px}
+
+/* 행사 안내 팝업: 하루 전 기대감 */
+.event-guide-hero{padding:20px 18px;border-radius:16px;color:#fff;background:linear-gradient(135deg,#6E5FCB,#4E43A0);text-align:center}
+.egh-dday{display:inline-block;padding:3px 12px;border-radius:999px;background:rgba(255,255,255,.18);font-size:13px;font-weight:800;letter-spacing:.06em}
+.egh-lead{margin-top:10px;font-size:18px;font-weight:800;line-height:1.45;letter-spacing:-.02em;word-break:keep-all}
+.egh-stats{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:12px}
+.egh-stats span{padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:12px}
+.egh-stats b{font-size:15px;font-weight:800;margin-right:1px}
+.event-guide-hl{display:grid;gap:12px;margin:18px 0 0;padding:0;list-style:none}
+.event-guide-hl li{display:flex;gap:12px;align-items:flex-start}
+.event-guide-hl li>span{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#f2eff9;font-size:18px}
+.event-guide-hl b{display:block;font-size:14px;color:#2d2639}
+.event-guide-hl small{display:block;margin-top:2px;font-size:12px;line-height:1.55;color:#736b7c;word-break:keep-all}
+.event-guide-details{margin:20px 0 16px;padding-top:16px;border-top:1px solid #eeeaf3}
+.event-guide-mail{margin-bottom:16px}
 </style>
 <script src="assets/raffle-batch.js?v=20261011-fx3"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261011-fx3">
@@ -1721,18 +1736,28 @@ body.photo-open{overflow:hidden}
 
 
 <dialog id="eventGuideDialog" aria-labelledby="eventGuideTitle">
-  <div class="event-guide-head"><h2 id="eventGuideTitle">10월 18일 행사 안내</h2><button type="button" id="eventGuideClose" aria-label="행사 안내 닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+  <div class="event-guide-head"><h2 id="eventGuideTitle">드디어 내일, 만나요</h2><button type="button" id="eventGuideClose" aria-label="행사 안내 닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
   <div class="event-guide-body">
-  <p class="event-guide-mail">참가 확정자 대상 행사 안내 이메일을 보내드렸습니다.<br>신청 시 등록한 이메일을 확인해주세요.</p>
-  <dl class="event-guide-details">
-    <dt>일시</dt><dd>10월 18일(일) 19:00~22:30<br><small>입장 18:50부터 · 캐주얼 스탠딩 모임</small></dd>
-    <dt>장소</dt><dd>카페 와일드덕<br><small>서울 중구 동호로15길 43 미래빌딩 지하 1층</small></dd>
-    <dt>주차</dt><dd>다산동 공영주차장<br><small>서울 중구 동호로15길 60<br>만차 가능성이 있어 대중교통 이용을 권장합니다.</small></dd>
-  </dl>
-  <p class="event-guide-note"><strong>협찬품 직접 반입</strong><br>카페가 18시까지 영업하므로, 세팅을 위해 18시 전후 도착 부탁드립니다. 별도 협의한 일정이 있다면 해당 시간에 맞춰 와주세요.</p>
-  <p class="event-guide-note"><strong>동문회 회원 등록</strong><br>이번 모임에 함께하는 동문은 행사 후 동문회 회원으로 등록될 예정이며, 자세한 내용은 다시 안내드리겠습니다.</p>
+  <div class="event-guide-hero">
+    <div class="egh-dday" id="eventGuideDday">D-1</div>
+    <div class="egh-lead" id="eventGuideLead">내일 저녁 7시, 와일드덕에서<br>한조고 동문이 한자리에 모여요.</div>
+    <div class="egh-stats"><span><b id="eventGuidePeople">117</b>명</span><span><b id="eventGuideGens">22</b>개 기수</span><span>1기부터 25기까지</span></div>
   </div>
-  <div class="event-guide-foot"><label><input type="checkbox" id="eventGuideHideToday"> 오늘은 다시 보지 않기</label><button type="button" id="eventGuideConfirm">확인했습니다</button></div>
+  <ul class="event-guide-hl">
+    <li><span aria-hidden="true">🎁</span><div><b>1·2부 경품 추첨</b><small>현장에서 실시간으로 진행해요. 당첨 결과는 사이트 화면에서도 함께 봐요.</small></div></li>
+    <li><span aria-hidden="true">📸</span><div><b>스토리 참여 추첨</b><small>@kcas_archived 팔로우 → 행사 사진을 스토리에 올리고 계정 태그 → DM으로 이름·기수 전송</small></div></li>
+    <li><span aria-hidden="true">🍷</span><div><b>동문 셰프·브랜드가 함께 준비한 자리</b><small>핑거푸드, 와인, 디저트와 함께 편하게 이야기 나눠요.</small></div></li>
+    <li><span aria-hidden="true">🤝</span><div><b>오랜만의 선후배, 새로운 연결</b><small>캐주얼 스탠딩이라 자유롭게 오가며 인사할 수 있어요.</small></div></li>
+  </ul>
+  <dl class="event-guide-details">
+    <dt>일시</dt><dd>10월 18일(일) 19:00~22:30<br><small>입장 18:50부터</small></dd>
+    <dt>장소</dt><dd>카페 와일드덕<br><small>서울 중구 동호로15길 43 미래빌딩 지하 1층</small></dd>
+    <dt>주차</dt><dd>다산동 공영주차장<br><small>서울 중구 동호로15길 60 · 만차일 수 있어 대중교통을 권장해요.</small></dd>
+  </dl>
+  <p class="event-guide-mail">참가 확정자께 보내드린 행사 안내 이메일도 한 번 확인해주세요.</p>
+  <p class="event-guide-note"><strong>협찬품 직접 반입</strong><br>카페가 18시까지 영업해서, 세팅을 위해 18시 전후 도착 부탁드려요. 따로 정한 시간이 있다면 그 시간에 맞춰 와주세요.</p>
+  </div>
+  <div class="event-guide-foot"><label><input type="checkbox" id="eventGuideHideToday"> 오늘은 다시 보지 않기</label><button type="button" id="eventGuideConfirm">내일 만나요!</button></div>
 </dialog>
 
 <div class="toast" id="toast">복사되었습니다.</div>
@@ -5415,7 +5440,21 @@ sb.auth.onAuthStateChange((event)=>{
 
 const eventGuideDialog=document.getElementById("eventGuideDialog");
 const eventGuideDay=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-function openEventGuide(){if(!eventGuideDialog.open)eventGuideDialog.showModal();}
+// 행사 하루 전과 당일에 맞춰 팝업 문구와 인원 수를 채웁니다.
+function fillEventGuide(){
+  const day=eventPhase()==="day";
+  const set=(id,v,html)=>{const el=document.getElementById(id);if(el)el[html?"innerHTML":"textContent"]=v;};
+  set("eventGuideTitle",day?"오늘 저녁, 드디어 만나요":"드디어 내일, 만나요");
+  set("eventGuideDday",day?"D-DAY":"D-1");
+  set("eventGuideLead",day?"오늘 저녁 7시, 와일드덕에서<br>한조고 동문이 한자리에 모여요.":"내일 저녁 7시, 와일드덕에서<br>한조고 동문이 한자리에 모여요.",true);
+  set("eventGuideConfirm",day?"오늘 만나요!":"내일 만나요!");
+  const gens=[...new Set(PUBLIC_ATTENDEES.map(p=>Number(p.generation)).filter(Boolean))].sort((a,b)=>a-b);
+  set("eventGuidePeople",PUBLIC_ATTENDEES.length.toLocaleString());
+  set("eventGuideGens",String(gens.length));
+  const range=document.querySelector(".egh-stats span:last-child");
+  if(range&&gens.length)range.textContent=`${gens[0]}기부터 ${gens[gens.length-1]}기까지`;
+}
+function openEventGuide(){fillEventGuide();if(!eventGuideDialog.open)eventGuideDialog.showModal();}
 function closeEventGuide(){
   if(document.getElementById("eventGuideHideToday").checked){
     try{localStorage.setItem("hanjogo-event-guide-20261001",eventGuideDay());}catch(e){}

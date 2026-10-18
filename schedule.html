@@ -1092,9 +1092,9 @@ body.photo-open{overflow:hidden}
 .event-guide-details{margin:20px 0 16px;padding-top:16px;border-top:1px solid #eeeaf3}
 .event-guide-mail{margin-bottom:16px}
 </style>
-<script src="assets/raffle-batch.js?v=20261018-fx4"></script>
-<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261018-fx4">
-<link rel="stylesheet" href="assets/raffle-batch.css?v=20261018-fx4">
+<script src="assets/raffle-batch.js?v=20261018-fx5"></script>
+<link rel="stylesheet" href="assets/raffle-presentation.css?v=20261018-fx5">
+<link rel="stylesheet" href="assets/raffle-batch.css?v=20261018-fx5">
 </head>
 <body>
 <div class="wrap">
@@ -4831,15 +4831,17 @@ const rafflePlayer=document.createElement("audio");rafflePlayer.preload="auto";r
  }
  const check=wave(1.2,[[0,523,.3,.45],[.3,659,.3,.45],[.6,784,.5,.45]]);
 
-function raffleStopSound(){rafflePlayer.pause();}
+let raffleHoldTimer=0;
+function raffleStopSound(){clearTimeout(raffleHoldTimer);rafflePlayer.pause();}
 function raffleTone(){} function raffleDrum(){} function rafflePercussion(){} function raffleFanfare(){}
 function raffleUpdateSoundButton(){const b=document.getElementById("raffleSoundToggle");if(b){b.textContent=raffleSoundEnabled?"소리 끄기":"소리 켜기";b.setAttribute("aria-pressed",String(raffleSoundEnabled));}}
 function rafflePlayScore(live){
  if(!raffleSoundEnabled||!live||live.status!=="drawing")return;
  if(live.batch){
-   raffleStopSound();if(live.batch.paused||HanjogoBatch.frame(live).phase==='complete')return;
+   raffleStopSound();const hold=HanjogoBatch.holdIn(live);if(live.batch.paused||hold===0||HanjogoBatch.frame(live).phase==='complete')return;
    rafflePlayer.src=HanjogoBatch.score(live.winners.length,HanjogoBatch.isGrand(live));rafflePlayer.currentTime=HanjogoBatch.elapsed(live)/1000;
-   rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});return;
+   rafflePlayer.play().catch(()=>{raffleSoundEnabled=false;raffleUpdateSoundButton();});
+   if(isFinite(hold))raffleHoldTimer=setTimeout(raffleStopSound,hold);return;
  }
  const elapsed=Math.max(0,(Date.now()-(Number(live.startedAt||Number(live.revealAt)-11000)))/1000);if(elapsed>=(/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"")?24:17))return;
  const grand=/갤럭시\s*탭|Galaxy\s*Tab/i.test(live.prize||"");

@@ -22,8 +22,18 @@
   const winnersOf=live=>Array.isArray(live.winners)&&live.winners.length?live.winners:live.winner?[live.winner]:[];
   function elapsed(live,now=Date.now()){
     if(!live.batch){const c=timing(live);return Math.max(0,now-(Number(live.revealAt)-c.intro-c.transition-c.generation));}
-    const b=live.batch;
-    return Math.max(0,Number(b.elapsed||0)+(b.paused?0:Math.max(0,now-Number(b.anchor||live.startedAt))));
+    const b=live.batch,t=Math.max(0,Number(b.elapsed||0)+(b.paused?0:Math.max(0,now-Number(b.anchor||live.startedAt))));
+    return Math.min(t,holdAt(live));
+  }
+  // Step-by-step draws stop on each winner's name until the host asks for the next winner.
+  function holdAt(live){
+    const b=live.batch;if(!b?.stepwise)return Infinity;
+    return INTRO+(Math.max(0,Math.floor((Number(b.elapsed||0)-INTRO)/STEP))+1)*STEP-1;
+  }
+  // Milliseconds until a step-by-step draw stops by itself (sound stops there too); Infinity when it will not.
+  function holdIn(live,now=Date.now()){
+    const h=holdAt(live);if(!isFinite(h)||live.batch.paused||h>=duration(winnersOf(live).length))return Infinity;
+    return Math.max(0,h-elapsed(live,now));
   }
   function frame(live,now=Date.now()){
     const c=timing(live),people=winnersOf(live),t=elapsed(live,now),total=c.single?Infinity:duration(people.length);
@@ -380,6 +390,6 @@
     const url=wav(samples);
     scores.set(key,url);return url;
   }
-  root.HanjogoBatch={INTRO,TRANSITION,GENERATION,HOLD,STEP,SLOT_END,ROULETTE_START,SLOT_TICKS,ROULETTE_TICKS,duration,elapsed,frame,control,spinPerson,slotValues,rouletteNames,isGrand,mount,prepare,score,single};
+  root.HanjogoBatch={INTRO,TRANSITION,GENERATION,HOLD,STEP,SLOT_END,ROULETTE_START,SLOT_TICKS,ROULETTE_TICKS,duration,elapsed,holdIn,frame,control,spinPerson,slotValues,rouletteNames,isGrand,mount,prepare,score,single};
   if(typeof module!=='undefined')module.exports=root.HanjogoBatch;
 })(typeof window!=='undefined'?window:globalThis);

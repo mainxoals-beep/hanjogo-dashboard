@@ -76,8 +76,12 @@
   }
   function rouletteNames(live,index){
     const winner=winnersOf(live)[index];
-    const names=[...new Set((live.candidates||[]).filter(p=>Number(p.generation)===Number(winner.generation)&&p.name!==winner.name).map(p=>p.name))];
-    return names.length?shuffled(names,live.drawId+'|names|'+index):['? ? ?'];
+    // The winner rolls with the rest, so the roll does not give the name away. A 기수 with only a few
+    // people is topped up with other names so it is not just one or two names flashing.
+    const cands=live.candidates||[],key=live.drawId+'|names|'+index;
+    let names=[...new Set(cands.filter(p=>Number(p.generation)===Number(winner.generation)).map(p=>p.name).concat(winner.name))];
+    if(names.length<4)names=names.concat(shuffled([...new Set(cands.map(p=>p.name))].filter(n=>!names.includes(n)),key+'|more').slice(0,4-names.length));
+    return shuffled(names,key);
   }
   const countAt=(ticks,t)=>{let n=0;while(n<ticks.length&&ticks[n]<=t)n++;return n;};
   const calm=()=>!!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

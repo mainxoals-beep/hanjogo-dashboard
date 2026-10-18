@@ -1173,8 +1173,8 @@
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
-  <script src="./assets/raffle-batch.js?v=20261018-fx6"></script>
-  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261018-fx6">
+  <script src="./assets/raffle-batch.js?v=20261018-fx7"></script>
+  <link rel="stylesheet" href="./assets/raffle-batch.css?v=20261018-fx7">
 <script>
 function syncTopScroll(topId,wrapId){
   const top=document.getElementById(topId), wrap=document.getElementById(wrapId);
@@ -1696,7 +1696,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
         <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
         <details class="raffle-run-more"><summary>외부 화면 미리보기</summary>
           <iframe id="raffleBatchLivePreview" title="실제 일괄 추첨 진행 화면" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:min(640px,80vh);border:0;border-radius:16px"></iframe>
-          <p class="raffle-admin-sub">여러 명 추첨이 진행될 때 외부 화면과 같은 장면이 보입니다.</p>
+          <p class="raffle-admin-sub">추첨이 진행되면 외부 화면과 같은 장면이 보입니다.</p>
         </details>
         <details class="raffle-run-more"><summary>문제가 생겼을 때</summary>
           <div class="raffle-run-tools">
@@ -2758,26 +2758,37 @@ function subscribeRealtime(){
     .on("postgres_changes", { event:"*", schema:"public", table:DASHBOARD_TABLE, filter:`id=eq.${DASHBOARD_ID}` }, payload => {
       const row = payload.new || {};
       if(!row.data || typeof row.data !== "object") return;
-      sharedDataCache = row.data;
-      sharedRowExists = true;
-      lastRemoteUpdatedAt = row.updated_at || null;
-      lastRemoteUpdatedBy = row.updated_by || "";
-      renderLastEditMeta();
       if(row.updated_at && row.updated_at === lastLocalSaveTimestamp){
+        sharedDataCache = row.data;
+        sharedRowExists = true;
+        lastRemoteUpdatedAt = row.updated_at || null;
+        lastRemoteUpdatedBy = row.updated_by || "";
+        renderLastEditMeta();
         lastLocalSaveTimestamp = null;
         return;
       }
-      applyRemoteDataToState(row.data);
-      renderAll();
-      applyCollapseState();
-      const bannerText = document.getElementById("viewBannerText");
-      if(bannerText && !state.editMode){
-        const who = lastRemoteUpdatedBy || "다른 준비위원";
-        bannerText.textContent = `${who}님의 수정 내용이 반영되었습니다`;
-        setTimeout(() => { if(!state.editMode) bannerText.textContent = "보기 모드 · 수정하려면 편집을 눌러주세요"; }, 2500);
-      }
+      // 한 번의 저장(예: 여러 명 추첨)이 변경 알림을 연달아 보내므로, 잠깐 모았다가 마지막 상태만 그립니다.
+      // 중간 상태를 그리면 추첨 시작 때 미리보기가 꺼졌다 켜지며 깜빡입니다.
+      clearTimeout(subscribeRealtime.pending);
+      subscribeRealtime.pending = setTimeout(() => applyRealtimeRow(row), 300);
     })
     .subscribe();
+}
+function applyRealtimeRow(row){
+  sharedDataCache = row.data;
+  sharedRowExists = true;
+  lastRemoteUpdatedAt = row.updated_at || null;
+  lastRemoteUpdatedBy = row.updated_by || "";
+  renderLastEditMeta();
+  applyRemoteDataToState(row.data);
+  renderAll();
+  applyCollapseState();
+  const bannerText = document.getElementById("viewBannerText");
+  if(bannerText && !state.editMode){
+    const who = lastRemoteUpdatedBy || "다른 준비위원";
+    bannerText.textContent = `${who}님의 수정 내용이 반영되었습니다`;
+    setTimeout(() => { if(!state.editMode) bannerText.textContent = "보기 모드 · 수정하려면 편집을 눌러주세요"; }, 2500);
+  }
 }
 
 // ---------- 지금 확인할 것 (action items) ----------
@@ -4060,14 +4071,14 @@ function raffleBatchCount(plan){const totals={'event-prize-2':5,'event-prize-3':
 function sendBatchFrame(frame,live,test){
   if(!frame)return;
   frame.hidden=false;
-  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261018-fx6';
+  if(!frame.getAttribute('src'))frame.src='raffle-batch-preview.html?v=20261018-fx7';
   frame.contentWindow?.postMessage({type:'raffle-batch-preview',live,test},'*');
 }
 window.addEventListener('message',event=>{
   if(event.data?.type!=='raffle-batch-ready')return;
   const test=document.getElementById('raffleTestPreview'),actual=document.getElementById('raffleBatchLivePreview');
   if(event.source===test?.contentWindow&&(raffleBatchTestLive||raffleSingleTestLive))sendBatchFrame(test,raffleBatchTestLive||raffleSingleTestLive,true);
-  if(event.source===actual?.contentWindow&&state.raffleCenter.live?.batch)sendBatchFrame(actual,state.raffleCenter.live,false);
+  if(event.source===actual?.contentWindow&&(state.raffleCenter.live?.batch||state.raffleCenter.live?.winner))sendBatchFrame(actual,state.raffleCenter.live,false);
 });
 function renderBatchControls(test=false){
   const live=test?raffleBatchTestLive:state.raffleCenter.live;
@@ -4308,7 +4319,12 @@ function renderRaffleCenter(){
   const status=document.getElementById("raffleAdminStatus");
   const live=center.live||{};
   if(live.batch){if(!raffleBatchTestLive)renderBatchControls(false);sendBatchFrame(document.getElementById('raffleBatchLivePreview'),live,false);}
-  else{document.getElementById('raffleBatchLivePreview').hidden=true;if(!raffleBatchTestLive)document.getElementById('raffleBatchControls').hidden=true;}
+  else{
+    if(!raffleBatchTestLive)document.getElementById('raffleBatchControls').hidden=true;
+    // 1명 추첨도 미리보기에 같은 장면을 보여줍니다(공개 후 1분까지).
+    if(live.status==="drawing"&&live.winner&&Number(live.revealAt||0)>Date.now()-60000)sendBatchFrame(document.getElementById('raffleBatchLivePreview'),live,false);
+    else document.getElementById('raffleBatchLivePreview').hidden=true;
+  }
   if(status){
     if(live.status==="drawing"&&Number(live.revealAt||0)>Date.now()) status.textContent="";
     else if(live.winner) status.textContent=`최근 당첨: ${live.winner.name} · ${live.winner.generation}기 (${live.prize||"경품"})`;

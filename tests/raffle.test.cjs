@@ -57,7 +57,7 @@ const context=vm.createContext({sessionStorage:{getItem:k=>testStorage.get(k)||n
 context.window={addEventListener(){}};
 context.HanjogoBatch=require('../assets/raffle-batch.js');
 const posted=[];
-for(const id of ['raffleBatchControls','raffleTestPreview']){node(id).dataset={};node(id).removeAttribute=()=>{};node(id).getAttribute=k=>node(id)[k];node(id).contentWindow={postMessage:m=>posted.push(m)};}
+for(const id of ['raffleBatchControls','raffleTestPreview','raffleBatchLivePreview']){node(id).dataset={};node(id).removeAttribute=()=>{};node(id).getAttribute=k=>node(id)[k];node(id).contentWindow={postMessage:m=>posted.push(m)};}
 vm.runInContext(html.slice(html.indexOf('function raffleGeneration('),html.indexOf('document.getElementById("raffleResetDisplayBtn")')),context);
 (async()=>{
   // 테스트 추첨: 서버에 p_test로 요청, 실제 기록·저장 없음, 앞선 테스트 당첨자는 다음 요청에 제외 목록으로 전달.

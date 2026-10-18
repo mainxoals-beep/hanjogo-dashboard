@@ -1148,6 +1148,7 @@
 #section-raffle-center .raffle-admin-status:empty{display:none}
 #section-raffle-center .raffle-entry-list,#section-raffle-center #raffleRosterList{max-height:360px;overflow:auto}
 @media(max-width:760px){#section-raffle-center .raffle-workspace{grid-template-columns:1fr}#section-raffle-center .raffle-admin-box{padding:16px}#section-raffle-center .sec-head{flex-wrap:wrap}#section-raffle-center .raffle-test-actions{grid-template-columns:1fr}#section-raffle-center .raffle-selection-grid{grid-template-columns:72px minmax(0,1fr)}}
+.raffle-danger-btn{border-color:#E9B7B7!important;color:#B4232A!important;background:#FFF6F6!important}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
   <script src="./assets/raffle-roster.js?v=20261002-server"></script>
@@ -1708,7 +1709,7 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
             <details class="raffle-disclosure"><summary>등록된 스토리 참여자</summary><div class="raffle-entry-list" id="raffleStoryEntries"></div></details>
           </div>
           <details class="raffle-admin-box raffle-disclosure"><summary>참가 명단 확인</summary><button class="raffle-display-btn" id="raffleSyncBtn" type="button">최신 명단 불러오기</button><div id="raffleRosterList"></div></details>
-          <details class="raffle-admin-box raffle-disclosure"><summary>화면 관리 · QR</summary><div class="raffle-utility-actions"><a class="raffle-display-btn" href="./assets/hanjogo-live-raffle-qr.png" download="한조고_실시간경품추첨_QR.png">안내용 QR 저장</a><button class="raffle-display-btn lockable" id="raffleResetDisplayBtn" type="button">외부 화면을 대기로 전환</button></div></details>
+          <details class="raffle-admin-box raffle-disclosure"><summary>화면 관리 · QR</summary><div class="raffle-utility-actions"><a class="raffle-display-btn" href="./assets/hanjogo-live-raffle-qr.png" download="한조고_실시간경품추첨_QR.png">안내용 QR 저장</a><button class="raffle-display-btn" id="raffleResetDisplayBtn" type="button">외부 화면을 대기로 전환</button><button class="raffle-display-btn raffle-danger-btn" id="raffleResetAllBtn" type="button">리허설 결과 전체 초기화</button><p class="raffle-admin-sub">관리자 로그인 상태에서 눌러주세요. 전체 초기화는 당첨 기록·당첨자 제외·경품 소진 수량을 모두 처음으로 돌립니다(스토리 참여자 명단은 유지). 본 추첨 시작 후에는 누르지 마세요.</p></div></details>
         </div>
       </div>
     </div>
@@ -4294,12 +4295,29 @@ document.getElementById("raffleDrawBtn")?.addEventListener("click",async()=>{
   }catch(e){await refreshRaffleSources().catch(()=>{});document.getElementById("raffleAdminStatus").textContent=e.message||"추첨 처리에 실패했습니다. 새로고침 후 확인해주세요.";}
   finally{raffleActionBusy=false;}
 });
-document.getElementById("raffleResetDisplayBtn")?.addEventListener("click",async()=>{
-  if(!state.editMode)return;
-  try{await refreshRaffleSources();}catch(e){document.getElementById("raffleAdminStatus").textContent="최신 추첨 상태를 확인하지 못했습니다. 다시 시도해주세요.";return;}
-  state.raffleCenter.live={...DEFAULT_RAFFLE_CENTER.live,status:"idle",drawId:`idle-${Date.now()}`};
-  await dSet("raffleCenter",state.raffleCenter);
+// 화면 초기화·리허설 초기화는 서버에서 한 번에 바꿉니다(관리자·추첨 진행자 로그인 필요, 편집 모드와 무관).
+async function resetRaffle(mode,confirmText){
+  const status=document.getElementById("raffleAdminStatus");
+  const {data:{session}}=await sbAdmin.auth.getSession();
+  if(!session){status.textContent="관리자 로그인 후 다시 눌러주세요.";return;}
+  const {error}=await sbAdmin.rpc("reset_raffle",{p_mode:mode,p_confirm:confirmText||""});
+  if(error){status.textContent="처리하지 못했습니다: "+(error.message||"오류");return;}
+  await refreshRaffleSources().catch(()=>{});
+  await loadPrivateRafflePlan();
   renderRaffleCenter();
+  status.textContent=mode==="all"?"리허설 결과를 모두 지웠습니다. 경품 수량과 당첨자 제외가 처음 상태입니다.":"외부 화면을 대기 상태로 바꿨습니다.";
+}
+document.getElementById("raffleResetDisplayBtn")?.addEventListener("click",async()=>{
+  if(raffleActionBusy)return;raffleActionBusy=true;
+  try{await resetRaffle("display");}finally{raffleActionBusy=false;}
+});
+document.getElementById("raffleResetAllBtn")?.addEventListener("click",async()=>{
+  if(raffleActionBusy)return;
+  const typed=prompt("리허설 결과를 모두 지웁니다.\n당첨 기록·당첨자 제외·경품 소진 수량이 처음으로 돌아갑니다.\n본 추첨이 이미 시작됐다면 취소하세요.\n\n계속하려면 '초기화'를 입력하세요.");
+  if(typed===null)return;
+  if(typed.trim()!=="초기화"){document.getElementById("raffleAdminStatus").textContent="확인 문구가 달라서 초기화하지 않았습니다.";return;}
+  raffleActionBusy=true;
+  try{await resetRaffle("all","초기화");}finally{raffleActionBusy=false;}
 });
 document.getElementById("raffleOpenPublicBtn")?.addEventListener("click",()=>{
   window.open("https://mainxoals-beep.github.io/hanjogo-dashboard/schedule.html?raffle=1","_blank","noopener");

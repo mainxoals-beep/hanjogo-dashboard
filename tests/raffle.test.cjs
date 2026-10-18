@@ -44,7 +44,7 @@ const current=process.argv[2]?JSON.parse(fs.readFileSync(process.argv[2],'utf8')
 current.raffleCenter.live ||= {status:'idle'};
 const initialHistory=JSON.stringify(current.raffleCenter.history||[]);
 const testStorage=new Map();
-let writes=0,fail=false;const rpcCalls=[];const nodes=new Map(),handlers=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',checked:true,textContent:'',innerHTML:'',focus(){},querySelectorAll:()=>[],addEventListener:(e,f)=>handlers.set(id+':'+e,f)});return nodes.get(id);};
+let writes=0,fail=false;const rpcCalls=[];const nodes=new Map(),handlers=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',checked:true,textContent:'',innerHTML:'',classList:{toggle(){},add(){},remove(){}},focus(){},querySelectorAll:()=>[],addEventListener:(e,f)=>handlers.set(id+':'+e,f)});return nodes.get(id);};
 const serverDraw=async(name,args)=>{
   rpcCalls.push({name,args:structuredClone(args)});await new Promise(r=>setImmediate(r));
   const taken=new Set([...R.winnerKeys(current.raffleCenter),...(args.p_test?args.p_test_keys:[])]);

@@ -1145,14 +1145,25 @@
 #section-raffle-center .raffle-entry-form{display:grid;grid-template-columns:minmax(0,1fr) 65px;gap:8px}
 #section-raffle-center .raffle-entry-form button{grid-column:1/-1;min-height:44px}
 #section-raffle-center .raffle-utility-actions{display:grid;gap:10px}
-#section-raffle-center .raffle-run-panel{margin-bottom:16px;border-top:3px solid var(--purple);display:grid;gap:12px}
-#section-raffle-center .raffle-run-panel .raffle-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-#section-raffle-center .raffle-next-prize{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,auto);gap:12px;align-items:center;padding:14px;border-radius:12px;background:var(--ivory)}
-#section-raffle-center .raffle-next-prize>div{display:grid;gap:4px;min-width:0}
-#section-raffle-center .raffle-next-label{font-size:12px;font-weight:700;color:var(--purple)}
-#section-raffle-center .raffle-next-prize strong{font-size:17px;word-break:keep-all}
-#section-raffle-center .raffle-run-tools{display:flex;flex-wrap:wrap;gap:8px}
-@media(max-width:760px){#section-raffle-center .raffle-next-prize{grid-template-columns:1fr}}
+#section-raffle-center .raffle-run-panel{margin-bottom:16px;border-top:3px solid var(--purple);display:grid;gap:10px}
+#section-raffle-center .raffle-run-card{display:grid;gap:4px;padding:14px 16px;border-radius:12px;background:var(--ivory);min-width:0}
+#section-raffle-center .raffle-run-card.live{background:#EEEDFB}
+#section-raffle-center .raffle-run-label{font-size:12px;font-weight:800;color:var(--purple)}
+#section-raffle-center .raffle-run-card strong{font-size:18px;line-height:1.35;word-break:keep-all}
+#section-raffle-center .raffle-run-note{font-size:14px;line-height:1.5;color:#4E43A0;font-weight:600;word-break:keep-all}
+#section-raffle-center #raffleRunMain{min-height:60px;font-size:18px}
+#section-raffle-center #raffleRunMain:disabled{opacity:.55;cursor:default}
+#section-raffle-center .raffle-run-row{display:flex;gap:8px}
+#section-raffle-center .raffle-run-row>*{flex:1;min-width:0}
+#section-raffle-center .raffle-run-row .raffle-batch-controls{display:flex;gap:8px;margin:0;flex:2}
+#section-raffle-center .raffle-run-row .raffle-batch-controls[hidden]{display:none}
+#section-raffle-center .raffle-run-row .raffle-batch-controls button{flex:1;min-width:0;padding:10px 8px}
+#section-raffle-center .raffle-run-row .raffle-display-btn{min-height:44px}
+#section-raffle-center .raffle-run-more{padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+#section-raffle-center .raffle-run-more summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--purple-dark)}
+#section-raffle-center .raffle-run-more[open] summary{margin-bottom:10px}
+#section-raffle-center .raffle-run-tools{display:grid;gap:8px}
+#section-raffle-center .raffle-admin-status:empty{display:none}
 #section-raffle-center .raffle-admin-status:empty{display:none}
 #section-raffle-center .raffle-entry-list,#section-raffle-center #raffleRosterList{max-height:360px;overflow:auto}
 @media(max-width:760px){#section-raffle-center .raffle-workspace{grid-template-columns:1fr}#section-raffle-center .raffle-admin-box{padding:16px}#section-raffle-center .sec-head{flex-wrap:wrap}#section-raffle-center .raffle-test-actions{grid-template-columns:1fr}#section-raffle-center .raffle-selection-grid{grid-template-columns:72px minmax(0,1fr)}}
@@ -1665,23 +1676,31 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
     </div>
     <div class="sec-body" id="body-raffle-center">
       <div class="raffle-admin-box raffle-run-panel" id="raffleRunPanel">
-        <div class="raffle-panel-heading"><div class="raffle-admin-title">진행</div><button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 추첨 화면 열기 ↗</button></div>
-        <div class="raffle-next-prize">
-          <div><span class="raffle-next-label">다음 경품</span><strong id="raffleNextPrize">관리자 로그인 후 표시됩니다</strong><span class="raffle-admin-sub" id="raffleNextPrizeNote"></span></div>
-          <button class="raffle-draw-btn" id="raffleNextPrizeBtn" type="button" disabled>다음 경품 추첨 시작 ▶</button>
+        <div class="raffle-run-card" id="raffleRunCard" aria-live="polite">
+          <span class="raffle-run-label" id="raffleRunLabel">다음 경품</span>
+          <strong id="raffleRunTitle">관리자 로그인 후 표시됩니다</strong>
+          <span class="raffle-run-note" id="raffleRunNote"></span>
+        </div>
+        <button class="raffle-draw-btn" id="raffleRunMain" type="button" disabled>다음 경품 추첨 시작 ▶</button>
+        <div class="raffle-run-row">
+          <div class="raffle-batch-controls" id="raffleBatchControls" hidden>
+            <button type="button" id="raffleBatchNext">건너뛰기</button>
+            <button type="button" id="raffleBatchPause">일시정지</button>
+          </div>
+          <button class="raffle-display-btn" id="raffleOpenPublicBtn" type="button">외부 화면 열기 ↗</button>
         </div>
         <div class="raffle-admin-status" id="raffleAdminStatus" aria-live="polite"></div>
-        <div class="raffle-batch-controls" id="raffleBatchControls" hidden>
-          <p class="raffle-batch-step" id="raffleBatchStep" aria-live="polite"></p>
-          <button type="button" id="raffleBatchNext">이 단계 건너뛰기</button>
-          <button type="button" id="raffleBatchPause">자동 공개 일시정지</button>
-        </div>
-        <iframe id="raffleBatchLivePreview" title="실제 일괄 추첨 진행 화면" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:640px;border:0;border-radius:16px"></iframe>
-        <div class="raffle-run-tools">
-          <button class="raffle-display-btn" id="raffleResetDisplayBtn" type="button">외부 화면을 대기로 전환</button>
-          <button class="raffle-display-btn raffle-danger-btn" id="raffleResetAllBtn" type="button">리허설 결과 전체 초기화</button>
-        </div>
-        <p class="raffle-admin-sub">외부 화면 전환·초기화는 관리자(추첨 진행자) 로그인 상태에서 눌러주세요. 전체 초기화는 당첨 기록·당첨자 제외·경품 소진 수량을 모두 처음으로 돌립니다(스토리 참여자 명단은 유지). 본 추첨 시작 후에는 누르지 마세요.</p>
+        <details class="raffle-run-more"><summary>외부 화면 미리보기</summary>
+          <iframe id="raffleBatchLivePreview" title="실제 일괄 추첨 진행 화면" allow="autoplay" sandbox="allow-scripts" hidden style="width:100%;height:min(640px,80vh);border:0;border-radius:16px"></iframe>
+          <p class="raffle-admin-sub">여러 명 추첨이 진행될 때 외부 화면과 같은 장면이 보입니다.</p>
+        </details>
+        <details class="raffle-run-more"><summary>문제가 생겼을 때</summary>
+          <div class="raffle-run-tools">
+            <button class="raffle-display-btn" id="raffleResetDisplayBtn" type="button">외부 화면을 대기로 전환</button>
+            <button class="raffle-display-btn raffle-danger-btn" id="raffleResetAllBtn" type="button">리허설 결과 전체 초기화</button>
+          </div>
+          <p class="raffle-admin-sub">관리자(추첨 진행자) 로그인 상태에서 눌러주세요. 전체 초기화는 당첨 기록·당첨자 제외·경품 소진 수량을 모두 처음으로 돌립니다(스토리 참여자 명단은 유지). 본 추첨 시작 후에는 누르지 마세요.</p>
+        </details>
       </div>
       <div class="raffle-workspace">
         <div class="raffle-main-column">
@@ -4051,31 +4070,12 @@ function renderBatchControls(test=false){
   const active=!!live?.batch&&HanjogoBatch.frame(live).phase!=='complete';
   const controls=document.getElementById('raffleBatchControls');controls.hidden=!active;
   controls.dataset.test=String(test);
-  document.getElementById('raffleBatchPause').textContent=live?.batch?.paused?'자동 공개 재개':'자동 공개 일시정지';
-  updateBatchStep(live);updateNextPrize();
+  document.getElementById('raffleBatchPause').textContent=live?.batch?.paused?'재개':'일시정지';
+  updateRunPanel();
   // 진행 단계 안내는 0.5초마다 새로 그립니다(버튼 이름이 '다음 당첨자 추첨'으로 바뀌는 순간 포함).
-  if(active&&!updateBatchStep.timer)updateBatchStep.timer=setInterval(()=>{
-    if(!controls.hidden)updateBatchStep(controls.dataset.test==='true'?raffleBatchTestLive:state.raffleCenter.live);
-  },500);
+  if(active&&!updateRunPanel.timer)updateRunPanel.timer=setInterval(()=>{if(!controls.hidden)updateRunPanel();},500);
   if(active&&!test)sendBatchFrame(document.getElementById('raffleBatchLivePreview'),live,false);
 }
-// 한 명씩 진행: 이름이 공개되면 화면이 멈추고, 진행자가 눌러야 다음 당첨자로 넘어갑니다.
-function updateBatchStep(live){
-  const next=document.getElementById('raffleBatchNext'),step=document.getElementById('raffleBatchStep');
-  if(!live?.batch||!next||!step)return;
-  const f=HanjogoBatch.frame(live),n=live.winners.length,held=HanjogoBatch.holdIn(live)===0||(!!live.batch.stepwise&&live.batch.paused&&f.phase==='name');
-  const last=f.index>=n-1,where=(f.index+1)+' / '+n+'번째';
-  const stage={countdown:'카운트다운',spin:'두근두근',transition:'두근두근',generation:'기수 공개 중',name:'이름 공개'}[f.phase]||'';
-  next.classList.toggle('raffle-batch-go',held);
-  if(held){
-    next.textContent=last?'전체 당첨자 보기':'다음 당첨자 추첨 ('+(f.index+2)+' / '+n+')';
-    step.textContent=where+' 당첨자 공개됨 · 축하·인사가 끝나면 아래 버튼을 눌러주세요.';
-  }else{
-    next.textContent='이 단계 건너뛰기';
-    step.textContent=f.phase==='complete'?'':(f.phase==='countdown'||f.phase==='spin'?'추첨 시작 · ':where+' · ')+stage+(live.batch.stepwise?' · 이름이 나오면 화면이 멈춥니다':'');
-  }
-}
-
 async function controlBatch(action){
   if(raffleBatchControlBusy)return;raffleBatchControlBusy=true;
   try{
@@ -4119,7 +4119,7 @@ function renderPrivateRafflePlan(){
   if(rows.some(r=>r.id===previous&&remaining(r)))select.value=previous;
   else if(previous)document.getElementById("rafflePrizeName").value="";
   document.getElementById("rafflePlanSummary").textContent=part+"부 · 총 "+rows.reduce((n,r)=>n+r.winners,0)+"명 / 남은 "+rows.reduce((n,r)=>n+remaining(r),0)+"명";
-  updateNextPrize();
+  updateRunPanel();
   document.getElementById("rafflePlanList").innerHTML=rows.map(r=>'<div class="raffle-history-row"><div><strong>'+escapeHtml(r.prize)+'</strong><span>'+r.winners+'명 · 1인당 '+r.units_per_winner+'개'+(r.finale?' · 마지막 추첨':'')+'</span></div><span>완료 '+r.draw_ids.length+' / 남은 '+remaining(r)+'</span></div>').join("");
   applyRafflePlanSelection();
 }
@@ -4133,24 +4133,62 @@ function raffleDrawRunning(){
   const live=state.raffleCenter?.live;
   return live?.status==="drawing"&&Number(live.revealAt||0)>Date.now();
 }
-function updateNextPrize(){
-  const label=document.getElementById("raffleNextPrize"),note=document.getElementById("raffleNextPrizeNote"),btn=document.getElementById("raffleNextPrizeBtn");
-  if(!label||!btn)return;
-  const plan=nextRafflePlan(),running=raffleDrawRunning();
-  if(!privateRafflePlan.length){label.textContent="관리자 로그인 후 표시됩니다";note.textContent="";btn.disabled=true;return;}
-  if(!plan){label.textContent="모든 경품 추첨이 끝났습니다";note.textContent="";btn.disabled=true;return;}
-  const count=raffleBatchCount(plan),left=plan.winners-plan.draw_ids.length;
-  label.textContent=plan.part+"부 · "+plan.prize;
-  note.textContent=(count>1?count+"명 한 명씩 공개":"1명 추첨")+(left>count?" · 남은 "+left+"명":"")+(plan.id.startsWith("event-story-")?" · 스토리 참여자 대상":"")+(plan.finale?" · 마지막 경품":"");
-  btn.disabled=running||raffleActionBusy;
-  btn.textContent=running?"지금 추첨 진행 중…":"다음 경품 추첨 시작 ▶";
+// 진행 칸: 상태 카드 하나와 큰 버튼 하나. 버튼은 지금 눌러야 할 일 한 가지만 합니다.
+// 대기 → '다음 경품 추첨 시작', 여러 명 추첨 중 이름 공개 후 → '다음 당첨자 추첨'/'전체 당첨자 보기'.
+function raffleRunState(){
+  const controls=document.getElementById('raffleBatchControls'),test=controls?.dataset.test==='true'&&!controls.hidden;
+  const live=test?raffleBatchTestLive:state.raffleCenter?.live;
+  if(live?.batch&&HanjogoBatch.frame(live).phase!=='complete'){
+    const f=HanjogoBatch.frame(live),n=live.winners.length;
+    const held=HanjogoBatch.holdIn(live)===0||(!!live.batch.stepwise&&live.batch.paused&&f.phase==='name');
+    return {kind:'batch',test,live,f,n,held,last:f.index>=n-1};
+  }
+  if(raffleDrawRunning())return {kind:'single',live};
+  return {kind:'idle'};
 }
-document.getElementById("raffleNextPrizeBtn").addEventListener("click",async()=>{
+function updateRunPanel(){
+  const label=document.getElementById("raffleRunLabel"),title=document.getElementById("raffleRunTitle"),note=document.getElementById("raffleRunNote"),btn=document.getElementById("raffleRunMain"),card=document.getElementById("raffleRunCard");
+  if(!label||!btn)return;
+  const run=raffleRunState();card.classList.toggle("live",run.kind!=="idle");
+  document.getElementById("raffleBatchNext").disabled=run.kind==="batch"&&run.held;
+  if(run.kind==="batch"){
+    const {f,n,live,held,last}=run,who=live.winners[f.index];
+    label.textContent=(run.test?"테스트 · ":"진행 중 · ")+(f.index+1)+" / "+n+"번째 당첨자";
+    title.textContent=live.prize||"경품";
+    if(held){
+      note.textContent=who.name+" ("+who.generation+"기) 공개됨 · 축하·인사가 끝나면 아래 버튼을 눌러주세요";
+      btn.textContent=last?"전체 당첨자 보기":"다음 당첨자 추첨 ("+(f.index+2)+" / "+n+") ▶";btn.disabled=false;
+    }else{
+      const stage={countdown:"카운트다운",spin:"두근두근",transition:"두근두근",generation:"기수 공개 중",name:"이름 공개 중"}[f.phase]||"";
+      note.textContent=live.batch.paused?"일시정지됨 · '재개'를 누르면 이어서 진행합니다":stage+(live.batch.stepwise?" · 이름이 나오면 화면이 멈춥니다":"");
+      btn.textContent="공개 중…";btn.disabled=true;
+    }
+    return;
+  }
+  if(run.kind==="single"){
+    label.textContent="진행 중";title.textContent=run.live.prize||"경품";note.textContent="추첨 중… 외부 화면에 표시되고 있습니다";
+    btn.textContent="공개 중…";btn.disabled=true;return;
+  }
+  label.textContent="다음 경품";btn.textContent="다음 경품 추첨 시작 ▶";
+  const plan=nextRafflePlan();
+  if(!privateRafflePlan.length){title.textContent="관리자 로그인 후 표시됩니다";note.textContent="아래 '경품 선택'에서 관리자 로그인 링크를 받아주세요";btn.disabled=true;return;}
+  if(!plan){title.textContent="모든 경품 추첨이 끝났습니다";note.textContent="";btn.disabled=true;return;}
+  const count=raffleBatchCount(plan),left=plan.winners-plan.draw_ids.length;
+  title.textContent=plan.part+"부 · "+plan.prize;
+  note.textContent=(count>1?count+"명 한 명씩 공개":"1명 추첨")+(left>count?" · 남은 "+left+"명":"")+(plan.id.startsWith("event-story-")?" · 스토리 참여자 대상":"")+(plan.finale?" · 마지막 경품":"");
+  btn.disabled=raffleActionBusy;
+}
+document.getElementById("raffleRunMain").addEventListener("click",async()=>{
+  const run=raffleRunState();
+  if(run.kind==="batch"){if(run.held)await controlBatch("next");return;}
+  if(run.kind==="idle")await startNextPrize();
+});
+async function startNextPrize(){
   const status=document.getElementById("raffleAdminStatus");
   if(raffleActionBusy||raffleDrawRunning())return;
   if(!state.editMode){status.textContent="편집 모드로 바꾼 뒤 눌러주세요.";return;}
   await loadPrivateRafflePlan();
-  const plan=nextRafflePlan();if(!plan){updateNextPrize();return;}
+  const plan=nextRafflePlan();if(!plan){updateRunPanel();return;}
   const count=raffleBatchCount(plan);
   if(!await customConfirm(plan.part+"부 · "+plan.prize+" · "+(count>1?count+"명":"1명")+" 추첨을 시작할까요? 외부 화면에 바로 송출됩니다."))return;
   document.getElementById("rafflePartSelect").value=String(plan.part);
@@ -4158,7 +4196,7 @@ document.getElementById("raffleNextPrizeBtn").addEventListener("click",async()=>
   document.getElementById("rafflePlanSelect").value=plan.id;
   applyRafflePlanSelection();
   await startRaffleDraw();
-});
+}
 function applyRafflePlanSelection(){
   const plan=privateRafflePlan.find(r=>r.id===document.getElementById("rafflePlanSelect").value);
   const input=document.getElementById("rafflePrizeName");
@@ -4219,7 +4257,7 @@ document.getElementById("raffleEntryName").addEventListener("focus",()=>{
 });
 
 function renderRaffleCenter(){
-  renderRaffleParticipantSuggestions();updateNextPrize();
+  renderRaffleParticipantSuggestions();updateRunPanel();
   const center=state.raffleCenter||DEFAULT_RAFFLE_CENTER;
   const entries=Array.isArray(center.storyEntries)?center.storyEntries:[];
   const history=Array.isArray(center.history)?center.history:[];
@@ -4267,7 +4305,7 @@ function renderRaffleCenter(){
   if(live.batch){if(!raffleBatchTestLive)renderBatchControls(false);sendBatchFrame(document.getElementById('raffleBatchLivePreview'),live,false);}
   else{document.getElementById('raffleBatchLivePreview').hidden=true;if(!raffleBatchTestLive)document.getElementById('raffleBatchControls').hidden=true;}
   if(status){
-    if(live.status==="drawing"&&Number(live.revealAt||0)>Date.now()) status.textContent=`${live.prize||"경품"} 추첨 중… 외부 화면에 표시되고 있습니다.`;
+    if(live.status==="drawing"&&Number(live.revealAt||0)>Date.now()) status.textContent="";
     else if(live.winner) status.textContent=`최근 당첨: ${live.winner.name} · ${live.winner.generation}기 (${live.prize||"경품"})`;
     else status.textContent=`통합 대상 ${confirmedRaffleEntries().length}명 · 추첨 대기 중`;
   }
@@ -4373,7 +4411,7 @@ async function startRaffleDraw(){
   renderRaffleCenter();
   setTimeout(renderRaffleCenter,Math.max(0,Number(state.raffleCenter?.live?.revealAt||0)-Date.now())+200);
   }catch(e){await refreshRaffleSources().catch(()=>{});document.getElementById("raffleAdminStatus").textContent=e.message||"추첨 처리에 실패했습니다. 새로고침 후 확인해주세요.";}
-  finally{raffleActionBusy=false;updateNextPrize();}
+  finally{raffleActionBusy=false;updateRunPanel();}
 }
 // 화면 초기화·리허설 초기화는 서버에서 한 번에 바꿉니다(관리자·추첨 진행자 로그인 필요, 편집 모드와 무관).
 async function resetRaffle(mode,confirmText){

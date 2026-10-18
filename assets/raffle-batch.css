@@ -15,3 +15,14 @@
 @keyframes raffleRevealFlash{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1.9)}}
 @keyframes raffleRevealShake{0%,100%{transform:translate(0,0)}12%{transform:translate(-9px,4px) rotate(-.6deg)}26%{transform:translate(8px,-5px) rotate(.5deg)}40%{transform:translate(-6px,3px)}55%{transform:translate(5px,-2px)}70%{transform:translate(-3px,1px)}85%{transform:translate(2px,0)}}
 @media(prefers-reduced-motion:reduce){.raffle-count-number,.raffle-heartbeat,.raffle-generation-value.slot-landed,.raffle-batch-current.generation-reveal::before,.raffle-live-panel.reveal-shake{animation:none!important}.raffle-reveal-flash{display:none}}
+/* Lighter reveal: the backdrop blur, animated large shadows and blur keyframes repainted the whole panel every frame. */
+.raffle-live-overlay .raffle-live-panel{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.12)}
+.raffle-live-panel.celebrating,.raffle-live-panel.grand.celebrating{animation:none;box-shadow:0 0 60px rgba(255,224,153,.38),0 30px 80px rgba(0,0,0,.28)}
+.raffle-live-panel.grand.celebrating{box-shadow:0 0 80px #ffd47666,0 25px 80px #0005}
+.raffle-live-panel.celebrating.reveal-shake{animation:raffleRevealShake .6s cubic-bezier(.36,.07,.19,.97) both}.raffle-live-panel.grand.celebrating.reveal-shake{animation:raffleRevealShake .85s cubic-bezier(.36,.07,.19,.97) both}
+.raffle-confetti i{will-change:transform,opacity;backface-visibility:hidden}.raffle-confetti i:nth-child(4n){box-shadow:none}
+.raffle-live-panel.grand .raffle-live-name.winner{animation-name:raffleGrandArrivalLite}
+.raffle-live-panel.grand.celebrating::before{inset:-60%;will-change:transform}.raffle-live-panel.grand.celebrating::after,.raffle-reveal-flash,.raffle-batch-fx .raffle-burst{will-change:transform,opacity}
+@keyframes raffleGrandArrivalLite{0%{opacity:0;transform:translateY(48px) scale(.78)}45%{opacity:1;transform:translateY(-8px) scale(1.07)}70%{transform:translateY(3px) scale(.99)}100%{transform:translateY(0) scale(1)}}
+.raffle-count-number{animation-name:raffleCountPopLite}@keyframes raffleCountPopLite{0%{transform:scale(2.3);opacity:0}35%{transform:scale(.95);opacity:1}55%{transform:scale(1.04)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.raffle-live-panel.celebrating.reveal-shake,.raffle-live-panel.grand .raffle-live-name.winner,.raffle-count-number{animation:none!important}}

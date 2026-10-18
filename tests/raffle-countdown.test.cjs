@@ -21,7 +21,7 @@ try{
  now=7000+1600;tick();assert.equal(current.children[1].textContent,'2기');
  now=7000+2100;tick();assert.equal(current.children[2].textContent,'같은기수');
  now=10999;tick();assert(!current.className.includes('winner'));
- now=11000;tick();assert.equal(text(current),'당첨예시 · 2기');assert(current.className.includes('winner'));assert.equal(node('raffleConfetti').children.length,120);
+ now=11000;tick();assert.equal(text(current),'당첨예시 · 2기');assert(current.className.includes('winner'));assert.equal(node('raffleConfetti').children.length,70);
  assert.equal(node('raffleLiveFoot').textContent,'축하합니다! 현장에서 경품을 받아주세요.');
  ctx.publicRaffleCenter.live={...ctx.publicRaffleCenter.live,drawId:'preview-1'};now=11100;tick();assert(node('raffleLiveFoot').textContent.includes('실제 당첨이 아닙니다'));
  // 갤럭시탭: 18초 공개, 10~12초 예고, 12초부터 기수

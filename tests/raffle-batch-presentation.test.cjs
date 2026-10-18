@@ -20,7 +20,7 @@ try{
  now=13000;tick();assert(current.className.includes('generation-reveal'));assert.match(current.children[1].textContent,/^\d+기$/);assert.notEqual(current.children[1].textContent,'2기');
  now=13000+B.SLOT_END+50;tick();assert.equal(current.children[1].textContent,'2기');assert(current.children[1].className.includes('slot-landed'));
  now=13000+B.ROULETTE_START+50;tick();assert.equal(current.children[2].hidden,false);assert.equal(current.children[2].textContent,'? ? ?');
- now=20000;tick();assert(current.className.includes('winner'));assert.equal(current.children[0].textContent,'당첨자');assert.equal(current.children[1].textContent,'2기');assert.equal(nodes.raffleConfetti.children.length,120);
+ now=20000;tick();assert(current.className.includes('winner'));assert.equal(current.children[0].textContent,'당첨자');assert.equal(current.children[1].textContent,'2기');assert.equal(nodes.raffleConfetti.children.length,70);
  assert.equal(stage.children[2].children.length,1);stop();assert.equal(nodes.raffleLiveName.hidden,false);
 }finally{Date.now=realNow;global.setInterval=realInterval;global.clearInterval=realClear;}
 const roster={drawId:'d1',winners:[{name:'가',generation:3}],candidates:[{name:'가',generation:3},{name:'나',generation:3},{name:'다',generation:3},{name:'라',generation:4}]};

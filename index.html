@@ -6251,6 +6251,28 @@ function startInternalApp(){
   internalAppStarted = true;
   init();
 }
+// 실수로 나가기 방지: 대시보드가 열려 있으면 뒤로 가기·새로고침·탭 닫기 전에 한 번 묻습니다.
+// 휴대폰 뒤로 가기는 기록을 한 칸 더 넣어 두고(사용자가 화면을 만진 뒤에만 넣을 수 있음),
+// 그 칸이 빠질 때 확인 창을 띄웁니다. "취소"를 누르면 다시 한 칸을 넣어 그대로 머뭅니다.
+(function(){
+  let armed=false,asking=false,leaving=false;
+  const arm=()=>{
+    // 확인 창이 떠 있는 동안의 터치(확인·취소 버튼)로는 다시 넣지 않습니다.
+    if(armed||asking||leaving||!internalAppStarted)return;
+    try{history.pushState({hanjogoLeaveGuard:true},"",location.href);armed=true;}catch(e){}
+  };
+  ["pointerdown","touchstart","keydown"].forEach(t=>document.addEventListener(t,arm,{capture:true,passive:true}));
+  const beforeUnload=e=>{if(!internalAppStarted)return;e.preventDefault();e.returnValue="";};
+  window.addEventListener("beforeunload",beforeUnload);
+  window.addEventListener("popstate",async()=>{
+    if(!internalAppStarted||asking)return;
+    armed=false;asking=true;
+    const leave=await customConfirm("내부 대시보드에서 나갈까요? 추첨·편집 중이면 '취소'를 눌러주세요.");
+    asking=false;
+    if(leave){leaving=true;window.removeEventListener("beforeunload",beforeUnload);history.back();}
+    else arm();
+  });
+})();
 async function checkInitialPasswordState(){
   if(await isDashboardEditor()) startInternalApp();
   else showPasswordScreen();

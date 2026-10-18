@@ -18,7 +18,7 @@ begin
   c:=coalesce(c,'{}'::jsonb)||jsonb_build_object('live',idle);
   if p_mode='all' then
     c:=c||jsonb_build_object('history','[]'::jsonb,'winnerKeys','[]'::jsonb);
-    update public.raffle_prize_plan set draw_ids='{}';
+    update public.raffle_prize_plan set draw_ids='{}' where cardinality(draw_ids)>0;
   end if;
   update public.dashboard_state set data=jsonb_set(data,'{raffleCenter}',c),updated_at=now() where id='main';
   return jsonb_build_object('center',c);
@@ -29,5 +29,9 @@ create or replace function public.reset_raffle(p_mode text, p_confirm text defau
 returns jsonb language sql security invoker set search_path='' as $fn$
   select raffle_private.reset_raffle(p_mode,p_confirm)
 $fn$;
+grant execute on function public.reset_raffle(text,text) to authenticated;
+-- 외부(anon)는 실행하지 못하게 합니다(함수 안에서도 관리자 확인으로 막힙니다).
+revoke execute on function public.reset_raffle(text,text) from public, anon;
+revoke execute on function raffle_private.reset_raffle(text,text) from public, anon;
 grant execute on function public.reset_raffle(text,text) to authenticated;
 commit;

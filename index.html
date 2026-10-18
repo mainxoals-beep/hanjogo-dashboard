@@ -1163,6 +1163,8 @@
 #section-raffle-center .raffle-run-more summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--purple-dark)}
 #section-raffle-center .raffle-run-more[open] summary{margin-bottom:10px}
 #section-raffle-center .raffle-run-tools{display:grid;gap:8px}
+#section-raffle-center .raffle-run-panel>#rafflePlanStatus{margin:0}
+#section-raffle-center [hidden]{display:none!important}
 #section-raffle-center .raffle-admin-status:empty{display:none}
 #section-raffle-center .raffle-admin-status:empty{display:none}
 #section-raffle-center .raffle-entry-list,#section-raffle-center #raffleRosterList{max-height:360px;overflow:auto}
@@ -1681,6 +1683,8 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
           <strong id="raffleRunTitle">관리자 로그인 후 표시됩니다</strong>
           <span class="raffle-run-note" id="raffleRunNote"></span>
         </div>
+        <p id="rafflePlanStatus" class="raffle-admin-sub">관리자 로그인 후 경품 계획을 불러옵니다.</p>
+        <button type="button" id="rafflePlanLogin" class="raffle-display-btn">관리자 로그인 링크 받기</button>
         <button class="raffle-draw-btn" id="raffleRunMain" type="button" disabled>다음 경품 추첨 시작 ▶</button>
         <div class="raffle-run-row">
           <div class="raffle-batch-controls" id="raffleBatchControls" hidden>
@@ -1704,10 +1708,10 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
       </div>
       <div class="raffle-workspace">
         <div class="raffle-main-column">
-          <div class="raffle-admin-box raffle-primary-panel">
+          <details class="raffle-admin-box raffle-disclosure raffle-manual-panel" id="raffleManualPanel">
+            <summary>직접 골라서 추첨 <span>순서와 다르게 · 별도 경품</span></summary>
+            <p class="raffle-admin-sub">보통은 위 '진행'의 큰 버튼만 누르면 됩니다. 순서를 바꾸거나 계획에 없는 경품을 추첨할 때만 여기서 고르세요.</p>
             <div class="raffle-panel-heading"><div class="raffle-admin-title">경품 선택</div><button type="button" id="rafflePlanReload" class="mini-btn">새로고침</button></div>
-            <p id="rafflePlanStatus" class="raffle-admin-sub">관리자 로그인 후 경품 계획을 불러옵니다.</p>
-            <button type="button" id="rafflePlanLogin" class="mini-btn">관리자 로그인 링크 받기</button>
             <div id="rafflePlanBody" hidden>
               <div class="raffle-selection-grid">
                 <label>진행 순서<select id="rafflePartSelect"><option value="1">1부</option><option value="2">2부</option></select></label>
@@ -1724,10 +1728,10 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
               <p style="margin:8px 0;padding:12px 14px;border-radius:12px;background:#EEEDFB;color:#4E43A0;font-size:14px;line-height:1.6;font-weight:600;">스토리 경품: 올리브영 상품권 5만원 · 신세계 상품권 5만원 (각 1명).<br>스토리 참여 경품은 일반 경품과 중복 당첨이 가능합니다.</p>
               <div class="raffle-live-action"><button class="raffle-draw-btn lockable" id="raffleDrawBtn" type="button">실제 추첨 시작</button><span id="raffleDrawHint">선택한 경품으로 추첨 · 외부 화면에 실시간 송출</span></div>
             </div>
-          </div>
+          </details>
           <details class="raffle-admin-box raffle-disclosure raffle-rehearsal" id="raffleRehearsalPanel">
             <summary>테스트 추첨 <span>화면·소리 미리 확인</span></summary>
-            <p class="raffle-admin-sub">위에서 선택한 경품과 대상으로 연습합니다. 실제 당첨 기록과 경품 수량에는 반영되지 않습니다.</p>
+            <p class="raffle-admin-sub">'진행'의 다음 경품으로 연습합니다('직접 골라서 추첨'에서 경품을 고르면 그 경품). 실제 당첨 기록과 경품 수량에는 반영되지 않습니다.</p>
             <div class="raffle-audio-row"><button type="button" class="raffle-sound-control" id="raffleSoundToggle" aria-pressed="false">소리 켜기</button><span id="raffleAudioStatus">테스트 전에 소리를 확인해주세요.</span></div>
             <div class="raffle-test-actions"><button class="raffle-display-btn" id="raffleTestBtn" type="button">테스트 시작</button><button class="mini-btn" id="raffleTestResetBtn" type="button">테스트 기록 초기화</button></div>
             <div class="raffle-admin-status" id="raffleTestResult" aria-live="polite"></div>
@@ -4110,6 +4114,7 @@ function renderPrivateRafflePlan(){
   if(!body)return;
   body.hidden=!privateRafflePlan.length;
   document.getElementById("rafflePlanLogin").hidden=!!privateRafflePlan.length;
+  document.getElementById("rafflePlanStatus").hidden=!!privateRafflePlan.length;
   const select=document.getElementById("rafflePlanSelect");
   const previous=select.value;
   const part=Number(document.getElementById("rafflePartSelect").value);
@@ -4171,7 +4176,7 @@ function updateRunPanel(){
   }
   label.textContent="다음 경품";btn.textContent="다음 경품 추첨 시작 ▶";
   const plan=nextRafflePlan();
-  if(!privateRafflePlan.length){title.textContent="관리자 로그인 후 표시됩니다";note.textContent="아래 '경품 선택'에서 관리자 로그인 링크를 받아주세요";btn.disabled=true;return;}
+  if(!privateRafflePlan.length){title.textContent="관리자 로그인 후 표시됩니다";note.textContent="아래 버튼으로 로그인 링크를 받아주세요";btn.disabled=true;return;}
   if(!plan){title.textContent="모든 경품 추첨이 끝났습니다";note.textContent="";btn.disabled=true;return;}
   const count=raffleBatchCount(plan),left=plan.winners-plan.draw_ids.length;
   title.textContent=plan.part+"부 · "+plan.prize;
@@ -4353,13 +4358,14 @@ document.getElementById("raffleTestBtn")?.addEventListener("click",async()=>{
   try{
     result.textContent="최신 명단 확인 후 테스트 추첨 중…";
     await refreshRaffleSources();
-    const pool=document.getElementById("rafflePoolSelect")?.value||"confirmed";
-    const plan=privateRafflePlan.find(r=>r.id===document.getElementById('rafflePlanSelect').value);
+    const chosen=privateRafflePlan.find(r=>r.id===document.getElementById('rafflePlanSelect').value);
+    const plan=chosen||nextRafflePlan();
+    const pool=chosen?document.getElementById("rafflePoolSelect")?.value||"confirmed":plan?.id.startsWith("event-story-")?"story":"confirmed";
     const count=raffleBatchCount(plan);
     if(count>1){
       const {data,error}=await sbAdmin.rpc('perform_raffle_batch',{p_plan_id:plan.id,p_previous_draw_id:'',p_test:true,p_test_keys:raffleTestWinnerKeys});
       if(error)throw error;
-      const now=Date.now();raffleSingleTestLive=null;raffleBatchTestLive={...data.live,candidates:confirmedRaffleEntries().map(person=>({name:person.name,generation:person.generation})),startedAt:now,batch:{elapsed:0,anchor:now,paused:false,version:0}};
+      const now=Date.now();raffleSingleTestLive=null;raffleBatchTestLive={...data.live,candidates:confirmedRaffleEntries().map(person=>({name:person.name,generation:person.generation})),startedAt:now,batch:{...data.live.batch,elapsed:0,anchor:now,paused:false,version:0,stepwise:true}};
       raffleTestWinnerKeys.push(...raffleBatchTestLive.winners.map(HanjogoRaffle.key));saveRaffleTestKeys();
       const frame=document.getElementById('raffleTestPreview');frame.removeAttribute('srcdoc');
       sendBatchFrame(frame,raffleBatchTestLive,true);renderBatchControls(true);

@@ -182,7 +182,8 @@ function birthdayKeysForToday(todayKey: string) {
 
 async function birthdayIndex(): Promise<BirthdayIndex> {
   if (birthdayCache && birthdayCache.expiresAt > Date.now()) return birthdayCache.index;
-  const isBirthColumn = (key: string) => /생년월일|생일|birth/i.test(key);
+  // 폼 질문 제목이 "생년 월일 예 : 20070928"처럼 띄어 쓰여 있어 공백을 빼고 찾습니다.
+  const isBirthColumn = (key: string) => /생년월일|생일|birth/i.test(key.replace(/\s+/g, ""));
   let index: BirthdayIndex = { days: new Map(), column: "", total: 0, parsed: 0 };
   for (const source of [ALUMNI_CSV_URL, PROFILE_CSV_URL]) {
     const rows = rowsAsObjects(await fetchCsv(source));

@@ -3913,7 +3913,8 @@ function renderJobFeed(items){
     const left=jobDaysLeft(j.closesOn);
     const due=j.alwaysOpen?'<span class="job-chip">상시채용</span>':left===null?"":'<span class="job-chip '+(left<=3?"soon":left<=7?"due":"")+'">'+(left===0?"오늘 마감":"마감 D-"+left)+'</span>';
     const fresh=String(j.postedOn||"").slice(0,10)===today;
-    return '<a class="job-item" href="'+esc(j.url)+'" target="_blank" rel="noopener noreferrer">'
+    // 같은 탭에서 열어야 휴대폰 뒤로가기로 이 화면(#board)에 돌아옵니다.
+    return '<a class="job-item" href="'+esc(j.url)+'" rel="noreferrer">'
       +'<span class="job-item-top"><span class="job-item-title">'+esc(j.title)+'</span>'+(fresh?'<span class="job-item-new" aria-label="오늘 올라온 공고">NEW</span>':"")+'</span>'
       +'<span class="job-item-meta">'+esc(j.company)+(j.location?" · "+esc(j.location):"")+'</span>'
       +(j.summary?'<span class="job-item-sum">'+esc(j.summary)+'</span>':"")

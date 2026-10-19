@@ -978,6 +978,28 @@ body.site-view-network #networkProfileModal .attendee-dialog{border:var(--card-l
 .np-stats b{color:var(--ink)}.np-dot{color:var(--mute)}
 .np-new-link,.np-db-link{padding:0;border:0;background:none;color:var(--purple-dark);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
 .np-new-link{color:#C2332F}
+.np-new-strip{margin:14px 0 0;padding:0 0 2px}
+.np-new-strip[hidden]{display:none}
+.np-new-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 16px 8px}
+.np-new-title{display:flex;align-items:baseline;gap:8px;min-width:0}
+.np-new-title b{font-size:var(--fs-md);font-weight:800;color:var(--ink)}
+.np-new-title span{font-size:var(--fs-xs);color:var(--mute);font-weight:600}
+.np-new-all{flex:0 0 auto;padding:4px 0;border:0;background:none;color:var(--purple-dark);font:inherit;font-size:var(--fs-xs);font-weight:800;cursor:pointer}
+.np-new-all[hidden]{display:none}
+.np-new-scroll{display:flex;gap:10px;overflow-x:auto;padding:2px 16px 8px;scroll-snap-type:x proximity;scroll-padding-left:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.np-new-scroll::-webkit-scrollbar{display:none}
+.np-new-card{position:relative;flex:0 0 132px;width:132px;min-width:0;box-sizing:border-box;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px 12px;border:1px solid #DCD7F5;border-radius:16px;background:linear-gradient(180deg,#F5F3FE,#fff);font:inherit;color:inherit;text-align:center;cursor:pointer}
+.np-new-card .np-avatar{width:48px;height:48px;font-size:15px}
+.np-new-card .np-new-name{max-width:100%;font-size:var(--fs-md);font-weight:800;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.np-new-card .np-new-gen{font-size:var(--fs-xs);font-weight:600;color:var(--mute)}
+.np-new-card .np-new-sub{max-width:100%;font-size:var(--fs-xs);color:var(--sub);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.np-new-card .network-profile-new{position:absolute;top:8px;right:8px;font-size:9px;padding:1px 5px}
+.np-gen-quick{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.np-gen-quick::-webkit-scrollbar{display:none}
+.np-gen-quick:empty{display:none}
+.np-gq{flex:0 0 auto;min-height:34px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--sub);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.np-gq.active{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark)}
+.np-row.is-new{background:#FAF9FE!important}
 .np-filter-panel{margin:0 14px 8px;padding:4px 0;border:1px solid var(--line);border-radius:var(--r-md);background:#FBFAF8}
 .np-filter-panel[hidden]{display:none}
 .np-filter-panel .network-generation-nav,.np-filter-panel .network-connect-nav,.np-filter-panel .attendee-tools{border:0;background:transparent;padding:10px 12px}
@@ -1327,7 +1349,7 @@ body.photo-open{overflow:hidden}
   </div>
   <div class="network-hub-stats">
     <button type="button" class="network-hub-stat network-hub-stat-btn" id="networkAlumniStatBtn" aria-controls="alumniDbModalBody" aria-expanded="false"><span>졸업생 DB</span><b id="networkAlumniCount">-</b><small>현황 보기</small></button>
-    <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="오늘 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
+    <div class="network-hub-stat"><span>공개 프로필</span><b id="networkPublicCount">-</b><small>동의</small><button type="button" class="network-new-count" id="networkNewCount" aria-label="최근 7일 새로 등록된 프로필 보기" aria-pressed="false" hidden></button></div>
   </div>
   <div class="network-hub-actions">
     <button class="network-hub-btn network-hub-action primary" type="button" data-open-myinfo><span><span class="myinfo-settings-icon" aria-hidden="true">⚙</span> 내 정보 · 프로필 관리</span><small>프로필·공개 범위·내가 운영하는 업장 관리</small></button>
@@ -1541,6 +1563,11 @@ body.photo-open{overflow:hidden}
       <input class="network-profile-search" id="networkProfileSearch" type="search" placeholder="이름 · 소속 · 활동 분야 검색">
       <button type="button" class="np-filter-btn" id="npFilterBtn" aria-expanded="false" aria-controls="npFilterPanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>필터<span class="np-filter-count" id="npFilterCount" hidden></span></button>
     </div>
+    <div class="np-new-strip" id="npNewStrip" hidden>
+      <div class="np-new-head"><div class="np-new-title"><b>새로 합류했어요</b><span id="npNewSub">최근 7일</span></div><button type="button" class="np-new-all" id="npNewAll" hidden>전체 보기</button></div>
+      <div class="np-new-scroll" id="npNewScroll"></div>
+    </div>
+    <div class="np-gen-quick" id="npGenQuick" role="group" aria-label="기수 바로 고르기"></div>
     <div class="np-stats" id="npStats"></div>
     <div class="np-filter-panel" id="npFilterPanel" hidden>
     <div class="network-generation-nav">
@@ -2607,7 +2634,7 @@ function updateNetworkQuickFilters(){
   const favorites=document.getElementById("networkFavoritesBtn");
   const own=document.getElementById("networkOwnBtn");
   if(recent){
-    recent.hidden=recentCount===0;
+    recent.hidden=true;
     recent.textContent=`최근 7일 ${recentCount}`;
     recent.classList.toggle("active",networkRecentOnly);
   }
@@ -2639,6 +2666,41 @@ function renderNetworkGenerationNav(){
   updateNetworkQuickFilters();
 }
 const networkOpenProfiles=new Set();
+// NEW = 처음 공개한 지 7일 이내(서버의 isRecent). 하루가 지나도 바로 사라지지 않습니다.
+const NETWORK_NEW_DAYS=7;
+const isNewProfile=p=>Boolean(p&&p.isRecent);
+const NETWORK_NEW_STRIP_MAX=8;
+// 첫 화면 맨 위: 새로 합류한 동문 가로 카드. 검색·필터 중에는 숨기고, 목록에서는 맨 위로 정렬됩니다.
+function renderNetworkNewStrip(q){
+  const strip=document.getElementById("npNewStrip"),scroll=document.getElementById("npNewScroll");
+  if(!strip||!scroll)return;
+  const plain=!q&&networkGenerationFilter==="all"&&!networkNewOnly&&!networkRecentOnly&&!networkFavoritesOnly&&!networkOwnOnly&&!networkConnectFilter;
+  const fresh=networkProfiles.filter(p=>isNewProfile(p)&&!p.isOwnProfile);
+  strip.hidden=!(plain&&fresh.length);
+  if(strip.hidden){scroll.innerHTML="";return;}
+  document.getElementById("npNewSub").textContent=`최근 ${NETWORK_NEW_DAYS}일 · ${fresh.length}명`;
+  document.getElementById("npNewAll").hidden=fresh.length<=NETWORK_NEW_STRIP_MAX;
+  scroll.innerHTML=fresh.slice(0,NETWORK_NEW_STRIP_MAX).map(p=>{
+    const sub=[p.company,p.work].filter(Boolean).join(" · ")||p.activity||"";
+    return `<button type="button" class="np-new-card" data-np-new-open="${esc(p.profileId||"")}" aria-label="${esc(p.name)} 프로필 보기">
+      <span class="network-profile-new" aria-hidden="true">NEW</span>
+      <span class="np-avatar g${Number(p.gen||0)%6}" aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
+      <span class="np-new-name">${esc(p.name)}</span>
+      <span class="np-new-gen">${p.gen?esc(p.gen)+"기":""}</span>
+      <span class="np-new-sub">${esc(sub)||"&nbsp;"}</span>
+    </button>`;
+  }).join("");
+}
+// 검색창 바로 아래 기수 칩 줄(필터 안의 기수 목록과 같은 동작).
+function renderNetworkGenQuick(){
+  const row=document.getElementById("npGenQuick");
+  if(!row)return;
+  const gens=[...new Set(networkProfiles.map(p=>Number(p.gen)).filter(g=>Number.isFinite(g)&&g>0))].sort((a,b)=>a-b);
+  if(!gens.length){row.innerHTML="";return;}
+  const noQuick=!networkNewOnly&&!networkRecentOnly&&!networkFavoritesOnly&&!networkOwnOnly&&!networkConnectFilter;
+  row.innerHTML=[`<button type="button" class="np-gq ${networkGenerationFilter==="all"&&noQuick?"active":""}" data-gq="all">전체</button>`]
+    .concat(gens.map(g=>`<button type="button" class="np-gq ${networkGenerationFilter===g&&noQuick?"active":""}" data-gq="${g}">${g}기</button>`)).join("");
+}
 function renderNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
@@ -2647,15 +2709,15 @@ function renderNetworkProfiles(){
   if(!list)return;
   if(networkAccessState!=="verified")return;
   renderNetworkGenerationNav();
-  const todayNewCount=networkProfiles.filter(p=>p.isNew).length;
+  const todayNewCount=networkProfiles.filter(isNewProfile).length;
   if(meta){
-    if(networkNewOnly)meta.textContent=`오늘 새로 등록된 프로필 ${todayNewCount}명`;
+    if(networkNewOnly)meta.textContent=`최근 ${NETWORK_NEW_DAYS}일 안에 새로 등록된 프로필 ${todayNewCount}명`;
     else if(networkRecentOnly)meta.textContent=`최근 7일 안에 등록된 프로필 ${networkProfiles.filter(p=>p.isRecent).length}명`;
     else if(networkFavoritesOnly)meta.textContent=`내가 저장한 관심 동문 ${networkFavoriteIds.size}명`;
     else if(networkOwnOnly)meta.textContent="내 공개 프로필을 확인하고 수정할 수 있습니다.";
     else if(networkConnectFilter)meta.textContent=`${networkConnectFilter} 분야로 연결을 희망하는 동문`;
     else meta.textContent=todayNewCount
-      ? `공개 동의 ${networkProfiles.length}명 · 오늘 새로 등록 ${todayNewCount}명 · 이름과 활동 분야로 검색할 수 있습니다.`
+      ? `공개 동의 ${networkProfiles.length}명 · 최근 ${NETWORK_NEW_DAYS}일 새로 등록 ${todayNewCount}명 · 이름과 활동 분야로 검색할 수 있습니다.`
       : `공개 동의 ${networkProfiles.length}명 · 이름과 활동 분야로 검색할 수 있습니다.`;
   }
   const networkPublicCount=document.getElementById("networkPublicCount");
@@ -2663,13 +2725,15 @@ function renderNetworkProfiles(){
   const networkNewCount=document.getElementById("networkNewCount");
   if(networkNewCount){
     networkNewCount.hidden=todayNewCount===0;
-    networkNewCount.textContent=todayNewCount?`오늘 NEW ${todayNewCount}`:"";
+    networkNewCount.textContent=todayNewCount?`NEW ${todayNewCount}`:"";
     networkNewCount.classList.toggle("active",networkNewOnly);
     networkNewCount.setAttribute("aria-pressed",networkNewOnly?"true":"false");
   }
 
   syncNetworkStatsLine(todayNewCount);
   const q=networkNorm(search?.value||"");
+  renderNetworkNewStrip(q);
+  renderNetworkGenQuick();
   if(networkGenerationFilter==="none"&&!q){
     list.innerHTML='<div class="network-profile-empty">기수를 선택하거나 <b>전체 기수 보기</b>를 눌러주세요.</div>';
     if(more)more.hidden=true;
@@ -2677,7 +2741,7 @@ function renderNetworkProfiles(){
   }
 
   const filtered=networkProfiles.filter(p=>{
-    if(networkNewOnly&&!p.isNew)return false;
+    if(networkNewOnly&&!isNewProfile(p))return false;
     if(networkRecentOnly&&!p.isRecent)return false;
     if(networkFavoritesOnly&&!networkFavoriteIds.has(String(p.profileId||"")))return false;
     if(networkOwnOnly&&!p.isOwnProfile)return false;
@@ -2705,12 +2769,12 @@ function renderNetworkProfiles(){
     const fav=networkFavoriteIds.has(String(p.profileId||""));
     const sub=[p.company,p.work].filter(Boolean).join(" · ")||p.activity||"";
     const open=networkOpenProfiles.has(String(p.profileId||""));
-    return `<div class="network-profile-item np-row${p.isOwnProfile?" network-profile-is-own":""}${open?" is-open":""}">
+    return `<div class="network-profile-item np-row${p.isOwnProfile?" network-profile-is-own":""}${isNewProfile(p)?" is-new":""}${open?" is-open":""}">
       <div class="np-top">
         <button type="button" class="np-summary" data-np-toggle="${esc(p.profileId||"")}" aria-expanded="${open?"true":"false"}">
           <span class="np-avatar g${Number(p.gen||0)%6}" aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
           <span class="np-main">
-            <span class="np-name">${esc(p.name)}${p.gen?`<span class="np-gen">${esc(p.gen)}기</span>`:""}${p.isOwnProfile?'<span class="network-profile-own">나</span>':""}${p.isNew?'<span class="network-profile-new" aria-label="오늘 새로 등록된 프로필">NEW</span>':""}</span>
+            <span class="np-name">${esc(p.name)}${p.gen?`<span class="np-gen">${esc(p.gen)}기</span>`:""}${p.isOwnProfile?'<span class="network-profile-own">나</span>':""}${isNewProfile(p)?'<span class="network-profile-new" aria-label="최근 7일 안에 새로 등록된 프로필">NEW</span>':""}</span>
             ${sub?`<span class="np-sub">${esc(sub)}</span>`:""}
           </span>
         </button>
@@ -2759,7 +2823,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
     if(!data?.allowed)throw new Error("access_denied");
     if(!Array.isArray(data.profiles))throw new Error("profiles_unavailable");
     networkProfiles=(Array.isArray(data.profiles)?data.profiles:[])
-      .sort((a,b)=>Number(Boolean(b.isOwnProfile))-Number(Boolean(a.isOwnProfile))||Number(Boolean(b.isNew))-Number(Boolean(a.isNew))||a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
+      .sort((a,b)=>Number(Boolean(b.isOwnProfile))-Number(Boolean(a.isOwnProfile))||Number(isNewProfile(b))-Number(isNewProfile(a))||a.sortGen-b.sortGen||String(a.sortName||"").localeCompare(String(b.sortName||""),"ko"));
     loadNetworkFavorites();
     syncNetworkFavorites().then(renderNetworkProfiles);
     networkProfilesLoaded=true;syncProfileNudge();
@@ -2936,6 +3000,19 @@ document.getElementById("networkGenerationNav")?.addEventListener("click",e=>{
   if(btn)selectNetworkGeneration(Number(btn.dataset.generation));
 });
 document.getElementById("networkAllGenBtn")?.addEventListener("click",()=>selectNetworkGeneration("all"));
+document.getElementById("npGenQuick")?.addEventListener("click",e=>{
+  const b=e.target.closest(".np-gq[data-gq]");if(!b)return;
+  selectNetworkGeneration(b.dataset.gq==="all"?"all":Number(b.dataset.gq));
+});
+document.getElementById("npNewAll")?.addEventListener("click",()=>activateNetworkQuickFilter("new"));
+// 새 동문 카드를 누르면 목록의 그 사람이 펼쳐지고 그 자리로 이동합니다.
+document.getElementById("npNewScroll")?.addEventListener("click",e=>{
+  const card=e.target.closest("[data-np-new-open]");if(!card)return;
+  const id=String(card.dataset.npNewOpen||"");
+  networkOpenProfiles.add(id);renderNetworkProfiles();
+  const sel='[data-np-toggle="'+(window.CSS?.escape?CSS.escape(id):id)+'"]';
+  document.querySelector(sel)?.closest(".np-row")?.scrollIntoView({behavior:"smooth",block:"center"});
+});
 function activateNetworkQuickFilter(type,value=""){
   clearNetworkQuickFilters();
   if(type==="new")networkNewOnly=true;
@@ -4259,7 +4336,7 @@ function syncNetworkStatsLine(todayNewCount=0){
   if(stats){
     const db=String(document.getElementById("networkAlumniCount")?.textContent||"").trim();
     const parts=[`공개 프로필 <b>${networkProfiles.length.toLocaleString()}명</b>`];
-    if(todayNewCount)parts.push(`<button type="button" class="np-new-link" data-np-new>오늘 NEW ${todayNewCount}</button>`);
+    if(todayNewCount)parts.push(`<button type="button" class="np-new-link" data-np-new>NEW ${todayNewCount}</button>`);
     if(db&&db!=="-")parts.push(`<button type="button" class="np-db-link" data-np-db>졸업생 DB ${esc(db)}</button>`);
     stats.innerHTML=parts.join('<span class="np-dot">·</span>');
   }
@@ -4269,7 +4346,7 @@ function syncNetworkStatsLine(todayNewCount=0){
   if(networkRecentOnly)labels.push("최근 7일");
   if(networkFavoritesOnly)labels.push("관심 동문");
   if(networkOwnOnly)labels.push("내 프로필");
-  if(networkNewOnly)labels.push("오늘 NEW");
+  if(networkNewOnly)labels.push("NEW");
   const count=document.getElementById("npFilterCount"),btn=document.getElementById("npFilterBtn");
   if(count){count.hidden=!labels.length;count.textContent=String(labels.length);}
   btn?.classList.toggle("on",labels.length>0);

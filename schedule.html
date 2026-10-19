@@ -1492,7 +1492,7 @@ body.photo-open{overflow:hidden}
 
 <div class="public-fold site-view" data-site-view="home">
 <button class="public-fold-head" type="button" data-fold-target="publicResourceBody" aria-expanded="false">
-  <span><span class="public-fold-title">공식 링크</span><span class="public-fold-sub">Instagram · 카카오채널</span></span>
+  <span><span class="public-fold-title">공식 링크</span><span class="public-fold-sub">졸업생 DB 등록 · Instagram · 카카오채널</span></span>
   <span class="public-fold-icon">▾</span>
 </button>
 <div class="public-fold-body" id="publicResourceBody" hidden>
@@ -2190,7 +2190,11 @@ contactMailBtn.href=
 "mailto:"+
 (p.contactEmail||"");
 
-const r=[];
+// 졸업생 DB 등록 구글폼은 설정값과 상관없이 항상 공식 링크에 둡니다(동문에게 공유용).
+const r=[`<a class="resource-item" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">
+<div class="r-k">졸업생 DB</div>
+<div class="r-v">졸업생 DB 등록하기</div>
+</a>`];
 
 if(p.instagramUrl){
 

@@ -553,7 +553,16 @@ body.event-phase-after .event-not-after{display:none!important}
 body:not(.event-phase-after) #eventAfterCard{display:none!important}
 .event-after-card{margin:0 0 18px;padding:24px;border:1px solid var(--line,#e7e3d9);border-radius:20px;background:#fff}.event-after-card h2{font-size:24px;margin:8px 0 10px;letter-spacing:-.02em}.event-after-card p{margin:0;color:#57525f;line-height:1.7;word-break:keep-all}
 .event-results{margin-top:20px;padding-top:18px;border-top:1px solid #eee9f3}.event-results[hidden]{display:none}.event-results-title{font-size:17px;font-weight:800}.event-results-note{margin:6px 0 14px;font-size:13px;color:#7b7684;line-height:1.6;word-break:keep-all}
-.event-results-list{display:grid;gap:10px}.event-result{padding:14px 16px;border-radius:14px;background:#f7f5fc}.event-result-prize{font-weight:700;line-height:1.45;word-break:keep-all}.event-result-prize small{display:block;font-size:12px;font-weight:600;color:#6e5fcb}.event-result-pool{font-size:12px;color:#7b7684;margin-top:2px}.event-result-winners{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.event-result-winners span{padding:5px 10px;border-radius:999px;background:#fff;border:1px solid #e4def2;font-size:14px;font-weight:600}
+.event-results{margin-top:14px;padding-top:0;border-top:0}
+.event-results-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:52px;padding:10px 14px;border:1px solid #E4DFF3;border-radius:14px;background:#F7F5FC;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.event-results-headtext{display:flex;flex-direction:column;gap:2px;min-width:0}
+.event-results-head .event-results-title{font-size:15px}.event-results-head small{font-size:12px;color:#7b7684;font-weight:600}
+.event-results-chev{color:var(--purple-dark);font-size:14px;transition:transform .15s}
+.event-results-head[aria-expanded="true"] .event-results-chev{transform:rotate(180deg)}
+#eventResultsBody{margin-top:10px}#eventResultsBody[hidden]{display:none}
+.event-results-note{margin:0 0 10px;font-size:12px}
+.event-results-list{display:grid;gap:6px}.event-result{padding:14px 16px;border-radius:14px;background:#f7f5fc}.event-result-prize{font-weight:700;line-height:1.45;word-break:keep-all}.event-result-prize small{display:block;font-size:12px;font-weight:600;color:#6e5fcb}.event-result-pool{font-size:12px;color:#7b7684;margin-top:2px}.event-result-winners{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.event-result-winners span{padding:5px 10px;border-radius:999px;background:#fff;border:1px solid #e4def2;font-size:14px;font-weight:600}
+.event-result{padding:9px 2px;border-radius:0;background:none;border-bottom:1px solid #eee9f3}.event-result:last-child{border-bottom:0}.event-result-prize{font-size:14px;line-height:1.4}.event-result-prize small{display:inline;margin-right:6px;font-size:11.5px}.event-result-count{margin-left:6px;font-size:12px;font-weight:700;color:#7b7684}.event-result-pool{display:none}.event-result-winners{display:block;margin-top:3px;font-size:13px;line-height:1.7;color:#4a4655}.event-result-winners span{display:inline;padding:0;border:0;background:none;font-size:13px;font-weight:600}.event-result-winners span:not(:last-child)::after{content:"  |  ";color:#c9c3d8;font-weight:400;white-space:pre-wrap}
 body.event-phase-day #rafflePublicCard{border:2px solid #6e5fcb;box-shadow:0 10px 30px #6e5fcb26}body.event-phase-day #raffleWatchBtn{font-size:16px;padding:14px 20px}
 body:not(.site-view-event) #brandCard{display:none!important}
 .site-home{display:grid;gap:14px}
@@ -1241,9 +1250,11 @@ body.photo-open{overflow:hidden}
  <h2>함께해주셔서 감사합니다</h2>
  <p>참석해주신 동문, 협찬과 후원으로 힘을 보태주신 모든 분께 감사드립니다.<br>다음 모임에서 다시 만나요.</p>
  <div class="event-results" id="eventResults" hidden>
-  <div class="event-results-title">경품 추첨 결과</div>
-  <div class="event-results-note">당첨자 개인정보 보호를 위해 이름 일부를 가려 표시합니다. 경품 수령 관련 문의는 준비위원에게 연락해주세요.</div>
-  <div class="event-results-list" id="eventResultsList"></div>
+  <button type="button" class="event-results-head" id="eventResultsToggle" aria-expanded="false" aria-controls="eventResultsBody"><span class="event-results-headtext"><b class="event-results-title">경품 추첨 결과</b><small id="eventResultsSummary"></small></span><span class="event-results-chev" aria-hidden="true">▾</span></button>
+  <div id="eventResultsBody" hidden>
+   <div class="event-results-note">당첨자 개인정보 보호를 위해 이름 일부를 가려 표시합니다. 경품 수령 관련 문의는 준비위원에게 연락해주세요.</div>
+   <div class="event-results-list" id="eventResultsList"></div>
+  </div>
  </div>
 </section>
 
@@ -5094,13 +5105,21 @@ function renderEventResults(){
     const parts=group.prize.split(" · ");
     if(parts.length>1){const sponsor=document.createElement("small");sponsor.textContent=parts.shift();title.append(sponsor);}
     title.append(parts.join(" · "));
+    const count=document.createElement("span");count.className="event-result-count";count.textContent=group.winners.length+"명";title.append(count);
     const meta=document.createElement("div");meta.className="event-result-pool";meta.textContent=(group.story?"인스타 스토리 참여 추첨":"전체 참가자 추첨")+" · "+group.winners.length+"명";
     const winners=document.createElement("div");winners.className="event-result-winners";
-    group.winners.forEach(w=>{const chip=document.createElement("span");chip.textContent=w.name+(w.generation?" · "+w.generation+"기":"");winners.append(chip);});
+    group.winners.forEach(w=>{const chip=document.createElement("span");chip.textContent=w.name+(w.generation?"("+w.generation+"기)":"");winners.append(chip);});
     card.append(title,meta,winners);return card;
   }));
   box.hidden=!groups.size;
+  const summary=document.getElementById("eventResultsSummary");
+  if(summary)summary.textContent="경품 "+groups.size+"종 · 당첨 "+[...groups.values()].reduce((n,g)=>n+g.winners.length,0)+"명 · 눌러서 보기";
 }
+// 결과 목록은 기본으로 접어 두고, 누르면 펼칩니다.
+document.getElementById("eventResultsToggle")?.addEventListener("click",e=>{
+  const body=document.getElementById("eventResultsBody"),open=body.hidden;
+  body.hidden=!open;e.currentTarget.setAttribute("aria-expanded",String(open));
+});
 function renderPublicRaffle(){
   const date=raffleEventDate();
   const started=date>="2026-10-18";

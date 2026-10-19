@@ -24,7 +24,7 @@ button,a{font:inherit} button{cursor:pointer}
 .eyebrow{margin:0 0 7px;color:var(--purple-dark);font-size:12px;font-weight:800;letter-spacing:.08em}
 .head{margin-bottom:18px}.head h1{margin:0 0 6px;font-size:25px;letter-spacing:-.03em}.head p{margin:0;color:var(--sub);font-size:13px}
 .hero{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:22px 24px;margin-bottom:14px;border-radius:20px;color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple-dark))}
-.hero-date{font-size:22px;font-weight:800}.hero-place{margin-top:4px;font-size:13px;opacity:.88}.hero-dday{font-size:36px;font-weight:900}
+.hero{padding:14px 18px;gap:10px;border-radius:16px}.hero-date{font-size:17px;font-weight:800}.hero-place{margin-top:3px;font-size:12.5px;opacity:.88}.hero-dday{padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.2);font-size:13px;font-weight:800;letter-spacing:.04em;white-space:nowrap}.hero-dday[hidden]{display:none}
 .participant-highlight{margin-bottom:14px;padding:14px 16px;border:1px solid #DCD7F5;border-radius:14px;background:var(--purple-light);color:var(--purple-dark);text-align:center;font-size:13px;font-weight:700}
 .participant-highlight strong{font-size:18px;font-weight:900;color:var(--purple-dark)}
 .participant-basis{margin-top:3px;color:var(--mute);font-size:9.5px;font-weight:600}
@@ -65,6 +65,27 @@ button,a{font:inherit} button{cursor:pointer}
 .brand-card{margin:0 0 18px;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
 .brand-title{margin-bottom:11px;color:var(--purple-dark);font-size:15px;font-weight:900}
 .brand-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.thanks-card{padding:18px 16px 16px;border-color:#DCD7F5;background:linear-gradient(180deg,#F8F6FE,#fff 60%)}
+.thanks-card .brand-title{margin-bottom:12px;font-size:19px;letter-spacing:-.02em}
+.thanks-card .brand-item{min-height:44px;font-size:13px;background:#fff}
+.brand-note{margin:12px 0 0;color:#6e6a78;font-size:13px;line-height:1.6;text-align:center}
+.event-materials{margin:0 0 14px;padding:16px;border:var(--card-line,1px solid var(--line));border-radius:var(--r-lg,18px);background:#fff}
+.event-materials .photo-title{margin:0 0 12px}
+.event-materials-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.event-materials-row::-webkit-scrollbar{display:none}
+.event-material{flex:0 0 auto;scroll-snap-align:start;display:flex;flex-direction:column;gap:8px;width:min(62%,250px);padding:8px;border:1px solid var(--line);border-radius:14px;background:#FDFCFB;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.event-material img{display:block;width:100%;height:210px;object-fit:contain;border-radius:8px;background:#F6F3EC}
+.event-material span{font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.4}
+@media(min-width:700px){.event-material{width:240px}}
+.material-viewer{position:fixed;inset:0;z-index:10040;display:flex;flex-direction:column;background:rgba(18,15,26,.98)}
+.material-viewer[hidden]{display:none}
+.material-viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;color:#fff;font-size:14px;font-weight:800}
+.material-viewer-bar button{width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:24px;line-height:1;cursor:pointer}
+.material-viewer-stage{flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:6px;touch-action:pan-x pan-y pinch-zoom;-webkit-overflow-scrolling:touch}
+.material-viewer-stage img{max-width:100%;max-height:100%;width:auto;height:auto;margin:auto;object-fit:contain;background:#fff;border-radius:6px;cursor:zoom-in}
+.material-viewer-stage.zoom img{max-width:none;max-height:none;width:220%;cursor:zoom-out}
+.material-viewer-nav{display:flex;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+.material-viewer-nav button{flex:1;min-height:44px;border:1px solid rgba(255,255,255,.25);border-radius:12px;background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
 .brand-item{display:flex;align-items:center;justify-content:center;min-height:38px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:#FDFCFB;text-align:center;color:var(--ink);font-size:12px;font-weight:800;line-height:1.35}
 @media(max-width:520px){.brand-grid{grid-template-columns:repeat(2,1fr)}}
 .program-card{margin:0 0 18px;padding:17px 18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
@@ -124,7 +145,7 @@ button,a{font:inherit} button{cursor:pointer}
 .application-stats{margin:14px 0;padding:11px 13px;text-align:center}.application-stats strong{font-size:15px}.application-stats-label{font-size:10.5px;color:var(--mute)}
 .public-sync-status{margin:10px 0 4px;text-align:center;font-size:9.5px;color:var(--mute)}
 .note{margin-top:20px;color:var(--mute);text-align:center;font-size:11.5px}.toast{position:fixed;left:50%;bottom:22px;padding:9px 13px;border-radius:10px;background:#1E1C1A;color:#fff;font-size:12px;opacity:0;transform:translateX(-50%)}.toast.show{opacity:1}
-@media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.program-list{grid-template-columns:repeat(2,1fr)}.program-item:last-child{grid-column:1/-1}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.hero-dday{font-size:30px}.head h1{font-size:22px}}
+@media(max-width:700px){.info-grid,.resource-list,.months{grid-template-columns:1fr}.program-list{grid-template-columns:repeat(2,1fr)}.program-item:last-child{grid-column:1/-1}.alumni-gen-grid{grid-template-columns:repeat(3,1fr)}.item{grid-template-columns:88px 16px 1fr}.head h1{font-size:22px}}
 .application-cta .participant-highlight{margin:8px 0 12px;font-size:14px}
 .recruitment-target{text-align:center;font-size:12px;color:var(--sub);line-height:1.7}
 .application-invitation{text-align:center;font-size:16px;font-weight:700;line-height:1.8;margin:18px 0;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
@@ -1254,6 +1275,26 @@ body.photo-open{overflow:hidden}
   </div>
 </section>
 
+<section class="brand-card thanks-card site-view" id="brandCard" data-site-view="event" hidden aria-labelledby="brandTitle">
+  <div class="brand-title" id="brandTitle">함께하는 협찬 · 후원</div>
+  <div class="brand-grid" id="brandGrid"></div>
+  <p class="brand-note">개인으로 협찬·후원해주신 동문 여러분께도 감사드립니다.</p>
+</section>
+
+<section class="event-materials site-view" id="eventMaterials" data-site-view="event" aria-label="행사 리플렛과 포토월">
+  <h3 class="photo-title">행사 리플렛 · 포토월</h3>
+  <div class="event-materials-row">
+    <button type="button" class="event-material" data-material="0"><img src="assets/event/leaflet-cover.webp?v=20261019" alt="행사 리플렛 앞면: 한조고 동문 네트워크 모임 안내" width="1169" height="1654" loading="lazy" decoding="async"><span>리플렛 · 앞면</span></button>
+    <button type="button" class="event-material" data-material="1"><img src="assets/event/leaflet-thanks.webp?v=20261019" alt="행사 리플렛 뒷면: 협찬·후원 브랜드 소개" width="1754" height="1241" loading="lazy" decoding="async"><span>리플렛 · 협찬·후원 브랜드</span></button>
+    <button type="button" class="event-material" data-material="2"><img src="assets/event/photowall.webp?v=20261019" alt="포토월: 협찬·후원 브랜드 로고" width="1600" height="1600" loading="lazy" decoding="async"><span>포토월 · 협찬·후원 브랜드</span></button>
+  </div>
+</section>
+<div class="material-viewer" id="materialViewer" hidden role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
+  <div class="material-viewer-bar"><span id="materialViewerTitle"></span><button type="button" id="materialViewerClose" aria-label="닫기">×</button></div>
+  <div class="material-viewer-stage" id="materialViewerStage"><img id="materialViewerImg" alt=""></div>
+  <div class="material-viewer-nav"><button type="button" id="materialViewerPrev">‹ 이전</button><button type="button" id="materialViewerNext">다음 ›</button></div>
+</div>
+
 <section class="photo-card site-view" id="eventPhotos" data-site-view="event">
   <div class="page-head-row">
     <h3 class="photo-title">행사 사진 <span class="photo-count" id="photoCount"></span></h3>
@@ -1437,11 +1478,6 @@ body.photo-open{overflow:hidden}
     </div>
     <div class="attendee-list" id="attendeeList"></div>
   </div>
-</div>
-
-<div class="brand-card site-view" id="brandCard" data-site-view="event" hidden>
-  <div class="brand-title">함께하는 브랜드</div>
-  <div class="brand-grid" id="brandGrid"></div>
 </div>
 
 <div class="public-fold site-view" data-site-view="event">
@@ -2165,12 +2201,14 @@ p.eventDate||"2026-10-18"
 const diff=
 eventDay-dayNumber(seoulToday());
 
+// D-day는 행사 전에만 작게 보여주고, 행사 후에는 숨깁니다(D+N이 계속 늘어나는 것을 없앱니다).
+eventDday.hidden=diff<0;
 eventDday.textContent=
 diff===0
-? "D-DAY"
+? "오늘"
 : diff>0
 ? "D-"+diff
-: "D+"+Math.abs(diff);
+: "";
 
 venueName.textContent=
 p.venueName||"";
@@ -5034,7 +5072,7 @@ function applyEventPhase(){
     if(phase!=="day"&&ready.nextElementSibling!==raffle)ready.after(raffle);
   }
   const brandTitle=document.querySelector("#brandCard .brand-title");
-  if(brandTitle)brandTitle.textContent=phase==="after"?"함께해주신 브랜드":"함께하는 브랜드";
+  if(brandTitle)brandTitle.textContent=phase==="after"?"함께해주신 협찬 · 후원":"함께하는 협찬 · 후원";
   renderEventResults();
 }
 // 행사 후 결과는 서버가 이름을 가려 보낸 경우(namesMasked)에만 표시합니다.
@@ -5443,7 +5481,30 @@ function foldInline(el,label,{open=false}={}){
 }
 foldCard(document.getElementById("rafflePublicCard"),{titleFrom:".raffle-public-title",sub:"경품 · 스토리 참여 방법 보기",keep:".raffle-public-meta"});
 foldCard(document.getElementById("applicationCta"),{title:"참가 현황 · 입금 계좌",sub:"참가자 명단과 입금 계좌 보기",subId:"applyFoldSub"});
-foldCard(document.getElementById("brandCard"),{titleFrom:".brand-title",sub:"협찬·후원 브랜드 보기"});
+// 협찬·후원 감사는 접지 않고 펼쳐서 보여줍니다. 리플렛·포토월 이미지는 누르면 크게 열립니다.
+(()=>{
+  const viewer=document.getElementById("materialViewer"),stage=document.getElementById("materialViewerStage"),img=document.getElementById("materialViewerImg");
+  const buttons=[...document.querySelectorAll(".event-material")];
+  if(!viewer||!stage||!img||!buttons.length)return;
+  let index=0,lastFocus=null;
+  const show=i=>{
+    index=(i+buttons.length)%buttons.length;
+    const b=buttons[index],thumb=b.querySelector("img");
+    img.src=thumb.getAttribute("src");img.alt=thumb.alt;stage.classList.remove("zoom");stage.scrollTo(0,0);
+    document.getElementById("materialViewerTitle").textContent=b.querySelector("span").textContent+"  ("+(index+1)+"/"+buttons.length+")";
+  };
+  const open=i=>{lastFocus=document.activeElement;show(i);viewer.hidden=false;document.body.classList.add("modal-open");document.getElementById("materialViewerClose").focus();};
+  const close=()=>{viewer.hidden=true;document.body.classList.remove("modal-open");lastFocus?.focus?.();};
+  buttons.forEach((b,i)=>b.addEventListener("click",()=>open(i)));
+  document.getElementById("materialViewerClose").addEventListener("click",close);
+  document.getElementById("materialViewerPrev").addEventListener("click",()=>show(index-1));
+  document.getElementById("materialViewerNext").addEventListener("click",()=>show(index+1));
+  img.addEventListener("click",()=>stage.classList.toggle("zoom"));
+  document.addEventListener("keydown",e=>{
+    if(viewer.hidden)return;
+    if(e.key==="Escape")close();else if(e.key==="ArrowLeft")show(index-1);else if(e.key==="ArrowRight")show(index+1);
+  });
+})();
 foldCard(document.getElementById("generationPage"),{title:"우리 기수 모아보기",sub:"기수별 동문 · 업장 · 글"});
 foldInline(document.querySelector("#eventReadyCard .event-ready-notes"),"주차 · 협찬품 반입 · 회원 등록 안내");
 document.querySelector(".join-steps-title")?.remove();

@@ -1092,14 +1092,29 @@
 .fee-table th:nth-child(7){width:25%!important;}
 .fee-table th:nth-child(8){width:7%!important;}
 .fee-table .row-del{padding:7px 3px;min-height:36px;font-size:11px;}
+.fee-table td.fee-peek{display:none;}
 @media(max-width:760px){
  .fee-table,.fee-table tbody{display:block;width:100%;}
  .fee-table thead{display:none;}
  .fee-table tbody tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;}
  .fee-table tbody td{display:block;width:auto!important;min-width:0;padding:0;border:0;}
  .fee-table td[data-label]::before{content:attr(data-label);display:block;font-size:11px;color:var(--ink-sub);margin-bottom:4px;}
- .fee-table td:nth-child(7){grid-column:1/-1;}
+ .fee-table td:nth-child(8){grid-column:1/-1;}
  .fee-table td:last-child{grid-column:1/-1;text-align:right;}
+ .fee-table tbody tr{padding:0;overflow:hidden;}
+ .fee-table tbody tr.open{padding:0 12px 12px;}
+ .fee-table tbody tr:not(.open) td:not(.fee-peek){display:none;}
+ .fee-table tbody td.fee-peek{display:block;grid-column:1/-1;}
+ .fee-table .fee-peek-btn{display:flex;align-items:center;gap:8px;width:100%;min-height:52px;padding:10px 12px;border:0;background:transparent;font:inherit;text-align:left;cursor:pointer;color:var(--ink);}
+ .fee-table tr.open .fee-peek-btn{padding:12px 0 6px;}
+ .fee-table .fee-peek-name{font-size:16px;font-weight:800;min-width:0;overflow-wrap:anywhere;}
+ .fee-table .fee-peek-gen{font-size:13px;color:var(--ink-sub);white-space:nowrap;}
+ .fee-table .fee-peek-status{margin-left:auto;padding:3px 9px;border-radius:99px;background:#F1EEF7;color:var(--ink-sub);font-size:11px;font-weight:700;white-space:nowrap;}
+ .fee-table .fee-st-paid,.fee-table .fee-st-exempt{background:#E6F4EA;color:var(--ok);}
+ .fee-table .fee-st-partial,.fee-table .fee-st-hold{background:#FFF3DC;color:var(--warn);}
+ .fee-table .fee-st-cancelled{background:#F3F3F3;color:#999;text-decoration:line-through;}
+ .fee-table .fee-peek-chev{color:var(--ink-mute);transition:transform .15s;}
+ .fee-table tr.open .fee-peek-chev{transform:rotate(180deg);}
  .fee-table input,.fee-table select,.fee-table textarea{font-size:16px;min-height:44px;}
  .fee-table .row-del{min-width:60px;min-height:40px;}
 }
@@ -3460,6 +3475,8 @@ const PAYMENT_GROUPS={
     cancelledId:"secondFeeCancelledCount",totalId:"secondFeePaidTotal"
   }
 };
+// 모바일에서는 이름만 보이고, 누른 사람만 세부 칸이 펼쳐집니다. 다시 그려도 펼친 상태를 기억합니다.
+const feeOpenRows=new Set();
 function renderPaymentGroup(phase){
   const cfg=PAYMENT_GROUPS[phase];
   const rows=(Array.isArray(state.participantPayments)?state.participantPayments:[])
@@ -3479,7 +3496,11 @@ function renderPaymentGroup(phase){
     const matchText=row.matchInfo
       ? `<div class="fee-match ${row.matchInfo.includes("복수")||row.matchInfo.includes("확인 필요")?"warn":""}">${escapeHtml(row.matchInfo)}</div>`
       : "";
+    const rowKey=String(row.id??"");
+    const open=feeOpenRows.has(rowKey);
+    tr.className=open?"open":"";
     tr.innerHTML=`
+      <td class="fee-peek"><button type="button" class="fee-peek-btn" aria-expanded="${open}"><span class="fee-peek-name">${escapeHtml(row.name||"(이름 없음)")}</span><span class="fee-peek-gen">${escapeHtml(row.generation||row.gen||"")}</span><span class="fee-peek-status fee-st-${escapeHtml(row.status||"unpaid")}">${paymentStatusLabel(row.status)}</span><span class="fee-peek-chev" aria-hidden="true">▾</span></button></td>
       <td data-label="이름"><input type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
       <td data-label="기수"><input type="text" value="${escapeHtml(row.generation||row.gen||"")}" data-field="generation" placeholder="예: 2기"></td>
       <td data-label="예정 참가비"><input type="number" min="0" step="1000" value="${Number(row.expectedAmount??80000)}" data-field="expectedAmount"></td>
@@ -3496,6 +3517,11 @@ function renderPaymentGroup(phase){
       </td>
       <td><button class="row-del lockable" title="참가자 관리 명단에서 삭제">삭제</button></td>`;
 
+    tr.querySelector(".fee-peek-btn").addEventListener("click",e=>{
+      const on=tr.classList.toggle("open");
+      e.currentTarget.setAttribute("aria-expanded",String(on));
+      if(on)feeOpenRows.add(rowKey);else feeOpenRows.delete(rowKey);
+    });
     tr.querySelectorAll("input,select,textarea").forEach(el=>{
       el.addEventListener("change",async e=>{
         const f=e.target.dataset.field;

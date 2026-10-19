@@ -948,7 +948,26 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .alumni-subnav-btn{position:relative;flex:1;min-height:38px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--sub);font:inherit;font-size:var(--fs-sm);font-weight:800;cursor:pointer}
 .alumni-subnav-btn.active{background:#fff;color:var(--purple-dark);box-shadow:0 1px 3px rgba(30,28,26,.08)}
 
-/* 홈: 오늘의 동문 → F&B 소식 → 바로가기 4칸 → 아래 작은 줄 */
+/* 홈: 소개·숫자 → 다음 할 일 → 바로가기 4칸 → 요즘 동문 소식 → 아래 작은 줄 */
+.home-intro{padding:18px 18px 16px;border-radius:var(--r-md);background:linear-gradient(135deg,#F3F0FF,#fff 75%);border:1px solid #E3DDF7}
+.home-intro-kicker{font-size:var(--fs-xs);font-weight:800;color:var(--purple-dark);letter-spacing:.02em}
+.home-intro-title{margin:4px 0 12px;font-size:20px;font-weight:800;line-height:1.35;color:var(--ink);letter-spacing:-.02em;word-break:keep-all}
+.home-stats{display:flex;flex-wrap:wrap;gap:6px 16px}
+.home-stat{display:flex;align-items:baseline;gap:5px;font-size:var(--fs-xs);color:var(--sub);font-weight:700}.home-stat[hidden]{display:none}
+.home-stat b{font-size:var(--fs-lg);font-weight:800;color:var(--ink)}
+.home-next{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border:var(--card-line);border-radius:var(--r-md);background:#fff}.home-next[hidden]{display:none}
+.home-next-text b{display:block;font-size:var(--fs-sm);color:var(--ink)}.home-next-text span{display:block;margin-top:2px;font-size:var(--fs-xs);color:var(--sub);line-height:1.5;word-break:keep-all}
+.home-next-actions{display:flex;flex:0 0 auto;gap:6px}.home-next-actions a.spot-btn{display:inline-flex;align-items:center;text-decoration:none}
+.home-recent{padding:6px 15px 8px;border:var(--card-line);border-radius:var(--r-md);background:#fff}.home-recent[hidden]{display:none}
+.home-recent-head{padding:8px 0 4px;font-size:var(--fs-xs);font-weight:800;color:var(--sub)}
+.home-recent-row{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;width:100%;padding:10px 0;border:0;border-top:1px solid #F0ECF6;background:none;font:inherit;text-align:left;color:inherit;cursor:pointer}
+.home-recent-head+.home-recent-row{border-top:0}
+.home-recent-tag{grid-row:span 2;align-self:start;padding:2px 7px;border-radius:999px;background:#F1EEF7;color:var(--purple-dark);font-size:11px;font-weight:800}.home-recent-tag.meet{background:#E9F6EF;color:#1F7A4D}
+.home-recent-title{font-size:var(--fs-sm);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-recent-meta{font-size:var(--fs-xs);color:var(--mute)}
+.fnb-page .home-news{margin:0 0 12px}
+.event-guide-reopen[hidden]{display:none!important}
+@media(max-width:720px){.home-next{flex-direction:column;align-items:stretch}.home-next-actions>*{flex:1;justify-content:center}}
 .site-home{gap:12px;margin-bottom:12px}
 .home-spotlight,.home-news{margin:0}
 .site-home-grid{grid-template-columns:repeat(4,1fr);gap:10px}
@@ -1187,6 +1206,7 @@ body.photo-open{overflow:hidden}
   <button class="site-nav-btn" type="button" data-site-target="event"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>2026 모임</span></button>
   <button class="site-nav-btn" type="button" data-site-target="network" data-nav-group="network places" data-new-tabs="places"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15 15.2c2.6-.5 4.8.9 5.5 3.8"/></svg><span>동문</span></button>
   <button class="site-nav-btn" type="button" data-site-target="board" data-nav-group="board meetups" data-new-tabs="board meetups"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/></svg><span>게시판</span></button>
+  <button class="site-nav-btn" type="button" data-site-target="fnb"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg><span>F&amp;B</span></button>
   <button class="site-nav-btn notif-btn" type="button" data-open-myinfo><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 정보</span><span class="notif-badge" id="notifBadge" hidden aria-label="새 알림">0</span></button>
 </nav>
 
@@ -1201,21 +1221,31 @@ body.photo-open{overflow:hidden}
 </div>
 
 <div class="site-view" data-site-view="network"><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">동문 찾기</h2><button type="button" class="page-head-action" id="netHeadAction" data-needs-auth data-open-myinfo><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 프로필</span></button></div><p class="page-head-desc">기수·소속·분야로 동문을 찾고 연결해요.</p></div></div>
+<div class="site-view" data-site-view="network"><div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div></div>
 <div class="site-view" data-site-view="places" hidden><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">업장 지도</h2><button type="button" class="page-head-action" data-place-add><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>내 업장 등록</button></div><p class="page-head-desc">동문이 운영하는 가게를 지도에서 찾아요.</p></div></div>
+<div class="site-view" data-site-view="places" hidden><div class="home-spotlight" id="placesSpotlight" hidden aria-live="polite"></div></div>
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
 <section class="site-home site-view" id="siteHome" data-site-view="home">
-  <div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div>
-  <div class="home-news" id="homeNews" hidden></div>
+  <div class="home-intro">
+    <div class="home-intro-kicker">한국조리과학고등학교 총동문회</div>
+    <h2 class="home-intro-title">졸업생들이 서로 찾고 돕는 곳</h2>
+    <div class="home-stats">
+      <span class="home-stat"><b id="homeStatAlumni">-</b>졸업생 DB</span>
+      <span class="home-stat" id="homeStatProfilesWrap" hidden><b id="homeStatProfiles">-</b>공개 프로필</span>
+      <span class="home-stat"><b id="homeStatPlaces">-</b>동문 업장</span>
+    </div>
+  </div>
+  <div class="home-next" id="homeNext" hidden></div>
   <div class="site-home-grid">
-    <button class="site-home-card" type="button" data-site-target="event">
-      <div class="site-home-card-title">2026 모임</div>
-      <div class="site-home-card-value">10.18 · 와일드덕</div>
-      <div class="site-home-card-meta" id="homeEventMeta">참가 현황 확인</div>
-    </button>
     <button class="site-home-card" type="button" data-site-target="network">
       <div class="site-home-card-title">동문 찾기</div>
       <div class="site-home-card-value" id="homeNetworkCount">-</div>
       <div class="site-home-card-meta" id="homeNetworkMeta">공개 프로필</div>
+    </button>
+    <button class="site-home-card" type="button" data-site-target="fnb">
+      <div class="site-home-card-title">F&amp;B 소식·채용</div>
+      <div class="site-home-card-value" id="homeFnbValue">오늘 소식</div>
+      <div class="site-home-card-meta" id="homeFnbMeta">업계 기사 · 채용 공고</div>
     </button>
     <button class="site-home-card" type="button" data-site-target="board">
       <div class="site-home-card-title">게시판</div>
@@ -1228,6 +1258,29 @@ body.photo-open{overflow:hidden}
       <div class="site-home-card-meta">함께 만나요</div>
     </button>
   </div>
+  <div class="home-recent" id="homeRecent" hidden></div>
+</section>
+
+<!-- F&B 소식·채용: 소식은 누구나, 채용은 인증한 동문만 봅니다. -->
+<section class="fnb-page site-view" id="fnbPage" data-site-view="fnb" hidden>
+  <div class="page-head"><div class="page-head-row"><h2 class="page-head-title">F&amp;B 소식·채용</h2></div><p class="page-head-desc">매일 아침 업계 기사를 모으고, 마감 전인 채용 공고를 골라 올려요.</p></div>
+  <div class="alumni-subnav fnb-tabs" role="tablist" aria-label="F&amp;B 메뉴">
+    <button class="alumni-subnav-btn active" type="button" role="tab" aria-selected="true" data-fnb-tab="news">업계 소식</button>
+    <button class="alumni-subnav-btn" type="button" role="tab" aria-selected="false" data-fnb-tab="jobs">채용 공고</button>
+  </div>
+  <div id="fnbNewsPane">
+    <div class="home-news" id="homeNews" hidden></div>
+    <div class="board-list-empty" id="fnbNewsEmpty" hidden>아직 오늘 소식이 없어요.</div>
+  </div>
+  <div id="fnbJobsPane" hidden>
+    <div class="board-gate" id="fnbJobsGate"><div class="board-gate-title">채용 공고는 동문 인증 후 볼 수 있어요</div><div class="board-gate-desc">졸업생 DB에 등록된 이메일로 인증하면 바로 볼 수 있습니다.</div><button class="board-gate-btn" type="button" data-site-target="network">동문 이메일 인증하기</button></div>
+    <div class="board-list-empty" id="fnbJobsEmpty" hidden>지금 올라온 채용 공고가 없어요.</div>
+    <section class="job-feed" id="jobFeed" hidden aria-labelledby="jobFeedTitle">
+      <button type="button" class="job-feed-head" id="jobFeedToggle" aria-expanded="true" aria-controls="jobFeedList"><span class="job-feed-headtext"><b id="jobFeedTitle">오늘의 F&amp;B 채용</b><small id="jobFeedSub"></small></span><span class="job-feed-chev" aria-hidden="true">▾</span></button>
+      <div class="job-feed-list" id="jobFeedList"></div>
+      <p class="job-feed-note">공고 원문을 직접 열어 마감일을 확인한 것만 올립니다. 지원 전에 원문에서 한 번 더 확인해주세요.</p>
+    </section>
+  </div>
 </section>
 
 <section class="board-page site-view" id="boardPage" data-site-view="board" hidden>
@@ -1237,11 +1290,6 @@ body.photo-open{overflow:hidden}
     <div class="board-content" id="boardContent" hidden>
       <div class="board-toolbar"><div class="board-toolbar-copy"><strong>최근 게시글</strong><span>작성자 이름과 기수는 인증 정보로 표시됩니다.</span></div><button class="board-write-btn" id="boardWriteBtn" type="button">글쓰기</button></div>
       <div class="board-gen-card" id="boardGenCard" hidden></div>
-      <section class="job-feed" id="jobFeed" hidden aria-labelledby="jobFeedTitle">
-        <button type="button" class="job-feed-head" id="jobFeedToggle" aria-expanded="true" aria-controls="jobFeedList"><span class="job-feed-headtext"><b id="jobFeedTitle">오늘의 F&amp;B 채용</b><small id="jobFeedSub"></small></span><span class="job-feed-chev" aria-hidden="true">▾</span></button>
-        <div class="job-feed-list" id="jobFeedList"></div>
-        <p class="job-feed-note">공고 원문을 직접 열어 마감일을 확인한 것만 올립니다. 지원 전에 원문에서 한 번 더 확인해주세요.</p>
-      </section>
       <div class="board-filters" id="boardFilters" aria-label="게시글 분류"><button class="board-filter active" type="button" data-board-filter="all">전체</button><button class="board-filter gen-filter" type="button" data-board-filter="generation">우리 기수</button><button class="board-filter" type="button" data-board-filter="free">자유</button><button class="board-filter" type="button" data-board-filter="jobs">구인·구직</button><button class="board-filter" type="button" data-board-filter="collab">협업·도움</button><button class="board-filter" type="button" data-board-filter="business">업체·행사</button><button class="board-filter" type="button" data-board-filter="question">선후배 질문</button><button class="board-filter" type="button" data-board-filter="resource">자료 공유</button></div>
       <div class="board-filters board-subfilters" id="boardResourceFilters" aria-label="자료 종류" hidden></div>
       <div class="board-list" id="boardList"><div class="board-list-empty">게시글을 불러오는 중입니다.</div></div>
@@ -1363,7 +1411,7 @@ body.photo-open{overflow:hidden}
 </div>
 
 <div class="top-actions site-view" data-site-view="home">
-<button class="event-guide-reopen" type="button" id="eventGuideOpen">행사 안내</button>
+<button class="event-guide-reopen" type="button" id="eventGuideOpen" hidden>행사 안내</button>
 <button class="top-action primary" id="shareBtn">공유하기</button>
 <a class="top-action contact-mail" href="mailto:mainxoals@gmail.com" data-contact-mail>문의하기</a>
 </div>
@@ -2946,7 +2994,8 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   if(deniedEmail)deniedEmail.textContent=email?"인증한 이메일 · "+email:"";
   renderHomeSpotlight();renderGenerationPage();renderHomeNews();
   // 인증되면 홈의 오늘의 동문과 우리 기수에 쓸 프로필·게시판을 미리 불러옵니다.
-  if(state==="verified"&&networkCurrentSession){void loadNetworkProfiles(networkCurrentSession);void loadBoard();}
+  if(state==="verified"&&networkCurrentSession){void loadNetworkProfiles(networkCurrentSession);void loadBoard();void loadMeetups();}
+  renderHomeRecent();syncFnb();
   const verifiedEmail=document.getElementById("networkAccessVerifiedEmail");
   if(verifiedEmail)verifiedEmail.textContent=email;
   if(state!=="verified"){
@@ -3247,17 +3296,16 @@ async function loadSpotlightPlaces(){
     if(error)throw error;
     spotlightPlaces=Array.isArray(data)?data:[];
   }catch(e){spotlightPlaces=[];console.error("업장 정보를 불러오지 못했습니다.",e);}
-  renderHomeSpotlight();renderGenerationPage();
+  renderHomeSpotlight();renderGenerationPage();syncHomeSummary();
 }
 function placeGeneration(p){const n=parseInt(String(p?.owner_generation||"").replace(/[^0-9]/g,""),10);return Number.isFinite(n)?n:null;}
 function placeMarks(p){return [PLACE_MICHELIN[p.michelin]?`<span class="spot-mark michelin">${esc(PLACE_MICHELIN[p.michelin])}</span>`:"",Number(p.blue_ribbon)>0?`<span class="spot-mark ribbon">블루리본 ${esc(p.blue_ribbon)}</span>`:""].join("");}
 function renderHomeSpotlight(){
-  const box=document.getElementById("homeSpotlight");if(!box)return;
-  // 인증 확인이나 프로필 불러오기가 끝나기 전에는 업장 카드를 잠깐 보여주지 않습니다(깜빡임 방지).
-  const settled=["signed-out","denied","error"].includes(networkAccessState)||(networkAccessState==="verified"&&(networkProfilesLoaded||networkProfilesFailed));
-  if(!settled){box.hidden=true;return;}
-  if(networkAccessState==="verified"&&networkProfilesLoaded){
-    const person=pickOfDay(networkProfiles.filter(p=>p.spotlight&&(p.company||p.work||p.bio||p.activity)),p=>p.profileId);
+  const box=document.getElementById("homeSpotlight"),placeBox=document.getElementById("placesSpotlight");
+  // 오늘의 동문은 인증한 동문에게 동문 찾기 맨 위에 보입니다.
+  if(box){
+    const person=networkAccessState==="verified"&&networkProfilesLoaded
+      ? pickOfDay(networkProfiles.filter(p=>p.spotlight&&(p.company||p.work||p.bio||p.activity)),p=>p.profileId) : null;
     if(person){
       const line=[person.company,person.work].filter(Boolean).join(" · ");
       box.innerHTML=`<div class="spot-kicker">오늘의 동문 <span class="spot-help">프로필을 공개한 동문을 매일 한 분씩 소개해요</span></div>
@@ -3266,19 +3314,57 @@ function renderHomeSpotlight(){
         ${person.bio?`<div class="spot-bio">${esc(person.bio)}</div>`:(person.activity?`<div class="spot-bio">${esc(person.activity)}</div>`:"")}
         ${person.connect?`<div class="spot-tags">${String(person.connect).split(/[,;\n]+/).map(t=>t.trim()).filter(Boolean).slice(0,4).map(t=>`<span>${esc(t)}</span>`).join("")}</div>`:""}
         <div class="spot-actions"><button type="button" class="spot-btn primary" data-spot-profile="${esc(person.profileId)}">프로필 자세히 보기</button>${person.gen?`<button type="button" class="spot-btn" data-spot-gen="${esc(person.gen)}">${esc(person.gen)}기 동문 보기</button>`:""}</div>`;
-      box.hidden=false;return;
     }
+    box.hidden=!person;
   }
-  const place=pickOfDay(spotlightPlaces.filter(p=>p.name&&(p.category||p.description)),p=>p.id);
-  if(!place){box.hidden=true;return;}
-  const owner=[placeGeneration(place)?placeGeneration(place)+"기":"",place.owner_name].filter(Boolean).join(" ");
-  box.innerHTML=`<div class="spot-kicker">오늘의 동문 업장 <span class="spot-help">동문이 운영하는 가게를 매일 한 곳씩 소개해요</span></div>
-    <div class="spot-name">${esc(place.name)}${placeMarks(place)}</div>
-    <div class="spot-line">${esc([owner&&owner+" 동문",place.category,place.region].filter(Boolean).join(" · "))}</div>
-    ${place.description?`<div class="spot-bio">${esc(place.description)}</div>`:""}
-    <div class="spot-actions"><button type="button" class="spot-btn primary" data-site-target="places">업장 지도에서 보기</button>${networkAccessState==="verified"?"":`<button type="button" class="spot-btn" data-site-target="network">동문 인증하고 오늘의 동문 보기</button>`}</div>`;
+  // 오늘의 동문 업장은 누구에게나 업장 지도 맨 위에 보입니다.
+  if(placeBox){
+    const place=pickOfDay(spotlightPlaces.filter(p=>p.name&&(p.category||p.description)),p=>p.id);
+    if(place){
+      const owner=[placeGeneration(place)?placeGeneration(place)+"기":"",place.owner_name].filter(Boolean).join(" ");
+      placeBox.innerHTML=`<div class="spot-kicker">오늘의 동문 업장 <span class="spot-help">동문이 운영하는 가게를 매일 한 곳씩 소개해요</span></div>
+        <div class="spot-name">${esc(place.name)}${placeMarks(place)}</div>
+        <div class="spot-line">${esc([owner&&owner+" 동문",place.category,place.region].filter(Boolean).join(" · "))}</div>
+        ${place.description?`<div class="spot-bio">${esc(place.description)}</div>`:""}`;
+    }
+    placeBox.hidden=!place;
+  }
+  renderHomeNext();
+}
+// 홈: 지금 상태에 맞는 다음 할 일 하나만 보여줍니다.
+function renderHomeNext(){
+  const box=document.getElementById("homeNext");if(!box)return;
+  const st=networkAccessState;
+  if(st==="verified"&&networkProfilesLoaded){
+    const own=networkProfiles.find(p=>p.isOwnProfile);
+    if(!own){
+      box.innerHTML=`<div class="home-next-text"><b>내 프로필을 공개해보세요</b><span>소속과 소개를 적으면 동문 찾기에 보여요.</span></div><div class="home-next-actions"><button type="button" class="spot-btn primary" data-open-myinfo>내 정보 열기</button></div>`;
+    }else{
+      const who=[own.gen?own.gen+"기":"",own.actualName||own.name].filter(Boolean).join(" ");
+      box.innerHTML=`<div class="home-next-text"><b>안녕하세요, ${esc(who)}님</b><span>오늘의 동문은 동문 찾기 맨 위에서 볼 수 있어요.</span></div><div class="home-next-actions"><button type="button" class="spot-btn" data-site-target="network">오늘의 동문 보기</button></div>`;
+    }
+  }else if(["signed-out","denied","error"].includes(st)){
+    box.innerHTML=`<div class="home-next-text"><b>처음 오셨나요?</b><span>졸업생 DB에 등록하고 이메일로 인증하면 동문 찾기·게시판·채용 공고를 볼 수 있어요.</span></div><div class="home-next-actions"><button type="button" class="spot-btn primary" data-site-target="network">동문 인증하기</button><a class="spot-btn" href="https://forms.gle/yCdXwWKpXNedUZP89" target="_blank" rel="noopener">졸업생 DB 등록</a></div>`;
+  }else{box.hidden=true;return;}
   box.hidden=false;
 }
+// 홈: 최근 게시글 2개와 다가오는 번개 모임 1개
+function renderHomeRecent(){
+  const box=document.getElementById("homeRecent");if(!box)return;
+  if(networkAccessState!=="verified"){box.hidden=true;return;}
+  const posts=boardPosts.filter(p=>!p.isNotice).sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||""))).slice(0,2);
+  const next=meetups.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").sort((a,b)=>a.startsAt.localeCompare(b.startsAt))[0];
+  if(!posts.length&&!next){box.hidden=true;return;}
+  const rows=posts.map(p=>`<button type="button" class="home-recent-row" data-home-post="${esc(p.id)}"><span class="home-recent-tag">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="home-recent-title">${esc(p.title)}</span><span class="home-recent-meta">${esc([p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" "))} · ${esc(boardDate(p.createdAt))}</span></button>`);
+  if(next){const d=meetupParts(next.startsAt);rows.push(`<button type="button" class="home-recent-row" data-home-meetup="${esc(next.id)}"><span class="home-recent-tag meet">번개 모임</span><span class="home-recent-title">${esc(next.title)}</span><span class="home-recent-meta">${esc(d.md+"("+d.weekday+") "+d.time)}</span></button>`);}
+  box.innerHTML=`<div class="home-recent-head">요즘 동문 소식</div>${rows.join("")}`;
+  box.hidden=false;
+}
+document.getElementById("homeRecent")?.addEventListener("click",e=>{
+  const post=e.target.closest("[data-home-post]"),meet=e.target.closest("[data-home-meetup]");
+  if(post){setSiteView("board");openBoardDetail(post.dataset.homePost);}
+  else if(meet){setSiteView("meetups");openMeetupDetail(meet.dataset.homeMeetup);}
+});
 document.getElementById("homeSpotlight")?.addEventListener("click",e=>{
   const profileBtn=e.target.closest("[data-spot-profile]"),genBtn=e.target.closest("[data-spot-gen]");
   if(!profileBtn&&!genBtn)return;
@@ -3372,13 +3458,36 @@ async function loadHomeNews(){
 }
 function renderHomeNews(){
   const box=document.getElementById("homeNews");if(!box)return;
-  if(!homeNews.length&&!networkIsAdmin){box.hidden=true;return;}
-  const shown=homeNewsAll?homeNews:homeNews.slice(0,3),day=homeNews[0]?.news_date||"";
+  const empty=document.getElementById("fnbNewsEmpty");
+  syncFnb();
+  if(!homeNews.length&&!networkIsAdmin){box.hidden=true;if(empty)empty.hidden=false;return;}
+  if(empty)empty.hidden=true;
+  const day=homeNews[0]?.news_date||"";
   box.innerHTML=`<div class="news-head"><span class="spot-kicker">오늘의 F&B 소식</span><span class="news-date">${esc(day?fmtKR(day):"")}</span></div>
-    <ul class="news-list">${shown.map(n=>`<li><a href="${esc(n.url)}" target="_blank" rel="noopener noreferrer"><span class="news-title">${esc(n.title)}</span><span class="news-src">${esc(n.source||"")}${n.keyword&&!n.manual?" · "+esc(n.keyword):""}</span></a>${networkIsAdmin?`<button type="button" class="news-hide" data-news-hide="${esc(n.id)}" aria-label="이 소식 숨기기">숨기기</button>`:""}</li>`).join("")||'<li class="news-empty">아직 오늘 소식이 없어요.</li>'}</ul>
-    <div class="news-foot">${homeNews.length>3?`<button type="button" class="news-more" data-news-more="1">${homeNewsAll?"접기":"더 보기 ("+(homeNews.length-3)+")"}</button>`:""}${networkIsAdmin?`<button type="button" class="news-more" data-news-add="1">+ 링크 추가</button>`:""}<span class="news-note">기사 제목과 링크만 모아 보여드려요. 원문은 각 언론사에서 확인해주세요.</span></div>`;
+    <ul class="news-list">${homeNews.map(n=>`<li><a href="${esc(n.url)}" rel="noreferrer"><span class="news-title">${esc(n.title)}</span><span class="news-src">${esc(n.source||"")}${n.keyword&&!n.manual?" · "+esc(n.keyword):""}</span></a>${networkIsAdmin?`<button type="button" class="news-hide" data-news-hide="${esc(n.id)}" aria-label="이 소식 숨기기">숨기기</button>`:""}</li>`).join("")||'<li class="news-empty">아직 오늘 소식이 없어요.</li>'}</ul>
+    <div class="news-foot">${networkIsAdmin?`<button type="button" class="news-more" data-news-add="1">+ 링크 추가</button>`:""}<span class="news-note">기사 제목과 링크만 모아 보여드려요. 원문은 각 언론사에서 확인해주세요.</span></div>`;
   box.hidden=false;
 }
+// F&B 탭: 업계 소식 / 채용 공고 전환과 홈 바로가기 숫자
+let fnbTab="news",jobFeedCount=null;
+function syncFnb(){
+  const verified=networkAccessState==="verified";
+  document.querySelectorAll("[data-fnb-tab]").forEach(b=>{const on=b.dataset.fnbTab===fnbTab;b.classList.toggle("active",on);b.setAttribute("aria-selected",String(on));});
+  const newsPane=document.getElementById("fnbNewsPane"),jobsPane=document.getElementById("fnbJobsPane");
+  if(newsPane)newsPane.hidden=fnbTab!=="news";
+  if(jobsPane)jobsPane.hidden=fnbTab!=="jobs";
+  const gate=document.getElementById("fnbJobsGate"),jobsEmpty=document.getElementById("fnbJobsEmpty");
+  if(gate)gate.hidden=verified;
+  if(jobsEmpty)jobsEmpty.hidden=!verified||jobFeedCount!==0;
+  const value=document.getElementById("homeFnbValue"),meta=document.getElementById("homeFnbMeta");
+  if(value)value.textContent=homeNews.length?"오늘 소식 "+homeNews.length+"개":"오늘 소식";
+  if(meta)meta.textContent=verified?(jobFeedCount?"채용 공고 "+jobFeedCount+"건":"채용 공고"):"채용은 동문 인증 후";
+}
+document.querySelector(".fnb-tabs")?.addEventListener("click",e=>{
+  const b=e.target.closest("[data-fnb-tab]");if(!b)return;
+  fnbTab=b.dataset.fnbTab;syncFnb();
+  if(fnbTab==="jobs"&&networkAccessState==="verified")void loadJobFeed();
+});
 document.getElementById("homeNews")?.addEventListener("click",async e=>{
   const more=e.target.closest("[data-news-more]"),hide=e.target.closest("[data-news-hide]"),add=e.target.closest("[data-news-add]");
   if(more){homeNewsAll=!homeNewsAll;renderHomeNews();}
@@ -3737,6 +3846,7 @@ function renderMeetupList(){
   const done=shown.filter(m=>meetupIsPast(m)||m.status==="cancelled").sort((a,b)=>b.startsAt.localeCompare(a.startsAt));
   const homeCount=document.getElementById("homeMeetupCount");
   if(homeCount){const n=meetups.filter(m=>!meetupIsPast(m)&&m.status!=="cancelled").length;homeCount.textContent=n?n+"개 예정":"모임 열기";}
+  renderHomeRecent();
   if(!upcoming.length&&!done.length){
     list.innerHTML='<div class="board-list-empty">'+(meetupFilter==="all"?"아직 열린 모임이 없어요.<br>\"모임 만들기\"로 첫 모임을 열어보세요.":"조건에 맞는 모임이 없어요.")+'</div>';
     return;
@@ -3893,7 +4003,7 @@ function boardQuestionHtml(p){
 }
 document.getElementById("boardCategory")?.addEventListener("change",()=>{syncBoardTopicField();syncBoardResourceFields();});
 document.getElementById("boardTopic")?.addEventListener("change",()=>syncBoardTopicField());
-function renderBoardList(){renderBoardGenCard();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 글 쓰기";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isFresh("board",p.id)?'<span class="fresh-tag">N</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
+function renderBoardList(){renderBoardGenCard();renderHomeRecent();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 글 쓰기";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isFresh("board",p.id)?'<span class="fresh-tag">N</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 // 오늘의 F&B 채용: 서버가 마감·미확인 글을 걸러서 내려줍니다. 링크는 https만 엽니다.
 const JOB_ROLE_LABELS={chef:"조리·셰프",rnd:"R&D·메뉴개발",bakery:"제과제빵",cafe:"카페·바리스타",ops:"매장운영",hotel:"호텔·케이터링",md:"MD·기획",marketing:"마케팅",etc:"F&B"};
 let jobFeedLoadedAt=0,jobFeedLoading=false;
@@ -3906,6 +4016,7 @@ function renderJobFeed(items){
   const box=document.getElementById("jobFeed"),list=document.getElementById("jobFeedList");
   if(!box||!list)return;
   const rows=(Array.isArray(items)?items:[]).filter(j=>/^https:\/\//.test(String(j.url||"")));
+  jobFeedCount=rows.length;syncFnb();
   box.hidden=!rows.length;if(!rows.length)return;
   const today=raffleEventDate();
   document.getElementById("jobFeedSub").textContent="총 "+rows.length+"건 · 마감일 확인 완료";
@@ -4331,7 +4442,7 @@ myInfoEl("myInfoPlaceForm")?.addEventListener("submit",async e=>{
   }finally{button.disabled=false;}
 });
 
-const SITE_VIEWS=new Set(["home","event","network","board","meetups","places"]);
+const SITE_VIEWS=new Set(["home","event","network","board","meetups","places","fnb"]);
 
 function syncHomeSummary(){
   const eventMeta=document.getElementById("homeEventMeta");
@@ -4360,6 +4471,14 @@ function syncHomeSummary(){
     const txt=String(alumniSource?.textContent||"").trim();
     networkMeta.textContent=txt&&txt!=="-" ? "공개 프로필 · DB "+txt : "공개 프로필";
   }
+  const statAlumni=document.getElementById("homeStatAlumni"),statProfiles=document.getElementById("homeStatProfiles"),statPlaces=document.getElementById("homeStatPlaces");
+  if(statAlumni)statAlumni.textContent=String(alumniSource?.textContent||"").trim()||"-";
+  if(statProfiles){
+    const txt=String(publicCount?.textContent||"").trim(),show=networkAccessState==="verified"&&/\d/.test(txt);
+    statProfiles.textContent=show?txt:"-";
+    const wrap=document.getElementById("homeStatProfilesWrap");if(wrap)wrap.hidden=!show;
+  }
+  if(statPlaces){try{statPlaces.textContent=spotlightPlacesLoaded&&spotlightPlaces.length?spotlightPlaces.length.toLocaleString()+"곳":"-";}catch(e){}}
 }
 
 function currentSiteView(){
@@ -4375,9 +4494,9 @@ function setSiteView(view,{updateHash=true}={}){
   // 예전 자료실 주소(#resources)는 게시판의 "자료 공유"로 보냅니다.
   if(view==="resources"){boardFilter="resource";resourceSubFilter="all";view="board";updateHash=true;}
   const next=SITE_VIEWS.has(view)?view:"home";
-  if(next==="board"&&networkAccessState==="verified")void loadJobFeed();
+  if(next==="fnb"){syncFnb();if(networkAccessState==="verified")void loadJobFeed();}
 
-  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-meetups","site-view-resources","site-view-alumni","site-view-places","modal-open");
+  document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-meetups","site-view-resources","site-view-alumni","site-view-places","site-view-fnb","modal-open");
   document.body.classList.add("site-view-"+next);
 
   document.querySelectorAll(".site-view").forEach(el=>{

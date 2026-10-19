@@ -1926,7 +1926,28 @@ Deno.serve(async (req: Request) => {
       .from("hanjogo_alumni_place_submissions").select("*").eq("id", id).eq("status", "pending").maybeSingle();
     if (lookupError) return json({ error: lookupError.message }, 500);
     if (!target) return json({ error: "not_found" }, 404);
+    let merged = false;
     if (approve) {
+      // 같은 이름·대표자의 업장이 이미 지도에 있으면(다시 신청한 경우) 새로 만들지 않고 그 업장을 새 내용으로 고칩니다.
+      // 다른 사람이 운영자로 연결된 업장은 건드리지 않습니다.
+      const { data: sameName, error: existingError } = await adminClient.from("hanjogo_alumni_places")
+        .select("id,owner_name,owner_email").eq("name", target.name);
+      if (existingError) return json({ error: existingError.message }, 500);
+      const existing = (sameName || []).find((place) => String(place.owner_name ?? "") === String(target.owner_name ?? ""));
+      if (existing) {
+        const owner = normalizeEmail(existing.owner_email);
+        if (owner && owner !== normalizeEmail(target.email)) return json({ error: "already_listed" });
+        const changes: Record<string, unknown> = { owner_email: normalizeEmail(target.email), updated_at: new Date().toISOString() };
+        for (const key of ["category", "region", "address", "instagram_url", "website_url", "booking_url", "description"]) {
+          if (String(target[key] ?? "").trim()) changes[key] = target[key];
+        }
+        if (target.owner_generation != null) changes.owner_generation = String(target.owner_generation);
+        const { error } = await adminClient.from("hanjogo_alumni_places").update(changes).eq("id", existing.id);
+        if (error) return json({ error: error.message }, 500);
+        merged = true;
+      }
+    }
+    if (approve && !merged) {
       const { error } = await adminClient.from("hanjogo_alumni_places").insert({
         name: target.name,
         owner_name: target.owner_name,
@@ -1943,7 +1964,7 @@ Deno.serve(async (req: Request) => {
     const { error } = await adminClient.from("hanjogo_alumni_place_submissions")
       .update({ status: approve ? "approved" : "rejected", updated_at: new Date().toISOString() }).eq("id", id);
     if (error) return json({ error: error.message }, 500);
-    return json({ ok: true });
+    return json({ ok: true, merged });
   }
 
   if (action === "place_claim_decide") {

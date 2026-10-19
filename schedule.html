@@ -3687,9 +3687,9 @@ document.getElementById("placeReqBox")?.addEventListener("click",async e=>{
   if(!confirm(msg))return;
   b.closest(".place-req-item").querySelectorAll("button").forEach(x=>x.disabled=true);
   try{
-    await boardCall(kind==="submission"?"place_submission_decide":"place_claim_decide",{id:Number(b.dataset.id),approve});
-    showToast(approve?"승인했어요.":"거절했어요.");
-  }catch(err){alert("처리하지 못했어요. 잠시 후 다시 시도해주세요. ("+(err?.message||"오류")+")");}
+    const r=await boardCall(kind==="submission"?"place_submission_decide":"place_claim_decide",{id:Number(b.dataset.id),approve});
+    showToast(!approve?"거절했어요.":r?.merged?"이미 지도에 있던 업장이라 새 내용으로 고쳤어요.":"승인했어요.");
+  }catch(err){alert(err?.message==="already_listed"?"같은 이름의 업장이 이미 다른 운영자로 지도에 있어요. 신청한 분께 확인해주세요.":"처리하지 못했어요. 잠시 후 다시 시도해주세요. ("+(err?.message||"오류")+")");}
   await loadPlaceRequests();
 });
 function renderNotifications(){

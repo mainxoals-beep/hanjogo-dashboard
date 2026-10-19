@@ -966,6 +966,13 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .home-recent-title{font-size:var(--fs-sm);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home-recent-meta{font-size:var(--fs-xs);color:var(--mute)}
 .fnb-page .home-news{margin:0 0 12px}
+.birthday-strip{margin:0 0 14px;padding:13px 15px;border:1px solid #F6D9C9;border-radius:16px;background:linear-gradient(135deg,#FFF6EF,#fff 70%)}.birthday-strip[hidden]{display:none}
+.bday-me{margin:0 0 8px;font-size:var(--fs-sm);font-weight:800;color:#B4532A}
+.bday-list{display:grid;gap:6px;margin-top:6px}
+.bday-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bday-name{font-size:var(--fs-sm);font-weight:800;color:var(--ink)}
+.bday-btn{flex:0 0 auto}.bday-done{font-size:var(--fs-xs);font-weight:700;color:#1F7A4D}
+.bday-check{margin-top:8px;font-size:11px;color:var(--mute)}
 .event-guide-reopen[hidden]{display:none!important}
 @media(max-width:720px){.home-next{flex-direction:column;align-items:stretch}.home-next-actions>*{flex:1;justify-content:center}}
 .site-home{gap:12px;margin-bottom:12px}
@@ -1221,7 +1228,7 @@ body.photo-open{overflow:hidden}
 </div>
 
 <div class="site-view" data-site-view="network"><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">동문 찾기</h2><button type="button" class="page-head-action" id="netHeadAction" data-needs-auth data-open-myinfo><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 프로필</span></button></div><p class="page-head-desc">기수·소속·분야로 동문을 찾고 연결해요.</p></div></div>
-<div class="site-view" data-site-view="network"><div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div></div>
+<div class="site-view" data-site-view="network"><div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div><div class="birthday-strip" id="birthdayStrip" hidden aria-live="polite"></div></div>
 <div class="site-view" data-site-view="places" hidden><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">업장 지도</h2><button type="button" class="page-head-action" data-place-add><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>내 업장 등록</button></div><p class="page-head-desc">동문이 운영하는 가게를 지도에서 찾아요.</p></div></div>
 <div class="site-view" data-site-view="places" hidden><div class="home-spotlight" id="placesSpotlight" hidden aria-live="polite"></div></div>
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
@@ -1833,7 +1840,8 @@ body.photo-open{overflow:hidden}
       <label class="myinfo-check"><input type="checkbox" id="myInfoConsent"><span><b>동문 목록에 내 프로필 공개</b><small>끄면 목록에서 바로 사라집니다.</small></span></label>
       <label class="myinfo-check"><input type="checkbox" id="myInfoAllowEmail"><span><b>이메일로 연락받기</b><small>인증된 동문에게만 이메일이 보입니다.</small></span></label>
       <label class="myinfo-check"><input type="checkbox" id="myInfoAttendee"><span><b>행사 참가자 명단에 표시</b><small>10월 18일 모임 참가자 명단에 나옵니다.</small></span></label>
-      <label class="myinfo-check"><input type="checkbox" id="myInfoSpotlight"><span><b>홈 화면 '오늘의 동문'에 소개</b><small>끄면 공개 프로필은 그대로 두고, 홈 화면 소개에서만 빠집니다.</small></span></label>
+      <label class="myinfo-check"><input type="checkbox" id="myInfoSpotlight"><span><b>동문 찾기 '오늘의 동문'에 소개</b><small>끄면 공개 프로필은 그대로 두고, 오늘의 동문 소개에서만 빠집니다.</small></span></label>
+      <label class="myinfo-check"><input type="checkbox" id="myInfoBirthday"><span><b>생일 축하 받기</b><small>켜면 생일 당일에만 이름과 기수가 '오늘 생일인 동문'에 보여요. 생년월일과 나이는 보이지 않아요.</small><small id="myInfoBirthdayNote" hidden>졸업생 DB에 생년월일이 없어 아직 표시되지 않아요. 운영진에게 알려주세요.</small></span></label>
     </div>
     <div class="board-form-foot"><div class="board-form-status" id="myInfoStatus" aria-live="polite"></div><button class="board-primary-btn" id="myInfoSaveBtn" type="submit">저장하기</button></div>
   </form>
@@ -2994,8 +3002,8 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   if(deniedEmail)deniedEmail.textContent=email?"인증한 이메일 · "+email:"";
   renderHomeSpotlight();renderGenerationPage();renderHomeNews();
   // 인증되면 홈의 오늘의 동문과 우리 기수에 쓸 프로필·게시판을 미리 불러옵니다.
-  if(state==="verified"&&networkCurrentSession){void loadNetworkProfiles(networkCurrentSession);void loadBoard();void loadMeetups();}
-  renderHomeRecent();syncFnb();
+  if(state==="verified"&&networkCurrentSession){void loadNetworkProfiles(networkCurrentSession);void loadBoard();void loadMeetups();void loadBirthdays();}
+  renderHomeRecent();syncFnb();renderBirthdays();
   const verifiedEmail=document.getElementById("networkAccessVerifiedEmail");
   if(verifiedEmail)verifiedEmail.textContent=email;
   if(state!=="verified"){
@@ -3331,6 +3339,39 @@ function renderHomeSpotlight(){
   }
   renderHomeNext();
 }
+// ---- 오늘 생일인 동문: 본인이 켠 사람만 서버가 골라 보내줍니다(이름·기수만). ----
+let birthdayData=null,birthdayLoadedAt=0,birthdayLoading=false;
+async function loadBirthdays(){
+  if(networkAccessState!=="verified"||birthdayLoading||Date.now()-birthdayLoadedAt<10*60*1000)return;
+  birthdayLoading=true;
+  try{birthdayData=await boardCall("birthday_today");birthdayLoadedAt=Date.now();}
+  catch(e){console.error("생일 정보를 불러오지 못했습니다.",e);}
+  finally{birthdayLoading=false;}
+  renderBirthdays();renderHomeNext();
+}
+function birthdayWho(p){return (p.generation?p.generation+"기 ":"")+(p.name&&p.name!=="이름 비공개"?p.name:"동문");}
+function renderBirthdays(){
+  const box=document.getElementById("birthdayStrip");if(!box)return;
+  const people=networkAccessState==="verified"&&Array.isArray(birthdayData?.people)?birthdayData.people:[];
+  const me=birthdayData?.me||{},check=birthdayData?.check;
+  const parts=[];
+  if(me.isBirthday)parts.push(`<div class="bday-me">🎉 생일 축하드려요!${me.cheers?` 동문 ${Number(me.cheers)}명이 축하했어요.`:""}</div>`);
+  if(people.length)parts.push(`<div class="spot-kicker">🎂 오늘 생일인 동문</div><div class="bday-list">${people.map(p=>`<div class="bday-row"><span class="bday-name">${esc(birthdayWho(p))}</span>${p.cheered?`<span class="bday-done">축하했어요 ✓${p.cheers>1?" · "+Number(p.cheers)+"명":""}</span>`:`<button type="button" class="spot-btn primary bday-btn" data-bday-cheer="${esc(p.id)}">축하하기${p.cheers?" · "+Number(p.cheers):""}</button>`}</div>`).join("")}</div>`);
+  if(check)parts.push(`<div class="bday-check">관리자 확인 · 생년월일 칸 '${esc(check.column||"없음")}' · 날짜를 읽은 동문 ${Number(check.parsed||0)}명 / ${Number(check.total||0)}명</div>`);
+  box.innerHTML=parts.join("");
+  box.hidden=!parts.length;
+}
+document.getElementById("birthdayStrip")?.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-bday-cheer]");if(!b)return;
+  b.disabled=true;
+  try{
+    await boardCall("birthday_cheer",{id:b.dataset.bdayCheer});
+    const p=(birthdayData?.people||[]).find(x=>x.id===b.dataset.bdayCheer);
+    if(p&&!p.cheered){p.cheered=true;p.cheers=Number(p.cheers||0)+1;}
+    renderBirthdays();
+  }catch(err){b.disabled=false;alert("축하를 보내지 못했어요. 잠시 뒤 다시 눌러주세요.");}
+});
+
 // 홈: 지금 상태에 맞는 다음 할 일 하나만 보여줍니다.
 function renderHomeNext(){
   const box=document.getElementById("homeNext");if(!box)return;
@@ -3339,6 +3380,8 @@ function renderHomeNext(){
     const own=networkProfiles.find(p=>p.isOwnProfile);
     if(!own){
       box.innerHTML=`<div class="home-next-text"><b>내 프로필을 공개해보세요</b><span>소속과 소개를 적으면 동문 찾기에 보여요.</span></div><div class="home-next-actions"><button type="button" class="spot-btn primary" data-open-myinfo>내 정보 열기</button></div>`;
+    }else if(birthdayData?.me&&!birthdayData.me.optIn&&!birthdayNudgeClosed()){
+      box.innerHTML=`<div class="home-next-text"><b>생일 축하 받기를 켜보세요 🎂</b><span>생일 당일에 동문 찾기에 이름이 보이고 동문들이 축하를 보낼 수 있어요. 생년월일과 나이는 보이지 않아요.</span></div><div class="home-next-actions"><button type="button" class="spot-btn primary" data-open-myinfo>내 정보에서 켜기</button><button type="button" class="spot-btn" data-bday-nudge-close>괜찮아요</button></div>`;
     }else{
       const who=[own.gen?own.gen+"기":"",own.actualName||own.name].filter(Boolean).join(" ");
       box.innerHTML=`<div class="home-next-text"><b>안녕하세요, ${esc(who)}님</b><span>오늘의 동문은 동문 찾기 맨 위에서 볼 수 있어요.</span></div><div class="home-next-actions"><button type="button" class="spot-btn" data-site-target="network">오늘의 동문 보기</button></div>`;
@@ -3348,6 +3391,12 @@ function renderHomeNext(){
   }else{box.hidden=true;return;}
   box.hidden=false;
 }
+function birthdayNudgeClosed(){try{return localStorage.getItem("hanjogo-bday-nudge")==="closed";}catch(e){return false;}}
+document.getElementById("homeNext")?.addEventListener("click",e=>{
+  if(!e.target.closest("[data-bday-nudge-close]"))return;
+  try{localStorage.setItem("hanjogo-bday-nudge","closed");}catch(err){}
+  renderHomeNext();
+});
 // 홈: 최근 게시글 2개와 다가오는 번개 모임 1개
 function renderHomeRecent(){
   const box=document.getElementById("homeRecent");if(!box)return;
@@ -3600,7 +3649,7 @@ function loadPlaceIds(){
 }
 
 let notifItems=[],notifTimer=null,placeReqs={submissions:[],claims:[]};
-const NOTIF_TEXT={mention:"님이 회원님을 태그했어요",answer:"님이 질문에 답변했어요",comment:"님이 글에 댓글을 남겼어요"};
+const NOTIF_TEXT={birthday:"님이 생일을 축하했어요 🎂",mention:"님이 회원님을 태그했어요",answer:"님이 질문에 답변했어요",comment:"님이 글에 댓글을 남겼어요"};
 async function loadNotifications(){
   if(networkAccessState!=="verified")return;
   try{
@@ -4286,7 +4335,7 @@ async function myInfoCall(action,payload={}){
   }
 }
 
-let myInfoSpotlightOptOut=false;
+let myInfoSpotlightOptOut=false,myInfoBirthdayOptIn=false;
 async function loadMyInfo(){
   const note=myInfoEl("myInfoSource");
   try{
@@ -4294,6 +4343,9 @@ async function loadMyInfo(){
     fillMyInfo(data.draft||{});
     myInfoSpotlightOptOut=Boolean(data.spotlightOptOut);
     myInfoEl("myInfoSpotlight").checked=!myInfoSpotlightOptOut;
+    myInfoBirthdayOptIn=Boolean(data.birthdayOptIn);
+    myInfoEl("myInfoBirthday").checked=myInfoBirthdayOptIn;
+    myInfoEl("myInfoBirthdayNote").hidden=data.birthdayKnown!==false;
     myInfoLoaded=true;
     note.textContent=data.source==="form"
       ? "이전에 구글 폼으로 보내주신 내용입니다. 여기서 고치면 앞으로는 이 내용이 사이트에 표시됩니다."
@@ -4366,6 +4418,8 @@ myInfoEl("myInfoProfilePane")?.addEventListener("submit",async e=>{
     await myInfoCall("profile_save",readMyInfo());
     const optOut=!myInfoEl("myInfoSpotlight").checked;
     if(optOut!==myInfoSpotlightOptOut){await myInfoCall("spotlight_set",{optOut});myInfoSpotlightOptOut=optOut;}
+    const birthdayOn=myInfoEl("myInfoBirthday").checked;
+    if(birthdayOn!==myInfoBirthdayOptIn){await myInfoCall("birthday_set",{on:birthdayOn});myInfoBirthdayOptIn=birthdayOn;birthdayLoadedAt=0;void loadBirthdays();}
     status.textContent="저장했습니다. 동문 목록에 바로 반영됩니다.";
     myInfoEl("myInfoSource").textContent="이 화면에서 관리 중인 프로필입니다.";
     if(networkCurrentSession)loadNetworkProfiles(networkCurrentSession);
@@ -4495,6 +4549,7 @@ function setSiteView(view,{updateHash=true}={}){
   if(view==="resources"){boardFilter="resource";resourceSubFilter="all";view="board";updateHash=true;}
   const next=SITE_VIEWS.has(view)?view:"home";
   if(next==="fnb"){syncFnb();if(networkAccessState==="verified")void loadJobFeed();}
+  if(next==="network")void loadBirthdays();
 
   document.body.classList.remove("site-view-home","site-view-event","site-view-network","site-view-board","site-view-meetups","site-view-resources","site-view-alumni","site-view-places","site-view-fnb","modal-open");
   document.body.classList.add("site-view-"+next);

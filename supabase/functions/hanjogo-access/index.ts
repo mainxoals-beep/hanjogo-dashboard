@@ -10,6 +10,9 @@ let alumniEmailCachePromise: Promise<Set<string>> | null = null;
 // 태그·도우미 목록에 쓰는 공개 프로필 목록. 몇 분 동안 다시 쓰고, 프로필을 저장하면 비웁니다.
 let publicPeopleCache: { expiresAt: number; people: PublicPerson[] } | null = null;
 type PublicPerson = { profileId: string; email: string; name: string; generation: number | null; topics: string[] };
+// 생일: 졸업생 DB(없으면 프로필 폼)의 생년월일 칸에서 월·일("MM-DD")만 뽑아 잠깐 기억합니다. 연도는 버립니다.
+type BirthdayIndex = { days: Map<string, string>; column: string; total: number; parsed: number };
+let birthdayCache: { expiresAt: number; index: BirthdayIndex } | null = null;
 
 const cors = {
   "Access-Control-Allow-Origin": "https://mainxoals-beep.github.io",
@@ -146,6 +149,60 @@ function profileDateKey(row: Record<string, string>) {
   const monthFirst = raw.match(/^(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})/);
   if (monthFirst) return `${monthFirst[3]}-${monthFirst[1].padStart(2, "0")}-${monthFirst[2].padStart(2, "0")}`;
   return "";
+}
+
+/** "1995-03-04", "1995. 3. 4", "3/4/1995", "950304", "3월 4일" 등에서 "03-04"만 돌려줍니다. */
+function birthMonthDay(value: unknown) {
+  const raw = String(value ?? "").trim();
+  const groups = raw.match(/\d+/g) || [];
+  let month = 0;
+  let day = 0;
+  if (groups.length === 1) {
+    const g = groups[0];
+    if (g.length === 8) { month = Number(g.slice(4, 6)); day = Number(g.slice(6, 8)); }
+    else if (g.length === 6) { month = Number(g.slice(2, 4)); day = Number(g.slice(4, 6)); }
+    else if (g.length === 4) { month = Number(g.slice(0, 2)); day = Number(g.slice(2, 4)); }
+  } else if (groups.length === 2) {
+    month = Number(groups[0]); day = Number(groups[1]);
+  } else if (groups.length >= 3) {
+    if (groups[2].length === 4 && groups[0].length <= 2) { month = Number(groups[0]); day = Number(groups[1]); }
+    else { month = Number(groups[1]); day = Number(groups[2]); }
+  }
+  if (!(month >= 1 && month <= 12 && day >= 1 && day <= 31)) return "";
+  return String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+}
+
+/** 오늘(한국 시간) 생일로 칠 "MM-DD" 목록. 윤년이 아니면 2월 29일생은 2월 28일에 축하합니다. */
+function birthdayKeysForToday(todayKey: string) {
+  const md = todayKey.slice(5);
+  const year = Number(todayKey.slice(0, 4));
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  return md === "02-28" && !leap ? new Set([md, "02-29"]) : new Set([md]);
+}
+
+async function birthdayIndex(): Promise<BirthdayIndex> {
+  if (birthdayCache && birthdayCache.expiresAt > Date.now()) return birthdayCache.index;
+  const isBirthColumn = (key: string) => /생년월일|생일|birth/i.test(key);
+  let index: BirthdayIndex = { days: new Map(), column: "", total: 0, parsed: 0 };
+  for (const source of [ALUMNI_CSV_URL, PROFILE_CSV_URL]) {
+    const rows = rowsAsObjects(await fetchCsv(source));
+    const column = rows.length ? Object.keys(rows[0]).find(isBirthColumn) || "" : "";
+    if (!column) continue;
+    const emailKey = Object.keys(rows[0]).find((key) => /이메일|email/i.test(key)) || "";
+    const days = new Map<string, string>();
+    let total = 0;
+    rows.forEach((row) => {
+      const rowEmail = normalizeEmail(emailKey ? row[emailKey] : "");
+      if (!rowEmail || !String(row[column] || "").trim()) return;
+      total += 1;
+      const md = birthMonthDay(row[column]);
+      if (md) days.set(rowEmail, md);
+    });
+    index = { days, column, total, parsed: days.size };
+    break;
+  }
+  birthdayCache = { expiresAt: Date.now() + 10 * 60 * 1000, index };
+  return index;
 }
 
 function koreaDateKey() {
@@ -785,15 +842,22 @@ Deno.serve(async (req: Request) => {
    * profile's name display choice (실명 / 가운데 ○ / 비공개) is applied once, when
    * they post or join. Email is never shown. */
   async function displayIdentity() {
-    const override = await myOverride();
-    const identity = await boardIdentity(email, special, override);
+    return identityOf(email, special);
+  }
+
+  /** 다른 동문이 화면에 보이는 이름·기수. 그 사람이 정한 표시 방식을 그대로 따릅니다. */
+  async function identityOf(who: string, whoSpecial: Record<string, unknown> | null) {
+    const { data: override, error } = await adminClient
+      .from("hanjogo_profile_overrides").select("*").eq("email", who).maybeSingle();
+    if (error) throw error;
+    const identity = await boardIdentity(who, whoSpecial, override);
     let mode = "masked";
-    if (isAdmin) mode = "full";
+    if (who === ADMIN_EMAIL) mode = "full";
     else if (override) mode = String(override.display_mode || "masked");
     else {
       try {
         const row = latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)))
-          .find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email);
+          .find((item) => normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === who);
         const choice = row ? getField(row, "사이트에서 이름을 어떻게 표시할까요?") : "";
         if (choice.includes("실명 전체")) mode = "full";
         else if (choice && !choice.includes("마스킹")) mode = "hidden";
@@ -805,6 +869,16 @@ Deno.serve(async (req: Request) => {
       display_name: cleanBoardText(name, 40) || "동문",
       generation: Number.isInteger(generation) && generation >= 1 && generation <= 99 ? generation : null,
     };
+  }
+
+  /** 오늘 생일이고 생일 축하를 켠 동문들의 이메일(서버 안에서만 씁니다). */
+  async function birthdayPeopleToday() {
+    const { data, error } = await adminClient.from("hanjogo_birthday_optin").select("email");
+    if (error) throw error;
+    const index = await birthdayIndex();
+    const keys = birthdayKeysForToday(koreaDateKey());
+    return (data || []).map((row) => normalizeEmail(row.email))
+      .filter((who) => keys.has(index.days.get(who) || ""));
   }
 
   /** Alumni who can be @-tagged or shown as helpers: public profiles only
@@ -926,13 +1000,94 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, spotlightOptOut: Boolean(body.optOut) });
   }
 
+  // ---- 생일 축하 ------------------------------------------------------------
+  // 본인이 켠 사람만, 생일 당일에만, 표시 이름·기수만 보여줍니다. 생년월일과 나이는 내보내지 않습니다.
+  if (action === "birthday_set") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const on = Boolean(body.on);
+    const { error } = on
+      ? await adminClient.from("hanjogo_birthday_optin").upsert({ email }, { onConflict: "email", ignoreDuplicates: true })
+      : await adminClient.from("hanjogo_birthday_optin").delete().eq("email", email);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true, birthdayOptIn: on });
+  }
+
+  if (action === "birthday_today") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    try {
+      const today = koreaDateKey();
+      const emails = await birthdayPeopleToday();
+      const { data: cheerRows, error: cheerError } = emails.length
+        ? await adminClient.from("hanjogo_birthday_cheers").select("recipient_email,sender_email")
+          .eq("cheer_date", today).in("recipient_email", emails)
+        : { data: [], error: null };
+      if (cheerError) throw cheerError;
+      const people = await Promise.all(emails.filter((who) => who !== email).map(async (who) => {
+        const identity = await identityOf(who, null);
+        const mine = (cheerRows || []).filter((row) => row.recipient_email === who);
+        return {
+          id: await stableProfileId(who),
+          name: identity.display_name,
+          generation: identity.generation,
+          cheers: mine.length,
+          cheered: mine.some((row) => row.sender_email === email),
+        };
+      }));
+      people.sort((a, b) => (a.generation ?? 999) - (b.generation ?? 999) || a.name.localeCompare(b.name, "ko"));
+      const { data: optRow } = await adminClient.from("hanjogo_birthday_optin").select("email").eq("email", email).maybeSingle();
+      const isBirthday = emails.includes(email);
+      const result: Record<string, unknown> = {
+        allowed: true,
+        people,
+        me: { optIn: Boolean(optRow), isBirthday, cheers: isBirthday ? (cheerRows || []).filter((row) => row.recipient_email === email).length : 0 },
+      };
+      if (isAdmin) {
+        // 관리자 확인용: 어느 칸을 읽었고 몇 명의 날짜를 알아봤는지만 보여줍니다(값은 보내지 않음).
+        const index = await birthdayIndex();
+        result.check = { column: index.column, total: index.total, parsed: index.parsed };
+      }
+      return json(result);
+    } catch {
+      return json({ allowed: true, error: "birthday_unavailable" }, 503);
+    }
+  }
+
+  if (action === "birthday_cheer") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const targetId = String(body.id || "");
+    let target = "";
+    try {
+      for (const who of await birthdayPeopleToday()) {
+        if (who !== email && await stableProfileId(who) === targetId) { target = who; break; }
+      }
+    } catch {
+      return json({ error: "birthday_unavailable" }, 503);
+    }
+    if (!target) return json({ error: "not_birthday" }, 400);
+    const { error } = await adminClient.from("hanjogo_birthday_cheers")
+      .insert({ recipient_email: target, sender_email: email, cheer_date: koreaDateKey() });
+    if (error && error.code !== "23505") return json({ error: error.message }, 500);
+    if (!error) {
+      const actor = await displayIdentity();
+      await adminClient.from("hanjogo_notifications").insert({
+        recipient_email: target, kind: "birthday", post_id: null, title: "생일 축하해요!",
+        actor_name: actor.display_name, actor_generation: actor.generation,
+      });
+    }
+    return json({ ok: true, already: Boolean(error) });
+  }
+
   if (action === "profile_me") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
     const { data: optOutRow } = await adminClient.from("hanjogo_spotlight_optout").select("email").eq("email", email).maybeSingle();
     const spotlightOptOut = Boolean(optOutRow);
+    const { data: birthdayRow } = await adminClient.from("hanjogo_birthday_optin").select("email").eq("email", email).maybeSingle();
+    const birthdayOptIn = Boolean(birthdayRow);
+    let birthdayKnown: boolean | null = null;
+    try { birthdayKnown = (await birthdayIndex()).days.has(email); } catch { /* 모르면 안내만 생략합니다. */ }
     const override = await myOverride();
     if (override) {
-      return json({ allowed: true, source: "site", email, spotlightOptOut, draft: profileDraftFromOverride(override) });
+      return json({ allowed: true, source: "site", email, spotlightOptOut, birthdayOptIn, birthdayKnown, draft: profileDraftFromOverride(override) });
     }
     // 아직 사이트에서 고친 적이 없으면 구글 폼 답변을 가져와 채워줍니다.
     try {
@@ -940,7 +1095,7 @@ Deno.serve(async (req: Request) => {
       const row = rows.find((item) =>
         normalizeEmail(getField(item, "Email Address") || getField(item, "이메일")) === email
       );
-      if (row) return json({ allowed: true, source: "form", email, spotlightOptOut, draft: profileDraftFromCsv(row) });
+      if (row) return json({ allowed: true, source: "form", email, spotlightOptOut, birthdayOptIn, birthdayKnown, draft: profileDraftFromCsv(row) });
     } catch {
       return json({ allowed: true, source: "unavailable", email, error: "profile_source_unavailable" }, 503);
     }
@@ -959,6 +1114,8 @@ Deno.serve(async (req: Request) => {
       source: "new",
       email,
       spotlightOptOut,
+      birthdayOptIn,
+      birthdayKnown,
       draft: {
         name, generation, displayMode: "masked", publicFields: ["gen"],
         company: "", work: "", activity: "", region: "", instagram: "", bio: "", connect: "",

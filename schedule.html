@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://siuresrjvrrezhwsjery.supabase.co wss://siuresrjvrrezhwsjery.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://docs.google.com https://*.googleusercontent.com; font-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'self'; upgrade-insecure-requests">
-<title>한조고 졸업생 네트워크 · 모임과 동문 연결</title>
+<title>한조고 총동문회 · 모임과 동문 연결</title>
 <script src="assets/analytics.js"></script>
-<meta name="description" content="2026 한조고 네트워크 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
+<meta name="description" content="한국조리과학고등학교 총동문회(한조고 총동문회) · 2026 모임 정보와 졸업생 DB, 공개 동문 프로필을 한곳에서 확인하세요.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0" integrity="sha384-D3HBLJnDxXL59BXo26GFWjGTcyxip2IVM0I+EqfCMwOhTc5jUTZxISDtfdXFaUOm" crossorigin="anonymous"></script>
 <style>
 :root{
@@ -1154,7 +1154,7 @@ body.photo-open{overflow:hidden}
 <div class="head">
   <p class="eyebrow">한국조리과학고등학교</p>
   <div class="head-title-row">
-    <h1>한조고 졸업생 네트워크</h1>
+    <h1>한조고 총동문회</h1>
     <img class="head-logo" src="./assets/hanjogo-logo.svg" alt="한국조리과학고등학교 KCAS 로고">
   </div>
   <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
@@ -1163,7 +1163,7 @@ body.photo-open{overflow:hidden}
   <button class="notif-pill" type="button" id="notifPill" data-open-myinfo hidden>🔔 새 알림 <b id="notifPillCount">0</b></button>
 </div>
 
-<nav class="site-nav" id="siteNav" aria-label="한조고 졸업생 네트워크 메뉴">
+<nav class="site-nav" id="siteNav" aria-label="한조고 총동문회 메뉴">
   <button class="site-nav-btn" type="button" data-site-target="home"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg><span>홈</span></button>
   <button class="site-nav-btn" type="button" data-site-target="event"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>2026 모임</span></button>
   <button class="site-nav-btn" type="button" data-site-target="network" data-nav-group="network places" data-new-tabs="places"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15 15.2c2.6-.5 4.8.9 5.5 3.8"/></svg><span>동문</span></button>
@@ -1396,7 +1396,7 @@ body.photo-open{overflow:hidden}
 </div>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
-        <div class="network-hub-title">한조고 동문 네트워크</div>
+        <div class="network-hub-title">한조고 총동문회</div>
     <div class="network-hub-desc">기수, 소속, 활동 분야를 기준으로 동문을 찾아보고 서로의 현재 활동을 확인해보세요.</div>
   </div>
   <div class="network-hub-stats">
@@ -1596,7 +1596,7 @@ body.photo-open{overflow:hidden}
   <div class="attendee-dialog network-profile-dialog" aria-labelledby="networkProfileModalTitle">
     <div class="attendee-head">
       <div>
-        <div class="attendee-title" id="networkProfileModalTitle">한조고 동문 네트워크</div>
+        <div class="attendee-title" id="networkProfileModalTitle">한조고 총동문회</div>
         <div class="attendee-desc">공개에 동의한 동문의 정보만 표시됩니다. 각 동문이 선택한 공개 범위에 따라 내용이 다를 수 있습니다.</div>
       </div>
       <div class="modal-head-actions">
@@ -2447,7 +2447,7 @@ p.classList.add(
 );
 
 const requestSubject=
-"[한조고 네트워크] 추가 참가신청 요청";
+"[한조고 총동문회] 추가 참가신청 요청";
 
 const requestBody=
 "안녕하세요.\n\n10월 18일 한조고 네트워크 모임 추가 참가 가능 여부를 문의드립니다.\n\n이름:\n기수:\n연락처:\n\n감사합니다.";
@@ -3158,11 +3158,11 @@ document.getElementById("networkProfileList")?.addEventListener("click",e=>{
   const senderLabel=sender.gen+"기 "+sender.name;
   const targetLabel=[targetGen?targetGen+"기":"",targetName].filter(Boolean).join(" ");
 
-  const subject="[한조고 네트워크] "+senderLabel+" → "+targetLabel+" 동문 연락";
+  const subject="[한조고 총동문회] "+senderLabel+" → "+targetLabel+" 동문 연락";
   const body=[
     targetLabel+" 동문님 안녕하세요.",
     "",
-    "한조고 네트워크를 통해 연락드립니다.",
+    "한조고 총동문회 사이트를 통해 연락드립니다.",
     "저는 "+sender.gen+"기 "+sender.name+"입니다.",
     "",
     "연락드리는 내용:",
@@ -4375,7 +4375,7 @@ function syncProfileNudge(){
 // 문의하기: 공개 정보의 운영진 이메일로 메일 쓰기 창을 엽니다.
 function syncContactLinks(){
   const email=String(publicInfo?.contactEmail||"mainxoals@gmail.com").trim();
-  const href="mailto:"+email+"?subject="+encodeURIComponent("[한조고 동문 사이트] 문의");
+  const href="mailto:"+email+"?subject="+encodeURIComponent("[한조고 총동문회] 문의");
   document.querySelectorAll("[data-contact-mail]").forEach(a=>{a.href=href;a.title=email;});
 }
 syncContactLinks();
@@ -5350,8 +5350,8 @@ navigator.share
 try{
 
 await navigator.share({
-title:"한조고 네트워크",
-text:"2026 네트워크 모임 정보와 공개 동문 프로필을 확인해보세요.",
+title:"한조고 총동문회",
+text:"2026 모임 정보와 공개 동문 프로필을 확인해보세요.",
 url:location.href
 });
 

@@ -1941,7 +1941,6 @@ Deno.serve(async (req: Request) => {
         for (const key of ["category", "region", "address", "instagram_url", "website_url", "booking_url", "description"]) {
           if (String(target[key] ?? "").trim()) changes[key] = target[key];
         }
-        if (target.owner_generation != null) changes.owner_generation = String(target.owner_generation);
         const { error } = await adminClient.from("hanjogo_alumni_places").update(changes).eq("id", existing.id);
         if (error) return json({ error: error.message }, 500);
         merged = true;

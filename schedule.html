@@ -4061,6 +4061,12 @@ function jobDaysLeft(closesOn){
   const today=new Date(raffleEventDate()+"T00:00:00Z"),end=new Date(String(closesOn).slice(0,10)+"T00:00:00Z");
   return Math.round((end-today)/86400000);
 }
+// 마감일을 "· 10/22(목)"처럼 날짜로도 함께 보여줍니다.
+function jobDateText(closesOn){
+  const m=String(closesOn||"").match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return "";
+  const day="일월화수목금토"[new Date(Date.UTC(+m[1],+m[2]-1,+m[3])).getUTCDay()];
+  return " · "+(+m[2])+"/"+(+m[3])+"("+day+")";
+}
 function renderJobFeed(items){
   const box=document.getElementById("jobFeed"),list=document.getElementById("jobFeedList");
   if(!box||!list)return;
@@ -4071,7 +4077,7 @@ function renderJobFeed(items){
   document.getElementById("jobFeedSub").textContent="총 "+rows.length+"건 · 마감일 확인 완료";
   list.innerHTML=rows.map(j=>{
     const left=jobDaysLeft(j.closesOn);
-    const due=j.alwaysOpen?'<span class="job-chip">상시채용</span>':left===null?"":'<span class="job-chip '+(left<=3?"soon":left<=7?"due":"")+'">'+(left===0?"오늘 마감":"마감 D-"+left)+'</span>';
+    const due=j.alwaysOpen?'<span class="job-chip">상시채용</span>':left===null?"":'<span class="job-chip '+(left<=3?"soon":left<=7?"due":"")+'">'+(left===0?"오늘 마감":"마감 D-"+left)+jobDateText(j.closesOn)+'</span>';
     const fresh=String(j.postedOn||"").slice(0,10)===today;
     // 같은 탭에서 열어야 휴대폰 뒤로가기로 이 화면(#board)에 돌아옵니다.
     return '<a class="job-item" href="'+esc(j.url)+'" rel="noreferrer">'

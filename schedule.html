@@ -1966,6 +1966,32 @@ body.photo-open{overflow:hidden}
 
 <script>
 
+// ---- 뒤로가기: 열려 있는 창(사진 크게 보기, 글 상세, 내 정보 등)은 뒤로가기로 먼저 닫고, 사이트를 떠나지 않게 합니다. ----
+// 창을 열 때 기록을 한 칸 쌓고, 뒤로가기(popstate)가 오면 맨 위 창을 닫습니다. 버튼으로 닫을 때는 쌓은 기록도 같이 되돌립니다.
+var overlayStack=[],overlayIgnorePops=0,lastSiteView="home";
+function overlayOpen(name,closeFn){
+  if(overlayStack.some(o=>o.name===name))return;
+  overlayStack.push({name,closeFn});
+  try{history.pushState({hjOverlay:name},"",location.href);}catch(e){}
+}
+function overlayClose(name,fromPop){
+  const i=overlayStack.findIndex(o=>o.name===name);if(i<0)return;
+  const top=i===overlayStack.length-1;
+  overlayStack.splice(i,1);
+  if(fromPop||!top)return;
+  try{if(history.state&&history.state.hjOverlay===name){overlayIgnorePops++;history.back();}}catch(e){}
+}
+window.addEventListener("popstate",()=>{
+  if(overlayIgnorePops>0){
+    overlayIgnorePops--;
+    // 우리가 되돌린 경우: 그 사이에 화면(탭)이 바뀌었다면 주소의 #탭 이름을 지금 화면에 맞춥니다.
+    try{if(location.hash!=="#"+lastSiteView)history.replaceState(history.state,"",location.pathname+location.search+"#"+lastSiteView);}catch(e){}
+    return;
+  }
+  const top=overlayStack.pop();
+  if(top)top.closeFn();
+});
+
 const PUBLIC_BUILD_VERSION="2026-09-09-second-application-v1";
 
 const SUPABASE_URL="https://siuresrjvrrezhwsjery.supabase.co";
@@ -3805,9 +3831,10 @@ function tourRender(){
 }
 function tourOpen(){
   const d=document.getElementById("tourDialog");if(!d||d.open)return;
-  tourIndex=0;tourRender();try{d.showModal();}catch(e){d.setAttribute("open","");}
+  tourIndex=0;tourRender();overlayOpen("tour",()=>tourClose());try{d.showModal();}catch(e){d.setAttribute("open","");}
 }
 function tourClose(){
+  overlayClose("tour");
   const d=document.getElementById("tourDialog");if(d?.open)d.close();
   lsSet(TOUR_KEY,"done");
   renderSiteUpdates();syncNotifBadge();
@@ -4335,8 +4362,8 @@ async function loadBoard(force=false){
   })();
   return boardLoadPromise;
 }
-function openBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=false;m.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");}
-function closeBoardModal(id){const m=document.getElementById(id);if(!m)return;m.hidden=true;m.setAttribute("aria-hidden","true");if(!document.querySelector(".board-modal:not([hidden])"))document.body.classList.remove("modal-open");}
+function openBoardModal(id){const m=document.getElementById(id);if(!m)return;overlayOpen("m:"+id,()=>closeBoardModal(id));m.hidden=false;m.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");}
+function closeBoardModal(id){const m=document.getElementById(id);if(!m)return;overlayClose("m:"+id);m.hidden=true;m.setAttribute("aria-hidden","true");if(!document.querySelector(".board-modal:not([hidden])"))document.body.classList.remove("modal-open");}
 function syncBoardGenerationOption(){const o=document.getElementById("boardGenerationOption");if(o){o.hidden=!boardMyGeneration;o.textContent=boardMyGeneration?"우리 기수 ("+boardMyGeneration+"기만 볼 수 있어요)":"우리 기수";}}
 function openBoardWrite(p=null){pendingMentions.boardBody=new Map();document.getElementById("boardEditId").value=p?.id||"";syncBoardGenerationOption();const cat=document.getElementById("boardCategory");cat.value=p?.category||(boardFilter==="question"||boardFilter==="resource"||(boardFilter==="generation"&&boardMyGeneration)?boardFilter:"free");
   // 우리 기수 글은 다른 분류로, 다른 글은 우리 기수로 옮길 수 없습니다(보는 사람이 달라지므로).
@@ -4735,6 +4762,7 @@ function currentSiteView(){
 }
 
 function setSiteView(view,{updateHash=true}={}){
+  lastSiteView=SITE_VIEWS.has(view)?view:(view==="resources"?"board":"home");
   // 예전 자료실 주소(#resources)는 게시판의 "자료 공유"로 보냅니다.
   if(view==="resources"){boardFilter="resource";resourceSubFilter="all";view="board";updateHash=true;}
   const next=SITE_VIEWS.has(view)?view:"home";
@@ -4890,6 +4918,7 @@ function renderEventPhotos(){
 }
 function openPhoto(i){
   const v=document.getElementById("photoViewer");if(!v||!eventPhotos[i])return;
+  overlayOpen("photo",()=>closePhoto());
   photoViewIndex=i;const p=eventPhotos[i];
   const img=document.getElementById("photoViewerImg");img.src=p.thumbUrl;const full=new Image();full.onload=()=>{if(photoViewIndex===i)img.src=p.url;};full.src=p.url;
   document.getElementById("photoViewerAuthor").textContent=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName,boardDate(p.createdAt)].filter(Boolean).join(" · ");
@@ -4900,7 +4929,7 @@ function openPhoto(i){
   document.getElementById("photoPrev").hidden=i<=0;document.getElementById("photoNext").hidden=i>=eventPhotos.length-1;
   v.hidden=false;document.body.classList.add("photo-open");
 }
-function closePhoto(){const v=document.getElementById("photoViewer");if(v)v.hidden=true;photoViewIndex=-1;document.body.classList.remove("photo-open");}
+function closePhoto(){overlayClose("photo");const v=document.getElementById("photoViewer");if(v)v.hidden=true;photoViewIndex=-1;document.body.classList.remove("photo-open");}
 // 사진 저장·공유: 저장은 서버가 첨부 파일로 내려주는 주소로 받고, 공유는 휴대폰 공유창(사진 파일 포함)을 엽니다.
 function photoFileName(p){return "한조고모임_"+String(p.id)+".jpg";}
 function photoSaveUrl(p){return p.url+(String(p.url).includes("?")?"&":"?")+"download="+encodeURIComponent(photoFileName(p));}
@@ -4962,7 +4991,7 @@ async function shrinkPhoto(file){
   t.getContext("2d").drawImage(bmp,(w0-side)/2,(h0-side)/2,side,side,0,0,360,360);
   return {photo:await canvasBlob(c,.82),thumb:await canvasBlob(t,.75),width:w,height:h};
 }
-function closePhotoSheet(){const s=document.getElementById("photoSheet");if(s)s.hidden=true;photoPending.forEach(x=>URL.revokeObjectURL(x.preview));photoPending=[];document.body.classList.remove("photo-open");}
+function closePhotoSheet(){overlayClose("photoSheet");const s=document.getElementById("photoSheet");if(s)s.hidden=true;photoPending.forEach(x=>URL.revokeObjectURL(x.preview));photoPending=[];document.body.classList.remove("photo-open");}
 document.getElementById("photoAddBtn")?.addEventListener("click",()=>{if(networkAccessState!=="verified"){setSiteView("network");return;}document.getElementById("photoInput")?.click();});
 document.getElementById("photoInput")?.addEventListener("change",e=>{
   const files=[...(e.target.files||[])].filter(f=>/^image\//.test(f.type)||/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));e.target.value="";
@@ -4973,7 +5002,7 @@ document.getElementById("photoInput")?.addEventListener("change",e=>{
   document.getElementById("photoSheetTitle").textContent=`사진 ${photoPending.length}장 올리기`;
   document.getElementById("photoSheetStatus").textContent="";document.getElementById("photoCaption").value="";
   document.getElementById("photoSubmit").disabled=false;
-  document.getElementById("photoSheet").hidden=false;document.body.classList.add("photo-open");
+  overlayOpen("photoSheet",()=>closePhotoSheet());document.getElementById("photoSheet").hidden=false;document.body.classList.add("photo-open");
 });
 document.getElementById("photoSheetClose")?.addEventListener("click",closePhotoSheet);
 document.getElementById("photoSubmit")?.addEventListener("click",async()=>{
@@ -5012,7 +5041,7 @@ document.addEventListener("click",e=>{
   setSiteView(el.dataset.siteTarget||"home");
 });
 
-window.addEventListener("hashchange",()=>setSiteView(currentSiteView(),{updateHash:false}));
+window.addEventListener("hashchange",()=>{if(currentSiteView()===lastSiteView)return;setSiteView(currentSiteView(),{updateHash:false});});
 
 document.getElementById("alumniPlacesFrame")?.addEventListener("load",event=>{
   const back=event.target.contentDocument?.querySelector(".back");
@@ -5865,6 +5894,7 @@ function openAttendeeModal(){
   renderPublicAttendees("");
   document.getElementById("attendeeAllGenBtn")?.classList.add("active");
   document.querySelectorAll("#generationGrid .generation-item").forEach(el=>el.classList.remove("active"));
+  overlayOpen("attendee",()=>closeAttendeeModal());
   attendeeModal.hidden=false;
   attendeeModal.setAttribute("aria-hidden","false");
   void refreshAttendeeProfiles();
@@ -5872,6 +5902,7 @@ function openAttendeeModal(){
   setTimeout(()=>attendeeSearch?.focus(),30);
 }
 function closeAttendeeModal(){
+  overlayClose("attendee");
   if(!attendeeModal)return;
   attendeeModal.hidden=true;
   attendeeModal.setAttribute("aria-hidden","true");
@@ -5973,8 +6004,8 @@ foldCard(document.getElementById("applicationCta"),{title:"참가 현황 · 입�
     img.src=thumb.getAttribute("src");img.alt=thumb.alt;stage.classList.remove("zoom");stage.scrollTo(0,0);
     document.getElementById("materialViewerTitle").textContent=b.querySelector("span").textContent+"  ("+(index+1)+"/"+buttons.length+")";
   };
-  const open=i=>{lastFocus=document.activeElement;show(i);viewer.hidden=false;document.body.classList.add("modal-open");document.getElementById("materialViewerClose").focus();};
-  const close=()=>{viewer.hidden=true;document.body.classList.remove("modal-open");lastFocus?.focus?.();};
+  const open=i=>{lastFocus=document.activeElement;show(i);overlayOpen("material",()=>close());viewer.hidden=false;document.body.classList.add("modal-open");document.getElementById("materialViewerClose").focus();};
+  const close=()=>{overlayClose("material");viewer.hidden=true;document.body.classList.remove("modal-open");lastFocus?.focus?.();};
   buttons.forEach((b,i)=>b.addEventListener("click",()=>open(i)));
   document.getElementById("materialViewerClose").addEventListener("click",close);
   document.getElementById("materialViewerPrev").addEventListener("click",()=>show(index-1));

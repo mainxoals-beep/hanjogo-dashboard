@@ -1586,8 +1586,12 @@ Deno.serve(async (req: Request) => {
 
   if (action === "notifications_read") {
     if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
-    const { error } = await adminClient.from("hanjogo_notifications")
+    // id 가 있으면 그 알림만, 없으면 안 읽은 알림 전체를 읽음으로 합니다.
+    const readId = Number(body.id);
+    let readQuery = adminClient.from("hanjogo_notifications")
       .update({ read_at: new Date().toISOString() }).eq("recipient_email", email).is("read_at", null);
+    if (Number.isInteger(readId) && readId > 0) readQuery = readQuery.eq("id", readId);
+    const { error } = await readQuery;
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true });
   }

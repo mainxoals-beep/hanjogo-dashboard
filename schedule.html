@@ -967,6 +967,8 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .home-recent-title{font-size:var(--fs-sm);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home-recent-meta{font-size:var(--fs-xs);color:var(--mute)}
 .fnb-page .home-news{margin:0 0 12px}
+.notif-readall-row{display:flex;justify-content:flex-end;margin:0 0 8px}.notif-readall-row[hidden]{display:none}
+.notif-readall{border:0;background:none;padding:4px 2px;font:inherit;font-size:12.5px;font-weight:800;color:var(--purple-dark);text-decoration:underline;cursor:pointer}
 .home-update{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid #DDD7F4;border-radius:var(--r-md);background:var(--purple-light)}.home-update[hidden]{display:none}
 .home-update-main{flex:1;min-width:0;border:0;background:none;padding:0;font:inherit;text-align:left;color:inherit;cursor:pointer}
 .home-update-kicker{display:block;font-size:11px;font-weight:800;color:var(--purple-dark)}
@@ -1896,7 +1898,8 @@ body.photo-open{overflow:hidden}
   </div>
 
   <div class="myinfo-pane myinfo-notif-pane" id="myInfoNotifPane" hidden>
-    <div class="myinfo-note">누가 나를 @태그하거나 내 글에 답변·댓글이 달리면 여기에 모여요. 누르면 그 글로 이동해요.</div>
+    <div class="myinfo-note">누가 나를 @태그하거나 내 글에 답변·댓글이 달리면, 사이트 새 소식과 함께 여기에 모여요. <b>누르면 읽음</b>으로 바뀌고 그 글·화면으로 이동해요.</div>
+    <div class="notif-readall-row" id="notifReadAllRow" hidden><button type="button" class="notif-readall" data-notif-readall>모두 읽음으로 표시</button></div>
     <div class="place-req" id="placeReqBox" hidden></div>
     <div class="notif-list" id="notifList"></div>
   </div>
@@ -3670,7 +3673,11 @@ function markSeen(tab){
 }
 // 탭을 열기 직전까지 안 본 글: 게시판 목록에서 "N" 표시에 씁니다.
 // 올린 지 24시간 안의 글은 읽었더라도 NEW 표시를 유지해서, 다시 들어와도 놓치지 않게 합니다.
-function isRecentPost(p){const t=Date.parse(p?.createdAt||"");return Number.isFinite(t)&&Date.now()-t>=0&&Date.now()-t<24*60*60*1000;}
+const POSTS_OPENED_KEY="hanjogo-posts-opened";
+function postsOpenedSet(){try{const a=JSON.parse(localStorage.getItem(POSTS_OPENED_KEY)||"[]");return new Set(Array.isArray(a)?a.map(String):[]);}catch(e){return new Set();}}
+function markPostOpened(id){try{const set=postsOpenedSet();set.add(String(id));localStorage.setItem(POSTS_OPENED_KEY,JSON.stringify([...set].slice(-200)));}catch(e){}}
+function isRecentPost(p){const t=Date.parse(p?.createdAt||"");return Number.isFinite(t)&&Date.now()-t>=0&&Date.now()-t<24*60*60*1000&&!postsOpenedSet().has(String(p.id));}
+function isNewPost(p){return !postsOpenedSet().has(String(p.id))&&(isFresh("board",p.id)||isRecentPost(p));}
 function isFresh(tab,id){return !!freshShown[tab]&&prevSeen[tab]!=null&&Number(id)>Number(prevSeen[tab]);}
 const freshShown={};
 function renderNewMarks(){
@@ -3739,10 +3746,12 @@ document.getElementById("placeReqBox")?.addEventListener("click",async e=>{
 });
 function renderNotifications(){
   const box=document.getElementById("notifList");if(!box)return;
-  const seen=updatesSeen();
-  const updateRows=siteUpdates.map(u=>`<button type="button" class="notif-item${u.id>seen?" unread":""}" data-site-update="${u.id}"><b>새 소식</b> ${esc(u.title)}<span>${esc(u.body||"")} · ${esc(boardDate(u.createdAt))}</span></button>`).join("");
+  const unreadIds=new Set(siteUpdatesUnread().map(u=>u.id));
+  const readAllRow=document.getElementById("notifReadAllRow");
+  if(readAllRow)readAllRow.hidden=!(unreadIds.size||notifItems.some(n=>!n.read));
+  const updateRows=siteUpdates.map(u=>`<button type="button" class="notif-item${unreadIds.has(u.id)?" unread":""}" data-site-update="${u.id}"><b>새 소식</b> ${esc(u.title)}<span>${esc(u.body||"")} · ${esc(boardDate(u.createdAt))}</span></button>`).join("");
   if(updateRows&&!notifItems.length){box.innerHTML=updateRows;return;}
-  box.innerHTML=updateRows+(notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>');
+  box.innerHTML=updateRows+(notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-id="${esc(n.id)}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>');
 }
 // 안 읽은 알림 수: 메뉴의 "내 정보" 버튼과 내 정보 안의 "알림" 탭에 함께 보여줍니다.
 function showNotifCount(n){
@@ -3752,10 +3761,19 @@ function showNotifCount(n){
   const pill=document.getElementById("notifPill");if(pill)pill.hidden=!n;
 }
 function notifUnread(){return notifItems.filter(n=>!n.read).length+placeReqCount()+(networkAccessState==="verified"?siteUpdatesUnread().length:0);}
-async function markNotificationsRead(){
-  markSiteUpdatesSeen();renderSiteUpdates();
-  if(!notifItems.some(n=>!n.read)){syncNotifBadge();return;}
-  try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);syncNotifBadge();}catch{}
+// 알림은 눌러서 연 것만 읽음 처리합니다. id 없이 부르면 안 읽은 서버 알림 전체를 읽음으로 합니다("모두 읽음").
+async function markNotificationRead(id){
+  const item=notifItems.find(n=>String(n.id)===String(id));
+  if(!item||item.read)return;
+  item.read=true;syncNotifBadge();
+  try{await boardCall("notifications_read",{id:Number(id)});}catch{item.read=false;syncNotifBadge();}
+}
+async function markAllNotificationsRead(){
+  markAllUpdatesRead();
+  const hadServer=notifItems.some(n=>!n.read);
+  notifItems.forEach(n=>n.read=true);
+  renderSiteUpdates();renderNotifications();syncNotifBadge();renderNewMarks();
+  if(hadServer){try{await boardCall("notifications_read");}catch{loadNotifications();}}
 }
 
 // ---- 둘러보기 · 사이트 새 소식 ------------------------------------------------
@@ -3809,34 +3827,33 @@ function maybeOpenTour(){
 
 // 새 소식: 서버가 최근 소식을 내려주고, 읽은 곳까지는 이 기기에 기억합니다.
 let siteUpdates=[],siteUpdatesLoadedAt=0;
-function updatesSeen(){
-  const v=lsGet(UPDATES_KEY);
-  // 저장소를 못 쓰거나 처음 오는 분(둘러보기 전)은 안 읽은 알림으로 세지 않습니다.
-  if(v===null)return lsGet(TOUR_KEY)===null?Infinity:0;
-  return Number(v)||0;
-}
-// 새 소식이 가리키는 화면(탭)은 아래 메뉴에 새 표시를 붙이고, 그 화면을 열면 지웁니다.
+// 읽음 기준: 새 소식은 "눌러서 연 것만" 읽음으로 칩니다(화면을 열어 보기만 해서는 읽음이 되지 않고, 시간이 지나도 사라지지 않습니다).
+// 다만 오래된 소식(7일 전)은 처음 오는 분에게 쌓이지 않도록 안 읽음으로 세지 않습니다.
+const UPDATES_READ_KEY="hanjogo-updates-read";
+const UPDATE_STALE_MS=7*24*60*60*1000;
+function updatesReadSet(){try{const a=JSON.parse(lsGet(UPDATES_READ_KEY)||"[]");return new Set(Array.isArray(a)?a.map(Number):[]);}catch(e){return new Set();}}
+function saveUpdatesRead(set){lsSet(UPDATES_READ_KEY,JSON.stringify([...set].sort((x,y)=>y-x).slice(0,60)));}
+function markUpdateRead(id){const set=updatesReadSet();set.add(Number(id));saveUpdatesRead(set);}
+function markAllUpdatesRead(){const set=updatesReadSet();siteUpdates.forEach(u=>set.add(u.id));saveUpdatesRead(set);}
+// 새 소식이 가리키는 화면(탭)은 아래 메뉴에 새 표시를 붙이고, 그 화면을 열면 그 표시만 지웁니다(소식 자체는 눌러야 읽음).
 const TAB_SEEN_KEY="hanjogo-updates-tab-seen";
 function tabSeenMap(){try{const m=JSON.parse(lsGet(TAB_SEEN_KEY)||"{}");return m&&typeof m==="object"?m:{};}catch(e){return {};}}
 function updateTabNew(tab){
   const seen=Number(tabSeenMap()[tab])||0;
-  return siteUpdatesActive().filter(u=>u.target===tab&&u.id>seen).length;
+  return siteUpdatesUnread().filter(u=>u.target===tab&&u.id>seen).length;
 }
 function markUpdateTabSeen(tab){
   const ids=siteUpdates.filter(u=>u.target===tab).map(u=>u.id);if(!ids.length)return;
   const map=tabSeenMap();map[tab]=Math.max(Number(map[tab])||0,...ids);lsSet(TAB_SEEN_KEY,JSON.stringify(map));
 }
-function siteUpdatesUnread(){const seen=updatesSeen();return siteUpdates.filter(u=>u.id>seen);}
-// 올린 지 하루 안의 소식은 읽었더라도 계속 띄워서, 다시 들어왔을 때 놓치지 않게 합니다.
-const UPDATE_KEEP_MS=24*60*60*1000;
-function siteUpdatesActive(){
-  const seen=updatesSeen(),now=Date.now();
-  return siteUpdates.filter(u=>u.id>seen||now-Date.parse(u.createdAt)<UPDATE_KEEP_MS);
+function siteUpdatesUnread(){
+  const read=updatesReadSet(),now=Date.now();
+  return siteUpdates.filter(u=>!read.has(u.id)&&now-Date.parse(u.createdAt)<UPDATE_STALE_MS);
 }
-// 🔔 숫자: 안 읽은 알림 + 업장 신청 + 하루 안의 새 소식
-function notifBadgeCount(){return networkAccessState!=="verified"?0:notifItems.filter(n=>!n.read).length+placeReqCount()+siteUpdatesActive().length;}
+function siteUpdatesActive(){return siteUpdatesUnread();}
+// 🔔 숫자: 안 읽은 알림 + 업장 신청 + 안 읽은 새 소식
+function notifBadgeCount(){return networkAccessState!=="verified"?0:notifItems.filter(n=>!n.read).length+placeReqCount()+siteUpdatesUnread().length;}
 function syncNotifBadge(){showNotifCount(notifBadgeCount());}
-function markSiteUpdatesSeen(){if(siteUpdates.length)lsSet(UPDATES_KEY,String(siteUpdates[0].id));}
 async function loadSiteUpdates(force=false){
   if(!force&&Date.now()-siteUpdatesLoadedAt<5*60*1000)return;
   try{
@@ -3859,7 +3876,7 @@ function renderSiteUpdates(){
 }
 function openSiteUpdate(id){
   const u=siteUpdates.find(x=>x.id===Number(id));if(!u)return;
-  markSiteUpdatesSeen();renderSiteUpdates();syncNotifBadge();renderNotifications();
+  markUpdateRead(u.id);renderSiteUpdates();syncNotifBadge();renderNotifications();renderNewMarks();
   const target=["home","event","network","board","meetups","places","fnb"].includes(u.target)?u.target:"home";
   closeBoardModal("myInfoModal");setSiteView(target);
 }
@@ -3874,9 +3891,12 @@ function syncNotifications(){
   clearInterval(notifTimer);notifTimer=null;
   if(ok){loadNotifications();notifTimer=setInterval(()=>{loadNotifications();loadBoard();loadMeetups(true);},120000);}
 }
+document.getElementById("notifReadAllRow")?.addEventListener("click",e=>{if(e.target.closest("[data-notif-readall]"))markAllNotificationsRead();});
 document.getElementById("notifList")?.addEventListener("click",e=>{
   const u=e.target.closest("[data-site-update]");if(u){openSiteUpdate(u.dataset.siteUpdate);return;}
-  const b=e.target.closest("[data-notif-post]");if(!b||!b.dataset.notifPost)return;
+  const b=e.target.closest("[data-notif-post]");if(!b)return;
+  if(b.dataset.notifId)markNotificationRead(b.dataset.notifId);
+  if(!b.dataset.notifPost)return;
   closeBoardModal("myInfoModal");setSiteView("board");
   loadBoard(true).then(()=>openBoardDetail(Number(b.dataset.notifPost)));
 });
@@ -4213,7 +4233,7 @@ function boardQuestionHtml(p){
 }
 document.getElementById("boardCategory")?.addEventListener("change",()=>{syncBoardTopicField();syncBoardResourceFields();});
 document.getElementById("boardTopic")?.addEventListener("change",()=>syncBoardTopicField());
-function renderBoardList(){renderBoardGenCard();renderHomeRecent();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 글 쓰기";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isFresh("board",p.id)||isRecentPost(p)?'<span class="fresh-tag">NEW</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
+function renderBoardList(){renderBoardGenCard();renderHomeRecent();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 글 쓰기";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isNewPost(p)?'<span class="fresh-tag">NEW</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):""}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 // 오늘의 F&B 채용: 서버가 마감·미확인 글을 걸러서 내려줍니다. 링크는 https만 엽니다.
 const JOB_ROLE_LABELS={chef:"조리·셰프",rnd:"R&D·메뉴개발",bakery:"제과제빵",cafe:"카페·바리스타",ops:"매장운영",hotel:"호텔·케이터링",md:"MD·기획",marketing:"마케팅",etc:"F&B"};
 let jobFeedLoadedAt=0,jobFeedLoading=false;
@@ -4336,6 +4356,7 @@ function navigateBoardDetail(direction){
 document.getElementById("boardPrevBtn")?.addEventListener("click",()=>navigateBoardDetail(-1));
 document.getElementById("boardNextBtn")?.addEventListener("click",()=>navigateBoardDetail(1));
 async function openBoardDetail(id){
+  markPostOpened(id);try{renderBoardList();}catch(e){}
   const postId=Number(id);
   if(!boardPosts.some(p=>String(p.id)===String(postId)))return;
   const changed=String(boardSelectedId)!==String(postId);
@@ -4555,7 +4576,7 @@ function setMyInfoTab(tab){
   myInfoEl("myInfoNotifPane").hidden=tab!=="notif";
   if(tab==="place"&&!myInfoPlacesLoaded)loadMyPlaces();
   // 알림 탭을 열면 목록을 보여준 뒤 읽음으로 표시합니다(보는 동안은 새 알림 색이 남아 있어요).
-  if(tab==="notif"){renderNotifications();markNotificationsRead();}
+  if(tab==="notif"){renderNotifications();}
 }
 document.addEventListener("click",e=>{
   if(e.target.closest("[data-open-myinfo]"))myInfoEl("myInfoOpenBtn")?.click();

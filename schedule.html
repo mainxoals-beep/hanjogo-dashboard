@@ -1253,7 +1253,7 @@ body.photo-open{overflow:hidden}
 </div>
 
 <div class="site-view" data-site-view="network"><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">동문 찾기</h2><button type="button" class="page-head-action" id="netHeadAction" data-needs-auth data-open-myinfo><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg><span>내 프로필</span></button></div><p class="page-head-desc">기수·소속·분야로 동문을 찾고 연결해요.</p></div></div>
-<div class="site-view" data-site-view="network"><div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div><div class="birthday-strip" id="birthdayStrip" hidden aria-live="polite"></div></div>
+<div class="site-view" data-site-view="network"><div class="home-spotlight" id="homeSpotlight" hidden aria-live="polite"></div><div class="home-spotlight" id="networkPlaceSpotlight" hidden aria-live="polite"></div><div class="birthday-strip" id="birthdayStrip" hidden aria-live="polite"></div></div>
 <div class="site-view" data-site-view="places" hidden><div class="page-head"><div class="page-head-row"><h2 class="page-head-title">업장 지도</h2><button type="button" class="page-head-action" data-place-add><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>내 업장 등록</button></div><p class="page-head-desc">동문이 운영하는 가게를 지도에서 찾아요.</p></div></div>
 <div class="site-view" data-site-view="places" hidden><div class="home-spotlight" id="placesSpotlight" hidden aria-live="polite"></div></div>
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
@@ -3398,17 +3398,23 @@ function renderHomeSpotlight(){
     }
     box.hidden=!person;
   }
-  // 오늘의 동문 업장은 누구에게나 업장 지도 맨 위에 보입니다.
-  if(placeBox){
+  // 오늘의 동문 업장은 누구에게나 동문 찾기(오늘의 동문 바로 아래)와 업장 지도 맨 위에 보입니다.
+  {
+    const netBox=document.getElementById("networkPlaceSpotlight");
     const place=pickOfDay(spotlightPlaces.filter(p=>p.name&&(p.category||p.description)),p=>p.id);
+    let html="";
     if(place){
       const owner=[placeGeneration(place)?placeGeneration(place)+"기":"",place.owner_name].filter(Boolean).join(" ");
-      placeBox.innerHTML=`<div class="spot-kicker">오늘의 동문 업장 <span class="spot-help">동문이 운영하는 가게를 매일 한 곳씩 소개해요</span></div>
+      html=`<div class="spot-kicker">오늘의 동문 업장 <span class="spot-help">동문이 운영하는 가게를 매일 한 곳씩 소개해요</span></div>
         <div class="spot-name">${esc(place.name)}${placeMarks(place)}</div>
         <div class="spot-line">${esc([owner&&owner+" 동문",place.category,place.region].filter(Boolean).join(" · "))}</div>
         ${place.description?`<div class="spot-bio">${esc(place.description)}</div>`:""}`;
     }
-    placeBox.hidden=!place;
+    if(placeBox){placeBox.innerHTML=html;placeBox.hidden=!place;}
+    if(netBox){
+      netBox.innerHTML=html?html+`<div class="spot-actions"><button type="button" class="spot-btn primary" data-site-target="places">업장 지도에서 보기</button></div>`:"";
+      netBox.hidden=!place;
+    }
   }
   renderHomeNext();
 }

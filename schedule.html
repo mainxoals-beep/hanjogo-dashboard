@@ -3765,7 +3765,7 @@ const TOUR_SLIDES=[
   {icon:"💬",title:"게시판 · 번개 모임",body:"소식, 선후배 질문, 자료 공유를 나누고, 번개 모임으로 함께 만나요.",go:"board",verified:true},
   {icon:"🙋",title:"내 정보로 시작하기",body:"프로필을 공개하면 동문 찾기에 보이고, 생일 축하 받기와 🔔 알림도 여기서 켜요. 먼저 졸업생 DB 등록과 이메일 인증이 필요해요.",go:"network"}
 ];
-const TOUR_KEY="hanjogo-tour-v1",UPDATES_KEY="hanjogo-updates-seen";
+const TOUR_KEY="hanjogo-tour-v1",UPDATES_KEY="hanjogo-updates-seen-v2";
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
 let tourIndex=0;
@@ -3787,8 +3787,6 @@ function tourOpen(){
 function tourClose(){
   const d=document.getElementById("tourDialog");if(d?.open)d.close();
   lsSet(TOUR_KEY,"done");
-  // 처음 온 사람에게는 지난 새 소식이 한꺼번에 '안 읽음'으로 쌓이지 않도록 지금까지의 소식을 읽은 것으로 합니다.
-  if(lsGet(UPDATES_KEY)===null&&siteUpdates.length)lsSet(UPDATES_KEY,String(siteUpdates[0].id));
   renderSiteUpdates();syncNotifBadge();
 }
 document.getElementById("tourSkip")?.addEventListener("click",tourClose);

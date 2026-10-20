@@ -3697,7 +3697,7 @@ async function loadNotifications(){
   try{
     const data=await boardCall("notifications_list");
     notifItems=Array.isArray(data.items)?data.items:[];
-    showNotifCount(Number(data.unread||0)+placeReqCount()+siteUpdatesUnread().length);
+    showNotifCount(Number(data.unread||0)+placeReqCount()+siteUpdatesActive().length);
     renderNotifications();
   }catch{}
   loadPlaceRequests();
@@ -3711,7 +3711,7 @@ async function loadPlaceRequests(){
     placeReqs={submissions:Array.isArray(data.submissions)?data.submissions:[],claims:Array.isArray(data.claims)?data.claims:[]};
   }catch{return;}
   renderPlaceRequests();
-  showNotifCount(notifUnread());
+  showNotifCount(notifBadgeCount());
 }
 function renderPlaceRequests(){
   const box=document.getElementById("placeReqBox");if(!box)return;
@@ -3751,8 +3751,8 @@ function showNotifCount(n){
 function notifUnread(){return notifItems.filter(n=>!n.read).length+placeReqCount()+(networkAccessState==="verified"?siteUpdatesUnread().length:0);}
 async function markNotificationsRead(){
   markSiteUpdatesSeen();renderSiteUpdates();
-  if(!notifItems.some(n=>!n.read)){showNotifCount(placeReqCount());return;}
-  try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);showNotifCount(placeReqCount());}catch{}
+  if(!notifItems.some(n=>!n.read)){syncNotifBadge();return;}
+  try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);syncNotifBadge();}catch{}
 }
 
 // ---- 둘러보기 · 사이트 새 소식 ------------------------------------------------
@@ -3813,7 +3813,15 @@ function updatesSeen(){
   return Number(v)||0;
 }
 function siteUpdatesUnread(){const seen=updatesSeen();return siteUpdates.filter(u=>u.id>seen);}
-function syncNotifBadge(){showNotifCount(networkAccessState!=="verified"?0:notifItems.filter(n=>!n.read).length+placeReqCount()+siteUpdatesUnread().length);}
+// 올린 지 하루 안의 소식은 읽었더라도 계속 띄워서, 다시 들어왔을 때 놓치지 않게 합니다.
+const UPDATE_KEEP_MS=24*60*60*1000;
+function siteUpdatesActive(){
+  const seen=updatesSeen(),now=Date.now();
+  return siteUpdates.filter(u=>u.id>seen||now-Date.parse(u.createdAt)<UPDATE_KEEP_MS);
+}
+// 🔔 숫자: 안 읽은 알림 + 업장 신청 + 하루 안의 새 소식
+function notifBadgeCount(){return networkAccessState!=="verified"?0:notifItems.filter(n=>!n.read).length+placeReqCount()+siteUpdatesActive().length;}
+function syncNotifBadge(){showNotifCount(notifBadgeCount());}
 function markSiteUpdatesSeen(){if(siteUpdates.length)lsSet(UPDATES_KEY,String(siteUpdates[0].id));}
 async function loadSiteUpdates(force=false){
   if(!force&&Date.now()-siteUpdatesLoadedAt<5*60*1000)return;
@@ -3825,12 +3833,13 @@ async function loadSiteUpdates(force=false){
   }catch(e){console.error("새 소식을 불러오지 못했습니다.",e);}
   renderSiteUpdates();renderNotifications();syncNotifBadge();
 }
+let homeUpdateHidden=false;
 function renderSiteUpdates(){
   const box=document.getElementById("homeUpdate");if(!box)return;
-  const unread=siteUpdatesUnread();
-  if(!unread.length){box.hidden=true;return;}
-  const latest=unread[0];
-  box.innerHTML='<button type="button" class="home-update-main" data-update-open="'+latest.id+'"><span class="home-update-kicker">새 소식'+(unread.length>1?" · 외 "+(unread.length-1)+"건":"")+'</span><span class="home-update-title">'+esc(latest.title)+'</span></button><button type="button" class="home-update-close" data-update-close aria-label="새 소식 닫기">×</button>';
+  const active=siteUpdatesActive();
+  if(!active.length||homeUpdateHidden){box.hidden=true;return;}
+  const latest=active[0];
+  box.innerHTML='<button type="button" class="home-update-main" data-update-open="'+latest.id+'"><span class="home-update-kicker">새 소식'+(active.length>1?" · 외 "+(active.length-1)+"건":"")+'</span><span class="home-update-title">'+esc(latest.title)+'</span></button><button type="button" class="home-update-close" data-update-close aria-label="새 소식 닫기">×</button>';
   box.hidden=false;
 }
 function openSiteUpdate(id){
@@ -3840,7 +3849,7 @@ function openSiteUpdate(id){
   closeBoardModal("myInfoModal");setSiteView(target);
 }
 document.getElementById("homeUpdate")?.addEventListener("click",e=>{
-  if(e.target.closest("[data-update-close]")){markSiteUpdatesSeen();renderSiteUpdates();syncNotifBadge();renderNotifications();return;}
+  if(e.target.closest("[data-update-close]")){homeUpdateHidden=true;renderSiteUpdates();return;}
   const b=e.target.closest("[data-update-open]");if(b)openSiteUpdate(b.dataset.updateOpen);
 });
 

@@ -3748,7 +3748,7 @@ function showNotifCount(n){
   ["notifBadge","notifTabCount","notifPillCount"].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=text;el.hidden=!n;}});
   const pill=document.getElementById("notifPill");if(pill)pill.hidden=!n;
 }
-function notifUnread(){return notifItems.filter(n=>!n.read).length+placeReqCount();}
+function notifUnread(){return notifItems.filter(n=>!n.read).length+placeReqCount()+(networkAccessState==="verified"?siteUpdatesUnread().length:0);}
 async function markNotificationsRead(){
   markSiteUpdatesSeen();renderSiteUpdates();
   if(!notifItems.some(n=>!n.read)){showNotifCount(placeReqCount());return;}

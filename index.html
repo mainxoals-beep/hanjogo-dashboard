@@ -1109,6 +1109,9 @@
  .fee-table tr.open .fee-peek-btn{padding:12px 0 6px;}
  .fee-table .fee-peek-name{font-size:16px;font-weight:800;min-width:0;overflow-wrap:anywhere;}
  .fee-table .fee-peek-gen{font-size:13px;color:var(--ink-sub);white-space:nowrap;}
+ .fee-table .fee-peek-att{padding:3px 8px;border-radius:99px;font-size:11px;font-weight:800;white-space:nowrap;margin-left:6px;}
+ .fee-table .fee-peek-att.on{background:#E8F5EC;color:#1F7A4D;}
+ .fee-table .fee-peek-att.off{background:#FDE8E6;color:#B3322B;}
  .fee-table .fee-peek-status{margin-left:auto;padding:3px 9px;border-radius:99px;background:#F1EEF7;color:var(--ink-sub);font-size:11px;font-weight:700;white-space:nowrap;}
  .fee-table .fee-st-paid,.fee-table .fee-st-exempt{background:#E6F4EA;color:var(--ok);}
  .fee-table .fee-st-partial,.fee-table .fee-st-hold{background:#FFF3DC;color:var(--warn);}
@@ -3500,7 +3503,7 @@ function renderPaymentGroup(phase){
     const open=feeOpenRows.has(rowKey);
     tr.className=open?"open":"";
     tr.innerHTML=`
-      <td class="fee-peek"><button type="button" class="fee-peek-btn" aria-expanded="${open}"><span class="fee-peek-name">${escapeHtml(row.name||"(이름 없음)")}</span><span class="fee-peek-gen">${escapeHtml(row.generation||row.gen||"")}</span><span class="fee-peek-status fee-st-${escapeHtml(row.status||"unpaid")}">${paymentStatusLabel(row.status)}</span><span class="fee-peek-chev" aria-hidden="true">▾</span></button></td>
+      <td class="fee-peek"><button type="button" class="fee-peek-btn" aria-expanded="${open}"><span class="fee-peek-name">${escapeHtml(row.name||"(이름 없음)")}</span><span class="fee-peek-gen">${escapeHtml(row.generation||row.gen||"")}</span><span class="fee-peek-status fee-st-${escapeHtml(row.status||"unpaid")}">${paymentStatusLabel(row.status)}</span>${row.attendanceStatus==="attended"?'<span class="fee-peek-att on">참석</span>':row.attendanceStatus==="cancelled"?'<span class="fee-peek-att off">참석 취소</span>':""}<span class="fee-peek-chev" aria-hidden="true">▾</span></button></td>
       <td data-label="이름"><input type="text" value="${escapeHtml(row.name||"")}" data-field="name"></td>
       <td data-label="기수"><input type="text" value="${escapeHtml(row.generation||row.gen||"")}" data-field="generation" placeholder="예: 2기"></td>
       <td data-label="예정 참가비"><input type="number" min="0" step="1000" value="${Number(row.expectedAmount??80000)}" data-field="expectedAmount"></td>

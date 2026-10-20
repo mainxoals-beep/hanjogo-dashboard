@@ -1182,10 +1182,11 @@ body.photo-open{overflow:hidden}
 .photo-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:34px;cursor:pointer}
 .photo-nav.prev{left:0;border-radius:0 10px 10px 0}.photo-nav.next{right:0;border-radius:10px 0 0 10px}.photo-nav[hidden]{display:none}
 .photo-viewer-info{position:absolute;left:0;right:0;bottom:0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6))}
-.photo-viewer-row{display:flex;align-items:center;gap:10px}
+.photo-viewer-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px}
 .photo-like{min-height:36px;padding:4px 12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:transparent;color:#fff;font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
 .photo-like[aria-pressed="true"]{border-color:#FF6B81;color:#FF6B81}
 .photo-viewer-author{flex:1;min-width:0;font-size:var(--fs-sm);opacity:.9}
+.photo-act{min-height:36px;padding:4px 12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:transparent;color:#fff;font:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}.photo-act[hidden]{display:none}.photo-act:disabled{opacity:.6}
 .photo-delete{padding:4px 10px;border:1px solid rgba(255,255,255,.35);border-radius:var(--r-sm);background:transparent;color:#fff;font:inherit;font-size:var(--fs-xs);cursor:pointer}
 .photo-viewer-caption{margin-top:6px;font-size:var(--fs-sm);line-height:1.5;word-break:keep-all}
 .photo-sheet{position:fixed;inset:0;z-index:10040;display:flex;align-items:flex-end;justify-content:center;background:rgba(24,18,28,.5)}
@@ -1363,6 +1364,18 @@ body.photo-open{overflow:hidden}
  </div>
 </section>
 
+<section class="photo-card site-view" id="eventPhotos" data-site-view="event">
+  <div class="page-head-row">
+    <h3 class="photo-title">행사 사진 <span class="photo-count" id="photoCount"></span></h3>
+    <button type="button" class="page-head-action primary" id="photoAddBtn" data-needs-auth><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>사진 올리기</button>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" multiple hidden>
+  <div class="photo-gate" id="photoGate"><span>동문 인증 후 사진을 보고 올릴 수 있어요.</span><button type="button" class="board-secondary-btn" data-site-target="network">동문 인증하기</button></div>
+  <div class="photo-grid" id="photoGrid" hidden></div>
+  <div class="photo-empty" id="photoEmpty" hidden>아직 올라온 사진이 없어요. 첫 사진을 올려주세요!</div>
+  <button type="button" class="board-secondary-btn photo-more" id="photoMore" hidden>사진 더 보기</button>
+</section>
+
 <section class="event-ready-card event-not-after site-view" id="eventReadyCard" data-site-view="event">
  <div class="event-ready-kicker" id="eventReadyKicker">10월 18일, 곧 만나요</div>
  <h2>한조고 동문 네트워크 모임</h2>
@@ -1411,17 +1424,6 @@ body.photo-open{overflow:hidden}
   <div class="material-viewer-nav"><button type="button" id="materialViewerPrev">‹ 이전</button><button type="button" id="materialViewerNext">다음 ›</button></div>
 </div>
 
-<section class="photo-card site-view" id="eventPhotos" data-site-view="event">
-  <div class="page-head-row">
-    <h3 class="photo-title">행사 사진 <span class="photo-count" id="photoCount"></span></h3>
-    <button type="button" class="page-head-action primary" id="photoAddBtn" data-needs-auth><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>사진 올리기</button>
-  </div>
-  <input type="file" id="photoInput" accept="image/*" multiple hidden>
-  <div class="photo-gate" id="photoGate"><span>동문 인증 후 사진을 보고 올릴 수 있어요.</span><button type="button" class="board-secondary-btn" data-site-target="network">동문 인증하기</button></div>
-  <div class="photo-grid" id="photoGrid" hidden></div>
-  <div class="photo-empty" id="photoEmpty" hidden>아직 올라온 사진이 없어요. 첫 사진을 올려주세요!</div>
-  <button type="button" class="board-secondary-btn photo-more" id="photoMore" hidden>사진 더 보기</button>
-</section>
 <div class="photo-sheet" id="photoSheet" hidden role="dialog" aria-modal="true" aria-labelledby="photoSheetTitle">
   <div class="photo-sheet-box">
     <div class="photo-sheet-head"><b id="photoSheetTitle">사진 올리기</b><button type="button" class="board-close" id="photoSheetClose" aria-label="닫기">×</button></div>
@@ -1438,7 +1440,7 @@ body.photo-open{overflow:hidden}
   <img class="photo-viewer-img" id="photoViewerImg" alt="">
   <button type="button" class="photo-nav next" id="photoNext" aria-label="다음 사진">›</button>
   <div class="photo-viewer-info">
-    <div class="photo-viewer-row"><button type="button" class="photo-like" id="photoLike" aria-pressed="false">♡ <span id="photoLikeCount">0</span></button><span class="photo-viewer-author" id="photoViewerAuthor"></span><button type="button" class="photo-delete" id="photoDelete" hidden>삭제</button></div>
+    <div class="photo-viewer-row"><button type="button" class="photo-like" id="photoLike" aria-pressed="false">♡ <span id="photoLikeCount">0</span></button><span class="photo-viewer-author" id="photoViewerAuthor"></span><button type="button" class="photo-act" id="photoSave">저장</button><button type="button" class="photo-act" id="photoShare" hidden>공유</button><button type="button" class="photo-delete" id="photoDelete" hidden>삭제</button></div>
     <div class="photo-viewer-caption" id="photoViewerCaption"></div>
   </div>
 </div>
@@ -4899,6 +4901,32 @@ function openPhoto(i){
   v.hidden=false;document.body.classList.add("photo-open");
 }
 function closePhoto(){const v=document.getElementById("photoViewer");if(v)v.hidden=true;photoViewIndex=-1;document.body.classList.remove("photo-open");}
+// 사진 저장·공유: 저장은 서버가 첨부 파일로 내려주는 주소로 받고, 공유는 휴대폰 공유창(사진 파일 포함)을 엽니다.
+function photoFileName(p){return "한조고모임_"+String(p.id)+".jpg";}
+function photoSaveUrl(p){return p.url+(String(p.url).includes("?")?"&":"?")+"download="+encodeURIComponent(photoFileName(p));}
+document.getElementById("photoSave")?.addEventListener("click",()=>{
+  const p=eventPhotos[photoViewIndex];if(!p)return;
+  const a=document.createElement("a");a.href=photoSaveUrl(p);a.download=photoFileName(p);a.rel="noopener";
+  document.body.appendChild(a);a.click();a.remove();
+  showToast("사진을 저장해요. 받은 파일을 확인해 보세요.");
+});
+const photoShareBtn=document.getElementById("photoShare");
+if(photoShareBtn&&typeof navigator.share==="function")photoShareBtn.hidden=false;
+photoShareBtn?.addEventListener("click",async()=>{
+  const p=eventPhotos[photoViewIndex];if(!p)return;
+  photoShareBtn.disabled=true;
+  try{
+    let shared=false;
+    try{
+      const blob=await (await fetch(p.url)).blob();
+      const file=new File([blob],photoFileName(p),{type:blob.type||"image/jpeg"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"한조고 동문 네트워크 모임"});shared=true;}
+    }catch(err){if(err&&err.name==="AbortError")return;}
+    // 사진 파일을 보낼 수 없으면 사이트 모임 화면 링크를 공유합니다.
+    if(!shared)await navigator.share({title:"한조고 동문 네트워크 모임 사진",text:"동문 인증 후 행사 사진을 볼 수 있어요.",url:location.origin+location.pathname+"#event"});
+  }catch(err){if(!err||err.name!=="AbortError")showToast("공유하지 못했어요. 저장 버튼을 이용해 주세요.");}
+  finally{photoShareBtn.disabled=false;}
+});
 document.getElementById("photoGrid")?.addEventListener("click",e=>{const t=e.target.closest("[data-photo-index]");if(t)openPhoto(Number(t.dataset.photoIndex));});
 document.getElementById("photoMore")?.addEventListener("click",()=>loadEventPhotos(true));
 document.getElementById("photoViewerClose")?.addEventListener("click",closePhoto);

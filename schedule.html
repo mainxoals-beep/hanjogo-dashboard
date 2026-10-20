@@ -933,6 +933,7 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 
 /* 머리글: 짧게 */
 .head{margin-bottom:12px}
+.head-since{margin:2px 0 8px;font-size:12.5px;font-weight:700;letter-spacing:.01em;color:var(--sub)}.head-since span{margin-left:4px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--purple-dark)}
 .head h1{font-size:22px}
 .head>p:not(.eyebrow){font-size:var(--fs-sm)}
 .visit-pill{margin-top:8px;padding:4px 10px}
@@ -1222,11 +1223,11 @@ body.photo-open{overflow:hidden}
 <div class="wrap">
 
 <div class="head">
-  <p class="eyebrow">한국조리과학고등학교</p>
   <div class="head-title-row">
     <h1>한조고 총동문회</h1>
     <img class="head-logo" src="./assets/hanjogo-logo.svg" alt="한국조리과학고등학교 KCAS 로고">
   </div>
+  <div class="head-since">한국조리과학고등학교 <span>since 1999</span></div>
   <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
   <!-- 방문 현황: 어느 메뉴에서든 사이트가 살아 있다는 걸 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
   <div class="visit-pill" id="visitorCounter" hidden aria-label="사이트 방문 현황"><span class="live-dot" aria-hidden="true"></span><span>오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b> 방문</span></div>

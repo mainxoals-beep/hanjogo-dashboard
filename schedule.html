@@ -3675,7 +3675,8 @@ function renderNewMarks(){
   const counted=new Set();let total=0;
   document.querySelectorAll("#siteNav [data-site-target],.alumni-subnav [data-site-target]").forEach(b=>{
     const tabs=String(b.dataset.newTabs||b.dataset.siteTarget).split(" ");
-    const n=tabs.reduce((sum,tab)=>sum+(newIds[tab]?newCount(tab):0),0);
+    const groupTabs=String(b.dataset.navGroup||b.dataset.siteTarget).split(" ");
+    const n=tabs.reduce((sum,tab)=>sum+(newIds[tab]?newCount(tab):0),0)+groupTabs.reduce((sum,tab)=>sum+updateTabNew(tab),0);
     let badge=b.querySelector(".nav-new");
     if(!badge&&n){badge=document.createElement("span");badge.className="nav-new";b.appendChild(badge);}
     if(badge){badge.textContent=n>9?"9+":String(n);badge.hidden=!n;badge.setAttribute("aria-label","새 글 "+n+"개");}
@@ -3812,6 +3813,17 @@ function updatesSeen(){
   if(v===null)return lsGet(TOUR_KEY)===null?Infinity:0;
   return Number(v)||0;
 }
+// 새 소식이 가리키는 화면(탭)은 아래 메뉴에 새 표시를 붙이고, 그 화면을 열면 지웁니다.
+const TAB_SEEN_KEY="hanjogo-updates-tab-seen";
+function tabSeenMap(){try{const m=JSON.parse(lsGet(TAB_SEEN_KEY)||"{}");return m&&typeof m==="object"?m:{};}catch(e){return {};}}
+function updateTabNew(tab){
+  const seen=Number(tabSeenMap()[tab])||0;
+  return siteUpdatesActive().filter(u=>u.target===tab&&u.id>seen).length;
+}
+function markUpdateTabSeen(tab){
+  const ids=siteUpdates.filter(u=>u.target===tab).map(u=>u.id);if(!ids.length)return;
+  const map=tabSeenMap();map[tab]=Math.max(Number(map[tab])||0,...ids);lsSet(TAB_SEEN_KEY,JSON.stringify(map));
+}
 function siteUpdatesUnread(){const seen=updatesSeen();return siteUpdates.filter(u=>u.id>seen);}
 // 올린 지 하루 안의 소식은 읽었더라도 계속 띄워서, 다시 들어왔을 때 놓치지 않게 합니다.
 const UPDATE_KEEP_MS=24*60*60*1000;
@@ -3831,7 +3843,8 @@ async function loadSiteUpdates(force=false){
     siteUpdates=(Array.isArray(data)?data:[]).filter(u=>u&&Number.isFinite(Number(u.id))).map(u=>({...u,id:Number(u.id)})).sort((a,b)=>b.id-a.id);
     siteUpdatesLoadedAt=Date.now();
   }catch(e){console.error("새 소식을 불러오지 못했습니다.",e);}
-  renderSiteUpdates();renderNotifications();syncNotifBadge();
+  markUpdateTabSeen(currentSiteView());
+  renderSiteUpdates();renderNotifications();syncNotifBadge();renderNewMarks();
 }
 let homeUpdateHidden=false;
 function renderSiteUpdates(){
@@ -4555,7 +4568,7 @@ myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
   }
   myInfoEl("myInfoCurrentEmail").textContent=networkCurrentSession?.user?.email||"";
   openBoardModal("myInfoModal");
-  setMyInfoTab(notifUnread()?"notif":"profile");
+  setMyInfoTab(notifBadgeCount()?"notif":"profile");
   if(!myInfoLoaded)loadMyInfo();
 });
 document.querySelector(".myinfo-tabs")?.addEventListener("click",e=>{
@@ -4752,6 +4765,7 @@ function setSiteView(view,{updateHash=true}={}){
   if(next==="event"&&networkAccessState==="verified"&&!eventPhotosLoaded)loadEventPhotos();
   if(next!=="event")closePhoto();
   if(newIds[next]){freshShown[next]=true;markSeen(next);if(next==="board")renderBoardList();}
+  markUpdateTabSeen(next);renderNewMarks();
 
   if(updateHash){
     history.replaceState(null,"","#"+next);

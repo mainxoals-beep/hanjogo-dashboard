@@ -967,6 +967,27 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .home-recent-title{font-size:var(--fs-sm);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home-recent-meta{font-size:var(--fs-xs);color:var(--mute)}
 .fnb-page .home-news{margin:0 0 12px}
+.home-update{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid #DDD7F4;border-radius:var(--r-md);background:var(--purple-light)}.home-update[hidden]{display:none}
+.home-update-main{flex:1;min-width:0;border:0;background:none;padding:0;font:inherit;text-align:left;color:inherit;cursor:pointer}
+.home-update-kicker{display:block;font-size:11px;font-weight:800;color:var(--purple-dark)}
+.home-update-title{display:block;margin-top:2px;font-size:var(--fs-sm);font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-update-close{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--sub);font-size:18px;line-height:1;cursor:pointer}
+.tour-reopen-wrap{text-align:center;margin:6px 0 0}
+.tour-reopen{border:0;background:none;padding:6px 10px;font:inherit;font-size:12.5px;font-weight:700;color:var(--purple-dark);text-decoration:underline;cursor:pointer}
+#tourDialog{width:min(420px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}
+#tourDialog::backdrop{background:rgba(25,20,35,.5)}
+.tour-card{position:relative;padding:34px 24px 22px;text-align:center}
+.tour-skip{position:absolute;top:12px;right:14px;border:0;background:none;padding:6px 8px;font:inherit;font-size:12.5px;font-weight:700;color:var(--mute);cursor:pointer}
+.tour-icon{font-size:44px;line-height:1.2}
+.tour-title{margin:10px 0 8px;font-size:20px;font-weight:800;line-height:1.35;color:var(--ink);word-break:keep-all}
+.tour-body{margin:0;font-size:14.5px;line-height:1.7;color:var(--sub);word-break:keep-all}
+.tour-tag{display:inline-block;margin-top:12px;padding:3px 10px;border-radius:99px;background:#F1EEF7;color:var(--purple-dark);font-size:11.5px;font-weight:800}.tour-tag[hidden]{display:none}
+.tour-dots{display:flex;justify-content:center;gap:6px;margin:18px 0 14px}
+.tour-dots i{width:7px;height:7px;border-radius:50%;background:#DAD5E6}.tour-dots i.on{width:20px;border-radius:99px;background:var(--purple)}
+.tour-actions{display:flex;gap:8px}
+.tour-btn{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14px;font-weight:800;color:var(--ink);cursor:pointer}.tour-btn[hidden]{display:none}
+.tour-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
+.tour-btn.ghost{color:var(--purple-dark)}
 .birthday-strip{margin:0 0 14px;padding:13px 15px;border:1px solid #F6D9C9;border-radius:16px;background:linear-gradient(135deg,#FFF6EF,#fff 70%)}.birthday-strip[hidden]{display:none}
 .bday-me{margin:0 0 8px;font-size:var(--fs-sm);font-weight:800;color:#B4532A}
 .bday-list{display:grid;gap:6px;margin-top:6px}
@@ -1234,6 +1255,7 @@ body.photo-open{overflow:hidden}
 <div class="site-view" data-site-view="places" hidden><div class="home-spotlight" id="placesSpotlight" hidden aria-live="polite"></div></div>
 <section class="site-view" data-site-view="places" hidden aria-label="동문 업장 지도"><iframe id="alumniPlacesFrame" title="동문 업장 지도" style="display:block;width:100%;height:85vh;min-height:760px;border:0;border-radius:16px;background:#FAF8F4"></iframe></section>
 <section class="site-home site-view" id="siteHome" data-site-view="home">
+  <div class="home-update" id="homeUpdate" hidden></div>
   <div class="home-intro">
     <div class="home-intro-kicker">한국조리과학고등학교 총동문회</div>
     <h2 class="home-intro-title">졸업생들이 서로 찾고 돕는 곳</h2>
@@ -1650,6 +1672,7 @@ body.photo-open{overflow:hidden}
 </div>
 </div>
 
+<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button></div>
 <p class="home-steward site-view" data-site-view="home">총동문회 임시 총괄 · 2기 김태민 · <a href="https://www.instagram.com/kim.tae.min" target="_blank" rel="noopener noreferrer">@kim.tae.min</a></p>
 
 <div class="public-fold site-view" data-site-view="event">
@@ -1892,6 +1915,22 @@ body.photo-open{overflow:hidden}
   </div>
 </div>
 
+
+<dialog id="tourDialog" aria-labelledby="tourTitle">
+  <div class="tour-card">
+    <button type="button" class="tour-skip" id="tourSkip">건너뛰기</button>
+    <div class="tour-icon" id="tourIcon" aria-hidden="true"></div>
+    <h2 class="tour-title" id="tourTitle"></h2>
+    <p class="tour-body" id="tourBody"></p>
+    <div class="tour-tag" id="tourTag" hidden>동문 인증 후 이용할 수 있어요</div>
+    <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+    <div class="tour-actions">
+      <button type="button" class="tour-btn" id="tourPrev">이전</button>
+      <button type="button" class="tour-btn ghost" id="tourGo" hidden>이 화면 보기</button>
+      <button type="button" class="tour-btn primary" id="tourNext">다음</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="eventGuideDialog" aria-labelledby="eventGuideTitle">
   <div class="event-guide-head"><h2 id="eventGuideTitle">드디어 내일, 만나요</h2><button type="button" id="eventGuideClose" aria-label="행사 안내 닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
@@ -3658,7 +3697,7 @@ async function loadNotifications(){
   try{
     const data=await boardCall("notifications_list");
     notifItems=Array.isArray(data.items)?data.items:[];
-    showNotifCount(Number(data.unread||0)+placeReqCount());
+    showNotifCount(Number(data.unread||0)+placeReqCount()+siteUpdatesUnread().length);
     renderNotifications();
   }catch{}
   loadPlaceRequests();
@@ -3697,7 +3736,10 @@ document.getElementById("placeReqBox")?.addEventListener("click",async e=>{
 });
 function renderNotifications(){
   const box=document.getElementById("notifList");if(!box)return;
-  box.innerHTML=notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>';
+  const seen=updatesSeen();
+  const updateRows=siteUpdates.map(u=>`<button type="button" class="notif-item${u.id>seen?" unread":""}" data-site-update="${u.id}"><b>새 소식</b> ${esc(u.title)}<span>${esc(u.body||"")} · ${esc(boardDate(u.createdAt))}</span></button>`).join("");
+  if(updateRows&&!notifItems.length){box.innerHTML=updateRows;return;}
+  box.innerHTML=updateRows+(notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>');
 }
 // 안 읽은 알림 수: 메뉴의 "내 정보" 버튼과 내 정보 안의 "알림" 탭에 함께 보여줍니다.
 function showNotifCount(n){
@@ -3708,9 +3750,102 @@ function showNotifCount(n){
 }
 function notifUnread(){return notifItems.filter(n=>!n.read).length+placeReqCount();}
 async function markNotificationsRead(){
-  if(!notifItems.some(n=>!n.read))return;
+  markSiteUpdatesSeen();renderSiteUpdates();
+  if(!notifItems.some(n=>!n.read)){showNotifCount(placeReqCount());return;}
   try{await boardCall("notifications_read");notifItems.forEach(n=>n.read=true);showNotifCount(placeReqCount());}catch{}
 }
+
+// ---- 둘러보기 · 사이트 새 소식 ------------------------------------------------
+// 둘러보기: 처음 방문하면 한 번만 보여주고, 홈 맨 아래에서 다시 볼 수 있습니다.
+const TOUR_SLIDES=[
+  {icon:"👋",title:"한조고 총동문회에 오신 걸 환영해요",body:"한국조리과학고 졸업생들이 서로 찾고 돕는 곳이에요. 1분이면 둘러볼 수 있어요.",go:"home"},
+  {icon:"🔎",title:"동문 찾기",body:"기수·소속·분야로 동문을 찾아 연결해요. 맨 위에서는 오늘의 동문과, 오늘 생일인 동문에게 축하를 보낼 수 있어요.",go:"network",verified:true},
+  {icon:"🗺️",title:"업장 지도",body:"동문이 운영하는 가게를 지도에서 찾아보세요. 내 가게도 등록할 수 있어요.",go:"places"},
+  {icon:"📰",title:"F&B 소식 · 채용",body:"매일 아침 업계 기사를 모으고, 마감 전인 채용 공고를 골라 올려요. 파인다이닝·메뉴 R&D·대기업·경력직·해외까지 있어요.",go:"fnb",verified:true},
+  {icon:"💬",title:"게시판 · 번개 모임",body:"소식, 선후배 질문, 자료 공유를 나누고, 번개 모임으로 함께 만나요.",go:"board",verified:true},
+  {icon:"🙋",title:"내 정보로 시작하기",body:"프로필을 공개하면 동문 찾기에 보이고, 생일 축하 받기와 🔔 알림도 여기서 켜요. 먼저 졸업생 DB 등록과 이메일 인증이 필요해요.",go:"network"}
+];
+const TOUR_KEY="hanjogo-tour-v1",UPDATES_KEY="hanjogo-updates-seen";
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
+let tourIndex=0;
+function tourRender(){
+  const slide=TOUR_SLIDES[tourIndex],last=tourIndex===TOUR_SLIDES.length-1;
+  document.getElementById("tourIcon").textContent=slide.icon;
+  document.getElementById("tourTitle").textContent=slide.title;
+  document.getElementById("tourBody").textContent=slide.body;
+  document.getElementById("tourTag").hidden=!(slide.verified&&networkAccessState!=="verified");
+  document.getElementById("tourDots").innerHTML=TOUR_SLIDES.map((_,i)=>'<i class="'+(i===tourIndex?"on":"")+'"></i>').join("");
+  document.getElementById("tourPrev").hidden=tourIndex===0;
+  document.getElementById("tourGo").hidden=!slide.go||tourIndex===0;
+  document.getElementById("tourNext").textContent=last?"시작하기":"다음";
+}
+function tourOpen(){
+  const d=document.getElementById("tourDialog");if(!d||d.open)return;
+  tourIndex=0;tourRender();try{d.showModal();}catch(e){d.setAttribute("open","");}
+}
+function tourClose(){
+  const d=document.getElementById("tourDialog");if(d?.open)d.close();
+  lsSet(TOUR_KEY,"done");
+  // 처음 온 사람에게는 지난 새 소식이 한꺼번에 '안 읽음'으로 쌓이지 않도록 지금까지의 소식을 읽은 것으로 합니다.
+  if(lsGet(UPDATES_KEY)===null&&siteUpdates.length)lsSet(UPDATES_KEY,String(siteUpdates[0].id));
+  renderSiteUpdates();syncNotifBadge();
+}
+document.getElementById("tourSkip")?.addEventListener("click",tourClose);
+document.getElementById("tourPrev")?.addEventListener("click",()=>{if(tourIndex>0){tourIndex--;tourRender();}});
+document.getElementById("tourNext")?.addEventListener("click",()=>{if(tourIndex<TOUR_SLIDES.length-1){tourIndex++;tourRender();}else tourClose();});
+document.getElementById("tourGo")?.addEventListener("click",()=>{const g=TOUR_SLIDES[tourIndex].go;tourClose();if(g)setSiteView(g);});
+document.getElementById("tourDialog")?.addEventListener("cancel",tourClose);
+document.getElementById("tourReopen")?.addEventListener("click",tourOpen);
+// 둘러보기 자동 열기: 처음 방문, 최상위 창, 추첨 화면이 아닐 때만. 저장소를 못 쓰면 매번 띄우지 않습니다.
+function maybeOpenTour(){
+  const params=new URLSearchParams(location.search);
+  if(window.top!==window||params.has("raffle")||params.has("rafflePreview")||params.has("embedded"))return;
+  if(lsGet(TOUR_KEY)!==null||!lsSet("hanjogo-tour-probe","1"))return;
+  if(document.querySelector("dialog[open]"))return;
+  setTimeout(()=>{if(lsGet(TOUR_KEY)===null&&!document.querySelector("dialog[open]"))tourOpen();},1500);
+}
+
+// 새 소식: 서버가 최근 소식을 내려주고, 읽은 곳까지는 이 기기에 기억합니다.
+let siteUpdates=[],siteUpdatesLoadedAt=0;
+function updatesSeen(){
+  const v=lsGet(UPDATES_KEY);
+  // 저장소를 못 쓰거나 처음 오는 분(둘러보기 전)은 안 읽은 알림으로 세지 않습니다.
+  if(v===null)return lsGet(TOUR_KEY)===null?Infinity:0;
+  return Number(v)||0;
+}
+function siteUpdatesUnread(){const seen=updatesSeen();return siteUpdates.filter(u=>u.id>seen);}
+function syncNotifBadge(){showNotifCount(networkAccessState!=="verified"?0:notifItems.filter(n=>!n.read).length+placeReqCount()+siteUpdatesUnread().length);}
+function markSiteUpdatesSeen(){if(siteUpdates.length)lsSet(UPDATES_KEY,String(siteUpdates[0].id));}
+async function loadSiteUpdates(force=false){
+  if(!force&&Date.now()-siteUpdatesLoadedAt<5*60*1000)return;
+  try{
+    const {data,error}=await sb.rpc("get_hanjogo_site_updates");
+    if(error)throw error;
+    siteUpdates=(Array.isArray(data)?data:[]).filter(u=>u&&Number.isFinite(Number(u.id))).map(u=>({...u,id:Number(u.id)})).sort((a,b)=>b.id-a.id);
+    siteUpdatesLoadedAt=Date.now();
+  }catch(e){console.error("새 소식을 불러오지 못했습니다.",e);}
+  renderSiteUpdates();renderNotifications();syncNotifBadge();
+}
+function renderSiteUpdates(){
+  const box=document.getElementById("homeUpdate");if(!box)return;
+  const unread=siteUpdatesUnread();
+  if(!unread.length){box.hidden=true;return;}
+  const latest=unread[0];
+  box.innerHTML='<button type="button" class="home-update-main" data-update-open="'+latest.id+'"><span class="home-update-kicker">새 소식'+(unread.length>1?" · 외 "+(unread.length-1)+"건":"")+'</span><span class="home-update-title">'+esc(latest.title)+'</span></button><button type="button" class="home-update-close" data-update-close aria-label="새 소식 닫기">×</button>';
+  box.hidden=false;
+}
+function openSiteUpdate(id){
+  const u=siteUpdates.find(x=>x.id===Number(id));if(!u)return;
+  markSiteUpdatesSeen();renderSiteUpdates();syncNotifBadge();renderNotifications();
+  const target=["home","event","network","board","meetups","places","fnb"].includes(u.target)?u.target:"home";
+  closeBoardModal("myInfoModal");setSiteView(target);
+}
+document.getElementById("homeUpdate")?.addEventListener("click",e=>{
+  if(e.target.closest("[data-update-close]")){markSiteUpdatesSeen();renderSiteUpdates();syncNotifBadge();renderNotifications();return;}
+  const b=e.target.closest("[data-update-open]");if(b)openSiteUpdate(b.dataset.updateOpen);
+});
+
 function syncNotifications(){
   const ok=networkAccessState==="verified";
   if(!ok)showNotifCount(0);
@@ -3718,6 +3853,7 @@ function syncNotifications(){
   if(ok){loadNotifications();notifTimer=setInterval(()=>{loadNotifications();loadBoard();loadMeetups(true);},120000);}
 }
 document.getElementById("notifList")?.addEventListener("click",e=>{
+  const u=e.target.closest("[data-site-update]");if(u){openSiteUpdate(u.dataset.siteUpdate);return;}
   const b=e.target.closest("[data-notif-post]");if(!b||!b.dataset.notifPost)return;
   closeBoardModal("myInfoModal");setSiteView("board");
   loadBoard(true).then(()=>openBoardDetail(Number(b.dataset.notifPost)));
@@ -5797,6 +5933,7 @@ function startPublicApp(){
   loadPublicRaffle();
   loadSpotlightPlaces();
   loadHomeNews();
+  loadSiteUpdates(true).then(maybeOpenTour);
   recordAndShowVisit();
 
   sb

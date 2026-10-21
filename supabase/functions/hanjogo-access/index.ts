@@ -206,6 +206,24 @@ async function birthdayIndex(): Promise<BirthdayIndex> {
   return index;
 }
 
+/** 본인 요청 등으로 숨기는 중복 프로필 규칙(이름·기수·소속 키워드). hanjogo_profile_hidden 표에서 읽습니다. */
+type HiddenProfileRule = { name: string; generation: number | null; keyword: string };
+function dropHiddenProfileRows(rows: Record<string, string>[], rules: HiddenProfileRule[]) {
+  if (!rules.length) return rows;
+  const same = (rule: HiddenProfileRule, row: Record<string, string>) =>
+    normalizeKey(rule.name) === normalizeKey(getField(row, "이름")) &&
+    (rule.generation == null || rule.generation === numberFromText(getField(row, "졸업 기수")));
+  const matches = (rule: HiddenProfileRule, row: Record<string, string>) =>
+    same(rule, row) &&
+    (!rule.keyword || normalizeKey(getField(row, "현재 소속 / 직장 / 사업체·브랜드")).includes(normalizeKey(rule.keyword)));
+  return rows.filter((row) => {
+    const rule = rules.find((item) => matches(item, row));
+    if (!rule) return true;
+    // 같은 사람의 다른 프로필이 남아 있을 때만 숨깁니다(그 사람이 통째로 사라지지 않게).
+    return !rows.some((other) => other !== row && same(rule, other) && !matches(rule, other));
+  });
+}
+
 function koreaDateKey() {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Seoul",
@@ -882,6 +900,16 @@ Deno.serve(async (req: Request) => {
       .filter((who) => keys.has(index.days.get(who) || ""));
   }
 
+  async function hiddenProfileRules(): Promise<HiddenProfileRule[]> {
+    const { data, error } = await adminClient.from("hanjogo_profile_hidden").select("name,generation,company_keyword");
+    if (error) return [];
+    return (data || []).map((row) => ({
+      name: String(row.name ?? ""),
+      generation: row.generation == null ? null : Number(row.generation),
+      keyword: String(row.company_keyword ?? ""),
+    })).filter((rule) => rule.name);
+  }
+
   /** Alumni who can be @-tagged or shown as helpers: public profiles only
    * (profile consent on, name not hidden), with the name as they chose to show
    * it. The email stays on the server; it is only used to deliver notifications. */
@@ -892,7 +920,7 @@ Deno.serve(async (req: Request) => {
     const overrides = new Map<string, Record<string, unknown>>(
       (overrideRows || []).map((row) => [normalizeEmail(row.email), row as Record<string, unknown>]),
     );
-    const allRows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
+    const allRows = dropHiddenProfileRows(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)), await hiddenProfileRules());
     const todayKey = koreaDateKey();
     const firstDates = firstPublicProfileDates(allRows);
     const people: PublicPerson[] = [];
@@ -955,7 +983,7 @@ Deno.serve(async (req: Request) => {
       const overrides = new Map<string, Record<string, unknown>>(
         (overrideRows || []).map((row) => [normalizeEmail(row.email), row as Record<string, unknown>]),
       );
-      const allRows = rowsAsObjects(await fetchCsv(PROFILE_CSV_URL));
+      const allRows = dropHiddenProfileRows(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL)), await hiddenProfileRules());
       const todayKey = koreaDateKey();
       const firstPublicDates = firstPublicProfileDates(allRows);
       const rows = latestPublicProfileRows(allRows, firstPublicDates);

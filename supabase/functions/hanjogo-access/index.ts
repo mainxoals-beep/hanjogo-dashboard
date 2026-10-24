@@ -1038,7 +1038,27 @@ Deno.serve(async (req: Request) => {
     if (error) return json({ error: error.message }, 500);
     let myGeneration: number | null = null;
     try { myGeneration = validGeneration((await identityOf(email, special)).generation); } catch { /* 기수를 못 찾으면 직접 고르게 둡니다 */ }
-    return json({ allowed: true, myGeneration, mine: (mine || []).map((r) => ({ generation: r.generation, color: r.color, other: r.other_text })) });
+    // 답한 사람(과 관리자)만 지금까지의 결과를 봅니다. 누가 어떤 색을 골랐는지는 내보내지 않고, 기수별 색 개수만 보냅니다.
+    let results: unknown = null;
+    if ((mine || []).length || isAdmin) {
+      const { data: all, error: allError } = await adminClient.from("hanjogo_scarf_votes").select("generation,color,other_text");
+      if (allError) return json({ error: allError.message }, 500);
+      const byGen = new Map<number, Map<string, number>>();
+      (all || []).forEach((r) => {
+        const key = isAdmin && r.color === "other" ? `other:${r.other_text || ""}` : r.color;
+        const colors = byGen.get(r.generation) || new Map<string, number>();
+        colors.set(key, (colors.get(key) || 0) + 1);
+        byGen.set(r.generation, colors);
+      });
+      results = {
+        total: (all || []).length,
+        generations: [...byGen].sort((a, b) => a[0] - b[0]).map(([generation, colors]) => ({
+          generation,
+          votes: [...colors].map(([color, count]) => ({ color, count })).sort((a, b) => b.count - a.count),
+        })),
+      };
+    }
+    return json({ allowed: true, myGeneration, mine: (mine || []).map((r) => ({ generation: r.generation, color: r.color, other: r.other_text })), results });
   }
 
   if (action === "scarf_set") {
@@ -1054,21 +1074,6 @@ Deno.serve(async (req: Request) => {
     );
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true });
-  }
-
-  // 관리자 확인용: 기수별로 어떤 색이 몇 명이었는지만 보여줍니다.
-  if (action === "scarf_results") {
-    if (!isAdmin) return json({ error: "forbidden" }, 403);
-    const { data, error } = await adminClient.from("hanjogo_scarf_votes").select("generation,color,other_text");
-    if (error) return json({ error: error.message }, 500);
-    const tally = new Map<string, number>();
-    (data || []).forEach((r) => {
-      const key = `${r.generation}|${r.color === "other" ? `other:${r.other_text || ""}` : r.color}`;
-      tally.set(key, (tally.get(key) || 0) + 1);
-    });
-    const rows = [...tally].map(([key, count]) => { const [g, c] = key.split("|"); return { generation: Number(g), color: c, count }; })
-      .sort((a, b) => a.generation - b.generation || b.count - a.count);
-    return json({ allowed: true, total: (data || []).length, rows });
   }
 
   // ---- 생일 축하 ------------------------------------------------------------

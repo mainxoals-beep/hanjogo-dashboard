@@ -1005,6 +1005,17 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .scarf-done{margin:12px 0 0;font-size:13px;font-weight:700;color:#1F7A4D;min-height:1.2em}
 .scarf-mine{margin:6px 0 0;font-size:12px;color:var(--mute);line-height:1.6}
 .scarf-reopen{display:none}body.net-verified .scarf-reopen{display:inline-block}
+.scarf-pill{display:none;align-items:center;gap:4px;margin:10px 0 0 6px;padding:5px 11px;border-radius:999px;border:1px solid #D9CFF0;background:#F5F1FC;color:var(--purple-dark);font:inherit;font-size:12px;font-weight:800;cursor:pointer;vertical-align:top}body.net-verified .scarf-pill{display:inline-flex}
+.scarf-tabs{display:flex;gap:6px;margin:14px 0 0;padding:3px;border-radius:12px;background:#F1EEF7}
+.scarf-tab{flex:1;min-height:36px;border:0;border-radius:10px;background:none;font:inherit;font-size:13.5px;font-weight:800;color:var(--sub);cursor:pointer}.scarf-tab[aria-selected="true"]{background:#fff;color:var(--purple-dark);box-shadow:0 1px 4px rgba(25,20,35,.12)}
+.scarf-results{margin-top:12px;max-height:46vh;overflow:auto;text-align:left}
+.scarf-res-total{margin:0 0 8px;font-size:12.5px;font-weight:700;color:var(--sub)}
+.scarf-res-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-top:1px solid var(--line)}
+.scarf-res-gen{flex:0 0 38px;font-size:14px;font-weight:800;color:var(--ink)}
+.scarf-res-bar{flex:1;display:flex;height:16px;border-radius:99px;overflow:hidden;border:1px solid rgba(0,0,0,.12);background:#f4f3f7}
+.scarf-res-bar i{display:block;height:100%}
+.scarf-res-top{flex:0 0 auto;font-size:12.5px;font-weight:800;color:var(--sub);text-align:right;min-width:62px}
+.scarf-res-empty{padding:18px 4px;font-size:13px;line-height:1.6;color:var(--mute);text-align:center}
 .birthday-strip{margin:0 0 14px;padding:13px 15px;border:1px solid #F6D9C9;border-radius:16px;background:linear-gradient(135deg,#FFF6EF,#fff 70%)}.birthday-strip[hidden]{display:none}
 .bday-me{margin:0 0 8px;font-size:var(--fs-sm);font-weight:800;color:#B4532A}
 .bday-list{display:grid;gap:6px;margin-top:6px}
@@ -1245,6 +1256,7 @@ body.photo-open{overflow:hidden}
   <p>동문을 찾고 연결하고, 2026 네트워크 모임의 주요 정보를 확인할 수 있습니다.</p>
   <!-- 방문 현황: 어느 메뉴에서든 사이트가 살아 있다는 걸 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
   <div class="visit-pill" id="visitorCounter" hidden aria-label="사이트 방문 현황"><span class="live-dot" aria-hidden="true"></span><span>오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b> 방문</span></div>
+  <button class="scarf-pill" type="button" id="scarfPill">🧣 스카프 색 설문 진행 중</button>
   <button class="notif-pill" type="button" id="notifPill" data-open-myinfo hidden>🔔 새 알림 <b id="notifPillCount">0</b></button>
 </div>
 
@@ -1958,6 +1970,9 @@ body.photo-open{overflow:hidden}
     <div class="tour-icon" aria-hidden="true">🧣</div>
     <h2 class="tour-title" id="scarfTitle">기수마다 스카프 색이 뭐였나요?</h2>
     <p class="tour-body">한조고 다닐 때 기수마다 조리복 스카프 색이 달랐죠. 기억나는 기수의 색을 알려주세요. 사이트의 기수 색을 제대로 정하는 데 쓸게요.</p>
+    <div class="scarf-tabs" role="tablist"><button type="button" class="scarf-tab" role="tab" id="scarfTabAsk" aria-selected="true">알려주기</button><button type="button" class="scarf-tab" role="tab" id="scarfTabRes" aria-selected="false">지금까지 결과</button></div>
+    <div id="scarfResults" class="scarf-results" hidden></div>
+    <div id="scarfForm">
     <div class="scarf-row"><label for="scarfGen">기수</label><select id="scarfGen"></select></div>
     <div class="scarf-row"><label>스카프 색</label><div class="scarf-colors" id="scarfColors"></div></div>
     <div class="scarf-row" id="scarfOtherRow" hidden><label for="scarfOther">어떤 색이었나요? (12자 이내)</label><input id="scarfOther" maxlength="12" placeholder="예: 연보라, 청록"></div>
@@ -1967,6 +1982,7 @@ body.photo-open{overflow:hidden}
       <button type="button" class="tour-btn primary" id="scarfSave" disabled>알려주기</button>
     </div>
     <p class="scarf-mine" id="scarfMine"></p>
+    </div>
   </div>
 </dialog>
 
@@ -3890,9 +3906,26 @@ document.getElementById("tourReopen")?.addEventListener("click",tourOpen);
 const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["yellow","노랑","#F5CF2E"],["lime","연두","#9BD04B"],["green","초록","#2E9E58"],["sky","하늘","#6EC1EE"],["blue","파랑","#2F6FDB"],["navy","남색","#1F2F6B"],["purple","보라","#7A4BC4"],["pink","분홍","#F28BB5"],["white","흰색","#FFFFFF"],["black","검정","#222222"],["brown","갈색","#8A5A3B"],["gray","회색","#9A9AA5"],["other","기타","conic-gradient(#F08A24,#F5CF2E,#2E9E58,#2F6FDB,#7A4BC4,#D93A3A,#F08A24)"]];
 const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
 const SCARF_LATER_KEY="hanjogo-scarf-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
-let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false;
+let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null;
 function scarfRenderMine(){
   document.getElementById("scarfMine").textContent=scarfMine.length?"내가 알려준 기수: "+scarfMine.map(v=>v.generation+"기 "+(v.color==="other"?(v.other||"기타"):SCARF_LABEL[v.color])).join(" · "):"";
+}
+function scarfTab(name){
+  const res=name==="results";
+  document.getElementById("scarfTabAsk").setAttribute("aria-selected",String(!res));
+  document.getElementById("scarfTabRes").setAttribute("aria-selected",String(res));
+  document.getElementById("scarfForm").hidden=res;document.getElementById("scarfResults").hidden=!res;
+  if(res)scarfRenderResults();
+}
+function scarfRenderResults(){
+  const box=document.getElementById("scarfResults"),colorOf=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[2]]));
+  if(!scarfResults){box.innerHTML='<div class="scarf-res-empty">한 기수라도 알려주시면<br>지금까지 모인 결과를 볼 수 있어요.</div>';return;}
+  const gens=scarfResults.generations||[];
+  if(!gens.length){box.innerHTML='<div class="scarf-res-empty">아직 모인 답이 없어요.</div>';return;}
+  box.innerHTML='<p class="scarf-res-total">지금까지 '+Number(scarfResults.total).toLocaleString()+'개의 답이 모였어요</p>'+gens.map(g=>{
+    const sum=g.votes.reduce((n,v)=>n+v.count,0),top=g.votes[0],name=v=>v.color.startsWith("other:")?(v.color.slice(6)||"기타"):(SCARF_LABEL[v.color]||"기타");
+    return '<div class="scarf-res-row"><span class="scarf-res-gen">'+g.generation+'기</span><span class="scarf-res-bar" role="img" aria-label="'+esc(g.votes.map(v=>name(v)+" "+v.count+"명").join(", "))+'">'+g.votes.map(v=>'<i style="width:'+(v.count/sum*100)+'%;background:'+(colorOf[v.color]||colorOf.other)+'"></i>').join("")+'</span><span class="scarf-res-top">'+esc(name(top))+' '+top.count+'/'+sum+'</span></div>';
+  }).join("");
 }
 function scarfSyncSave(){
   const other=document.getElementById("scarfOther").value.trim();
@@ -3909,7 +3942,7 @@ async function loadScarfState(){
   try{
     const r=await boardCall("scarf_state");
     scarfMine=Array.isArray(r.mine)?r.mine.map(v=>({generation:Number(v.generation),color:v.color,other:v.other||""})):[];
-    scarfMyGen=Number(r.myGeneration)||null;return true;
+    scarfMyGen=Number(r.myGeneration)||null;scarfResults=r.results||null;return true;
   }catch(e){return false;}
 }
 async function scarfOpen(){
@@ -3922,7 +3955,7 @@ async function scarfOpen(){
   if(!box.children.length)box.innerHTML=SCARF_COLORS.map(c=>'<button type="button" class="scarf-color" data-scarf="'+c[0]+'" aria-pressed="false"><i style="background:'+c[2]+'"></i>'+c[1]+'</button>').join("");
   sel.value=scarfMyGen&&scarfMyGen<=SCARF_MAX_GEN?String(scarfMyGen):"";
   document.getElementById("scarfDone").textContent="";
-  scarfPickFor(sel.value);scarfRenderMine();
+  scarfPickFor(sel.value);scarfRenderMine();scarfTab(scarfMine.length?"results":"ask");
   overlayOpen("scarf",()=>scarfClose());try{d.showModal();}catch(e){d.setAttribute("open","");}
 }
 function scarfClose(){
@@ -3956,6 +3989,7 @@ document.getElementById("scarfSave")?.addEventListener("click",async()=>{
     scarfMine=scarfMine.filter(v=>v.generation!==gen).concat({generation:gen,color:scarfPick,other:scarfPick==="other"?other:""}).sort((a,b)=>a.generation-b.generation);
     done.style.color="";done.textContent=gen+"기 스카프 색을 알려주셔서 고마워요! 다른 기수도 기억나면 이어서 알려주세요.";
     scarfRenderMine();
+    await loadScarfState();
   }catch(err){done.style.color="#B4532A";done.textContent="저장하지 못했어요. 잠시 뒤 다시 해주세요.";}
   scarfSyncSave();
 });
@@ -3963,6 +3997,9 @@ document.getElementById("scarfLater")?.addEventListener("click",scarfLater);
 document.getElementById("scarfClose")?.addEventListener("click",()=>{lsSet(SCARF_LATER_KEY,String(Date.now()));scarfClose();});
 document.getElementById("scarfDialog")?.addEventListener("cancel",e=>{e.preventDefault();scarfLater();});
 document.getElementById("scarfReopen")?.addEventListener("click",scarfOpen);
+document.getElementById("scarfPill")?.addEventListener("click",scarfOpen);
+document.getElementById("scarfTabAsk")?.addEventListener("click",()=>scarfTab("ask"));
+document.getElementById("scarfTabRes")?.addEventListener("click",()=>scarfTab("results"));
 
 // 둘러보기 자동 열기: 처음 방문, 최상위 창, 추첨 화면이 아닐 때만. 저장소를 못 쓰면 매번 띄우지 않습니다.
 function maybeOpenTour(){

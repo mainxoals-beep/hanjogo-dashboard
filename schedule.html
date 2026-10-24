@@ -991,6 +991,20 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .tour-btn{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14px;font-weight:800;color:var(--ink);cursor:pointer}.tour-btn[hidden]{display:none}
 .tour-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
 .tour-btn.ghost{color:var(--purple-dark)}
+#scarfDialog{width:min(420px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}
+#scarfDialog::backdrop{background:rgba(25,20,35,.5)}
+.scarf-card{position:relative;padding:30px 22px 20px;text-align:center}
+.scarf-card .tour-icon{font-size:40px}
+.scarf-row{margin-top:14px;text-align:left}
+.scarf-row label{display:block;margin-bottom:6px;font-size:12.5px;font-weight:800;color:var(--sub)}
+.scarf-row select,.scarf-row input{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
+.scarf-colors{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.scarf-color{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px 6px;border:2px solid transparent;border-radius:12px;background:#faf9fc;font:inherit;font-size:11.5px;font-weight:700;color:var(--sub);cursor:pointer}
+.scarf-color i{width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.scarf-color[aria-pressed="true"]{border-color:var(--purple);background:#F1EEF7;color:var(--purple-dark)}
+.scarf-done{margin:12px 0 0;font-size:13px;font-weight:700;color:#1F7A4D;min-height:1.2em}
+.scarf-mine{margin:6px 0 0;font-size:12px;color:var(--mute);line-height:1.6}
+.scarf-reopen{display:none}body.net-verified .scarf-reopen{display:inline-block}
 .birthday-strip{margin:0 0 14px;padding:13px 15px;border:1px solid #F6D9C9;border-radius:16px;background:linear-gradient(135deg,#FFF6EF,#fff 70%)}.birthday-strip[hidden]{display:none}
 .bday-me{margin:0 0 8px;font-size:var(--fs-sm);font-weight:800;color:#B4532A}
 .bday-list{display:grid;gap:6px;margin-top:6px}
@@ -1677,7 +1691,7 @@ body.photo-open{overflow:hidden}
 </div>
 </div>
 
-<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button></div>
+<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button><button type="button" class="tour-reopen scarf-reopen" id="scarfReopen">🧣 기수 스카프 색 알려주기</button></div>
 <p class="home-steward site-view" data-site-view="home">총동문회 임시 총괄 · 2기 김태민 · <a href="https://www.instagram.com/kim.tae.min" target="_blank" rel="noopener noreferrer">@kim.tae.min</a></p>
 
 <div class="public-fold site-view" data-site-view="event">
@@ -1935,6 +1949,24 @@ body.photo-open{overflow:hidden}
       <button type="button" class="tour-btn ghost" id="tourGo" hidden>이 화면 보기</button>
       <button type="button" class="tour-btn primary" id="tourNext">다음</button>
     </div>
+  </div>
+</dialog>
+
+<dialog id="scarfDialog" aria-labelledby="scarfTitle">
+  <div class="scarf-card">
+    <button type="button" class="tour-skip" id="scarfLater">나중에</button>
+    <div class="tour-icon" aria-hidden="true">🧣</div>
+    <h2 class="tour-title" id="scarfTitle">기수마다 스카프 색이 뭐였나요?</h2>
+    <p class="tour-body">한조고 다닐 때 기수마다 조리복 스카프 색이 달랐죠. 기억나는 기수의 색을 알려주세요. 사이트의 기수 색을 제대로 정하는 데 쓸게요.</p>
+    <div class="scarf-row"><label for="scarfGen">기수</label><select id="scarfGen"></select></div>
+    <div class="scarf-row"><label>스카프 색</label><div class="scarf-colors" id="scarfColors"></div></div>
+    <div class="scarf-row" id="scarfOtherRow" hidden><label for="scarfOther">어떤 색이었나요? (12자 이내)</label><input id="scarfOther" maxlength="12" placeholder="예: 연보라, 청록"></div>
+    <p class="scarf-done" id="scarfDone" role="status"></p>
+    <div class="tour-actions" style="margin-top:12px">
+      <button type="button" class="tour-btn" id="scarfClose">닫기</button>
+      <button type="button" class="tour-btn primary" id="scarfSave" disabled>알려주기</button>
+    </div>
+    <p class="scarf-mine" id="scarfMine"></p>
   </div>
 </dialog>
 
@@ -3051,6 +3083,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
 function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   document.body.classList.toggle("net-verified",state==="verified");
+  if(state==="verified")setTimeout(maybeOpenScarf,2500);
   setTimeout(syncPhotoAccess,0);
   networkAccessEmail=email;
   setTimeout(syncProfileNudge,0);
@@ -3845,6 +3878,7 @@ function tourClose(){
   const d=document.getElementById("tourDialog");if(d?.open)d.close();
   lsSet(TOUR_KEY,"done");
   renderSiteUpdates();syncNotifBadge();
+  setTimeout(maybeOpenScarf,700);
 }
 document.getElementById("tourSkip")?.addEventListener("click",tourClose);
 document.getElementById("tourPrev")?.addEventListener("click",()=>{if(tourIndex>0){tourIndex--;tourRender();}});
@@ -3852,6 +3886,84 @@ document.getElementById("tourNext")?.addEventListener("click",()=>{if(tourIndex<
 document.getElementById("tourGo")?.addEventListener("click",()=>{const g=TOUR_SLIDES[tourIndex].go;tourClose();if(g)setSiteView(g);});
 document.getElementById("tourDialog")?.addEventListener("cancel",tourClose);
 document.getElementById("tourReopen")?.addEventListener("click",tourOpen);
+// ---- 기수별 스카프 색 설문 ---------------------------------------------------
+const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["yellow","노랑","#F5CF2E"],["lime","연두","#9BD04B"],["green","초록","#2E9E58"],["sky","하늘","#6EC1EE"],["blue","파랑","#2F6FDB"],["navy","남색","#1F2F6B"],["purple","보라","#7A4BC4"],["pink","분홍","#F28BB5"],["white","흰색","#FFFFFF"],["black","검정","#222222"],["brown","갈색","#8A5A3B"],["gray","회색","#9A9AA5"],["other","기타","conic-gradient(#F08A24,#F5CF2E,#2E9E58,#2F6FDB,#7A4BC4,#D93A3A,#F08A24)"]];
+const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
+const SCARF_LATER_KEY="hanjogo-scarf-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
+let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false;
+function scarfRenderMine(){
+  document.getElementById("scarfMine").textContent=scarfMine.length?"내가 알려준 기수: "+scarfMine.map(v=>v.generation+"기 "+(v.color==="other"?(v.other||"기타"):SCARF_LABEL[v.color])).join(" · "):"";
+}
+function scarfSyncSave(){
+  const other=document.getElementById("scarfOther").value.trim();
+  document.getElementById("scarfOtherRow").hidden=scarfPick!=="other";
+  document.getElementById("scarfSave").disabled=!scarfPick||(scarfPick==="other"&&!other);
+  document.querySelectorAll("#scarfColors [data-scarf]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.scarf===scarfPick)));
+}
+function scarfPickFor(gen){
+  const v=scarfMine.find(x=>x.generation===Number(gen));
+  scarfPick=v?v.color:"";document.getElementById("scarfOther").value=v&&v.color==="other"?(v.other||""):"";
+  scarfSyncSave();
+}
+async function loadScarfState(){
+  try{
+    const r=await boardCall("scarf_state");
+    scarfMine=Array.isArray(r.mine)?r.mine.map(v=>({generation:Number(v.generation),color:v.color,other:v.other||""})):[];
+    scarfMyGen=Number(r.myGeneration)||null;return true;
+  }catch(e){return false;}
+}
+async function scarfOpen(){
+  const d=document.getElementById("scarfDialog");if(!d||d.open)return;
+  if(networkAccessState!=="verified")return;
+  if(!await loadScarfState())return;
+  const sel=document.getElementById("scarfGen");
+  if(!sel.options.length)sel.innerHTML='<option value="">기수 선택</option>'+Array.from({length:SCARF_MAX_GEN},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'기</option>').join("");
+  const box=document.getElementById("scarfColors");
+  if(!box.children.length)box.innerHTML=SCARF_COLORS.map(c=>'<button type="button" class="scarf-color" data-scarf="'+c[0]+'" aria-pressed="false"><i style="background:'+c[2]+'"></i>'+c[1]+'</button>').join("");
+  sel.value=scarfMyGen&&scarfMyGen<=SCARF_MAX_GEN?String(scarfMyGen):"";
+  document.getElementById("scarfDone").textContent="";
+  scarfPickFor(sel.value);scarfRenderMine();
+  overlayOpen("scarf",()=>scarfClose());try{d.showModal();}catch(e){d.setAttribute("open","");}
+}
+function scarfClose(){
+  overlayClose("scarf");
+  const d=document.getElementById("scarfDialog");if(d?.open)d.close();
+}
+function scarfLater(){lsSet(SCARF_LATER_KEY,String(Date.now()));scarfClose();}
+// 처음 들어온 인증 동문에게 한 번 띄웁니다. 답했으면 다시 띄우지 않고, "나중에"를 누르면 3일 뒤에 다시 물어요.
+async function maybeOpenScarf(){
+  if(scarfAutoTried||networkAccessState!=="verified")return;
+  const params=new URLSearchParams(location.search);
+  if(window.top!==window||params.has("raffle")||params.has("rafflePreview")||params.has("embedded"))return;
+  if(lsGet(TOUR_KEY)===null||!lsSet("hanjogo-scarf-probe","1"))return;
+  const later=Number(lsGet(SCARF_LATER_KEY))||0;if(later&&Date.now()-later<SCARF_LATER_MS)return;
+  if(document.querySelector("dialog[open]"))return;
+  scarfAutoTried=true;
+  if(!await loadScarfState()||scarfMine.length)return;
+  if(document.querySelector("dialog[open]"))return;
+  scarfOpen();
+}
+document.getElementById("scarfGen")?.addEventListener("change",e=>scarfPickFor(e.target.value));
+document.getElementById("scarfColors")?.addEventListener("click",e=>{const b=e.target.closest("[data-scarf]");if(!b)return;scarfPick=b.dataset.scarf;document.getElementById("scarfDone").textContent="";scarfSyncSave();if(scarfPick==="other")document.getElementById("scarfOther").focus();});
+document.getElementById("scarfOther")?.addEventListener("input",scarfSyncSave);
+document.getElementById("scarfSave")?.addEventListener("click",async()=>{
+  const gen=Number(document.getElementById("scarfGen").value),btn=document.getElementById("scarfSave"),done=document.getElementById("scarfDone");
+  if(!gen){done.style.color="#B4532A";done.textContent="먼저 기수를 골라주세요.";return;}
+  const other=document.getElementById("scarfOther").value.trim();
+  btn.disabled=true;
+  try{
+    await boardCall("scarf_set",{generation:gen,color:scarfPick,other});
+    scarfMine=scarfMine.filter(v=>v.generation!==gen).concat({generation:gen,color:scarfPick,other:scarfPick==="other"?other:""}).sort((a,b)=>a.generation-b.generation);
+    done.style.color="";done.textContent=gen+"기 스카프 색을 알려주셔서 고마워요! 다른 기수도 기억나면 이어서 알려주세요.";
+    scarfRenderMine();
+  }catch(err){done.style.color="#B4532A";done.textContent="저장하지 못했어요. 잠시 뒤 다시 해주세요.";}
+  scarfSyncSave();
+});
+document.getElementById("scarfLater")?.addEventListener("click",scarfLater);
+document.getElementById("scarfClose")?.addEventListener("click",()=>{lsSet(SCARF_LATER_KEY,String(Date.now()));scarfClose();});
+document.getElementById("scarfDialog")?.addEventListener("cancel",e=>{e.preventDefault();scarfLater();});
+document.getElementById("scarfReopen")?.addEventListener("click",scarfOpen);
+
 // 둘러보기 자동 열기: 처음 방문, 최상위 창, 추첨 화면이 아닐 때만. 저장소를 못 쓰면 매번 띄우지 않습니다.
 function maybeOpenTour(){
   const params=new URLSearchParams(location.search);

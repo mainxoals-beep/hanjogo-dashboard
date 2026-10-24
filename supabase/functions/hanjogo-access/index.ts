@@ -380,6 +380,7 @@ async function boardIdentity(
 }
 
 // "generation"(우리 기수)은 같은 기수 동문만 보고 쓸 수 있습니다.
+const SCARF_COLORS = ["red", "orange", "yellow", "lime", "green", "sky", "blue", "navy", "purple", "pink", "white", "black", "brown", "gray", "other"];
 const BOARD_CATEGORIES = ["free", "jobs", "collab", "business", "notice", "question", "resource", "generation"];
 
 /**
@@ -1027,6 +1028,47 @@ Deno.serve(async (req: Request) => {
       : await adminClient.from("hanjogo_spotlight_optout").delete().eq("email", email);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true, spotlightOptOut: Boolean(body.optOut) });
+  }
+
+  // ---- 기수별 스카프 색 설문 ------------------------------------------------
+  // 동문이 기억하는 기수별 조리복 스카프 색을 모읍니다. 답한 사람의 이메일은 내보내지 않습니다.
+  if (action === "scarf_state") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const { data: mine, error } = await adminClient.from("hanjogo_scarf_votes").select("generation,color,other_text").eq("email", email).order("generation");
+    if (error) return json({ error: error.message }, 500);
+    let myGeneration: number | null = null;
+    try { myGeneration = validGeneration((await identityOf(email, special)).generation); } catch { /* 기수를 못 찾으면 직접 고르게 둡니다 */ }
+    return json({ allowed: true, myGeneration, mine: (mine || []).map((r) => ({ generation: r.generation, color: r.color, other: r.other_text })) });
+  }
+
+  if (action === "scarf_set") {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const generation = validGeneration(body.generation);
+    const color = String(body.color || "");
+    if (!generation || !SCARF_COLORS.includes(color)) return json({ error: "invalid_vote" }, 400);
+    const other = color === "other" ? String(body.other || "").trim().slice(0, 12) : "";
+    if (color === "other" && !other) return json({ error: "other_required" }, 400);
+    const { error } = await adminClient.from("hanjogo_scarf_votes").upsert(
+      { email, generation, color, other_text: other || null, updated_at: new Date().toISOString() },
+      { onConflict: "email,generation" },
+    );
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  // 관리자 확인용: 기수별로 어떤 색이 몇 명이었는지만 보여줍니다.
+  if (action === "scarf_results") {
+    if (!isAdmin) return json({ error: "forbidden" }, 403);
+    const { data, error } = await adminClient.from("hanjogo_scarf_votes").select("generation,color,other_text");
+    if (error) return json({ error: error.message }, 500);
+    const tally = new Map<string, number>();
+    (data || []).forEach((r) => {
+      const key = `${r.generation}|${r.color === "other" ? `other:${r.other_text || ""}` : r.color}`;
+      tally.set(key, (tally.get(key) || 0) + 1);
+    });
+    const rows = [...tally].map(([key, count]) => { const [g, c] = key.split("|"); return { generation: Number(g), color: c, count }; })
+      .sort((a, b) => a.generation - b.generation || b.count - a.count);
+    return json({ allowed: true, total: (data || []).length, rows });
   }
 
   // ---- 생일 축하 ------------------------------------------------------------

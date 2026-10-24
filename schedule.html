@@ -3594,7 +3594,7 @@ function renderHomeNews(){
   const day=homeNews[0]?.news_date||"";
   box.innerHTML=`<div class="news-head"><span class="spot-kicker">오늘의 F&B 소식</span><span class="news-date">${esc(day?fmtKR(day):"")}</span></div>
     <ul class="news-list">${homeNews.map(n=>`<li><a href="${esc(n.url)}" rel="noreferrer"><span class="news-title">${esc(n.title)}</span><span class="news-src">${esc(n.source||"")}${n.keyword&&!n.manual?" · "+esc(n.keyword):""}</span></a>${networkIsAdmin?`<button type="button" class="news-hide" data-news-hide="${esc(n.id)}" aria-label="이 소식 숨기기">숨기기</button>`:""}</li>`).join("")||'<li class="news-empty">아직 오늘 소식이 없어요.</li>'}</ul>
-    <div class="news-foot">${networkIsAdmin?`<button type="button" class="news-more" data-news-add="1">+ 링크 추가</button>`:""}<span class="news-note">기사 제목과 링크만 모아 보여드려요. 원문은 각 언론사에서 확인해주세요.</span></div>`;
+    <div class="news-foot">${networkIsAdmin?`<button type="button" class="news-more" data-news-add="1">+ 링크 추가</button>`:""}<span class="news-note">AI를 활용해 외식·F&amp;B 업계에 도움이 될 만한 소식만 골라 모았어요. 기사 제목과 링크만 보여드리니 원문은 각 언론사에서 확인해주세요.</span></div>`;
   box.hidden=false;
 }
 // F&B 탭: 업계 소식 / 채용 공고 전환과 홈 바로가기 숫자

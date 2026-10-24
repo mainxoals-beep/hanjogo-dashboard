@@ -1829,13 +1829,13 @@ Deno.serve(async (req: Request) => {
       if (oldPath && "file_path" in fileColumns && fileColumns.file_path !== oldPath) await bucket.remove([oldPath]);
       return json({ ok: true });
     }
-    // 선후배 질문: 질문한 사람(또는 관리자)이 해결됨을 표시합니다.
+    // 선후배 질문은 해결됨, 채용 글은 채용 완료를 글쓴이(또는 관리자)가 표시합니다.
     if (action === "board_resolve") {
       const id = Number(body.id);
       if (!Number.isFinite(id)) return json({ error: "invalid_post" }, 400);
       const { data: target, error: lookupError } = await adminClient.from("hanjogo_board_posts").select("id,author_id,category").eq("id", id).eq("is_hidden", false).maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
-      if (!target || target.category !== "question") return json({ error: "not_found" }, 404);
+      if (!target || (target.category !== "question" && target.category !== "jobs")) return json({ error: "not_found" }, 404);
       if (!isAdmin && target.author_id !== userId) return json({ error: "forbidden" }, 403);
       const { error } = await adminClient.from("hanjogo_board_posts").update({ is_resolved: Boolean(body.resolved) }).eq("id", id);
       if (error) return json({ error: error.message }, 500);

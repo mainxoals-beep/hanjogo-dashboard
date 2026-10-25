@@ -262,7 +262,7 @@ function render(){
   if(values[0]>refs[0]){const d=(values[0]-refs[0])/100*sales;recs.push([d,'식재료 원가',`목표 ${refs[0]}%까지 낮추면 월 약 <span class="amt">${short(d)}</span> 개선돼요.`]);}
   if(values[1]>refs[1]){const d=(values[1]-refs[1])/100*sales;recs.push([d,'인건비 구조',`목표 ${refs[1]}%면 월 약 <span class="amt">${short(d)}</span> 차이예요.`]);}
   if(values[2]>refs[2]){const d=(values[2]-refs[2])/100*sales;recs.push([d,'임차료 부담',`목표와 월 약 <span class="amt">${short(d)}</span> 차이예요.`]);}
-  if(values[3]<refs[3]){const d=(refs[3]-values[3])/100*sales;recs.push([d/2,'이익률 목표',`목표 ${refs[3]}%까지 월 약 <span class="amt">${short(d)}</span> 이익이 더 필요해요.`]);}
+  if(values[3]<refs[3]){const d=(refs[3]-values[3])/100*sales;recs.push([d/2,'이익률 목표',`${refs[3]}%까지 월 약 <span class="amt">${short(d)}</span> 이익이 더 필요해요.`]);}
   recs.sort((a,b)=>b[0]-a[0]);
   if(!recs.length)recs.push([0,'큰 문제 없음','입력한 목표에 대체로 맞아요.']);
   $('recs').innerHTML=recs.slice(0,3).map((r,i)=>`<div class="rec"><b class="t">${i+1}. ${r[1]}</b>${r[2]}</div>`).join('');

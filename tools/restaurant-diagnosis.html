@@ -77,7 +77,7 @@ a{color:var(--navy)}
 @media(max-width:700px){main{padding:10px 10px 30px}.pick{position:static;margin:0 -10px 12px;padding:8px 10px}.pick-sel{margin-left:0;width:100%}.pick-sel label{flex:1}.pick-sel select{width:100%;min-width:0}.kpis{grid-template-columns:repeat(2,1fr)}.twocol,.recs{grid-template-columns:1fr}.scn,.res{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start}.fields{grid-template-columns:1fr 120px}}
 @media print{body{background:#fff}.pick{position:static;background:#fff}.btns{display:none}.panel,.kpi,details{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:280px 1fr}.left{position:static}details{display:block}@page{size:A3 landscape;margin:8mm}}
 </style></head><body><main>
-<header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 이 화면에서만 계산되고 어디에도 전송·저장되지 않아요</small></div><div class="btns"><button type="button" id="resetBtn">처음 값으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
+<header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 저장·전송되지 않아요</small></div><div class="btns"><button type="button" id="resetBtn">처음 값으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
 
 <div class="pick"><div class="pick-in">
   <div class="pick-now">선택한 업종<b id="nowLabel"></b></div>
@@ -102,7 +102,7 @@ a{color:var(--navy)}
       <label for="other">기타 고정비</label><input id="other" inputmode="numeric" data-money value="2000000">
       <label for="otherVar">기타 변동비</label><input id="otherVar" inputmode="numeric" data-money value="0">
     </div>
-    <p class="sub">금액은 원 단위, 부가세 제외로 넣어주세요.</p>
+    <p class="sub">원 단위, 부가세 제외</p>
   </section>
   <section class="panel"><h2>② 목표 <span class="tag" data-ind></span></h2>
     <div class="fields">
@@ -111,7 +111,7 @@ a{color:var(--navy)}
       <label for="refRent">임차료율 (%)</label><input id="refRent" inputmode="decimal">
       <label for="refProfit">영업이익률 (%)</label><input id="refProfit" inputmode="decimal">
     </div>
-    <p class="sub">업종을 바꾸면 이 값이 새로 채워져요. 직접 고쳐도 됩니다.</p>
+    <p class="sub">업종을 바꾸면 새로 채워져요. 직접 고쳐도 돼요.</p>
   </section>
 </aside>
 
@@ -141,7 +141,7 @@ a{color:var(--navy)}
     <section class="panel"><h2>공식 조사와 비교 <span class="tag" data-ind></span></h2>
       <div id="officialBars"></div>
       <div class="key"><span><i style="background:#3178b9"></i>우리 매장</span><span><i style="background:#d89b52;width:3px"></i>조사 평균</span></div>
-      <p class="legend-note">비용 비율은 전체 외식업체 평균이에요. 월매출만 내 업종 평균과 비교해요. 자세한 기준은 맨 아래 "기준 안내"를 봐주세요.</p>
+      <p class="legend-note">비용 비율은 전체 외식업체 평균, 월 매출만 내 업종 평균이에요.</p>
     </section>
   </div>
 
@@ -158,11 +158,11 @@ a{color:var(--navy)}
 
   <section class="panel"><h2>⑦ 먼저 손볼 곳 <span class="tag" data-ind></span></h2><div class="recs" id="recs"></div></section>
 
-  <details><summary>기준 안내 (꼭 읽어주세요)</summary>
-    <p><b>공식 조사:</b> 2025년 외식업체 경영실태조사(2024년 실적, 전국 3,138개 업체)의 평균입니다. 영업이익률 8.7%와 식재료비율 40.7%는 조사에 나온 값이고, 인건비율(약 31%)과 임차료율(약 7.7%)은 조사의 영업비용 구성비(인건비 33.9%, 임차료 8.4%)를 매출 대비로 제가 환산한 값이에요. 이 평균들은 전체 외식업체 기준이라 내 업종과 다를 수 있어요. 월매출 비교는 해당 업종 평균 연매출을 12로 나눈 값이고, 업종별 비용 비율은 공개된 요약 자료에 없어요.</p>
-    <p><b>업종별 목표:</b> 한식·양식·카페 등 업종과 운영 형태별 목표는 연습용 초기 가정이에요. 검증된 업종 평균이 아니며 상권·배달 비중·규모에 따라 크게 달라집니다. 직접 고쳐서 쓰세요.</p>
-    <p><b>계산 방식:</b> 인건비는 고정비, 식재료·수수료·기타 변동비는 매출에 비례한다고 단순하게 봤어요. 감가상각·이자·세금을 빼면 실제 순이익과 차이가 납니다. 개선 효과는 입력한 가정의 계산 결과일 뿐이에요.</p>
-    <p>자료: <a href="https://www.mafra.go.kr/bbs/home/792/577439/artclView.do" target="_blank" rel="noopener">농림축산식품부 2025 외식업체 경영실태조사 발표</a> · <a href="https://www.yna.co.kr/view/AKR20260913025000030" target="_blank" rel="noopener">일반음식점 프라임코스트 시계열 분석</a></p>
+  <details><summary>기준 안내</summary>
+    <p><b>공식 조사:</b> 2025 외식업체 경영실태조사(2024년 실적, 3,138개 업체) 평균이에요. 인건비·임차료 비율은 조사의 비용 구성비를 매출 대비로 환산한 값이고, 업종별 비용 비율은 공개되지 않았어요.</p>
+    <p><b>업종별 목표:</b> 연습용 가정이에요. 상권·배달 비중·규모에 따라 다르니 고쳐서 쓰세요.</p>
+    <p><b>계산:</b> 인건비는 고정비, 나머지 비용은 매출에 비례한다고 단순화했어요. 감가상각·이자·세금은 빠져 있어요.</p>
+    <p>자료: <a href="https://www.mafra.go.kr/bbs/home/792/577439/artclView.do" target="_blank" rel="noopener">농림축산식품부 조사 발표</a> · <a href="https://www.yna.co.kr/view/AKR20260913025000030" target="_blank" rel="noopener">연합뉴스 분석</a></p>
   </details>
 </div>
 </div>
@@ -243,7 +243,7 @@ function render(){
   const wf=[['고정비',fixed],['변동비',variable],['영업이익',profit],['BEP 매출',bep]];
   const mx=Math.max(sales,fixed,variable,Math.abs(profit),isFinite(bep)?bep:0,1);
   $('bepChart').innerHTML=wf.map(([n,x])=>`<div class="wfrow"><span>${n}</span><div class="track" style="height:13px"><i style="width:${isFinite(x)?clamp(Math.abs(x)/mx*100,0,100):0}%;background:${x<0?'#d26d6d':n==='영업이익'?'#48a17a':'#477fb6'}"></i></div><b>${isFinite(x)?short(x):'불가'}</b></div>`).join('');
-  $('bepExplain').textContent=isFinite(bep)?`고정비 ${short(fixed)} ÷ 공헌이익률 ${pct(cm)} = ${short(bep)}`:'변동비가 매출보다 커서 계산할 수 없어요.';
+  $('bepExplain').textContent=isFinite(bep)?`고정비 ${short(fixed)} ÷ 공헌이익률 ${pct(cm)}`:'변동비가 매출보다 커서 계산할 수 없어요.';
   // 시뮬레이션
   const growth=num($('sSales').value),foodPoint=num($('sFood').value),laborSave=v('sLabor'),fixedSave=v('sFixed');
   const newSales=Math.max(0,sales*(1+growth/100)),foodRate=sales?food/sales:0,otherVarRate=sales?(delivery+card+otherVar)/sales:0;
@@ -258,13 +258,13 @@ function render(){
   }).join('')+'<div class="key"><span><i style="background:#9aa9ba"></i>지금</span><span><i style="background:#39a18c"></i>개선 후 (적자는 빨강)</span></div>';
   // 먼저 손볼 곳 (효과가 큰 순서, 최대 3개)
   const recs=[];
-  if(isFinite(bep)&&sales<bep)recs.push([1e15,'손익분기점 미달',`월매출이 약 <span class="amt">${short(bep-sales)}</span> 더 필요해요. 같은 효과의 비용 개선도 방법이에요.`]);
-  if(values[0]>refs[0]){const d=(values[0]-refs[0])/100*sales;recs.push([d,'식재료 원가',`목표 ${refs[0]}%까지 낮추면 월 약 <span class="amt">${short(d)}</span> 개선돼요. 레시피 원가, 폐기, 구매 단가를 점검하세요.`]);}
-  if(values[1]>refs[1]){const d=(values[1]-refs[1])/100*sales;recs.push([d,'인건비 구조',`목표 ${refs[1]}% 수준이면 월 약 <span class="amt">${short(d)}</span> 차이예요. 시간대별 인원 배치를 살펴보세요.`]);}
-  if(values[2]>refs[2]){const d=(values[2]-refs[2])/100*sales;recs.push([d,'임차료 부담',`목표와 월 약 <span class="amt">${short(d)}</span> 차이예요. 줄이기보다 매출을 늘리거나 공간을 더 쓰는 쪽을 검토하세요.`]);}
-  if(values[3]<refs[3]){const d=(refs[3]-values[3])/100*sales;recs.push([d/2,'이익률 목표',`지금 매출 그대로 목표 ${refs[3]}%에 닿으려면 월 약 <span class="amt">${short(d)}</span> 이익이 더 필요해요.`]);}
+  if(isFinite(bep)&&sales<bep)recs.push([1e15,'손익분기점 미달',`월매출이 약 <span class="amt">${short(bep-sales)}</span> 더 필요해요.`]);
+  if(values[0]>refs[0]){const d=(values[0]-refs[0])/100*sales;recs.push([d,'식재료 원가',`목표 ${refs[0]}%까지 낮추면 월 약 <span class="amt">${short(d)}</span> 개선돼요.`]);}
+  if(values[1]>refs[1]){const d=(values[1]-refs[1])/100*sales;recs.push([d,'인건비 구조',`목표 ${refs[1]}%면 월 약 <span class="amt">${short(d)}</span> 차이예요.`]);}
+  if(values[2]>refs[2]){const d=(values[2]-refs[2])/100*sales;recs.push([d,'임차료 부담',`목표와 월 약 <span class="amt">${short(d)}</span> 차이예요.`]);}
+  if(values[3]<refs[3]){const d=(refs[3]-values[3])/100*sales;recs.push([d/2,'이익률 목표',`목표 ${refs[3]}%까지 월 약 <span class="amt">${short(d)}</span> 이익이 더 필요해요.`]);}
   recs.sort((a,b)=>b[0]-a[0]);
-  if(!recs.length)recs.push([0,'큰 문제 없음','입력한 목표에 대체로 맞아요. 달마다 원가 변화를 계속 확인하세요.']);
+  if(!recs.length)recs.push([0,'큰 문제 없음','입력한 목표에 대체로 맞아요.']);
   $('recs').innerHTML=recs.slice(0,3).map((r,i)=>`<div class="rec"><b class="t">${i+1}. ${r[1]}</b>${r[2]}</div>`).join('');
 }
 $('industry').addEventListener('change',loadRef);$('format').addEventListener('change',loadRef);

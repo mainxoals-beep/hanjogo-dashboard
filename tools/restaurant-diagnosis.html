@@ -13,7 +13,7 @@ h2{margin:0 0 12px;font-size:16px;display:flex;align-items:center;gap:8px;flex-w
 button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer}
 button.primary{background:var(--navy);border-color:var(--navy);color:#fff}
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid #6c9ac8;outline-offset:2px}
-/* 지금 진단 중인 업종: 화면 위에 붙어 다니며 어디서나 보입니다 */
+/* 선택한 업종: 화면 위에 붙어 다니며 어디서나 보입니다 */
 .pick{position:sticky;top:0;z-index:5;margin:0 -16px 14px;padding:10px 16px;background:rgba(243,246,250,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
 .pick-in{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid var(--accent);border-radius:14px;padding:10px 14px}
 .pick-now{font-size:12px;font-weight:800;color:var(--accent)}
@@ -80,7 +80,7 @@ a{color:var(--navy)}
 <header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 이 화면에서만 계산되고 어디에도 전송·저장되지 않아요</small></div><div class="btns"><button type="button" id="resetBtn">처음 값으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
 
 <div class="pick"><div class="pick-in">
-  <div class="pick-now">지금 진단 중<b id="nowLabel"></b></div>
+  <div class="pick-now">선택한 업종<b id="nowLabel"></b></div>
   <div class="pick-sel"><label>업종<select id="industry"></select></label><label>운영 형태<select id="format"></select></label></div>
 </div></div>
 
@@ -140,8 +140,8 @@ a{color:var(--navy)}
     </section>
     <section class="panel"><h2>공식 조사와 비교 <span class="tag" data-ind></span></h2>
       <div id="officialBars"></div>
-      <div class="key"><span><i style="background:#3178b9"></i>우리 매장</span><span><i style="background:#d89b52"></i>조사 평균</span></div>
-      <p class="legend-note">업종별 평균이 아니에요. 자세한 기준은 맨 아래 "기준 안내"를 봐주세요.</p>
+      <div class="key"><span><i style="background:#3178b9"></i>우리 매장</span><span><i style="background:#d89b52;width:3px"></i>조사 평균</span></div>
+      <p class="legend-note">비용 비율은 전체 외식업체 평균이에요. 월매출만 내 업종 평균과 비교해요. 자세한 기준은 맨 아래 "기준 안내"를 봐주세요.</p>
     </section>
   </div>
 
@@ -159,7 +159,7 @@ a{color:var(--navy)}
   <section class="panel"><h2>⑦ 먼저 손볼 곳 <span class="tag" data-ind></span></h2><div class="recs" id="recs"></div></section>
 
   <details><summary>기준 안내 (꼭 읽어주세요)</summary>
-    <p><b>공식 조사:</b> 2025년 외식업체 경영실태조사(2024년 실적, 전국 3,138개 업체)의 평균 영업이익률 8.7%, 일반음식점의 식재료비+인건비 71.6%를 참고선으로 보여줍니다. 71.6%는 일반음식점 기준이라 다른 업종과 같은 집단의 평균이 아닙니다.</p>
+    <p><b>공식 조사:</b> 2025년 외식업체 경영실태조사(2024년 실적, 전국 3,138개 업체)의 평균입니다. 영업이익률 8.7%와 식재료비율 40.7%는 조사에 나온 값이고, 인건비율(약 31%)과 임차료율(약 7.7%)은 조사의 영업비용 구성비(인건비 33.9%, 임차료 8.4%)를 매출 대비로 제가 환산한 값이에요. 이 평균들은 전체 외식업체 기준이라 내 업종과 다를 수 있어요. 월매출 비교는 해당 업종 평균 연매출을 12로 나눈 값이고, 업종별 비용 비율은 공개된 요약 자료에 없어요.</p>
     <p><b>업종별 목표:</b> 한식·양식·카페 등 업종과 운영 형태별 목표는 연습용 초기 가정이에요. 검증된 업종 평균이 아니며 상권·배달 비중·규모에 따라 크게 달라집니다. 직접 고쳐서 쓰세요.</p>
     <p><b>계산 방식:</b> 인건비는 고정비, 식재료·수수료·기타 변동비는 매출에 비례한다고 단순하게 봤어요. 감가상각·이자·세금을 빼면 실제 순이익과 차이가 납니다. 개선 효과는 입력한 가정의 계산 결과일 뿐이에요.</p>
     <p>자료: <a href="https://www.mafra.go.kr/bbs/home/792/577439/artclView.do" target="_blank" rel="noopener">농림축산식품부 2025 외식업체 경영실태조사 발표</a> · <a href="https://www.yna.co.kr/view/AKR20260913025000030" target="_blank" rel="noopener">일반음식점 프라임코스트 시계열 분석</a></p>
@@ -172,6 +172,8 @@ const types={'한식':[33,27,10,12],'양식':[32,29,11,12],'일식':[35,28,11,11
 const formats={'홀 중심':[0,0,0,0],'파인다이닝·코스':[4,5,1,-3],'배달 중심':[1,-4,-4,-2],'포장·테이크아웃':[0,-3,-2,1],'뷔페·대량조리':[3,-3,0,0],'예약제·케이터링':[4,0,-3,-1]};
 // 업종마다 색이 달라서, 화면 어디서든 지금 어떤 업종인지 색으로도 알아볼 수 있어요.
 const accents={'한식':'#b4532a','양식':'#174a7e','일식':'#7b3f98','중식':'#c0392b','카페':'#7a5a2e','베이커리':'#b8860b','케이터링':'#2a7f62','주점·바':'#5b3fa0','패스트푸드':'#d2691e','분식·간편식':'#c2185b','기타':'#52606d'};
+// 2025 외식업체 경영실태조사(2024년 실적) 업종별 평균 연매출(만원). 이름은 조사의 세부 업종명입니다.
+const SURVEY_SALES={'한식':['한식 음식점업',29106],'양식':['서양식 음식점업',27110],'일식':['일식 음식점업',33924],'중식':['중식 음식점업',25824],'카페':['비알코올 음료점',19033],'베이커리':['제과점업',25843],'케이터링':['출장·이동 음식점업',37332],'주점·바':['주점업',20199],'패스트푸드':['피자·햄버거·샌드위치 전문점',30267],'분식·간편식':['김밥 및 기타 간이 음식점업',19017],'기타':['전체 외식업체',25526]};
 const labels=['식재료','인건비','임대료','공과금','배달수수료','카드수수료','마케팅','기타고정','기타변동','영업이익'];
 const colors=['#2c6d9c','#6ba7ca','#efae61','#83b8a5','#9d87c5','#d7b778','#d98b91','#9daaba','#5a8197','#48a17a'];
 const $=id=>document.getElementById(id);
@@ -231,9 +233,11 @@ function render(){
     return `<div class="row"><div class="row-top"><span>${name} <b>${values[i].toFixed(1)}%</b> <small style="color:var(--mute)">/ ${esc(who_)} 목표 ${refs[i].toFixed(1)}%</small></span><span class="chip ${st[0]}">${st[1]}</span></div><div class="track"><i style="width:${clamp(Math.abs(values[i])/scale*100,0,100)}%;background:${isProfit?'#48a17a':'#3c8bc1'}"></i><u style="left:${clamp(refs[i]/scale*100,0,100)}%"></u></div></div>`;
   }).join('');
   // 공식 조사
-  $('officialBars').innerHTML=[['식재료+인건비율',sales?(food+labor)/sales*100:0,71.6,'일반음식점 기준'],['영업이익률',sales?profit/sales*100:0,8.7,'외식업체 전체 평균']].map(([name,cur,avg,note])=>{
-    const scale=Math.max(cur,avg,1)*1.1;
-    return `<div class="row"><div class="row-top"><span><b>${name}</b> <small style="color:var(--mute)">${note}</small></span><span>${cur.toFixed(1)}% / ${avg}%</span></div><div class="track" style="margin-bottom:5px"><i style="width:${clamp(cur/scale*100,0,100)}%;background:#3178b9"></i></div><div class="track"><i style="width:${clamp(avg/scale*100,0,100)}%;background:#d89b52"></i></div></div>`;
+  const survey=SURVEY_SALES[$('industry').value]||SURVEY_SALES['기타'];
+  const offRows=[['식재료비율',sales?food/sales*100:0,40.7,'',v=>v.toFixed(1)+'%'],['인건비율',sales?labor/sales*100:0,30.9,'환산',v=>v.toFixed(1)+'%'],['임차료율',sales?rent/sales*100:0,7.7,'환산',v=>v.toFixed(1)+'%'],['영업이익률',sales?profit/sales*100:0,8.7,'',v=>v.toFixed(1)+'%'],['월 매출',sales/1e4,survey[1]/12,survey[0]+' 평균',v=>Math.round(v).toLocaleString('ko-KR')+'만원']];
+  $('officialBars').innerHTML=offRows.map(([name,cur,avg,note,f])=>{
+    const scale=Math.max(Math.abs(cur),avg,1)*1.2;
+    return `<div class="row"><div class="row-top"><span><b>${name}</b> <b style="color:#3178b9">${f(cur)}</b> <small style="color:var(--mute)">/ 조사 ${f(avg)}${note?' · '+note:''}</small></span></div><div class="track"><i style="width:${clamp(Math.abs(cur)/scale*100,0,100)}%;background:${cur<0?'#d26d6d':'#3178b9'}"></i><u style="left:${clamp(avg/scale*100,0,100)}%;background:#d89b52"></u></div></div>`;
   }).join('');
   // 손익분기점
   const wf=[['고정비',fixed],['변동비',variable],['영업이익',profit],['BEP 매출',bep]];

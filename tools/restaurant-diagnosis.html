@@ -49,7 +49,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 .track i{display:block;height:100%;border-radius:6px;background:#3c8bc1}
 .track u{position:absolute;top:-4px;bottom:-4px;width:3px;background:#18273a;border-radius:2px}
 .chip{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:800}
-.chip.good{background:#e3f4ec;color:var(--good)}.chip.warn{background:#fbf0d9;color:var(--warn)}.chip.bad{background:#fbe6e6;color:var(--bad)}
+.chip:not(.good):not(.warn):not(.bad){background:#eef1f5;color:var(--mute)}.chip.good{background:#e3f4ec;color:var(--good)}.chip.warn{background:#fbf0d9;color:var(--warn)}.chip.bad{background:#fbe6e6;color:var(--bad)}
 .legend-note{margin:8px 0 0;font-size:12px;color:var(--mute)}
 .wf{display:grid;gap:9px}
 .wfrow{display:grid;grid-template-columns:70px 1fr 82px;gap:8px;align-items:center;font-size:13px}
@@ -77,7 +77,7 @@ a{color:var(--navy)}
 @media(max-width:700px){main{padding:10px 10px 30px}.pick{position:static;margin:0 -10px 12px;padding:8px 10px}.pick-sel{margin-left:0;width:100%}.pick-sel label{flex:1}.pick-sel select{width:100%;min-width:0}.kpis{grid-template-columns:repeat(2,1fr)}.twocol,.recs{grid-template-columns:1fr}.scn,.res{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start}.fields{grid-template-columns:1fr 120px}}
 @media print{body{background:#fff}.pick{position:static;background:#fff}.btns{display:none}.panel,.kpi,details{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:280px 1fr}.left{position:static}details{display:block}@page{size:A3 landscape;margin:8mm}}
 </style></head><body><main>
-<header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 저장·전송되지 않아요</small></div><div class="btns"><button type="button" id="resetBtn">처음 값으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
+<header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 저장·전송되지 않아요</small></div><div class="btns"><button type="button" id="sampleBtn">예시 값 채우기</button><button type="button" id="zeroBtn">모두 0원으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
 
 <div class="pick"><div class="pick-in">
   <div class="pick-now">선택한 업종<b id="nowLabel"></b></div>
@@ -228,7 +228,7 @@ function render(){
   const names=['식재료비율','인건비율','임차료율','영업이익률'];
   $('compare').innerHTML=names.map((name,i)=>{
     const diff=values[i]-refs[i],isProfit=i===3,worse=isProfit?-diff:diff;
-    const st=worse<=0?['good','양호']:worse<2?['warn','근접']:['bad','개선 필요'];
+    const st=!sales?['','입력 전']:worse<=0?['good','양호']:worse<2?['warn','근접']:['bad','개선 필요'];
     const scale=Math.max(values[i],refs[i],1)*1.25;
     return `<div class="row"><div class="row-top"><span>${name} <b>${values[i].toFixed(1)}%</b> <small style="color:var(--mute)">/ ${esc(who_)} 목표 ${refs[i].toFixed(1)}%</small></span><span class="chip ${st[0]}">${st[1]}</span></div><div class="track"><i style="width:${clamp(Math.abs(values[i])/scale*100,0,100)}%;background:${isProfit?'#48a17a':'#3c8bc1'}"></i><u style="left:${clamp(refs[i]/scale*100,0,100)}%"></u></div></div>`;
   }).join('');
@@ -264,11 +264,17 @@ function render(){
   if(values[2]>refs[2]){const d=(values[2]-refs[2])/100*sales;recs.push([d,'임차료 부담',`목표와 월 약 <span class="amt">${short(d)}</span> 차이예요.`]);}
   if(values[3]<refs[3]){const d=(refs[3]-values[3])/100*sales;recs.push([d/2,'이익률 목표',`${refs[3]}%까지 월 약 <span class="amt">${short(d)}</span> 이익이 더 필요해요.`]);}
   recs.sort((a,b)=>b[0]-a[0]);
-  if(!recs.length)recs.push([0,'큰 문제 없음','입력한 목표에 대체로 맞아요.']);
+  if(!sales)recs.length=0,recs.push([0,'매출부터 입력해 주세요','월 매출과 비용을 넣으면 진단이 시작돼요.']);
+  else if(!recs.length)recs.push([0,'큰 문제 없음','입력한 목표에 대체로 맞아요.']);
   $('recs').innerHTML=recs.slice(0,3).map((r,i)=>`<div class="rec"><b class="t">${i+1}. ${r[1]}</b>${r[2]}</div>`).join('');
 }
 $('industry').addEventListener('change',loadRef);$('format').addEventListener('change',loadRef);
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',render));
-$('resetBtn').addEventListener('click',()=>location.reload());
+$('sampleBtn').addEventListener('click',()=>location.reload());
+// 금액·고객수·좌석 수와 개선 시뮬레이션 값을 모두 0으로 비웁니다. 영업일(26일)과 업종은 그대로 둡니다.
+$('zeroBtn').addEventListener('click',()=>{
+  ['sales','guests','seats','food','labor','rent','utility','delivery','card','marketing','other','otherVar','sSales','sFood','sLabor','sFixed'].forEach(id=>$(id).value='0');
+  render();$('sales').focus();$('sales').select();
+});
 $('industry').value='양식';loadRef();
 </script></body></html>

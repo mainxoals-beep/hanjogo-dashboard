@@ -1,0 +1,270 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>외식업 손익 진단</title>
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--ink:#18273a;--sub:#4d5f73;--mute:#6b7b8d;--line:#e1e7ef;--navy:#174a7e;--soft:#e9eff6;--good:#18855a;--warn:#a8710f;--bad:#c44949;--accent:#174a7e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif}
+main{max-width:1280px;margin:0 auto;padding:16px 16px 40px}
+button,select,input{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+h1{margin:0;font-size:22px}
+header small{color:var(--mute);font-size:13px}
+h2{margin:0 0 12px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btns{display:flex;gap:8px}
+button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer}
+button.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid #6c9ac8;outline-offset:2px}
+/* 지금 진단 중인 업종: 화면 위에 붙어 다니며 어디서나 보입니다 */
+.pick{position:sticky;top:0;z-index:5;margin:0 -16px 14px;padding:10px 16px;background:rgba(243,246,250,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.pick-in{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid var(--accent);border-radius:14px;padding:10px 14px}
+.pick-now{font-size:12px;font-weight:800;color:var(--accent)}
+.pick-now b{display:block;font-size:19px;color:var(--ink);line-height:1.25}
+.pick-sel{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.pick-sel label{display:grid;gap:2px;font-size:12px;font-weight:700;color:var(--sub)}
+.pick-sel select{min-width:140px;padding:8px 10px;border:1px solid #c5d3e3;border-radius:9px;background:#f6faff;font-size:14px;font-weight:700}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--accent) 12%,#fff);color:var(--accent);font-size:12px;font-weight:800;border:1px solid color-mix(in srgb,var(--accent) 35%,#fff)}
+.layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:14px;align-items:start}
+.left{position:sticky;top:96px;display:grid;gap:14px;max-height:calc(100vh - 110px);overflow:auto;align-content:start}
+.right{display:grid;gap:14px;min-width:0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 6px #213c5408}
+.fields{display:grid;grid-template-columns:1fr 132px;gap:8px;align-items:center;font-size:13px}
+.fields input{width:100%;min-width:0;padding:8px 9px;border:1px solid #cad8e8;border-radius:8px;background:#f6faff;text-align:right;font-variant-numeric:tabular-nums}
+.sub{margin:10px 0 0;font-size:12px;color:var(--mute)}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}
+.kpi label{font-size:12px;color:var(--sub);font-weight:700}
+.kpi strong{display:block;margin:6px 0 2px;font-size:21px;font-variant-numeric:tabular-nums}
+.kpi small{font-size:12px;color:var(--mute)}
+.kpi.bad strong{color:var(--bad)}.kpi.good strong{color:var(--good)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chartrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.donut{width:150px;height:150px;flex:none;border-radius:50%;position:relative}
+.donut:after{content:'';position:absolute;inset:32px;border-radius:50%;background:#fff}
+.legend{display:grid;gap:5px;font-size:13px;flex:1;min-width:150px}
+.legend div{display:flex;justify-content:space-between;gap:6px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
+.row{padding:10px 0;border-top:1px solid var(--line)}.row:first-of-type{border-top:0;padding-top:0}
+.row-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;margin-bottom:6px}
+.row-top b{font-size:14px}
+.track{position:relative;height:10px;border-radius:6px;background:#e8edf3}
+.track i{display:block;height:100%;border-radius:6px;background:#3c8bc1}
+.track u{position:absolute;top:-4px;bottom:-4px;width:3px;background:#18273a;border-radius:2px}
+.chip{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:800}
+.chip.good{background:#e3f4ec;color:var(--good)}.chip.warn{background:#fbf0d9;color:var(--warn)}.chip.bad{background:#fbe6e6;color:var(--bad)}
+.legend-note{margin:8px 0 0;font-size:12px;color:var(--mute)}
+.wf{display:grid;gap:9px}
+.wfrow{display:grid;grid-template-columns:70px 1fr 82px;gap:8px;align-items:center;font-size:13px}
+.wfrow b{text-align:right;font-variant-numeric:tabular-nums}
+.scn{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.scn label{display:block;margin-bottom:4px;font-size:12px;font-weight:700;color:var(--sub)}
+.scn input{width:100%;padding:8px;border:1px solid #cad8e8;border-radius:8px;background:#f6faff;text-align:center}
+.res{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
+.res div{background:#f1f6fb;border-radius:10px;padding:10px 12px;font-size:12px;color:var(--sub)}
+.res b{display:block;margin-top:2px;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
+.ba{margin-top:14px;display:grid;gap:12px}
+.ba-t{font-size:13px;font-weight:700;margin-bottom:5px}
+.ba .track{height:12px;margin-bottom:5px}
+.recs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rec{border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;line-height:1.6}
+.rec b.t{display:block;margin-bottom:4px;font-size:14px}
+.rec .amt{color:var(--navy);font-weight:800}
+details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:13px;line-height:1.7;color:var(--sub)}
+summary{cursor:pointer;font-weight:800;color:var(--ink)}
+details p{margin:8px 0 0}
+a{color:var(--navy)}
+.key{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--mute)}
+.key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.left{position:static;max-height:none;overflow:visible}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){main{padding:10px 10px 30px}.pick{position:static;margin:0 -10px 12px;padding:8px 10px}.pick-sel{margin-left:0;width:100%}.pick-sel label{flex:1}.pick-sel select{width:100%;min-width:0}.kpis{grid-template-columns:repeat(2,1fr)}.twocol,.recs{grid-template-columns:1fr}.scn,.res{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start}.fields{grid-template-columns:1fr 120px}}
+@media print{body{background:#fff}.pick{position:static;background:#fff}.btns{display:none}.panel,.kpi,details{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:280px 1fr}.left{position:static}details{display:block}@page{size:A3 landscape;margin:8mm}}
+</style></head><body><main>
+<header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 이 화면에서만 계산되고 어디에도 전송·저장되지 않아요</small></div><div class="btns"><button type="button" id="resetBtn">처음 값으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
+
+<div class="pick"><div class="pick-in">
+  <div class="pick-now">지금 진단 중<b id="nowLabel"></b></div>
+  <div class="pick-sel"><label>업종<select id="industry"></select></label><label>운영 형태<select id="format"></select></label></div>
+</div></div>
+
+<div class="layout">
+<aside class="left">
+  <section class="panel"><h2>① 월간 실적</h2>
+    <div class="fields">
+      <label for="sales">월 매출</label><input id="sales" inputmode="numeric" data-money value="50000000">
+      <label for="days">월 영업일</label><input id="days" inputmode="numeric" data-money value="26">
+      <label for="guests">월 방문 고객수</label><input id="guests" inputmode="numeric" data-money value="2000">
+      <label for="seats">좌석 수</label><input id="seats" inputmode="numeric" data-money value="28">
+      <label for="food">식재료·상품 원가</label><input id="food" inputmode="numeric" data-money value="15000000">
+      <label for="labor">인건비 (사업주 포함)</label><input id="labor" inputmode="numeric" data-money value="12000000">
+      <label for="rent">임대료·관리비</label><input id="rent" inputmode="numeric" data-money value="4000000">
+      <label for="utility">수도·전기·가스</label><input id="utility" inputmode="numeric" data-money value="1000000">
+      <label for="delivery">배달·플랫폼 수수료</label><input id="delivery" inputmode="numeric" data-money value="2500000">
+      <label for="card">카드·결제 수수료</label><input id="card" inputmode="numeric" data-money value="500000">
+      <label for="marketing">광고·마케팅</label><input id="marketing" inputmode="numeric" data-money value="500000">
+      <label for="other">기타 고정비</label><input id="other" inputmode="numeric" data-money value="2000000">
+      <label for="otherVar">기타 변동비</label><input id="otherVar" inputmode="numeric" data-money value="0">
+    </div>
+    <p class="sub">금액은 원 단위, 부가세 제외로 넣어주세요.</p>
+  </section>
+  <section class="panel"><h2>② 목표 <span class="tag" data-ind></span></h2>
+    <div class="fields">
+      <label for="refFood">식재료비율 (%)</label><input id="refFood" inputmode="decimal">
+      <label for="refLabor">인건비율 (%)</label><input id="refLabor" inputmode="decimal">
+      <label for="refRent">임차료율 (%)</label><input id="refRent" inputmode="decimal">
+      <label for="refProfit">영업이익률 (%)</label><input id="refProfit" inputmode="decimal">
+    </div>
+    <p class="sub">업종을 바꾸면 이 값이 새로 채워져요. 직접 고쳐도 됩니다.</p>
+  </section>
+</aside>
+
+<div class="right">
+  <div class="kpis">
+    <div class="kpi" id="kProfit"><label>월 영업이익</label><strong id="profitK"></strong><small id="marginK"></small></div>
+    <div class="kpi"><label>손익분기점 매출</label><strong id="bepK"></strong><small id="bepDay"></small></div>
+    <div class="kpi" id="kSafety"><label>매출 안전마진</label><strong id="safetyK"></strong><small>현재 매출 기준</small></div>
+    <div class="kpi"><label>원가 + 인건비율</label><strong id="primeK"></strong><small>프라임코스트</small></div>
+    <div class="kpi"><label>객단가</label><strong id="ticketK"></strong><small id="seatK"></small></div>
+  </div>
+
+  <div class="twocol">
+    <section class="panel"><h2>③ 매출 대비 비용·이익 <span class="tag" data-ind></span></h2>
+      <div class="chartrow"><div class="donut" id="donut"></div><div class="legend" id="legend"></div></div>
+    </section>
+    <section class="panel"><h2>④ 목표 대비 진단 <span class="tag" data-ind></span></h2>
+      <div id="compare"></div>
+      <div class="key"><span><i style="background:#3c8bc1"></i>우리 매장</span><span><i style="background:#18273a;width:3px"></i>이 업종 목표</span></div>
+    </section>
+  </div>
+
+  <div class="twocol">
+    <section class="panel"><h2>⑤ 손익분기점 <span class="tag" data-ind></span></h2>
+      <div class="wf" id="bepChart"></div><p class="legend-note" id="bepExplain"></p>
+    </section>
+    <section class="panel"><h2>공식 조사와 비교 <span class="tag" data-ind></span></h2>
+      <div id="officialBars"></div>
+      <div class="key"><span><i style="background:#3178b9"></i>우리 매장</span><span><i style="background:#d89b52"></i>조사 평균</span></div>
+      <p class="legend-note">업종별 평균이 아니에요. 자세한 기준은 맨 아래 "기준 안내"를 봐주세요.</p>
+    </section>
+  </div>
+
+  <section class="panel"><h2>⑥ 개선 시뮬레이션 <span class="tag" data-ind></span></h2>
+    <div class="scn">
+      <div><label for="sSales">매출 증감 (%)</label><input id="sSales" inputmode="decimal" value="10"></div>
+      <div><label for="sFood">식재료비율 낮춤 (%p)</label><input id="sFood" inputmode="decimal" value="2"></div>
+      <div><label for="sLabor">인건비 절감 (원/월)</label><input id="sLabor" inputmode="numeric" data-money value="500000"></div>
+      <div><label for="sFixed">기타 고정비 절감 (원/월)</label><input id="sFixed" inputmode="numeric" data-money value="200000"></div>
+    </div>
+    <div class="res"><div>개선 후 월매출<b id="simSales"></b></div><div>개선 후 영업이익<b id="simProfit"></b></div><div>월 이익 증가<b id="simDelta"></b></div><div>개선 후 손익분기점<b id="simBep"></b></div></div>
+    <div class="ba" id="beforeAfter"></div>
+  </section>
+
+  <section class="panel"><h2>⑦ 먼저 손볼 곳 <span class="tag" data-ind></span></h2><div class="recs" id="recs"></div></section>
+
+  <details><summary>기준 안내 (꼭 읽어주세요)</summary>
+    <p><b>공식 조사:</b> 2025년 외식업체 경영실태조사(2024년 실적, 전국 3,138개 업체)의 평균 영업이익률 8.7%, 일반음식점의 식재료비+인건비 71.6%를 참고선으로 보여줍니다. 71.6%는 일반음식점 기준이라 다른 업종과 같은 집단의 평균이 아닙니다.</p>
+    <p><b>업종별 목표:</b> 한식·양식·카페 등 업종과 운영 형태별 목표는 연습용 초기 가정이에요. 검증된 업종 평균이 아니며 상권·배달 비중·규모에 따라 크게 달라집니다. 직접 고쳐서 쓰세요.</p>
+    <p><b>계산 방식:</b> 인건비는 고정비, 식재료·수수료·기타 변동비는 매출에 비례한다고 단순하게 봤어요. 감가상각·이자·세금을 빼면 실제 순이익과 차이가 납니다. 개선 효과는 입력한 가정의 계산 결과일 뿐이에요.</p>
+    <p>자료: <a href="https://www.mafra.go.kr/bbs/home/792/577439/artclView.do" target="_blank" rel="noopener">농림축산식품부 2025 외식업체 경영실태조사 발표</a> · <a href="https://www.yna.co.kr/view/AKR20260913025000030" target="_blank" rel="noopener">일반음식점 프라임코스트 시계열 분석</a></p>
+  </details>
+</div>
+</div>
+</main>
+<script>
+const types={'한식':[33,27,10,12],'양식':[32,29,11,12],'일식':[35,28,11,11],'중식':[32,27,10,12],'카페':[29,28,13,13],'베이커리':[34,30,12,11],'케이터링':[38,27,8,11],'주점·바':[28,28,12,13],'패스트푸드':[33,26,11,12],'분식·간편식':[34,25,10,12],'기타':[33,28,11,12]};
+const formats={'홀 중심':[0,0,0,0],'파인다이닝·코스':[4,5,1,-3],'배달 중심':[1,-4,-4,-2],'포장·테이크아웃':[0,-3,-2,1],'뷔페·대량조리':[3,-3,0,0],'예약제·케이터링':[4,0,-3,-1]};
+// 업종마다 색이 달라서, 화면 어디서든 지금 어떤 업종인지 색으로도 알아볼 수 있어요.
+const accents={'한식':'#b4532a','양식':'#174a7e','일식':'#7b3f98','중식':'#c0392b','카페':'#7a5a2e','베이커리':'#b8860b','케이터링':'#2a7f62','주점·바':'#5b3fa0','패스트푸드':'#d2691e','분식·간편식':'#c2185b','기타':'#52606d'};
+const labels=['식재료','인건비','임대료','공과금','배달수수료','카드수수료','마케팅','기타고정','기타변동','영업이익'];
+const colors=['#2c6d9c','#6ba7ca','#efae61','#83b8a5','#9d87c5','#d7b778','#d98b91','#9daaba','#5a8197','#48a17a'];
+const $=id=>document.getElementById(id);
+const num=s=>Number(String(s).replace(/[,\s]/g,''))||0;
+const v=id=>Math.max(0,num($(id).value));
+const fmt=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const short=n=>Math.abs(n)>=1e8?(n/1e8).toFixed(2)+'억원':(n/1e4).toFixed(0)+'만원';
+const pct=n=>(n*100).toFixed(1)+'%';
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+Object.keys(types).forEach(t=>$('industry').add(new Option(t,t)));
+Object.keys(formats).forEach(t=>$('format').add(new Option(t,t)));
+function moneyFmt(el){const raw=el.value.replace(/[^\d]/g,'');el.value=raw?Number(raw).toLocaleString('ko-KR'):'';}
+document.querySelectorAll('[data-money]').forEach(el=>{moneyFmt(el);el.addEventListener('input',()=>{const pos=el.value.length-el.selectionStart;moneyFmt(el);const p=Math.max(0,el.value.length-pos);try{el.setSelectionRange(p,p);}catch(e){}});});
+function who(){return $('industry').value+' · '+$('format').value;}
+function paintWho(){
+  const w=who();
+  document.documentElement.style.setProperty('--accent',accents[$('industry').value]||'#174a7e');
+  $('nowLabel').textContent=w;
+  document.querySelectorAll('[data-ind]').forEach(el=>el.textContent=w);
+  document.title='외식업 손익 진단 · '+w;
+}
+function loadRef(){
+  const base=types[$('industry').value],off=formats[$('format').value];
+  ['refFood','refLabor','refRent','refProfit'].forEach((id,i)=>$(id).value=Math.max(0,base[i]+off[i]));
+  render();
+}
+function render(){
+  paintWho();
+  const who_=$('industry').value;
+  const sales=v('sales'),food=v('food'),labor=v('labor'),rent=v('rent'),utility=v('utility'),delivery=v('delivery'),card=v('card'),marketing=v('marketing'),other=v('other'),otherVar=v('otherVar'),days=Math.max(1,v('days')),guests=v('guests'),seats=v('seats');
+  const fixed=labor+rent+utility+marketing+other,variable=food+delivery+card+otherVar,cost=fixed+variable,profit=sales-cost;
+  const vr=sales?variable/sales:0,cm=1-vr,bep=cm>0?fixed/cm:Infinity,safety=sales&&isFinite(bep)?(sales-bep)/sales:NaN;
+  $('profitK').textContent=short(profit);$('marginK').textContent='영업이익률 '+pct(sales?profit/sales:0);
+  $('kProfit').className='kpi '+(profit<0?'bad':'good');
+  $('bepK').textContent=isFinite(bep)?short(bep):'계산 불가';
+  $('bepDay').textContent=isFinite(bep)?'하루 '+short(bep/days):'변동비가 매출 이상';
+  $('safetyK').textContent=isFinite(safety)?pct(safety):'계산 불가';
+  $('kSafety').className='kpi '+(isFinite(safety)&&safety<0?'bad':'');
+  $('primeK').textContent=pct(sales?(food+labor)/sales:0);
+  $('ticketK').textContent=guests?fmt(sales/guests):'-';
+  $('seatK').textContent=seats?'좌석당 월 '+short(sales/seats):'좌석 수 미입력';
+  // 도넛
+  const arr=[food,labor,rent,utility,delivery,card,marketing,other,otherVar,Math.max(0,profit)];
+  const total=arr.reduce((a,b)=>a+b,0);let angle=0;const stops=[];
+  arr.forEach((x,i)=>{const next=angle+(total?x/total*100:0);stops.push(colors[i]+' '+angle+'% '+next+'%');angle=next;});
+  $('donut').style.background=total?'conic-gradient('+stops.join(',')+')':'#e8edf3';
+  $('legend').innerHTML=arr.map((x,i)=>x?`<div><span><i class="dot" style="background:${colors[i]}"></i>${labels[i]}</span><b>${pct(total?x/total:0)}</b></div>`:'').join('')+(profit<0?`<div style="color:var(--bad)"><span>영업손실</span><b>${short(profit)}</b></div>`:'');
+  // 목표 대비
+  const refs=[v('refFood'),v('refLabor'),v('refRent'),v('refProfit')];
+  const values=[sales?food/sales*100:0,sales?labor/sales*100:0,sales?rent/sales*100:0,sales?profit/sales*100:0];
+  const names=['식재료비율','인건비율','임차료율','영업이익률'];
+  $('compare').innerHTML=names.map((name,i)=>{
+    const diff=values[i]-refs[i],isProfit=i===3,worse=isProfit?-diff:diff;
+    const st=worse<=0?['good','양호']:worse<2?['warn','근접']:['bad','개선 필요'];
+    const scale=Math.max(values[i],refs[i],1)*1.25;
+    return `<div class="row"><div class="row-top"><span>${name} <b>${values[i].toFixed(1)}%</b> <small style="color:var(--mute)">/ ${esc(who_)} 목표 ${refs[i].toFixed(1)}%</small></span><span class="chip ${st[0]}">${st[1]}</span></div><div class="track"><i style="width:${clamp(Math.abs(values[i])/scale*100,0,100)}%;background:${isProfit?'#48a17a':'#3c8bc1'}"></i><u style="left:${clamp(refs[i]/scale*100,0,100)}%"></u></div></div>`;
+  }).join('');
+  // 공식 조사
+  $('officialBars').innerHTML=[['식재료+인건비율',sales?(food+labor)/sales*100:0,71.6,'일반음식점 기준'],['영업이익률',sales?profit/sales*100:0,8.7,'외식업체 전체 평균']].map(([name,cur,avg,note])=>{
+    const scale=Math.max(cur,avg,1)*1.1;
+    return `<div class="row"><div class="row-top"><span><b>${name}</b> <small style="color:var(--mute)">${note}</small></span><span>${cur.toFixed(1)}% / ${avg}%</span></div><div class="track" style="margin-bottom:5px"><i style="width:${clamp(cur/scale*100,0,100)}%;background:#3178b9"></i></div><div class="track"><i style="width:${clamp(avg/scale*100,0,100)}%;background:#d89b52"></i></div></div>`;
+  }).join('');
+  // 손익분기점
+  const wf=[['고정비',fixed],['변동비',variable],['영업이익',profit],['BEP 매출',bep]];
+  const mx=Math.max(sales,fixed,variable,Math.abs(profit),isFinite(bep)?bep:0,1);
+  $('bepChart').innerHTML=wf.map(([n,x])=>`<div class="wfrow"><span>${n}</span><div class="track" style="height:13px"><i style="width:${isFinite(x)?clamp(Math.abs(x)/mx*100,0,100):0}%;background:${x<0?'#d26d6d':n==='영업이익'?'#48a17a':'#477fb6'}"></i></div><b>${isFinite(x)?short(x):'불가'}</b></div>`).join('');
+  $('bepExplain').textContent=isFinite(bep)?`고정비 ${short(fixed)} ÷ 공헌이익률 ${pct(cm)} = ${short(bep)}`:'변동비가 매출보다 커서 계산할 수 없어요.';
+  // 시뮬레이션
+  const growth=num($('sSales').value),foodPoint=num($('sFood').value),laborSave=v('sLabor'),fixedSave=v('sFixed');
+  const newSales=Math.max(0,sales*(1+growth/100)),foodRate=sales?food/sales:0,otherVarRate=sales?(delivery+card+otherVar)/sales:0;
+  const newFoodRate=clamp(foodRate-foodPoint/100,0,1),newLabor=Math.max(0,labor-laborSave),newFixed=Math.max(0,rent+utility+marketing+other-fixedSave);
+  const newProfit=newSales-newSales*(newFoodRate+otherVarRate)-newLabor-newFixed,newCm=1-newFoodRate-otherVarRate,newBep=newCm>0?(newLabor+newFixed)/newCm:Infinity;
+  $('simSales').textContent=short(newSales);$('simProfit').textContent=short(newProfit);
+  $('simDelta').textContent=(newProfit-profit>=0?'+':'')+short(newProfit-profit);
+  $('simBep').textContent=isFinite(newBep)?short(newBep):'계산 불가';
+  $('beforeAfter').innerHTML=[['월매출',sales,newSales],['월 영업이익',profit,newProfit],['손익분기점',bep,newBep]].map(([label,a,b])=>{
+    const max=Math.max(isFinite(a)?Math.abs(a):0,isFinite(b)?Math.abs(b):0,1);
+    return `<div><div class="ba-t">${label} <small style="color:var(--mute);font-weight:600">${isFinite(a)?short(a):'불가'} → ${isFinite(b)?short(b):'불가'}</small></div><div class="track"><i style="width:${isFinite(a)?clamp(Math.abs(a)/max*100,0,100):0}%;background:#9aa9ba"></i></div><div class="track"><i style="width:${isFinite(b)?clamp(Math.abs(b)/max*100,0,100):0}%;background:${b<0?'#d26d6d':'#39a18c'}"></i></div></div>`;
+  }).join('')+'<div class="key"><span><i style="background:#9aa9ba"></i>지금</span><span><i style="background:#39a18c"></i>개선 후 (적자는 빨강)</span></div>';
+  // 먼저 손볼 곳 (효과가 큰 순서, 최대 3개)
+  const recs=[];
+  if(isFinite(bep)&&sales<bep)recs.push([1e15,'손익분기점 미달',`월매출이 약 <span class="amt">${short(bep-sales)}</span> 더 필요해요. 같은 효과의 비용 개선도 방법이에요.`]);
+  if(values[0]>refs[0]){const d=(values[0]-refs[0])/100*sales;recs.push([d,'식재료 원가',`목표 ${refs[0]}%까지 낮추면 월 약 <span class="amt">${short(d)}</span> 개선돼요. 레시피 원가, 폐기, 구매 단가를 점검하세요.`]);}
+  if(values[1]>refs[1]){const d=(values[1]-refs[1])/100*sales;recs.push([d,'인건비 구조',`목표 ${refs[1]}% 수준이면 월 약 <span class="amt">${short(d)}</span> 차이예요. 시간대별 인원 배치를 살펴보세요.`]);}
+  if(values[2]>refs[2]){const d=(values[2]-refs[2])/100*sales;recs.push([d,'임차료 부담',`목표와 월 약 <span class="amt">${short(d)}</span> 차이예요. 줄이기보다 매출을 늘리거나 공간을 더 쓰는 쪽을 검토하세요.`]);}
+  if(values[3]<refs[3]){const d=(refs[3]-values[3])/100*sales;recs.push([d/2,'이익률 목표',`지금 매출 그대로 목표 ${refs[3]}%에 닿으려면 월 약 <span class="amt">${short(d)}</span> 이익이 더 필요해요.`]);}
+  recs.sort((a,b)=>b[0]-a[0]);
+  if(!recs.length)recs.push([0,'큰 문제 없음','입력한 목표에 대체로 맞아요. 달마다 원가 변화를 계속 확인하세요.']);
+  $('recs').innerHTML=recs.slice(0,3).map((r,i)=>`<div class="rec"><b class="t">${i+1}. ${r[1]}</b>${r[2]}</div>`).join('');
+}
+$('industry').addEventListener('change',loadRef);$('format').addEventListener('change',loadRef);
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',render));
+$('resetBtn').addEventListener('click',()=>location.reload());
+$('industry').value='양식';loadRef();
+</script></body></html>

@@ -7,6 +7,7 @@
 - `schedule.html`: 동문 공개 페이지
 - `alumni-map.html`: 동문 매장 지도
 - `tools/store-finance.html`: 자료실에서 링크로 여는 매장 손익 대시보드(동문 공유 도구). 입력 자료는 쓰는 사람 브라우저에만 저장되고 서버로 보내지 않습니다.
+- `tools/restaurant-diagnosis.html`: 외식업 업종·운영형태별 손익 진단(동문 공유 도구). 입력값은 화면에서만 계산하고 저장·전송하지 않습니다.
 - `assets/raffle-roster.js`: 추첨 명단 로직 (`tests/`에서 테스트)
 - `assets/analytics.js`: 구글 애널리틱스(공개 페이지·지도 전용, 주소만 전송)
 - `supabase/`: Supabase 프로젝트 `siuresrjvrrezhwsjery` 관련 코드와 DB 변경 기록

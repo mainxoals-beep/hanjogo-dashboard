@@ -20,6 +20,11 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 .pick-now b{display:block;font-size:19px;color:var(--ink);line-height:1.25}
 .pick-sel{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
 .pick-sel label{display:grid;gap:2px;font-size:12px;font-weight:700;color:var(--sub)}
+.mix{display:grid;gap:2px;font-size:12px;font-weight:700;color:var(--sub)}
+.mix-in{display:flex;align-items:center;gap:8px;min-height:38px;padding:4px 10px;border:1px solid #c5d3e3;border-radius:9px;background:#f6faff;font-size:13px}
+.mix-in label{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--ink)}
+.mix-in input{width:48px;padding:5px;border:1px solid #cad8e8;border-radius:7px;background:#fff;text-align:right;font-size:14px;font-weight:700}
+.mix-in b{font-size:14px;min-width:26px;text-align:right}
 .pick-sel select{min-width:140px;padding:8px 10px;border:1px solid #c5d3e3;border-radius:9px;background:#f6faff;font-size:14px;font-weight:700}
 .tag{display:inline-block;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--accent) 12%,#fff);color:var(--accent);font-size:12px;font-weight:800;border:1px solid color-mix(in srgb,var(--accent) 35%,#fff)}
 .layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:14px;align-items:start}
@@ -74,14 +79,15 @@ a{color:var(--navy)}
 .key{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--mute)}
 .key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 @media(max-width:1000px){.layout{grid-template-columns:1fr}.left{position:static;max-height:none;overflow:visible}.kpis{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:700px){main{padding:10px 10px 30px}.pick{position:static;margin:0 -10px 12px;padding:8px 10px}.pick-sel{margin-left:0;width:100%}.pick-sel label{flex:1}.pick-sel select{width:100%;min-width:0}.kpis{grid-template-columns:repeat(2,1fr)}.twocol,.recs{grid-template-columns:1fr}.scn,.res{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start}.fields{grid-template-columns:1fr 120px}}
+@media(max-width:700px){main{padding:10px 10px 30px}.pick{position:static;margin:0 -10px 12px;padding:8px 10px}.pick-sel{margin-left:0;width:100%}.pick-sel label{flex:1}.pick-sel select{width:100%;min-width:0}.mix{width:100%}.mix-in{justify-content:space-between}.kpis{grid-template-columns:repeat(2,1fr)}.twocol,.recs{grid-template-columns:1fr}.scn,.res{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start}.fields{grid-template-columns:1fr 120px}}
 @media print{body{background:#fff}.pick{position:static;background:#fff}.btns{display:none}.panel,.kpi,details{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:280px 1fr}.left{position:static}details{display:block}@page{size:A3 landscape;margin:8mm}}
 </style></head><body><main>
 <header><div><h1>외식업 손익 진단</h1><small>한조고 동문 도구 · 입력한 숫자는 저장·전송되지 않아요</small></div><div class="btns"><button type="button" id="sampleBtn">예시 값 채우기</button><button type="button" id="zeroBtn">모두 0원으로</button><button type="button" class="primary" onclick="window.print()">인쇄 / PDF</button></div></header>
 
 <div class="pick"><div class="pick-in">
   <div class="pick-now">선택한 업종<b id="nowLabel"></b></div>
-  <div class="pick-sel"><label>업종<select id="industry"></select></label><label>운영 형태<select id="format"></select></label></div>
+  <div class="pick-sel"><label>업종<select id="industry"></select></label><label>매장 성격<select id="format"></select></label>
+    <div class="mix"><span>판매 비중</span><div class="mix-in"><label>배달<input id="shDelivery" inputmode="numeric" value="0">%</label><label>포장<input id="shTake" inputmode="numeric" value="0">%</label><label>홀<b id="shHall">100</b>%</label></div></div></div>
 </div></div>
 
 <div class="layout">
@@ -111,7 +117,7 @@ a{color:var(--navy)}
       <label for="refRent">임차료율 (%)</label><input id="refRent" inputmode="decimal">
       <label for="refProfit">영업이익률 (%)</label><input id="refProfit" inputmode="decimal">
     </div>
-    <p class="sub">업종을 바꾸면 새로 채워져요. 직접 고쳐도 돼요.</p>
+    <p class="sub">업종·판매 비중을 바꾸면 새로 채워져요. 직접 고쳐도 돼요.</p>
   </section>
 </aside>
 
@@ -169,7 +175,9 @@ a{color:var(--navy)}
 </main>
 <script>
 const types={'한식':[33,27,10,12],'양식':[32,29,11,12],'일식':[35,28,11,11],'중식':[32,27,10,12],'카페':[29,28,13,13],'베이커리':[34,30,12,11],'케이터링':[38,27,8,11],'주점·바':[28,28,12,13],'패스트푸드':[33,26,11,12],'분식·간편식':[34,25,10,12],'기타':[33,28,11,12]};
-const formats={'홀 중심':[0,0,0,0],'파인다이닝·코스':[4,5,1,-3],'배달 중심':[1,-4,-4,-2],'포장·테이크아웃':[0,-3,-2,1],'뷔페·대량조리':[3,-3,0,0],'예약제·케이터링':[4,0,-3,-1]};
+// 매장 성격(일반 / 파인다이닝 등)은 하나만 고르고, 홀·배달·포장은 매출 비중으로 섞어서 목표를 보정합니다.
+const formats={'일반':[0,0,0,0],'파인다이닝·코스':[4,5,1,-3],'뷔페·대량조리':[3,-3,0,0],'예약제·케이터링':[4,0,-3,-1]};
+const channelOff={delivery:[1,-4,-4,-2],take:[0,-3,-2,1]};
 // 업종마다 색이 달라서, 화면 어디서든 지금 어떤 업종인지 색으로도 알아볼 수 있어요.
 const accents={'한식':'#b4532a','양식':'#174a7e','일식':'#7b3f98','중식':'#c0392b','카페':'#7a5a2e','베이커리':'#b8860b','케이터링':'#2a7f62','주점·바':'#5b3fa0','패스트푸드':'#d2691e','분식·간편식':'#c2185b','기타':'#52606d'};
 // 2025 외식업체 경영실태조사(2024년 실적) 업종별 평균 연매출(만원). 이름은 조사의 세부 업종명입니다.
@@ -188,7 +196,15 @@ Object.keys(types).forEach(t=>$('industry').add(new Option(t,t)));
 Object.keys(formats).forEach(t=>$('format').add(new Option(t,t)));
 function moneyFmt(el){const raw=el.value.replace(/[^\d]/g,'');el.value=raw?Number(raw).toLocaleString('ko-KR'):'';}
 document.querySelectorAll('[data-money]').forEach(el=>{moneyFmt(el);el.addEventListener('input',()=>{const pos=el.value.length-el.selectionStart;moneyFmt(el);const p=Math.max(0,el.value.length-pos);try{el.setSelectionRange(p,p);}catch(e){}});});
-function who(){return $('industry').value+' · '+$('format').value;}
+function shares(){
+  const d=clamp(Math.round(num($('shDelivery').value)),0,100),t=clamp(Math.round(num($('shTake').value)),0,100-d);
+  return {d,t,h:100-d-t};
+}
+function who(){
+  const sh=shares(),mix=[['홀',sh.h],['배달',sh.d],['포장',sh.t]].filter(x=>x[1]>0).map(x=>x[0]+' '+x[1]+'%').join(' ');
+  const style=$('format').value==='일반'?'':' · '+$('format').value;
+  return $('industry').value+style+' · '+mix;
+}
 function paintWho(){
   const w=who();
   document.documentElement.style.setProperty('--accent',accents[$('industry').value]||'#174a7e');
@@ -197,8 +213,12 @@ function paintWho(){
   document.title='외식업 손익 진단 · '+w;
 }
 function loadRef(){
+  const sh=shares();$('shHall').textContent=sh.h;
   const base=types[$('industry').value],off=formats[$('format').value];
-  ['refFood','refLabor','refRent','refProfit'].forEach((id,i)=>$(id).value=Math.max(0,base[i]+off[i]));
+  ['refFood','refLabor','refRent','refProfit'].forEach((id,i)=>{
+    const adj=off[i]+(channelOff.delivery[i]*sh.d+channelOff.take[i]*sh.t)/100;
+    $(id).value=Math.max(0,Math.round((base[i]+adj)*2)/2);
+  });
   render();
 }
 function render(){
@@ -269,6 +289,12 @@ function render(){
   $('recs').innerHTML=recs.slice(0,3).map((r,i)=>`<div class="rec"><b class="t">${i+1}. ${r[1]}</b>${r[2]}</div>`).join('');
 }
 $('industry').addEventListener('change',loadRef);$('format').addEventListener('change',loadRef);
+['shDelivery','shTake'].forEach(id=>$(id).addEventListener('input',()=>{
+  const sh=shares();
+  if($('shDelivery').value!==''&&num($('shDelivery').value)!==sh.d)$('shDelivery').value=sh.d;
+  if($('shTake').value!==''&&num($('shTake').value)!==sh.t)$('shTake').value=sh.t;
+  loadRef();
+}));
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',render));
 $('sampleBtn').addEventListener('click',()=>location.reload());
 // 금액·고객수·좌석 수와 개선 시뮬레이션 값을 모두 0으로 비웁니다. 영업일(26일)과 업종은 그대로 둡니다.

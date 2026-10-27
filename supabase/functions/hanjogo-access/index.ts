@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.117.0";
+import { cleanSurveyAnswers, cleanSurveyQuestions, matchParticipants, summarizeSurvey, type SurveyQuestion } from "./event-survey.ts";
 
 const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
 const PROFILE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm2qyYr9BAEm-fyZvNyExxiPS9lcRBPi06n__Qq__WlRPvGF_Iou7x1lIjsmBgqpoqHo4M2syaFVxc/pub?gid=648141668&single=true&output=csv";
@@ -1028,6 +1029,145 @@ Deno.serve(async (req: Request) => {
       : await adminClient.from("hanjogo_spotlight_optout").delete().eq("email", email);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true, spotlightOptOut: Boolean(body.optOut) });
+  }
+
+  // ---- 모임 결산·만족도 조사 (참가자 전용) ------------------------------------
+  // 참가자 판단은 로그인한 이메일이 hanjogo_event_participants에 있는지로 합니다.
+  // 참가자가 아니면 상세 결산·설문 문항·자유 의견은 응답에 담지 않고, 간략 정보만 보냅니다.
+  if (action.startsWith("event_")) {
+    if (!inAlumniDb) return json({ allowed: false, error: "not_alumni" }, 403);
+    const eventKey = String(body.eventKey || "");
+    if (!/^[a-z0-9][a-z0-9-]{2,40}$/.test(eventKey)) return json({ error: "invalid_event" }, 400);
+    const { data: ev, error: evError } = await adminClient.from("hanjogo_event_info").select("*").eq("event_key", eventKey).maybeSingle();
+    if (evError) return json({ error: evError.message }, 500);
+    const questions = (cleanSurveyQuestions(ev?.survey_questions) || []) as SurveyQuestion[];
+    const loadResponses = async () => {
+      const { data, error } = await adminClient.from("hanjogo_event_survey_responses").select("answers").eq("event_key", eventKey);
+      if (error) throw error;
+      return (data || []) as { answers: Record<string, unknown> }[];
+    };
+    const isParticipant = async () => {
+      if (isAdmin) return true;
+      const { data, error } = await adminClient.from("hanjogo_event_participants").select("email").eq("event_key", eventKey).eq("email", email).maybeSingle();
+      if (error) throw error;
+      return Boolean(data);
+    };
+    try {
+      // 관리자: 모임 안내·결산·설문 문항 저장
+      if (action === "event_admin_save") {
+        if (!isAdmin) return json({ error: "forbidden" }, 403);
+        const title = String(body.title ?? ev?.title ?? "").trim().slice(0, 80);
+        if (!title) return json({ error: "title_required" }, 400);
+        const surveyQuestions = body.surveyQuestions === undefined ? (ev?.survey_questions ?? []) : cleanSurveyQuestions(body.surveyQuestions);
+        if (surveyQuestions === null) return json({ error: "invalid_questions" }, 400);
+        const asObject = (value: unknown, fallback: unknown) =>
+          value === undefined ? fallback : (value && typeof value === "object" && !Array.isArray(value) ? value : null);
+        const publicSummary = asObject(body.publicSummary, ev?.public_summary ?? {});
+        const detail = asObject(body.detail, ev?.detail ?? {});
+        if (publicSummary === null || detail === null) return json({ error: "invalid_body" }, 400);
+        const eventDate = body.eventDate === undefined ? (ev?.event_date ?? null) : (String(body.eventDate || "") || null);
+        if (eventDate && !/^\d{4}-\d{2}-\d{2}$/.test(String(eventDate))) return json({ error: "invalid_date" }, 400);
+        const { error } = await adminClient.from("hanjogo_event_info").upsert({
+          event_key: eventKey, title, event_date: eventDate,
+          published: body.published === undefined ? Boolean(ev?.published) : Boolean(body.published),
+          public_summary: publicSummary, detail,
+          survey_open: body.surveyOpen === undefined ? Boolean(ev?.survey_open) : Boolean(body.surveyOpen),
+          survey_questions: surveyQuestions, updated_at: new Date().toISOString(),
+        }, { onConflict: "event_key" });
+        if (error) return json({ error: error.message }, 500);
+        return json({ ok: true });
+      }
+
+      // 관리자: 참가자 명단을 동문 DB 이메일과 맞추기(preview 미리보기 / apply 저장), 수동 추가·삭제
+      if (action === "event_admin_participants") {
+        if (!isAdmin) return json({ error: "forbidden" }, 403);
+        if (!ev) return json({ error: "event_not_found" }, 404);
+        const mode = String(body.mode || "preview");
+        if (mode === "add") {
+          const who = normalizeEmail(body.email);
+          if (!who) return json({ error: "invalid_email" }, 400);
+          const { error } = await adminClient.from("hanjogo_event_participants").upsert(
+            { event_key: eventKey, email: who, name: cleanBoardText(body.name, 20) || null, generation: validGeneration(body.generation), source: "manual" },
+            { onConflict: "event_key,email" },
+          );
+          if (error) return json({ error: error.message }, 500);
+          return json({ ok: true });
+        }
+        if (mode === "remove") {
+          const { error } = await adminClient.from("hanjogo_event_participants").delete().eq("event_key", eventKey).eq("email", normalizeEmail(body.email));
+          if (error) return json({ error: error.message }, 500);
+          return json({ ok: true });
+        }
+        // 취소한 사람을 뺀 참가자 명단(내부 대시보드의 입금·참석 표)
+        const { data: state, error: stateError } = await adminClient.from("dashboard_state").select("data").eq("id", "main").maybeSingle();
+        if (stateError) return json({ error: stateError.message }, 500);
+        const payments = Array.isArray(state?.data?.participantPayments) ? state.data.participantPayments : [];
+        const roster = payments.filter((row: Record<string, unknown>) => String(row?.attendanceStatus || "") !== "cancelled");
+        const result = matchParticipants(roster, await alumniPeople());
+        if (mode === "apply") {
+          const { data: existing, error: existingError } = await adminClient.from("hanjogo_event_participants").select("email,source").eq("event_key", eventKey);
+          if (existingError) return json({ error: existingError.message }, 500);
+          const manual = new Set((existing || []).filter((row) => row.source === "manual").map((row) => row.email));
+          const rows = result.matched.filter((p) => !manual.has(p.email)).map((p) => ({ event_key: eventKey, email: p.email, name: p.name, generation: p.generation, source: "auto" }));
+          if (rows.length) {
+            const { error } = await adminClient.from("hanjogo_event_participants").upsert(rows, { onConflict: "event_key,email" });
+            if (error) return json({ error: error.message }, 500);
+          }
+        }
+        return json({ ok: true, mode, roster: roster.length, matched: result.matched.length, ambiguous: result.ambiguous, unmatched: result.unmatched });
+      }
+
+      // 관리자: 설문 결과 전체(자유 의견 포함, 응답자는 알 수 없음)
+      if (action === "event_admin_results") {
+        if (!isAdmin) return json({ error: "forbidden" }, 403);
+        const rows = await loadResponses();
+        const comments = questions.filter((q) => q.type === "text").map((q) => ({ id: q.id, label: q.label, answers: rows.map((r) => r.answers?.[q.id]).filter((a) => typeof a === "string" && a) }));
+        const { count } = await adminClient.from("hanjogo_event_participants").select("email", { count: "exact", head: true }).eq("event_key", eventKey);
+        return json({ allowed: true, participants: count ?? 0, ...summarizeSurvey(questions, rows), comments });
+      }
+
+      if (!ev || (!ev.published && !isAdmin)) return json({ allowed: true, exists: false });
+      const participant = await isParticipant();
+
+      // 참가자: 설문 제출(한 사람 한 번, 다시 보내면 수정)
+      if (action === "event_survey_submit") {
+        if (!participant || isAdmin) return json({ error: "participants_only" }, 403);
+        if (!ev.survey_open) return json({ error: "survey_closed" }, 409);
+        const cleaned = cleanSurveyAnswers(questions, body.answers);
+        if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+        const { error } = await adminClient.from("hanjogo_event_survey_responses").upsert(
+          { event_key: eventKey, email, answers: cleaned.answers, updated_at: new Date().toISOString() },
+          { onConflict: "event_key,email" },
+        );
+        if (error) return json({ error: error.message }, 500);
+        return json({ ok: true });
+      }
+
+      if (action === "event_state") {
+        const rows = await loadResponses();
+        const summary = summarizeSurvey(questions, rows);
+        const enough = rows.length >= 5;
+        const brief = {
+          title: ev.title, eventDate: ev.event_date, summary: ev.public_summary,
+          responseCount: enough ? rows.length : null, satisfaction: enough ? summary.overall : null,
+        };
+        if (!participant) return json({ allowed: true, exists: true, isParticipant: false, brief });
+        let mine: Record<string, unknown> | null = null;
+        if (!isAdmin) {
+          const { data, error } = await adminClient.from("hanjogo_event_survey_responses").select("answers").eq("event_key", eventKey).eq("email", email).maybeSingle();
+          if (error) throw error;
+          mine = data?.answers ?? null;
+        }
+        return json({
+          allowed: true, exists: true, isParticipant: true, brief, detail: ev.detail,
+          survey: { open: Boolean(ev.survey_open), questions, mine },
+          results: enough || isAdmin ? { responseCount: summary.responseCount, overall: summary.overall, ratings: summary.ratings, choices: summary.choices } : null,
+        });
+      }
+    } catch (error) {
+      return json({ error: String((error as { message?: string })?.message || error) }, 500);
+    }
+    return json({ error: "unknown_action" }, 400);
   }
 
   // ---- 기수별 스카프 색 설문 ------------------------------------------------

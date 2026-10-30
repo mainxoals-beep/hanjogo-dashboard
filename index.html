@@ -542,6 +542,15 @@
   .main-tab.active{background:var(--purple);color:#fff;}
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
+  .post-event-card{margin:0 0 16px;padding:16px;border:1px solid #d8ebe0;border-radius:14px;background:#f5fbf7}
+  .post-event-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+  .post-event-title{font-size:15px;font-weight:800}
+  .post-event-link{font-size:12px;font-weight:700;color:#1F7A4D}
+  .post-event-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .post-event-grid div{padding:10px;border-radius:10px;background:#fff;border:1px solid #e3efe7;font-size:12px;color:var(--ink-mute)}
+  .post-event-grid b{display:block;margin-top:2px;font-size:15px;word-break:keep-all;color:var(--ink);font-variant-numeric:tabular-nums}
+  .post-event-list{margin-top:10px;font-size:13px;line-height:1.7}
+  .post-event-list .row{display:flex;gap:6px}.post-event-list .tag{flex:0 0 auto;padding:0 8px;border-radius:99px;background:#fff3df;color:#9a5b00;font-size:11.5px;font-weight:800;line-height:20px;height:20px}
   .tab-intro{margin:-2px 0 18px;color:var(--ink-mute);font-size:12px;}
 
   /* ---------- announcements ---------- */
@@ -1267,11 +1276,12 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
 
   <nav class="main-tabs" id="mainTabs" aria-label="대시보드 메뉴">
     <button class="main-tab active" data-tab="home">홈</button>
-    <button class="main-tab raffle-main-tab" data-tab="raffle">🎁 경품 추첨</button>
+    <button class="main-tab raffle-main-tab" data-tab="raffle" hidden>🎁 경품 추첨</button>
     <button class="main-tab" data-tab="people">참가 · 입금</button>
-    <button class="main-tab" data-tab="operations">행사 운영</button>
+    <button class="main-tab" data-tab="operations" hidden>행사 운영</button>
     <button class="main-tab" data-tab="finance">협찬 · 재정</button>
     <button class="main-tab" data-tab="public">공지 · 홍보</button>
+    <button class="main-tab" data-tab="archive">📦 지난 행사 자료</button>
     <button class="main-tab" data-tab="system">시스템 설정</button>
   </nav>
 
@@ -1285,6 +1295,13 @@ document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.
       <div class="prog-label"><span>준비 일정 진행률</span><span id="phaseProgLabel">0 / 0</span></div>
       <div class="bar"><div class="bar-fill" id="phaseProgBar" style="width:0%"></div></div>
     </div>
+  </div>
+
+  <!-- ===== 행사 후 정리(10/18 모임 종료 후) ===== -->
+  <div class="post-event-card" id="postEventCard">
+    <div class="post-event-head"><div class="post-event-title">10/18 모임 정리</div><a class="post-event-link" href="./schedule.html" target="_blank" rel="noopener">외부 결산·설문 화면 열기</a></div>
+    <div class="post-event-grid" id="postEventGrid"></div>
+    <div class="post-event-list" id="postEventList"></div>
   </div>
 
   <!-- ===== 지금 확인할 것 ===== -->
@@ -2863,7 +2880,24 @@ function computeActionItems(){
   return out.slice(0,5);
 }
 
+// 10/18 모임 종료 후 홈 요약: 결산 숫자(예산 표의 실적), 환불 대기, 다음에 받을 참가비
+function renderPostEventCard(){
+  const grid=document.getElementById("postEventGrid"),list=document.getElementById("postEventList");
+  if(!grid||!list)return;
+  const rows=Array.isArray(state.budget)?state.budget:[];
+  const inc=rows.filter(r=>r.type==="income").reduce((n,r)=>n+Number(r.actual||0),0);
+  const exp=rows.filter(r=>r.type!=="income").reduce((n,r)=>n+Number(r.actual||0),0);
+  const won=n=>Number(n||0).toLocaleString("ko-KR")+"원";
+  grid.innerHTML=`<div>수입<b>${won(inc)}</b></div><div>지출<b>${won(exp)}</b></div><div>결산 잔액<b>${won(inc-exp)}</b></div>`;
+  const pays=Array.isArray(state.participantPayments)?state.participantPayments:[];
+  const refund=pays.filter(p=>p.attendanceStatus==="cancelled"&&Number(p.paidAmount||0)>0);
+  const unpaid=pays.filter(p=>p.attendanceStatus==="attended"&&p.status==="pending");
+  const line=(tag,people)=>people.length?`<div class="row"><span class="tag">${tag}</span><span>${people.map(p=>escapeHtml(p.name||"")+(p.generation?"("+escapeHtml(String(p.generation).replace(/기$/,""))+"기)":"")).join(", ")}</span></div>`:"";
+  list.innerHTML=(line("환불 대기",refund)+line("다음 모임 때 받을 참가비",unpaid))||'<div>남은 정리 항목이 없어요.</div>';
+}
+
 function renderActionItems(){
+  try{renderPostEventCard();}catch(e){}
   const list = document.getElementById("actionList");
   const items = computeActionItems();
   if(!items.length){
@@ -5135,12 +5169,13 @@ function setupMainTabs(){
 
   // reverse insertion order because every panel is inserted immediately after nav
   const system = makePanel("system","DB 연동과 공동 저장 등 평소 자주 변경하지 않는 시스템 설정입니다.");
+  const archive = makePanel("archive","10/18 모임 준비와 당일 운영에 쓰던 자료예요. 지우지 않고 여기 모아 접어 두었어요.");
   const publicPanel = makePanel("public","외부에 공개되는 공지·파일·행사 정보와 공식 링크를 한곳에서 관리합니다.");
   const finance = makePanel("finance","협찬·제작비·수입·지출 등 비용과 지원 관련 업무를 관리합니다.");
   const operations = makePanel("operations","준비 일정, 현장 프로그램, 제작물과 운영진을 관리합니다.");
   const people = makePanel("people","참가·입금 현황을 먼저 확인하고, 신청 연동과 동문 정보를 관리합니다.");
   const raffle = makePanel("raffle","행사 당일 추첨 전용 · 경품 선택 → 테스트 확인 → 실제 추첨 순서로 진행해주세요.");
-  const home = makePanel("home","현재 준비 상황에서 중요한 내용만 빠르게 확인합니다.");
+  const home = makePanel("home","행사가 끝나고 남은 정리 항목을 빠르게 확인합니다. 준비·운영 자료는 '지난 행사 자료' 탭에 있어요.");
 
   // 시스템 탭 상단: 연동/저장 상태와 자주 쓰는 관리 기능을 한곳에 모음
   const systemConsole=document.createElement("div");
@@ -5186,11 +5221,12 @@ function setupMainTabs(){
     if(section) panel.appendChild(section);
   };
 
-  // 홈 = 확인 중심
-  move(".hero", home);
-  move(".action-card", home);
-  move(".stat-row", home);
-  move(".summary-btn-row", home);
+  // 홈 = 확인 중심(행사가 끝나 준비용 진행률·할 일·신청 현황은 '지난 행사 자료'로 옮김)
+  move("#postEventCard", home);
+  move(".hero", archive);
+  move(".action-card", archive);
+  move(".stat-row", archive);
+  move(".summary-btn-row", archive);
   const visitorCard=document.createElement("div");
   visitorCard.className="visitor-stat-card";
   visitorCard.innerHTML=`<div class="visitor-stat-head"><div><div class="visitor-stat-title">외부 페이지 방문 현황</div><div class="visitor-stat-sub">동일 브라우저는 하루 1회 기준으로 집계합니다.</div></div><button class="mini-btn" id="refreshVisitorStats" type="button">새로고침</button></div><div class="visitor-stat-grid"><div class="visitor-stat-box"><div class="k">오늘 방문</div><div class="v" id="internalTodayVisitors">-</div></div><div class="visitor-stat-box"><div class="k">누적 방문</div><div class="v" id="internalTotalVisitors">-</div></div></div>`;
@@ -5199,18 +5235,19 @@ function setupMainTabs(){
 
   // 참가·입금 업무를 먼저 배치하고 동문 정보는 아래에 모음
   moveSectionByBody("body-participants", people);
-  moveSectionByBody("body-waitlist", people);
-  move("#section-participant-apply-sync", people);
+  moveSectionByBody("body-waitlist", archive);
+  move("#section-participant-apply-sync", archive);
   move("#section-network-profiles", people);
   move("#section-alumni-db", people);
 
   // 행사 운영
-  moveSectionByBody("body-phases", operations);
-  moveSectionByBody("body-dayprogram", operations);
-  move("#section-raffle-center", raffle);
-  moveSectionByBody("body-production", operations);
-  moveSectionByBody("body-committee", operations);
-  move("#section-operations-committee", operations);
+  // 행사 운영·경품 추첨은 행사가 끝나 '지난 행사 자료'로 모음
+  moveSectionByBody("body-phases", archive);
+  moveSectionByBody("body-dayprogram", archive);
+  move("#section-raffle-center", archive);
+  moveSectionByBody("body-production", archive);
+  moveSectionByBody("body-committee", archive);
+  move("#section-operations-committee", archive);
   move("#section-access-control", system);
 
   // 협찬 · 재정
@@ -5242,7 +5279,7 @@ function setupMainTabs(){
 
   let current = "home";
   try{ current = localStorage.getItem("hanjogo_main_tab") || "home"; }catch(e){}
-  const legacyMap={schedule:"operations",notice:"public",budget:"finance"};
+  const legacyMap={schedule:"archive",notice:"public",budget:"finance",raffle:"archive",operations:"archive"};
   current=legacyMap[current]||current;
   const activate = (name) => {
     if(!document.getElementById("tab-"+name)) name="home";
@@ -5282,7 +5319,14 @@ function setupMainTabs(){
   raffleShortcut.className="raffle-home-shortcut";
   raffleShortcut.innerHTML="<strong>🎁 행사 경품 추첨 바로가기</strong><span>1·2부 경품 선택 · 테스트 · 실제 추첨</span>";
   raffleShortcut.addEventListener("click",()=>{activate("raffle");nav.scrollIntoView({behavior:"smooth",block:"start"});});
-  home.prepend(raffleShortcut);
+  // 지난 행사 자료는 처음 한 번 모두 접어 둡니다(이후에는 각자 펼친 상태를 기억).
+  try{
+    if(!localStorage.getItem("hanjogo_archive_collapsed_v1")){
+      archive.querySelectorAll(".collapse-btn[data-target]").forEach(btn=>{state.sectionCollapse[btn.dataset.target]=true;});
+      applyCollapseState();
+      localStorage.setItem("hanjogo_archive_collapsed_v1","1");
+    }
+  }catch(e){}
   setupDashboardNavigation(activate);
   activate(current);
   dashboardTabsReady = true;

@@ -108,6 +108,28 @@ async function alumniPeople() {
   }).filter((person) => person.name && person.generation && person.email);
 }
 
+/** 1·2차 참가 신청 응답(구글 폼 시트)의 이름·기수·이메일. 졸업생 DB에서 못 찾은 참가자를 한 번 더 찾는 데 씁니다. */
+async function applicantPeople(urls: string[]) {
+  const people: { name: string; generation: number; email: string }[] = [];
+  for (const url of urls) {
+    try {
+      const rows = rowsAsObjects(await fetchCsv(url));
+      rows.forEach((row) => {
+        const nameKey = Object.keys(row).find((key) => /이름|성명/.test(key));
+        const genKey = Object.keys(row).find((key) => /기수/.test(key));
+        const emailKey = Object.keys(row).find((key) => /이메일|email/i.test(key));
+        const person = {
+          name: alumniName(nameKey ? row[nameKey] : ""),
+          generation: numberFromText(genKey ? row[genKey] : ""),
+          email: normalizeEmail(emailKey ? row[emailKey] : ""),
+        };
+        if (person.name && person.generation && person.email) people.push(person as { name: string; generation: number; email: string });
+      });
+    } catch { /* 시트를 못 읽으면 그 시트는 건너뜁니다. */ }
+  }
+  return people;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { ...cors, ...securityHeaders } });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -201,13 +223,24 @@ Deno.serve(async (req: Request) => {
         const { data: rosterRows, error: rosterError } = await adminClient.from("hanjogo_event_roster").select("name,generation").eq("event_key", eventKey);
         if (rosterError) return json({ error: rosterError.message }, 500);
         let roster: { name: unknown; generation: unknown }[] = rosterRows || [];
+        const { data: state, error: stateError } = await adminClient.from("dashboard_state").select("data").eq("id", "main").maybeSingle();
+        if (stateError) return json({ error: stateError.message }, 500);
         if (!roster.length) {
-          const { data: state, error: stateError } = await adminClient.from("dashboard_state").select("data").eq("id", "main").maybeSingle();
-          if (stateError) return json({ error: stateError.message }, 500);
           const payments = Array.isArray(state?.data?.participantPayments) ? state.data.participantPayments : [];
           roster = payments.filter((row: Record<string, unknown>) => String(row?.attendanceStatus || "") !== "cancelled");
         }
         const result = matchParticipants(roster, await alumniPeople());
+        // 졸업생 DB에서 못 찾은 사람은 1·2차 참가 신청 응답에서 한 번 더 찾습니다(이름·기수가 같은 신청자의 이메일).
+        let fromForms = 0;
+        if (result.unmatched.length) {
+          const csvUrls = ["participantApplySync", "secondParticipantApplySync", "participantFormSync"]
+            .map((key) => String(state?.data?.[key]?.csvUrl || "")).filter((u) => /^https:\/\//.test(u));
+          const again = matchParticipants(result.unmatched, await applicantPeople(csvUrls));
+          const have = new Set(result.matched.map((p) => p.email));
+          again.matched.forEach((p) => { if (!have.has(p.email)) { result.matched.push(p); have.add(p.email); fromForms += 1; } });
+          result.unmatched = again.unmatched;
+          result.ambiguous.push(...again.ambiguous);
+        }
         if (mode === "apply") {
           const { data: existing, error: existingError } = await adminClient.from("hanjogo_event_participants").select("email,source").eq("event_key", eventKey);
           if (existingError) return json({ error: existingError.message }, 500);
@@ -218,7 +251,7 @@ Deno.serve(async (req: Request) => {
             if (error) return json({ error: error.message }, 500);
           }
         }
-        return json({ ok: true, mode, roster: roster.length, matched: result.matched.length, ambiguous: result.ambiguous, unmatched: result.unmatched });
+        return json({ ok: true, mode, roster: roster.length, matched: result.matched.length, fromForms, ambiguous: result.ambiguous, unmatched: result.unmatched });
       }
 
       // 관리자: 설문 결과 전체(자유 의견 포함, 응답자는 알 수 없음)

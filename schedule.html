@@ -3137,7 +3137,7 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   document.body.classList.toggle("net-verified",state==="verified");
   if(state==="verified")setTimeout(maybeOpenScarf,2500);
-  if(state==="verified"||state==="signed-out")setTimeout(()=>loadRecap(true),400);
+  if(state==="verified"||state==="signed-out"||state==="denied")setTimeout(()=>loadRecap(true),400);
   setTimeout(syncPhotoAccess,0);
   networkAccessEmail=email;
   setTimeout(syncProfileNudge,0);
@@ -3951,9 +3951,8 @@ async function loadRecap(force){
   recapLoading=true;
   try{
     let r=null;
-    if(networkAccessState==="verified"){
-      try{r=await eventCall("event_state",{eventKey:RECAP_KEY});}catch(e){r=null;}
-    }
+    // 로그인한 이메일이 참가자 명단에 있는지는 서버가 판단합니다(졸업생 DB에 없는 이메일로 신청한 참가자도 볼 수 있게 인증 여부와 무관하게 물어봅니다).
+    try{r=await eventCall("event_state",{eventKey:RECAP_KEY});}catch(e){r=null;}
     if(!r||!r.exists){
       const {data}=await sb.rpc("get_hanjogo_event_brief",{p_event_key:RECAP_KEY});
       r=data?{exists:true,isParticipant:false,brief:data,anonymous:true}:{exists:false};
@@ -3983,7 +3982,7 @@ function renderRecap(){
   if(r.isParticipant){
     recapSurveyInit();renderRecapDetail(r.detail||{});renderRecapSurvey();
     detail.hidden=false;survey.hidden=false;
-  }else if(networkAccessState==="verified"&&!r.anonymous){
+  }else if(!r.anonymous){
     gate.hidden=false;gate.innerHTML="자세한 결산과 만족도 조사는 <b>이번 모임에 참가한 동문</b>에게만 보여요.<br>참가하셨는데 이 안내가 보인다면 참가 신청 때 쓴 이메일로 로그인했는지 확인해 주세요. 그래도 안 되면 준비위원에게 알려주세요.";
   }else{
     gate.hidden=false;gate.innerHTML="자세한 결산과 만족도 조사는 <b>이번 모임에 참가한 동문</b>이 이메일 인증 후 볼 수 있어요.<br><button type=\"button\" class=\"board-secondary-btn\" data-open-myinfo>이메일로 인증하기</button>";
@@ -4061,7 +4060,7 @@ document.getElementById("recapAdmin")?.addEventListener("click",async e=>{
     if(a==="preview"||a==="apply"){
       if(a==="apply"&&!confirm("맞춘 명단을 저장할까요?"))return out.textContent="";
       const r=await eventCall("event_admin_participants",{eventKey:RECAP_KEY,mode:a});
-      out.textContent=(a==="apply"?"저장함\n":"")+"명단 "+r.roster+"명 중 이메일 확인 "+r.matched+"명\n애매함(이름·기수 중복) "+(r.ambiguous||[]).map(x=>x.name+"("+x.generation+"기)").join(", ")+"\n못 찾음 "+(r.unmatched||[]).map(x=>x.name+"("+(x.generation||"?")+"기)"+(x.otherGenerations&&x.otherGenerations.length?" → 졸업생 DB에는 같은 이름이 "+x.otherGenerations.join("·")+"기로 있음":" → 같은 이름이 졸업생 DB에 없음")).join("\n   ");
+      out.textContent=(a==="apply"?"저장함\n":"")+"명단 "+r.roster+"명 중 이메일 확인 "+r.matched+"명(1·2차 신청 응답에서 추가로 찾음 "+(r.fromForms||0)+"명)\n애매함(이름·기수 중복) "+(r.ambiguous||[]).map(x=>x.name+"("+x.generation+"기)").join(", ")+"\n못 찾음 "+(r.unmatched||[]).map(x=>x.name+"("+(x.generation||"?")+"기)"+(x.otherGenerations&&x.otherGenerations.length?" → 졸업생 DB에는 같은 이름이 "+x.otherGenerations.join("·")+"기로 있음":" → 같은 이름이 졸업생 DB에 없음")).join("\n   ");
     }else if(a==="results"){
       const r=await eventCall("event_admin_results",{eventKey:RECAP_KEY});
       out.textContent="참가자 "+r.participants+"명 · 응답 "+r.responseCount+"명 · 전체 평균 "+(r.overall??"-")+"\n"+(r.ratings||[]).map(x=>x.label+": "+(x.average??"-")).join("\n")+"\n"+(r.byGeneration||[]).map(x=>x.generation+"기 평균 "+x.average+" ("+x.responseCount+"명)").join(", ")+"\n"+(r.comments||[]).map(c=>"["+c.label+"]\n"+c.answers.map(t=>"- "+t).join("\n")).join("\n");

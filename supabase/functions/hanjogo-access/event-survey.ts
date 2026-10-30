@@ -3,7 +3,7 @@
 export type SurveyQuestion = {
   id: string;
   label: string;
-  type: "rating" | "choice" | "text";
+  type: "rating" | "choice" | "multi" | "text";
   required: boolean;
   options?: string[];
 };
@@ -22,10 +22,10 @@ export function cleanSurveyQuestions(value: unknown): SurveyQuestion[] | null {
     const label = String(item.label ?? "").trim();
     const type = String(item.type ?? "");
     if (!QUESTION_ID.test(id) || seen.has(id) || !label || label.length > 120) return null;
-    if (type !== "rating" && type !== "choice" && type !== "text") return null;
+    if (type !== "rating" && type !== "choice" && type !== "multi" && type !== "text") return null;
     seen.add(id);
     const question: SurveyQuestion = { id, label, type, required: Boolean(item.required) };
-    if (type === "choice") {
+    if (type === "choice" || type === "multi") {
       const options = Array.isArray(item.options) ? item.options.map((o) => String(o ?? "").trim()) : [];
       if (options.length < 2 || options.length > 10 || options.some((o) => !o || o.length > 40) || new Set(options).size !== options.length) return null;
       question.options = options;
@@ -39,12 +39,12 @@ export function cleanSurveyQuestions(value: unknown): SurveyQuestion[] | null {
 export function cleanSurveyAnswers(
   questions: SurveyQuestion[],
   value: unknown,
-): { answers: Record<string, string | number> } | { error: string } {
+): { answers: Record<string, string | number | string[]> } | { error: string } {
   const input = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-  const answers: Record<string, string | number> = {};
+  const answers: Record<string, string | number | string[]> = {};
   for (const question of questions) {
     const raw = input[question.id];
-    const empty = raw === undefined || raw === null || String(raw).trim() === "";
+    const empty = raw === undefined || raw === null || (Array.isArray(raw) ? raw.length === 0 : String(raw).trim() === "");
     if (empty) {
       if (question.required) return { error: "answer_required:" + question.id };
       continue;
@@ -53,6 +53,10 @@ export function cleanSurveyAnswers(
       const n = Number(raw);
       if (!Number.isInteger(n) || n < 1 || n > 5) return { error: "invalid_answer:" + question.id };
       answers[question.id] = n;
+    } else if (question.type === "multi") {
+      const picked = Array.isArray(raw) ? raw.map((o) => String(o)) : [String(raw)];
+      if (picked.some((o) => !question.options?.includes(o))) return { error: "invalid_answer:" + question.id };
+      answers[question.id] = (question.options || []).filter((o) => picked.includes(o));
     } else if (question.type === "choice") {
       const text = String(raw);
       if (!question.options?.includes(text)) return { error: "invalid_answer:" + question.id };
@@ -71,10 +75,13 @@ export function summarizeSurvey(questions: SurveyQuestion[], rows: { answers: Re
     const values = rows.map((r) => Number(r.answers?.[q.id])).filter((n) => Number.isInteger(n) && n >= 1 && n <= 5);
     return { id: q.id, label: q.label, count: values.length, average: values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length * 10) / 10 : null };
   });
-  const choices = questions.filter((q) => q.type === "choice").map((q) => {
+  const choices = questions.filter((q) => q.type === "choice" || q.type === "multi").map((q) => {
     const counts: Record<string, number> = Object.fromEntries((q.options || []).map((o) => [o, 0]));
-    rows.forEach((r) => { const a = r.answers?.[q.id]; if (typeof a === "string" && a in counts) counts[a] += 1; });
-    return { id: q.id, label: q.label, counts };
+    rows.forEach((r) => {
+      const a = r.answers?.[q.id];
+      (Array.isArray(a) ? a : [a]).forEach((one) => { if (typeof one === "string" && one in counts) counts[one] += 1; });
+    });
+    return { id: q.id, label: q.label, multi: q.type === "multi", counts };
   });
   const rated = questions.filter((q) => q.type === "rating");
   const every = rows.flatMap((row) => rated.map((q) => Number(row.answers?.[q.id])).filter((n) => Number.isInteger(n) && n >= 1 && n <= 5));
@@ -89,7 +96,7 @@ export function summarizeSurvey(questions: SurveyQuestion[], rows: { answers: Re
 export type AlumniPerson = { name: string; generation: number; email: string };
 
 function personName(value: unknown) {
-  const text = String(value ?? "").trim();
+  const text = String(value ?? "").replace(/\s+/g, "");
   const korean = text.match(/^([가-힣]{2,5})(?![가-힣])/);
   return korean ? korean[1] : text;
 }
@@ -130,4 +137,25 @@ export function matchParticipants(rows: { name: unknown; generation: unknown }[]
     matched.push({ name, generation: generation!, email });
   });
   return { matched, ambiguous, unmatched };
+}
+
+/** 기수별 전체 만족도 평균. 응답이 minCount명 미만인 기수는 누가 답했는지 짐작될 수 있어 내보내지 않습니다. */
+export function summarizeByGeneration(
+  questions: SurveyQuestion[],
+  rows: { generation: number | null; answers: Record<string, unknown> }[],
+  minCount = 3,
+) {
+  const rated = questions.filter((q) => q.type === "rating");
+  const groups = new Map<number, number[][]>();
+  rows.forEach((row) => {
+    if (!row.generation) return;
+    const values = rated.map((q) => Number(row.answers?.[q.id])).filter((n) => Number.isInteger(n) && n >= 1 && n <= 5);
+    if (!values.length) return;
+    if (!groups.has(row.generation)) groups.set(row.generation, []);
+    groups.get(row.generation)!.push(values);
+  });
+  return [...groups].filter(([, list]) => list.length >= minCount).sort((a, b) => a[0] - b[0]).map(([generation, list]) => {
+    const flat = list.flat();
+    return { generation, responseCount: list.length, average: Math.round(flat.reduce((a, b) => a + b, 0) / flat.length * 10) / 10 };
+  });
 }

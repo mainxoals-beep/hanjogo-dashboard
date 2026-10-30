@@ -30,5 +30,17 @@ const res=m.matchParticipants([{name:'김철수',generation:'4기'},{name:'김�
 assert.deepEqual(res.matched.map(p=>p.email),['a@x.com','b@x.com'],'같은 사람 중복·빈 이름 제외');
 assert.deepEqual(res.ambiguous,[{name:'박민수',generation:7,count:2}]);
 assert.deepEqual(res.unmatched,[{name:'최없음',generation:3},{name:'김철수',generation:5}]);
+// 복수 선택 문항과 기수별 평균
+const M=m.cleanSurveyQuestions([{id:'overall',label:'전체',type:'rating',required:true},{id:'when',label:'시기',type:'multi',options:['상반기','하반기','연말','평일 저녁'],required:false}]);
+assert.equal(M[1].type,'multi');
+assert.deepEqual(m.cleanSurveyAnswers(M,{overall:4,when:['연말','상반기','연말']}).answers,{overall:4,when:['상반기','연말']},'선택지 순서대로 정리·중복 제거');
+assert.match(m.cleanSurveyAnswers(M,{overall:4,when:['없는선택']}).error,/invalid_answer:when/);
+assert.deepEqual(m.cleanSurveyAnswers(M,{overall:4,when:[]}).answers,{overall:4});
+const ms=m.summarizeSurvey(M,[{answers:{overall:4,when:['상반기','연말']}},{answers:{overall:5,when:['연말']}}]);
+assert.deepEqual(ms.choices[0].counts,{'상반기':1,'하반기':0,'연말':2,'평일 저녁':0});assert.equal(ms.choices[0].multi,true);
+const g=m.summarizeByGeneration(M,[{generation:4,answers:{overall:5}},{generation:4,answers:{overall:3}},{generation:4,answers:{overall:4}},{generation:9,answers:{overall:1}},{generation:9,answers:{overall:2}},{generation:null,answers:{overall:5}}]);
+assert.deepEqual(g,[{generation:4,responseCount:3,average:4}],'3명 미만 기수와 기수 없는 응답은 제외');
+const sp=m.matchParticipants([{name:'박 정희',generation:2},{name:'유수현(임수현)',generation:'11'}],[{name:'박정희',generation:2,email:'p@x.com'},{name:'유수현',generation:11,email:'y@x.com'}]);
+assert.deepEqual(sp.matched.map(p=>p.email),['p@x.com','y@x.com'],'이름 중간 공백·괄호 별칭 처리');
 console.log('event-survey tests ok');
 })().catch(e=>{console.error(e);process.exit(1);});

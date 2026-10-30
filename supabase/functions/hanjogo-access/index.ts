@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.117.0";
-import { cleanSurveyAnswers, cleanSurveyQuestions, matchParticipants, summarizeSurvey, type SurveyQuestion } from "./event-survey.ts";
+import { cleanSurveyAnswers, cleanSurveyQuestions, matchParticipants, summarizeByGeneration, summarizeSurvey, type SurveyQuestion } from "./event-survey.ts";
 
 const ALUMNI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuW1LbjftAqI7V9V65eehlY_KQ4JIRwLR80rfUdAQXoFGywIOs4tk1LAuRBJ17pEdAslBjpLaqqCY5/pub?output=csv";
 const PROFILE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm2qyYr9BAEm-fyZvNyExxiPS9lcRBPi06n__Qq__WlRPvGF_Iou7x1lIjsmBgqpoqHo4M2syaFVxc/pub?gid=648141668&single=true&output=csv";
@@ -1042,9 +1042,9 @@ Deno.serve(async (req: Request) => {
     if (evError) return json({ error: evError.message }, 500);
     const questions = (cleanSurveyQuestions(ev?.survey_questions) || []) as SurveyQuestion[];
     const loadResponses = async () => {
-      const { data, error } = await adminClient.from("hanjogo_event_survey_responses").select("answers").eq("event_key", eventKey);
+      const { data, error } = await adminClient.from("hanjogo_event_survey_responses").select("answers,generation").eq("event_key", eventKey);
       if (error) throw error;
-      return (data || []) as { answers: Record<string, unknown> }[];
+      return (data || []) as { answers: Record<string, unknown>; generation: number | null }[];
     };
     const isParticipant = async () => {
       if (isAdmin) return true;
@@ -1098,11 +1098,16 @@ Deno.serve(async (req: Request) => {
           if (error) return json({ error: error.message }, 500);
           return json({ ok: true });
         }
-        // 취소한 사람을 뺀 참가자 명단(내부 대시보드의 입금·참석 표)
-        const { data: state, error: stateError } = await adminClient.from("dashboard_state").select("data").eq("id", "main").maybeSingle();
-        if (stateError) return json({ error: stateError.message }, 500);
-        const payments = Array.isArray(state?.data?.participantPayments) ? state.data.participantPayments : [];
-        const roster = payments.filter((row: Record<string, unknown>) => String(row?.attendanceStatus || "") !== "cancelled");
+        // 최종 참가자 명단(hanjogo_event_roster)을 쓰고, 비어 있으면 내부 대시보드의 입금·참석 표(취소 제외)를 씁니다.
+        const { data: rosterRows, error: rosterError } = await adminClient.from("hanjogo_event_roster").select("name,generation").eq("event_key", eventKey);
+        if (rosterError) return json({ error: rosterError.message }, 500);
+        let roster: { name: unknown; generation: unknown }[] = rosterRows || [];
+        if (!roster.length) {
+          const { data: state, error: stateError } = await adminClient.from("dashboard_state").select("data").eq("id", "main").maybeSingle();
+          if (stateError) return json({ error: stateError.message }, 500);
+          const payments = Array.isArray(state?.data?.participantPayments) ? state.data.participantPayments : [];
+          roster = payments.filter((row: Record<string, unknown>) => String(row?.attendanceStatus || "") !== "cancelled");
+        }
         const result = matchParticipants(roster, await alumniPeople());
         if (mode === "apply") {
           const { data: existing, error: existingError } = await adminClient.from("hanjogo_event_participants").select("email,source").eq("event_key", eventKey);
@@ -1123,7 +1128,7 @@ Deno.serve(async (req: Request) => {
         const rows = await loadResponses();
         const comments = questions.filter((q) => q.type === "text").map((q) => ({ id: q.id, label: q.label, answers: rows.map((r) => r.answers?.[q.id]).filter((a) => typeof a === "string" && a) }));
         const { count } = await adminClient.from("hanjogo_event_participants").select("email", { count: "exact", head: true }).eq("event_key", eventKey);
-        return json({ allowed: true, participants: count ?? 0, ...summarizeSurvey(questions, rows), comments });
+        return json({ allowed: true, participants: count ?? 0, ...summarizeSurvey(questions, rows), byGeneration: summarizeByGeneration(questions, rows), comments });
       }
 
       if (!ev || (!ev.published && !isAdmin)) return json({ allowed: true, exists: false });
@@ -1135,8 +1140,10 @@ Deno.serve(async (req: Request) => {
         if (!ev.survey_open) return json({ error: "survey_closed" }, 409);
         const cleaned = cleanSurveyAnswers(questions, body.answers);
         if ("error" in cleaned) return json({ error: cleaned.error }, 400);
+        const { data: mine, error: mineError } = await adminClient.from("hanjogo_event_participants").select("generation").eq("event_key", eventKey).eq("email", email).maybeSingle();
+        if (mineError) return json({ error: mineError.message }, 500);
         const { error } = await adminClient.from("hanjogo_event_survey_responses").upsert(
-          { event_key: eventKey, email, answers: cleaned.answers, updated_at: new Date().toISOString() },
+          { event_key: eventKey, email, generation: mine?.generation ?? null, answers: cleaned.answers, updated_at: new Date().toISOString() },
           { onConflict: "event_key,email" },
         );
         if (error) return json({ error: error.message }, 500);
@@ -1151,7 +1158,7 @@ Deno.serve(async (req: Request) => {
           title: ev.title, eventDate: ev.event_date, summary: ev.public_summary,
           responseCount: enough ? rows.length : null, satisfaction: enough ? summary.overall : null,
         };
-        if (!participant) return json({ allowed: true, exists: true, isParticipant: false, brief });
+        if (!participant) return json({ allowed: true, exists: true, isParticipant: false, published: Boolean(ev.published), brief });
         let mine: Record<string, unknown> | null = null;
         if (!isAdmin) {
           const { data, error } = await adminClient.from("hanjogo_event_survey_responses").select("answers").eq("event_key", eventKey).eq("email", email).maybeSingle();
@@ -1159,7 +1166,7 @@ Deno.serve(async (req: Request) => {
           mine = data?.answers ?? null;
         }
         return json({
-          allowed: true, exists: true, isParticipant: true, brief, detail: ev.detail,
+          allowed: true, exists: true, isParticipant: true, isAdmin, published: Boolean(ev.published), brief, detail: ev.detail,
           survey: { open: Boolean(ev.survey_open), questions, mine },
           results: enough || isAdmin ? { responseCount: summary.responseCount, overall: summary.overall, ratings: summary.ratings, choices: summary.choices } : null,
         });

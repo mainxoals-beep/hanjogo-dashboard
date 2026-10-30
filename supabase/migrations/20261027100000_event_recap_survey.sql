@@ -30,10 +30,22 @@ create table if not exists public.hanjogo_event_participants (
 alter table public.hanjogo_event_participants enable row level security;
 revoke all on table public.hanjogo_event_participants from anon, authenticated;
 
+-- 그 모임의 최종 참가자 명단(이름·기수만). 이메일 맞추기 기능이 이 명단을 동문 DB와 맞춰 위 참가자 표를 채웁니다.
+-- 명단 내용은 이 파일에 넣지 않고 관리자가 따로 채웁니다.
+create table if not exists public.hanjogo_event_roster (
+  event_key text not null references public.hanjogo_event_info (event_key) on delete cascade,
+  name text not null check (char_length(name) between 1 and 30),
+  generation int not null check (generation between 1 and 99),
+  primary key (event_key, name, generation)
+);
+alter table public.hanjogo_event_roster enable row level security;
+revoke all on table public.hanjogo_event_roster from anon, authenticated;
+
 -- 만족도 응답: 한 사람이 한 번(다시 보내면 수정). 결과는 평균·개수로만 내보내고 이메일은 내보내지 않습니다.
 create table if not exists public.hanjogo_event_survey_responses (
   event_key text not null references public.hanjogo_event_info (event_key) on delete cascade,
   email text not null check (email = lower(btrim(email))),
+  generation int check (generation between 1 and 99), -- 참가자 명단의 기수. 기수별 평균(3명 이상일 때만)에만 쓰고 밖으로 내보내지 않습니다.
   answers jsonb not null check (jsonb_typeof(answers) = 'object' and pg_column_size(answers) < 8192),
   updated_at timestamptz not null default now(),
   primary key (event_key, email)

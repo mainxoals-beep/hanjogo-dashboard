@@ -11,6 +11,7 @@
 - `assets/raffle-roster.js`: 추첨 명단 로직 (`tests/`에서 테스트)
 - `assets/analytics.js`: 구글 애널리틱스(공개 페이지·지도 전용, 주소만 전송)
 - `supabase/`: Supabase 프로젝트 `siuresrjvrrezhwsjery` 관련 코드와 DB 변경 기록
+- `supabase/functions/hanjogo-event`: 모임 결산·만족도 조사(참가자 전용). 참가자는 `hanjogo_event_participants`의 이메일로 판단하고, 참가자 명단·응답 표는 서버 함수만 읽습니다. `hanjogo-access`가 커서 따로 두었습니다.
 - 배포: `main` 브랜치에 push하면 GitHub Pages(`mainxoals-beep.github.io/hanjogo-dashboard`)에 반영됩니다.
 
 ## 작업 순서

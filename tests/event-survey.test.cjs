@@ -1,7 +1,7 @@
 // 모임 결산·만족도 조사 계산 함수(문항 검사, 답 검사, 집계, 참가자 이메일 맞추기) 시험
 const assert=require('node:assert/strict');
 (async()=>{
-const m=await import('../supabase/functions/hanjogo-access/event-survey.ts');
+const m=await import('../supabase/functions/hanjogo-event/event-survey.ts');
 const Q=[{id:'overall',label:'전체 만족도',type:'rating',required:true},{id:'food',label:'식사',type:'rating',required:false},{id:'again',label:'다음 참석',type:'choice',required:true,options:['예','아니오','미정']},{id:'good',label:'좋았던 점',type:'text'}];
 // 문항 검사
 const q=m.cleanSurveyQuestions(Q);assert.equal(q.length,4);assert.equal(q[3].required,false);

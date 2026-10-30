@@ -3943,6 +3943,7 @@ document.getElementById("tourReopen")?.addEventListener("click",tourOpen);
 // ---- 모임 결산 · 만족도 조사 ---------------------------------------------------
 // 참가자(명단의 이메일로 로그인한 동문)에게만 서버가 결산 상세와 설문을 보내고, 나머지에게는 간략 정보만 보냅니다.
 const RECAP_KEY="meeting-2026-10-18";
+async function eventCall(action,payload={}){const session=networkCurrentSession||(await sb.auth.getSession()).data?.session;if(!session?.access_token)throw new Error("auth_required");const {data,error}=await sb.functions.invoke("hanjogo-event",{body:{action,...payload},headers:{Authorization:"Bearer "+session.access_token}});if(error)throw error;if(data?.error)throw new Error(data.error);return data||{};}
 let recapState=null,recapLoadedAt=0,recapLoading=false,recapAnswers={};
 const won=n=>Number(n||0).toLocaleString("ko-KR")+"원";
 async function loadRecap(force){
@@ -3951,7 +3952,7 @@ async function loadRecap(force){
   try{
     let r=null;
     if(networkAccessState==="verified"){
-      try{r=await boardCall("event_state",{eventKey:RECAP_KEY});}catch(e){r=null;}
+      try{r=await eventCall("event_state",{eventKey:RECAP_KEY});}catch(e){r=null;}
     }
     if(!r||!r.exists){
       const {data}=await sb.rpc("get_hanjogo_event_brief",{p_event_key:RECAP_KEY});
@@ -4038,7 +4039,7 @@ document.getElementById("recapSurvey")?.addEventListener("submit",async e=>{
   if(miss){msg.className="recap-msg err";msg.textContent="필수 질문에 답해 주세요: "+miss.label;return;}
   btn.disabled=true;msg.className="recap-msg";msg.textContent="저장하는 중…";
   try{
-    await boardCall("event_survey_submit",{eventKey:RECAP_KEY,answers:recapAnswers});
+    await eventCall("event_survey_submit",{eventKey:RECAP_KEY,answers:recapAnswers});
     await loadRecap(true);
     const m=document.getElementById("recapMsg");if(m)m.textContent="응답을 저장했어요. 고마워요!";
   }catch(err){msg.className="recap-msg err";msg.textContent="저장하지 못했어요. 설문이 마감됐거나 참가자 명단에 없을 수 있어요.";btn.disabled=false;}
@@ -4059,14 +4060,14 @@ document.getElementById("recapAdmin")?.addEventListener("click",async e=>{
   try{
     if(a==="preview"||a==="apply"){
       if(a==="apply"&&!confirm("맞춘 명단을 저장할까요?"))return out.textContent="";
-      const r=await boardCall("event_admin_participants",{eventKey:RECAP_KEY,mode:a});
+      const r=await eventCall("event_admin_participants",{eventKey:RECAP_KEY,mode:a});
       out.textContent=(a==="apply"?"저장함\n":"")+"명단 "+r.roster+"명 중 이메일 확인 "+r.matched+"명\n애매함(이름·기수 중복) "+(r.ambiguous||[]).map(x=>x.name+"("+x.generation+"기)").join(", ")+"\n못 찾음 "+(r.unmatched||[]).map(x=>x.name+"("+(x.generation||"?")+"기)").join(", ");
     }else if(a==="results"){
-      const r=await boardCall("event_admin_results",{eventKey:RECAP_KEY});
+      const r=await eventCall("event_admin_results",{eventKey:RECAP_KEY});
       out.textContent="참가자 "+r.participants+"명 · 응답 "+r.responseCount+"명 · 전체 평균 "+(r.overall??"-")+"\n"+(r.ratings||[]).map(x=>x.label+": "+(x.average??"-")).join("\n")+"\n"+(r.byGeneration||[]).map(x=>x.generation+"기 평균 "+x.average+" ("+x.responseCount+"명)").join(", ")+"\n"+(r.comments||[]).map(c=>"["+c.label+"]\n"+c.answers.map(t=>"- "+t).join("\n")).join("\n");
     }else{
       if(!confirm(a==="publish"?"사이트에 공개할까요?":"비공개로 바꿀까요?"))return out.textContent="";
-      await boardCall("event_admin_save",{eventKey:RECAP_KEY,published:a==="publish"});
+      await eventCall("event_admin_save",{eventKey:RECAP_KEY,published:a==="publish"});
       out.textContent=a==="publish"?"공개했어요.":"비공개로 바꿨어요.";loadRecap(true);
     }
   }catch(err){out.textContent="실패: "+(err.message||err);}

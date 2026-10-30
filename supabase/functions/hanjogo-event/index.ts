@@ -289,6 +289,12 @@ Deno.serve(async (req: Request) => {
         const brief = {
           title: ev.title, eventDate: ev.event_date, summary: ev.public_summary,
           responseCount: enough ? rows.length : null, satisfaction: enough ? summary.overall : null,
+          // 비참가자에게도 보여주는 결과 요약(자유 의견 제외, 응답 5건 이상일 때만)
+          results: enough ? {
+            responseCount: summary.responseCount, overall: summary.overall,
+            ratings: summary.ratings.map((r) => ({ id: r.id, label: r.label, average: r.average })),
+            choices: summary.choices.map((c) => ({ id: c.id, label: c.label, multi: c.multi, options: Object.entries(c.counts).map(([label, count]) => ({ label, count })) })),
+          } : null,
         };
         if (!participant) return json({ allowed: true, exists: true, isParticipant: false, published: Boolean(ev.published), brief });
         let mine: Record<string, unknown> | null = null;

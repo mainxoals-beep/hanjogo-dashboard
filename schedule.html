@@ -593,7 +593,7 @@ body:not(.site-view-event) #eventRecapCard{display:none!important}
 .recap-chips button{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:99px;background:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}.recap-chips button[aria-pressed="true"]{background:#F1EEF7;border-color:var(--purple);color:var(--purple-dark)}
 .recap-q textarea{width:100%;min-height:84px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:14px;resize:vertical}
 .recap-msg{margin:10px 0 0;min-height:1.3em;font-size:13px;font-weight:700;color:#1F7A4D}.recap-msg.err{color:#B4532A}
-.recap-res-row{margin:0 0 10px}.recap-res-row .t{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
+.recap-res-row{margin:0 0 10px}.recap-res-row .t{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}.recap-res-row .t>b:last-child,.recap-res-row .t>span:last-child{white-space:nowrap}
 .recap-bar{height:9px;border-radius:6px;background:#e8edf3;overflow:hidden}.recap-bar i{display:block;height:100%;background:var(--purple)}
 #recapDialog{width:min(520px,calc(100% - 24px));max-height:88vh;padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}
 #recapDialog::backdrop{background:rgba(25,20,35,.5)}
@@ -606,6 +606,11 @@ body:not(.site-view-event) #eventRecapCard{display:none!important}
 .recap-dlg-body{flex:1;overflow:auto;padding:4px 20px 12px}
 .recap-dlg-foot{display:flex;gap:8px;padding:12px 20px 18px;border-top:1px solid var(--line)}
 .recap-dlg-foot[hidden],.recap-dlg-foot .tour-btn[hidden]{display:none}
+.recap-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:4px 0 0}
+.recap-totals div{padding:10px;border-radius:12px;background:#faf9fc;border:1px solid var(--line);font-size:12px;color:var(--sub)}
+.recap-totals b{display:block;margin-top:2px;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;word-break:keep-all}
+.recap-pubres{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.recap-pubres summary{cursor:pointer;font-size:14px;font-weight:800}
 .recap-open{margin-top:12px}.recap-open[hidden]{display:none}
 .recap-pill{display:inline-flex;align-items:center;gap:4px;margin:10px 0 0 6px;padding:5px 11px;border-radius:999px;border:1px solid #CFE7DA;background:#EEF8F2;color:#1F7A4D;font:inherit;font-size:12px;font-weight:800;cursor:pointer;vertical-align:top}.recap-pill[hidden]{display:none}
 .recap-admin{margin-top:18px;padding:12px 14px;border-radius:14px;background:#f7f7fa;border:1px solid var(--line);font-size:13px}.recap-admin pre{white-space:pre-wrap;font:12px/1.6 ui-monospace,monospace;margin:8px 0 0;max-height:260px;overflow:auto}
@@ -1436,6 +1441,7 @@ body.photo-open{overflow:hidden}
  <div class="event-ready-kicker">2026. 10. 18. 한조고 동문 네트워크 모임</div>
  <h2 id="recapTitle">모임 결산 · 만족도 조사</h2>
  <div class="recap-facts" id="recapFacts"></div>
+ <div id="recapPublic"></div>
  <div id="recapGate" class="recap-gate" hidden></div>
  <button type="button" class="board-primary-btn recap-open" id="recapOpenBtn" hidden>결산 · 만족도 조사 보기</button>
  <div id="recapAdmin" class="recap-admin" hidden></div>
@@ -4008,6 +4014,10 @@ function renderRecap(){
   if(r.published===false)facts.push("비공개 상태 · 관리자에게만 보여요");
   if(b.satisfaction)facts.push("만족도 평균 "+b.satisfaction+"점 / 5점 ("+b.responseCount+"명 응답)");
   document.getElementById("recapFacts").innerHTML=facts.map(f=>'<span class="recap-fact">'+esc(f)+'</span>').join("");
+  // 누구에게나 보이는 결산 총액과 만족도 결과 요약(항목별 금액·자유 의견은 참가자 팝업에만)
+  const t=sum.totals;
+  document.getElementById("recapPublic").innerHTML=(t?'<div class="recap-totals"><div>총 수입<b>'+won(t.income)+'</b></div><div>총 지출<b>'+won(t.expense)+'</b></div><div>잔액<b>'+won(t.balance)+'</b></div></div>'+(sum.note?'<p class="recap-note">'+esc(sum.note)+'</p>':''):'')
+    +(b.results?'<details class="recap-pubres"><summary>만족도 결과 보기 ('+b.results.responseCount+'명 응답)</summary>'+recapResultsHtml(b.results)+'</details>':'');
   const gate=document.getElementById("recapGate"),openBtn=document.getElementById("recapOpenBtn"),pill=document.getElementById("recapPill");
   gate.hidden=true;openBtn.hidden=true;pill.hidden=true;
   if(r.isParticipant){
@@ -4046,7 +4056,7 @@ function recapQuestionHtml(q,locked){
 function recapResultsHtml(res){
   if(!res)return '<p class="recap-note">응답이 5명 이상 모이면 평균을 보여드려요.</p>';
   const rate=(res.ratings||[]).filter(x=>x.average!=null).map(x=>'<div class="recap-res-row"><div class="t"><span>'+esc(x.label)+'</span><b>'+x.average+'점</b></div><div class="recap-bar"><i style="width:'+(x.average/5*100)+'%"></i></div></div>').join("");
-  const ch=(res.choices||[]).map(c=>{const total=Object.values(c.counts).reduce((a,b)=>a+b,0)||1;return '<div class="recap-res-row"><div class="t"><b>'+esc(c.label)+'</b></div>'+Object.entries(c.counts).map(([o,n])=>'<div class="t"><span>'+esc(o)+'</span><span>'+n+'명</span></div><div class="recap-bar" style="margin-bottom:6px"><i style="width:'+(n/Math.max(res.responseCount,1)*100)+'%"></i></div>').join("")+'</div>';}).join("");
+  const ch=(res.choices||[]).map(c=>{const pairs=Array.isArray(c.options)?c.options.map(x=>[x.label,Number(x.count)||0]):Object.entries(c.counts||{});return '<div class="recap-res-row"><div class="t"><b>'+esc(c.label)+'</b>'+(c.multi?'<span class="recap-opt">(복수 선택)</span>':'')+'</div>'+pairs.map(([o,n])=>'<div class="t"><span>'+esc(o)+'</span><span>'+n+'명</span></div><div class="recap-bar" style="margin-bottom:6px"><i style="width:'+(n/Math.max(res.responseCount,1)*100)+'%"></i></div>').join("")+'</div>';}).join("");
   return '<p class="recap-note">'+res.responseCount+'명이 응답했어요.'+(res.overall?' 전체 평균 <b>'+res.overall+'점</b>':"")+'</p>'+rate+ch;
 }
 function renderRecapSurvey(){

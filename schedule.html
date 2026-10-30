@@ -1410,7 +1410,7 @@ body.photo-open{overflow:hidden}
   </div>
 </section>
 
-<div class="hero site-view" data-site-view="event">
+<div class="hero event-not-after site-view" data-site-view="event">
 <div>
 <div class="hero-date" id="heroDate"></div>
 <div class="hero-place" id="heroPlace"></div>
@@ -1432,6 +1432,15 @@ body.photo-open{overflow:hidden}
  </div>
 </section>
 
+<section class="recap-card" id="eventRecapCard" hidden aria-labelledby="recapTitle">
+ <div class="event-ready-kicker">2026. 10. 18. 한조고 동문 네트워크 모임</div>
+ <h2 id="recapTitle">모임 결산 · 만족도 조사</h2>
+ <div class="recap-facts" id="recapFacts"></div>
+ <div id="recapGate" class="recap-gate" hidden></div>
+ <button type="button" class="board-primary-btn recap-open" id="recapOpenBtn" hidden>결산 · 만족도 조사 보기</button>
+ <div id="recapAdmin" class="recap-admin" hidden></div>
+</section>
+
 <section class="photo-card site-view" id="eventPhotos" data-site-view="event">
   <div class="page-head-row">
     <h3 class="photo-title">행사 사진 <span class="photo-count" id="photoCount"></span></h3>
@@ -1442,15 +1451,6 @@ body.photo-open{overflow:hidden}
   <div class="photo-grid" id="photoGrid" hidden></div>
   <div class="photo-empty" id="photoEmpty" hidden>아직 올라온 사진이 없어요. 첫 사진을 올려주세요!</div>
   <button type="button" class="board-secondary-btn photo-more" id="photoMore" hidden>사진 더 보기</button>
-</section>
-
-<section class="recap-card" id="eventRecapCard" hidden aria-labelledby="recapTitle">
- <div class="event-ready-kicker">2026. 10. 18. 한조고 동문 네트워크 모임</div>
- <h2 id="recapTitle">모임 결산 · 만족도 조사</h2>
- <div class="recap-facts" id="recapFacts"></div>
- <div id="recapGate" class="recap-gate" hidden></div>
- <button type="button" class="board-primary-btn recap-open" id="recapOpenBtn" hidden>결산 · 만족도 조사 보기</button>
- <div id="recapAdmin" class="recap-admin" hidden></div>
 </section>
 
 <section class="event-ready-card event-not-after site-view" id="eventReadyCard" data-site-view="event">
@@ -1675,7 +1675,7 @@ body.photo-open{overflow:hidden}
   </div>
 </div>
 
-<div class="public-fold site-view" data-site-view="event">
+<div class="public-fold event-not-after site-view" data-site-view="event">
 <button class="public-fold-head" type="button" data-fold-target="publicEventInfoBody" aria-expanded="false">
   <span><span class="public-fold-title">행사 장소 · 문의</span><span class="public-fold-sub">장소, 주차, 준비위원 및 문의 정보</span></span>
   <span class="public-fold-icon">▾</span>
@@ -1756,7 +1756,7 @@ body.photo-open{overflow:hidden}
 <div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button><button type="button" class="tour-reopen scarf-reopen" id="scarfReopen">🧣 기수 스카프 색 알려주기</button></div>
 <p class="home-steward site-view" data-site-view="home">총동문회 임시 총괄 · 2기 김태민 · <a href="https://www.instagram.com/kim.tae.min" target="_blank" rel="noopener noreferrer">@kim.tae.min</a></p>
 
-<div class="public-fold site-view" data-site-view="event">
+<div class="public-fold event-not-after site-view" data-site-view="event">
 <button class="public-fold-head" type="button" data-fold-target="publicFaqBody" aria-expanded="false">
   <span><span class="public-fold-title">자주 묻는 질문</span><span class="public-fold-sub">참가·운영 관련 안내</span></span>
   <span class="public-fold-icon">▾</span>
@@ -1868,11 +1868,11 @@ body.photo-open{overflow:hidden}
 <span class="application-stats-label">신청</span>
 </div>
 
-<div class="public-sync-status site-view" data-site-view="event" id="publicSyncStatus" title="build 2026-09-09-second-application-v1">
+<div class="public-sync-status event-not-after site-view" data-site-view="event" id="publicSyncStatus" title="build 2026-09-09-second-application-v1">
 외부정보 동기화 · <span id="publicSyncTime">확인 중</span>
 </div>
 
-<div class="note site-view" data-site-view="event">
+<div class="note event-not-after site-view" data-site-view="event">
 일정 및 안내 내용은 행사 준비 상황에 따라 일부 조정될 수 있습니다.
 </div>
 

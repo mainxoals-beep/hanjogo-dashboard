@@ -4061,7 +4061,7 @@ document.getElementById("recapAdmin")?.addEventListener("click",async e=>{
     if(a==="preview"||a==="apply"){
       if(a==="apply"&&!confirm("맞춘 명단을 저장할까요?"))return out.textContent="";
       const r=await eventCall("event_admin_participants",{eventKey:RECAP_KEY,mode:a});
-      out.textContent=(a==="apply"?"저장함\n":"")+"명단 "+r.roster+"명 중 이메일 확인 "+r.matched+"명\n애매함(이름·기수 중복) "+(r.ambiguous||[]).map(x=>x.name+"("+x.generation+"기)").join(", ")+"\n못 찾음 "+(r.unmatched||[]).map(x=>x.name+"("+(x.generation||"?")+"기)").join(", ");
+      out.textContent=(a==="apply"?"저장함\n":"")+"명단 "+r.roster+"명 중 이메일 확인 "+r.matched+"명\n애매함(이름·기수 중복) "+(r.ambiguous||[]).map(x=>x.name+"("+x.generation+"기)").join(", ")+"\n못 찾음 "+(r.unmatched||[]).map(x=>x.name+"("+(x.generation||"?")+"기)"+(x.otherGenerations&&x.otherGenerations.length?" → 졸업생 DB에는 같은 이름이 "+x.otherGenerations.join("·")+"기로 있음":" → 같은 이름이 졸업생 DB에 없음")).join("\n   ");
     }else if(a==="results"){
       const r=await eventCall("event_admin_results",{eventKey:RECAP_KEY});
       out.textContent="참가자 "+r.participants+"명 · 응답 "+r.responseCount+"명 · 전체 평균 "+(r.overall??"-")+"\n"+(r.ratings||[]).map(x=>x.label+": "+(x.average??"-")).join("\n")+"\n"+(r.byGeneration||[]).map(x=>x.generation+"기 평균 "+x.average+" ("+x.responseCount+"명)").join(", ")+"\n"+(r.comments||[]).map(c=>"["+c.label+"]\n"+c.answers.map(t=>"- "+t).join("\n")).join("\n");

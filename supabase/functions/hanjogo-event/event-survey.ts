@@ -116,9 +116,15 @@ export function matchParticipants(rows: { name: unknown; generation: unknown }[]
     if (!byKey.has(key)) byKey.set(key, new Set());
     byKey.get(key)!.add(p.email);
   });
+  // 이름은 같은데 기수만 다른 사람(기수 오기입 가능성)을 알려주기 위한 색인
+  const byName = new Map<string, Set<number>>();
+  people.forEach((p) => {
+    if (!byName.has(p.name)) byName.set(p.name, new Set());
+    byName.get(p.name)!.add(p.generation);
+  });
   const matched: AlumniPerson[] = [];
   const ambiguous: { name: string; generation: number; count: number }[] = [];
-  const unmatched: { name: string; generation: number | null }[] = [];
+  const unmatched: { name: string; generation: number | null; otherGenerations: number[] }[] = [];
   const seenEmail = new Set<string>();
   const seenRow = new Set<string>();
   rows.forEach((row) => {
@@ -129,7 +135,7 @@ export function matchParticipants(rows: { name: unknown; generation: unknown }[]
     if (seenRow.has(rowKey)) return;
     seenRow.add(rowKey);
     const emails = generation ? byKey.get(rowKey) : undefined;
-    if (!emails || !emails.size) { unmatched.push({ name, generation }); return; }
+    if (!emails || !emails.size) { unmatched.push({ name, generation, otherGenerations: [...(byName.get(name) || [])].sort((a, b) => a - b) }); return; }
     if (emails.size > 1) { ambiguous.push({ name, generation: generation!, count: emails.size }); return; }
     const email = [...emails][0];
     if (seenEmail.has(email)) return;

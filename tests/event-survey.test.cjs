@@ -29,7 +29,7 @@ const people=[{name:'김철수',generation:4,email:'a@x.com'},{name:'이영희',
 const res=m.matchParticipants([{name:'김철수',generation:'4기'},{name:'김철수 ',generation:4},{name:'이영희',generation:7},{name:'박민수',generation:7},{name:'최없음',generation:3},{name:'김철수',generation:5},{name:'',generation:1}],people);
 assert.deepEqual(res.matched.map(p=>p.email),['a@x.com','b@x.com'],'같은 사람 중복·빈 이름 제외');
 assert.deepEqual(res.ambiguous,[{name:'박민수',generation:7,count:2}]);
-assert.deepEqual(res.unmatched,[{name:'최없음',generation:3},{name:'김철수',generation:5}]);
+assert.deepEqual(res.unmatched,[{name:'최없음',generation:3,otherGenerations:[]},{name:'김철수',generation:5,otherGenerations:[4]}],'기수만 다른 동명이인 힌트');
 // 복수 선택 문항과 기수별 평균
 const M=m.cleanSurveyQuestions([{id:'overall',label:'전체',type:'rating',required:true},{id:'when',label:'시기',type:'multi',options:['상반기','하반기','연말','평일 저녁'],required:false}]);
 assert.equal(M[1].type,'multi');

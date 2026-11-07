@@ -34,7 +34,9 @@ restored.raffleCenter.winnerKeys=R.roster(restored,[]).entries.map(p=>R.key(p));
 assert.equal(R.pool(restored,[],'confirmed').length,0);assert.equal(R.pick(R.pool(restored,[],'confirmed'),()=>{throw Error('must not draw');}),null);
 
 // 페이지 스크립트 문법, 가중치 문구 비노출.
-const html=fs.readFileSync('index.html','utf8');for(const file of ['index.html','schedule.html'])for(const m of fs.readFileSync(file,'utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim())new vm.Script(m[1]);
+const html=fs.readFileSync('index.html','utf8');for(const file of ['index.html','schedule.html'])for(const m of fs.readFileSync(file,'utf8').matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(m[2].trim()&&!/type="application\/ld\+json"/.test(m[1]))new vm.Script(m[2]);
+// 검색엔진용 구조화 데이터(JSON-LD)는 코드가 아니라 JSON이라 따로 검사합니다.
+for(const m of fs.readFileSync('schedule.html','utf8').matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g))JSON.parse(m[1]);
 assert(!html.includes('가중치'));assert(!html.includes('raffleExcludeWinners'));assert(!fs.readFileSync('schedule.html','utf8').includes('가중치'));
 const opHtml=html.slice(html.indexOf('id="body-operations-committee"'),html.indexOf('</section>',html.indexOf('id="body-operations-committee"')));
 const operating=[...opHtml.matchAll(/class="member-card"><div[^>]*>([^<]+)<\/div><div[^>]*>(\d+)기/g)].map(m=>({name:m[1],generation:Number(m[2])}));assert(operating.length>0);

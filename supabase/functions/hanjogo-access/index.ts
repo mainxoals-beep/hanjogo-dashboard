@@ -97,8 +97,10 @@ function latestProfileRowsByEmail(rows: Record<string, string>[]) {
 }
 
 /** Resolve repeated submissions before applying the latest privacy choices.
- * Different emails are linked only with full name, cohort AND Instagram.
- * Never merge on a masked display name or name/cohort alone.
+ * Different emails are linked only with full name and cohort plus one more matching clue:
+ * the same Instagram, the same workplace (ignoring spaces and brackets), or the same
+ * email ID before "@" (e.g. a typo in the domain). Never merge on a masked display name
+ * or name/cohort alone.
  */
 function latestPublicProfileRows(rows: Record<string, string>[], firstDates: Map<string, string>) {
   const parents = rows.map((_, index) => index);
@@ -119,6 +121,11 @@ function latestPublicProfileRows(rows: Record<string, string>[], firstDates: Map
     if (name && generation && instagram) {
       keys.push("identity:" + JSON.stringify([name, generation, instagram.url.toLowerCase()]));
     }
+    // 같은 사람이 다른 이메일로 폼을 다시 낸 경우: 이름·기수가 같고 소속이나 이메일 아이디도 같으면 한 사람으로 봅니다.
+    const workplace = normalizeKey(getField(row, "현재 소속 / 직장 / 사업체·브랜드")).replace(/[()（）\[\]·.,/]/g, "");
+    if (name && generation && workplace.length >= 2) keys.push("workplace:" + JSON.stringify([name, generation, workplace]));
+    const emailId = email.split("@")[0];
+    if (name && generation && emailId.length >= 4) keys.push("emailId:" + JSON.stringify([name, generation, emailId]));
     keys.forEach((key) => {
       const previous = identities.get(key);
       if (previous !== undefined) parents[root(previous)] = root(index);

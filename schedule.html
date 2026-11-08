@@ -1207,6 +1207,7 @@ body.site-view-network #networkProfileModal .attendee-dialog{border:var(--card-l
 .np-detail .network-profile-line{font-size:var(--fs-sm)}
 .np-detail .network-profile-bio{margin-top:6px;font-size:var(--fs-sm);line-height:1.6}
 .np-row.is-open{background:#FCFBFE!important}
+.np-row.is-open .np-sub{display:none}
 .myinfo-logout{justify-self:start;margin-top:4px;padding:6px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
 body.net-verified .network-access-top{display:none!important}
 .network-profile-more[hidden]{display:none!important}
@@ -3101,6 +3102,9 @@ function renderNetworkProfiles(){
   const visible=filtered.slice(0,networkProfileLimit);
   list.innerHTML=visible.map(p=>{
     const lines=[];
+    // 이름 아래 한 줄(소속 · 하는 일)은 길면 잘리므로, 펼쳤을 때는 전부 보여줍니다.
+    if(p.company)lines.push(`<div class="network-profile-line"><span class="network-profile-label">소속</span><span class="network-profile-value">${esc(p.company)}</span></div>`);
+    if(p.work)lines.push(`<div class="network-profile-line"><span class="network-profile-label">하는 일</span><span class="network-profile-value">${esc(p.work)}</span></div>`);
     if(p.activity&&(p.company||p.work))lines.push(`<div class="network-profile-line"><span class="network-profile-label">분야</span><span class="network-profile-value">${esc(p.activity)}</span></div>`);
     if(p.region)lines.push(`<div class="network-profile-line"><span class="network-profile-label">지역</span><span class="network-profile-value">${esc(p.region)}</span></div>`);
     if(p.instagram){

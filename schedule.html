@@ -1194,6 +1194,7 @@ body.site-view-network #networkProfileModal .attendee-dialog{border:var(--card-l
 .np-top{display:flex;align-items:center}
 .np-summary{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 4px 12px 16px;border:0;background:none;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .np-avatar{flex:0 0 auto;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;font-size:13px;font-weight:800;color:#fff;background:#8A7FD6}
+.np-avatar.light{color:#2b2730;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 .np-avatar.g1{background:#6E5FCB}.np-avatar.g2{background:#C0794E}.np-avatar.g3{background:#4E8F7A}.np-avatar.g4{background:#5A7FB8}.np-avatar.g5{background:#B0607E}.np-avatar.g0{background:#8C8577}
 .np-main{min-width:0;display:flex;flex-direction:column;gap:2px}
 .np-name{display:flex;align-items:center;gap:6px;font-size:var(--fs-md);font-weight:800;color:var(--ink)}
@@ -1318,7 +1319,7 @@ body.photo-open{overflow:hidden}
   <!-- 방문 현황: 어느 메뉴에서든 사이트가 살아 있다는 걸 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
   <div class="visit-pill" id="visitorCounter" hidden aria-label="사이트 방문 현황"><span class="live-dot" aria-hidden="true"></span><span>오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b> 방문</span></div>
   <button class="recap-pill" type="button" id="recapPill" hidden>📋 모임 결산·설문</button>
-  <button class="scarf-pill" type="button" id="scarfPill">🧣 스카프 색 설문 진행 중</button>
+  <button class="scarf-pill" type="button" id="scarfPill">🧣 스카프 색 투표 중</button>
   <button class="notif-pill" type="button" id="notifPill" data-open-myinfo hidden>🔔 새 알림 <b id="notifPillCount">0</b></button>
 </div>
 
@@ -1776,7 +1777,7 @@ body.photo-open{overflow:hidden}
 </div>
 </div>
 
-<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button><button type="button" class="tour-reopen scarf-reopen" id="scarfReopen">🧣 기수 스카프 색 알려주기</button></div>
+<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button><button type="button" class="tour-reopen scarf-reopen" id="scarfReopen">🧣 기수 스카프 색 투표하기</button></div>
 <p class="home-steward site-view" data-site-view="home">총동문회 임시 총괄 · 2기 김태민 · <a href="https://www.instagram.com/kim.tae.min" target="_blank" rel="noopener noreferrer">@kim.tae.min</a></p>
 
 <div class="public-fold event-not-after site-view" data-site-view="event">
@@ -2059,9 +2060,9 @@ body.photo-open{overflow:hidden}
   <div class="scarf-card">
     <button type="button" class="tour-skip" id="scarfLater">나중에</button>
     <div class="tour-icon" aria-hidden="true">🧣</div>
-    <h2 class="tour-title" id="scarfTitle">기수마다 스카프 색이 뭐였나요?</h2>
-    <p class="tour-body">한조고 다닐 때 기수마다 조리복 스카프 색이 달랐죠. 기억나는 기수의 색을 알려주세요. 사이트의 기수 색을 제대로 정하는 데 쓸게요.</p>
-    <div class="scarf-tabs" role="tablist"><button type="button" class="scarf-tab" role="tab" id="scarfTabAsk" aria-selected="true">알려주기</button><button type="button" class="scarf-tab" role="tab" id="scarfTabRes" aria-selected="false">지금까지 결과</button></div>
+    <h2 class="tour-title" id="scarfTitle">기수 스카프 색 투표</h2>
+    <p class="tour-body" id="scarfBody">설문으로 대부분 기수의 스카프 색이 정해졌어요. 응답이 적거나 의견이 갈린 기수만 다시 투표해요. 기억나는 기수의 색을 골라주세요.</p>
+    <div class="scarf-tabs" role="tablist"><button type="button" class="scarf-tab" role="tab" id="scarfTabAsk" aria-selected="true">투표하기</button><button type="button" class="scarf-tab" role="tab" id="scarfTabRes" aria-selected="false">지금까지 결과</button></div>
     <div id="scarfResults" class="scarf-results" hidden></div>
     <div id="scarfForm">
     <div class="scarf-row"><label for="scarfGen">기수</label><select id="scarfGen"></select></div>
@@ -2070,7 +2071,7 @@ body.photo-open{overflow:hidden}
     <p class="scarf-done" id="scarfDone" role="status"></p>
     <div class="tour-actions" style="margin-top:12px">
       <button type="button" class="tour-btn" id="scarfClose">닫기</button>
-      <button type="button" class="tour-btn primary" id="scarfSave" disabled>알려주기</button>
+      <button type="button" class="tour-btn primary" id="scarfSave" disabled>투표하기</button>
     </div>
     <p class="scarf-mine" id="scarfMine"></p>
     </div>
@@ -3028,7 +3029,7 @@ function renderNetworkNewStrip(q){
     const sub=[p.company,p.work].filter(Boolean).join(" · ")||p.activity||"";
     return `<button type="button" class="np-new-card" data-np-new-open="${esc(p.profileId||"")}" aria-label="${esc(p.name)} 프로필 보기">
       <span class="network-profile-new" aria-hidden="true">NEW</span>
-      <span class="np-avatar g${Number(p.gen||0)%6}" aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
+      <span class="np-avatar g${Number(p.gen||0)%6}${scarfAvatarClass(p.gen)}"${scarfAvatarStyle(p.gen)} aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
       <span class="np-new-name">${esc(p.name)}</span>
       <span class="np-new-gen">${p.gen?esc(p.gen)+"기":""}</span>
       <span class="np-new-sub">${esc(sub)||"&nbsp;"}</span>
@@ -3045,6 +3046,9 @@ function renderNetworkGenQuick(){
   row.innerHTML=[`<button type="button" class="np-gq ${networkGenerationFilter==="all"&&noQuick?"active":""}" data-gq="all">전체</button>`]
     .concat(gens.map(g=>`<button type="button" class="np-gq ${networkGenerationFilter===g&&noQuick?"active":""}" data-gq="${g}">${g}기</button>`)).join("");
 }
+// 기수 표시 동그라미: 스카프 색이 확정된 기수는 그 색으로(밝은 색은 테두리·진한 글씨)
+function scarfAvatarStyle(gen){const k=typeof SCARF_CONFIRMED!=="undefined"?SCARF_CONFIRMED[Number(gen)]:null;return k?' style="background:'+scarfHex(k)+'"':"";}
+function scarfAvatarClass(gen){const k=typeof SCARF_CONFIRMED!=="undefined"?SCARF_CONFIRMED[Number(gen)]:null;return k&&["white","yellow","lime","sky","pink"].includes(k)?" light":"";}
 function renderNetworkProfiles(){
   const list=document.getElementById("networkProfileList");
   const meta=document.getElementById("networkProfileMeta");
@@ -3119,7 +3123,7 @@ function renderNetworkProfiles(){
     return `<div class="network-profile-item np-row${p.isOwnProfile?" network-profile-is-own":""}${isNewProfile(p)?" is-new":""}${open?" is-open":""}">
       <div class="np-top">
         <button type="button" class="np-summary" data-np-toggle="${esc(p.profileId||"")}" aria-expanded="${open?"true":"false"}">
-          <span class="np-avatar g${Number(p.gen||0)%6}" aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
+          <span class="np-avatar g${Number(p.gen||0)%6}${scarfAvatarClass(p.gen)}"${scarfAvatarStyle(p.gen)} aria-hidden="true">${p.gen?esc(p.gen):"·"}</span>
           <span class="np-main">
             <span class="np-name">${esc(p.name)}${p.gen?`<span class="np-gen">${esc(p.gen)}기</span>`:""}${p.isOwnProfile?'<span class="network-profile-own">나</span>':""}${isNewProfile(p)?'<span class="network-profile-new" aria-label="최근 7일 안에 새로 등록된 프로필">NEW</span>':""}</span>
             ${sub?`<span class="np-sub">${esc(sub)}</span>`:""}
@@ -4044,7 +4048,7 @@ function renderRecap(){
     recapSurveyInit();renderRecapDetail(r.detail||{});renderRecapSurvey();
     const answered=Boolean(r.survey?.mine);
     openBtn.hidden=false;openBtn.textContent=answered?"결산 · 설문 결과 보기":"결산 보기 · 만족도 조사 참여";
-    pill.hidden=r.published===false;
+    pill.hidden=true;
     document.getElementById("recapDlgKicker").textContent="참가자 전용"+(b.title?" · "+b.title:"");
     setTimeout(maybeOpenRecap,1200);
   }else if(!r.anonymous){
@@ -4126,6 +4130,8 @@ function recapOpen(tab){
 }
 function recapClose(){overlayClose("recap");const d=document.getElementById("recapDialog");if(d?.open)d.close();}
 function maybeOpenRecap(){
+  // 자동 팝업은 끔: 결산·설문은 모임 탭 카드에서만 엽니다.
+  return;
   const r=recapState;
   if(recapAutoTried||!r?.isParticipant||r.published===false||!r.survey?.open||r.survey?.mine)return;
   const params=new URLSearchParams(location.search);
@@ -4176,7 +4182,12 @@ document.getElementById("recapAdmin")?.addEventListener("click",async e=>{
 // ---- 기수별 스카프 색 설문 ---------------------------------------------------
 const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["yellow","노랑","#F5CF2E"],["lime","연두","#9BD04B"],["green","초록","#2E9E58"],["sky","하늘","#6EC1EE"],["blue","파랑","#2F6FDB"],["navy","남색","#1F2F6B"],["purple","보라","#7A4BC4"],["pink","분홍","#F28BB5"],["white","흰색","#FFFFFF"],["black","검정","#222222"],["brown","갈색","#8A5A3B"],["gray","회색","#9A9AA5"],["other","기타","conic-gradient(#F08A24,#F5CF2E,#2E9E58,#2F6FDB,#7A4BC4,#D93A3A,#F08A24)"]];
 const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
-const SCARF_LATER_KEY="hanjogo-scarf-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
+const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
+// 2026-11 설문 결과로 확정된 기수 색(공개 프로필 기수 표시에 씀)과, 다시 투표하는 기수
+var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
+const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,18,23,25];
+const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
+function scarfHex(key){if(key==="burgundy")return "#7B1E3A";const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
 let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null;
 function scarfRenderMine(){
   document.getElementById("scarfMine").textContent=scarfMine.length?"내가 알려준 기수: "+scarfMine.map(v=>v.generation+"기 "+(v.color==="other"?(v.other||"기타"):SCARF_LABEL[v.color])).join(" · "):"";
@@ -4221,12 +4232,12 @@ async function scarfOpen(){
   if(networkAccessState!=="verified")return;
   if(!await loadScarfState())return;
   const sel=document.getElementById("scarfGen");
-  if(!sel.options.length)sel.innerHTML='<option value="">기수 선택</option>'+Array.from({length:SCARF_MAX_GEN},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'기</option>').join("");
+  if(!sel.options.length)sel.innerHTML='<option value="">투표할 기수 선택</option>'+SCARF_VOTE_GENS.map(g=>'<option value="'+g+'">'+g+'기</option>').join("");
   const box=document.getElementById("scarfColors");
   if(!box.children.length)box.innerHTML=SCARF_COLORS.map(c=>'<button type="button" class="scarf-color" data-scarf="'+c[0]+'" aria-pressed="false"><i style="background:'+c[2]+'"></i>'+c[1]+'</button>').join("");
-  sel.value=scarfMyGen&&scarfMyGen<=SCARF_MAX_GEN?String(scarfMyGen):"";
+  sel.value=scarfMyGen&&SCARF_VOTE_GENS.includes(scarfMyGen)?String(scarfMyGen):"";
   document.getElementById("scarfDone").textContent="";
-  scarfPickFor(sel.value);scarfRenderMine();scarfTab(scarfMine.length?"results":"ask");
+  scarfPickFor(sel.value);scarfRenderMine();scarfTab("ask");
   overlayOpen("scarf",()=>scarfClose());try{d.showModal();}catch(e){d.setAttribute("open","");}
 }
 function scarfClose(){
@@ -4243,7 +4254,8 @@ async function maybeOpenScarf(){
   const later=Number(lsGet(SCARF_LATER_KEY))||0;if(later&&Date.now()-later<SCARF_LATER_MS)return;
   if(document.querySelector("dialog[open]"))return;
   scarfAutoTried=true;
-  if(!await loadScarfState()||scarfMine.length)return;
+  if(lsGet(SCARF_VOTE_DONE_KEY))return;
+  if(!await loadScarfState())return;
   if(document.querySelector("dialog[open]"))return;
   scarfOpen();
 }
@@ -4258,6 +4270,7 @@ document.getElementById("scarfSave")?.addEventListener("click",async()=>{
   try{
     await boardCall("scarf_set",{generation:gen,color:scarfPick,other});
     scarfMine=scarfMine.filter(v=>v.generation!==gen).concat({generation:gen,color:scarfPick,other:scarfPick==="other"?other:""}).sort((a,b)=>a.generation-b.generation);
+    lsSet(SCARF_VOTE_DONE_KEY,"1");
     done.style.color="";done.textContent=gen+"기 스카프 색을 알려주셔서 고마워요! 다른 기수도 기억나면 이어서 알려주세요.";
     scarfRenderMine();
     await loadScarfState();

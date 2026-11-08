@@ -586,6 +586,7 @@ body.event-phase-after .event-not-after{display:none!important}
 body:not(.event-phase-after) #eventAfterCard{display:none!important}
 body:not(.event-phase-after) #eventRecapCard{display:none!important}
 body:not(.site-view-event) #eventRecapCard{display:none!important}
+body:not(.site-view-network) #genRate{display:none!important}
 .recap-card{margin:0 0 18px;padding:22px 20px;border:1px solid var(--line,#e7e3d9);border-radius:20px;background:#fff}.recap-card[hidden]{display:none}
 .recap-card h2{margin:6px 0 10px;word-break:keep-all;font-size:22px;letter-spacing:-.02em}
 .recap-card h3{margin:18px 0 8px;font-size:15px}
@@ -1130,6 +1131,19 @@ body.site-view-home .top-actions>.event-guide-reopen,body.site-view-home .top-ac
 .profile-nudge{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid #DDD7F4;border-radius:var(--r-md);background:var(--purple-light)}
 .profile-nudge[hidden],.profile-nudge:not(.show){display:none!important}.profile-nudge b{display:block;font-size:var(--fs-sm);color:var(--purple-dark)}.profile-nudge span{display:block;margin-top:2px;font-size:var(--fs-xs);color:var(--sub);word-break:keep-all}
 .profile-nudge .spot-btn{flex:0 0 auto}
+.profile-nudge-perks{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--sub)}
+.profile-nudge-note{font-size:11.5px!important;color:var(--mute)!important}
+@media (max-width:520px){.profile-nudge{flex-direction:column;align-items:stretch}.profile-nudge .spot-btn{width:100%}.profile-nudge-perks{word-break:keep-all}}
+.gen-rate{margin:0 0 12px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}.gen-rate[hidden]{display:none}
+.gen-rate summary{cursor:pointer;font-size:var(--fs-sm);font-weight:800;color:var(--ink)}
+.gen-rate summary span{font-weight:600;color:var(--sub)}
+.gen-rate-list{display:grid;gap:5px;margin-top:10px}
+.gen-rate-row{display:grid;grid-template-columns:34px 1fr 56px;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+.gen-rate-row.mine{font-weight:800;color:var(--ink)}
+.gen-rate-bar{height:10px;border-radius:6px;background:#efedf3;overflow:hidden}
+.gen-rate-bar i{display:block;height:100%;border-radius:6px}
+.gen-rate-bar i.light{box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.gen-rate-row b{text-align:right;font-variant-numeric:tabular-nums}
 a.top-action.contact-mail{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 body.site-view-home .top-actions>a.top-action{min-height:40px;border:var(--card-line);border-radius:var(--r-sm);background:#fff;color:var(--sub);font-size:var(--fs-sm);font-weight:700}
 .fold-card{padding:0!important;overflow:hidden}
@@ -1222,7 +1236,6 @@ body.net-verified .network-access-top{display:none!important}
 .page-head-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .page-head-action.primary,#boardPage .page-head-action,#meetupPage .page-head-action{border-color:var(--purple);background:var(--purple);color:#fff}
 body:not(.net-verified) .page-head-action[data-needs-auth]{display:none}
-.profile-nudge{display:none!important}
 /* 원래 화면 안의 제목·버튼 줄은 위 제목 줄로 대신합니다. */
 #boardPage .board-toolbar,#meetupPage .board-toolbar{display:none}
 body.site-view-network .network-hub-copy{display:none}
@@ -1599,9 +1612,12 @@ body.photo-open{overflow:hidden}
     </div>
 </div>
 <div class="profile-nudge site-view" id="profileNudge" data-site-view="network">
-  <div><b>내 프로필이 아직 목록에 없어요</b><span>소속·소개를 적고 공개를 켜면 다른 동문이 나를 찾을 수 있어요.</span></div>
+  <div><b>내 프로필을 공개해 보세요 · 1분이면 돼요</b><span id="profileNudgeGen"></span>
+    <ul class="profile-nudge-perks"><li>동문 찾기에 내 소속·하는 일이 보여요</li><li>'오늘의 동문'으로 소개될 수 있어요</li><li>'도와줄 수 있어요'를 고르면 후배 질문이 올 때 알림을 받아요</li><li>내 업장을 동문 지도에 등록해 연결할 수 있어요</li></ul>
+    <span class="profile-nudge-note">공개할 항목은 내가 골라요. 이름은 가운데를 가릴 수도 있어요.</span></div>
   <button type="button" class="spot-btn primary" data-open-myinfo>프로필 만들기</button>
 </div>
+<details class="gen-rate" id="genRate" hidden></details>
 <div class="network-hub site-view" data-site-view="network">
   <div class="network-hub-copy">
         <div class="network-hub-title">한조고 총동문회</div>
@@ -2837,6 +2853,7 @@ applicationBtn.textContent=
 }
 
 function renderAlumni(){
+try{renderGenRate();}catch(e){}
 
 if(!alumniStats){
 
@@ -3884,7 +3901,7 @@ function loadPlaceIds(){
 }
 
 let notifItems=[],notifTimer=null,placeReqs={submissions:[],claims:[]};
-const NOTIF_TEXT={birthday:"님이 생일을 축하했어요 🎂",mention:"님이 회원님을 태그했어요",answer:"님이 질문에 답변했어요",comment:"님이 글에 댓글을 남겼어요"};
+const NOTIF_TEXT={profile:"에서 알려드려요",birthday:"님이 생일을 축하했어요 🎂",mention:"님이 회원님을 태그했어요",answer:"님이 질문에 답변했어요",comment:"님이 글에 댓글을 남겼어요"};
 async function loadNotifications(){
   if(networkAccessState!=="verified")return;
   try{
@@ -3934,7 +3951,7 @@ function renderNotifications(){
   if(readAllRow)readAllRow.hidden=!(unreadIds.size||notifItems.some(n=>!n.read));
   const updateRows=siteUpdates.map(u=>`<button type="button" class="notif-item${unreadIds.has(u.id)?" unread":""}" data-site-update="${u.id}"><b>새 소식</b> ${esc(u.title)}<span>${esc(u.body||"")} · ${esc(boardDate(u.createdAt))}</span></button>`).join("");
   if(updateRows&&!notifItems.length){box.innerHTML=updateRows;return;}
-  box.innerHTML=updateRows+(notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-id="${esc(n.id)}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>');
+  box.innerHTML=updateRows+(notifItems.length?notifItems.map(n=>`<button type="button" class="notif-item${n.read?"":" unread"}" data-notif-id="${esc(n.id)}" data-notif-kind="${esc(n.kind||"")}" data-notif-post="${esc(n.postId||"")}"><b>${esc(meetupPerson(n.actorName,n.actorGeneration))}</b>${esc(NOTIF_TEXT[n.kind]||"님의 새 소식이 있어요")}<span>${esc(n.title||"")} · ${esc(boardDate(n.createdAt))}</span></button>`).join(""):'<div class="board-list-empty">아직 알림이 없어요.<br>누군가 @태그하거나 내 글에 답변이 달리면 여기에 보여요.</div>');
 }
 // 안 읽은 알림 수: 메뉴의 "내 정보" 버튼과 내 정보 안의 "알림" 탭에 함께 보여줍니다.
 function showNotifCount(n){
@@ -4365,6 +4382,7 @@ document.getElementById("notifList")?.addEventListener("click",e=>{
   const u=e.target.closest("[data-site-update]");if(u){openSiteUpdate(u.dataset.siteUpdate);return;}
   const b=e.target.closest("[data-notif-post]");if(!b)return;
   if(b.dataset.notifId)markNotificationRead(b.dataset.notifId);
+  if(b.dataset.notifKind==="profile"){setMyInfoTab("profile");return;}
   if(!b.dataset.notifPost)return;
   closeBoardModal("myInfoModal");setSiteView("board");
   loadBoard(true).then(()=>openBoardDetail(Number(b.dataset.notifPost)));
@@ -5268,11 +5286,37 @@ function setSiteView(view,{updateHash=true}={}){
 }
 
 // 내 공개 프로필이 아직 없으면 동문 화면 위에 "프로필 만들기"를 보여줍니다.
+// 기수별 프로필 공개 현황: 졸업생 DB 인원 대비 공개 프로필 수(막대는 스카프 색)
+function myGenerationGuess(){
+  const own=networkProfiles.find(p=>p.isOwnProfile);
+  return Number(own?.gen)||Number(typeof boardMyGeneration!=="undefined"?boardMyGeneration:0)||Number(typeof scarfMyGen!=="undefined"?scarfMyGen:0)||null;
+}
+function renderGenRate(){
+  const el=document.getElementById("genRate");if(!el)return;
+  const db=alumniStats?.byGeneration||null;
+  if(networkAccessState!=="verified"||!networkProfilesLoaded||!db){el.hidden=true;return;}
+  const pub={};networkProfiles.forEach(p=>{const g=Number(p.gen);if(g)pub[g]=(pub[g]||0)+1;});
+  const gens=Object.keys(db).map(Number).filter(g=>g>0&&Number(db[g])>0).sort((a,b)=>a-b);
+  if(!gens.length){el.hidden=true;return;}
+  const mine=myGenerationGuess(),open=el.open;
+  const rows=gens.map(g=>{
+    const total=Number(db[g])||0,n=Math.min(pub[g]||0,total),pct=total?Math.round(n/total*100):0;
+    const k=SCARF_CONFIRMED&&SCARF_CONFIRMED[g],col=k?scarfHex(k):"#8A7FD6",light=k&&["white","yellow","lime","sky","pink"].includes(k);
+    return '<div class="gen-rate-row'+(g===mine?' mine':'')+'"><span>'+g+'기</span><span class="gen-rate-bar"><i class="'+(light?'light':'')+'" style="width:'+Math.max(pct,n?4:0)+'%;background:'+col+'"></i></span><b>'+n+'/'+total+'</b></div>';
+  }).join("");
+  const mineLine=mine&&db[mine]?' · 우리 '+mine+'기 '+Math.min(pub[mine]||0,Number(db[mine]))+'/'+db[mine]+'명':'';
+  el.innerHTML='<summary>기수별 프로필 공개 현황<span>'+mineLine+'</span></summary><div class="gen-rate-list">'+rows+'</div><p class="np-sub" style="white-space:normal;margin:8px 0 0">공개 프로필 / 졸업생 DB 등록 인원 · 막대 색은 기수 스카프 색이에요.</p>';
+  el.open=open;el.hidden=false;
+}
 function syncProfileNudge(){
   const el=document.getElementById("profileNudge");if(!el)return;
   // hidden 은 화면 전환 때 다시 풀리므로 class 로 켜고 끕니다.
   const missing=networkAccessState==="verified"&&networkProfilesLoaded&&!networkProfiles.some(p=>p.isOwnProfile);
   el.classList.toggle("show",missing);
+  const g=myGenerationGuess(),db=alumniStats?.byGeneration||{};
+  const gl=document.getElementById("profileNudgeGen");
+  if(gl){const n=g?networkProfiles.filter(p=>Number(p.gen)===g).length:0;gl.textContent=g&&db[g]?"우리 "+g+"기는 졸업생 DB "+db[g]+"명 중 "+n+"명이 공개했어요.":"";}
+  try{renderGenRate();}catch(e){}
   const head=document.getElementById("netHeadAction");
   if(head){head.classList.toggle("primary",missing);const t=head.querySelector("span");if(t)t.textContent=missing?"프로필 만들기":"내 프로필";}
 }

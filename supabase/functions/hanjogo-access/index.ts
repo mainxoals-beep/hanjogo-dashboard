@@ -122,7 +122,7 @@ function latestPublicProfileRows(rows: Record<string, string>[], firstDates: Map
       keys.push("identity:" + JSON.stringify([name, generation, instagram.url.toLowerCase()]));
     }
     // 같은 사람이 다른 이메일로 폼을 다시 낸 경우: 이름·기수가 같고 소속이나 이메일 아이디도 같으면 한 사람으로 봅니다.
-    const workplace = normalizeKey(getField(row, "현재 소속 / 직장 / 사업체·브랜드")).replace(/[()（）\[\]·.,/]/g, "");
+    const workplace = workplaceKey(getField(row, "현재 소속 / 직장 / 사업체·브랜드"));
     if (name && generation && workplace.length >= 2) keys.push("workplace:" + JSON.stringify([name, generation, workplace]));
     const emailId = email.split("@")[0];
     if (name && generation && emailId.length >= 4) keys.push("emailId:" + JSON.stringify([name, generation, emailId]));
@@ -146,6 +146,26 @@ function latestPublicProfileRows(rows: Record<string, string>[], firstDates: Map
     // Google Forms appends responses in submission order.
     return group[group.length - 1];
   });
+}
+
+/** 사이트에서 고친 프로필(다른 이메일)과 같은 사람의 폼 응답인지: 이름·기수가 같고 이메일 아이디가 같거나 소속이 겹치면 같은 사람으로 봅니다. */
+function workplaceKey(value: unknown) {
+  return normalizeKey(value).replace(/[()（）\[\]·.,/]/g, "");
+}
+function sameAsOverride(row: Record<string, string>, overrides: Iterable<Record<string, unknown>>) {
+  const name = normalizeKey(getField(row, "이름"));
+  const generation = numberFromText(getField(row, "졸업 기수"));
+  if (!name || !generation) return false;
+  const emailId = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일")).split("@")[0];
+  const work = workplaceKey(getField(row, "현재 소속 / 직장 / 사업체·브랜드"));
+  for (const o of overrides) {
+    if (normalizeKey(o.name) !== name || numberFromText(o.generation) !== generation) continue;
+    const oId = normalizeEmail(o.email).split("@")[0];
+    const oWork = workplaceKey(o.company);
+    if (emailId.length >= 4 && emailId === oId) return true;
+    if (work.length >= 4 && oWork.length >= 4 && (work.includes(oWork) || oWork.includes(work))) return true;
+  }
+  return false;
 }
 
 function profileDateKey(row: Record<string, string>) {
@@ -944,7 +964,7 @@ Deno.serve(async (req: Request) => {
     };
     for (const row of latestPublicProfileRows(allRows, firstDates)) {
       const rowEmail = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
-      if (!rowEmail || overrides.has(rowEmail)) continue;
+      if (!rowEmail || overrides.has(rowEmail) || sameAsOverride(row, overrides.values())) continue;
       add(await buildProfile(row, new Map(), firstDates, todayKey, ""), rowEmail, []);
     }
     for (const [ownerEmail, row] of overrides) {
@@ -998,7 +1018,7 @@ Deno.serve(async (req: Request) => {
       // A profile edited on the site replaces that person's form row.
       const fromCsv = await Promise.all(
         rows
-          .filter((row) => !overrides.has(normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"))))
+          .filter((row) => !overrides.has(normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"))) && !sameAsOverride(row, overrides.values()))
           .map((row) => buildProfile(row, contactOverrides, firstPublicDates, todayKey, email)),
       );
       const fromSite = await Promise.all(

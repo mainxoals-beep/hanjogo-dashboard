@@ -1069,13 +1069,26 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .scarf-pill{display:none;align-items:center;gap:4px;margin:10px 0 0 6px;padding:5px 11px;border-radius:999px;border:1px solid #D9CFF0;background:#F5F1FC;color:var(--purple-dark);font:inherit;font-size:12px;font-weight:800;cursor:pointer;vertical-align:top}body.net-verified .scarf-pill{display:inline-flex}
 .scarf-tabs{display:flex;gap:6px;margin:14px 0 0;padding:3px;border-radius:12px;background:#F1EEF7}
 .scarf-tab{flex:1;min-height:36px;border:0;border-radius:10px;background:none;font:inherit;font-size:13.5px;font-weight:800;color:var(--sub);cursor:pointer}.scarf-tab[aria-selected="true"]{background:#fff;color:var(--purple-dark);box-shadow:0 1px 4px rgba(25,20,35,.12)}
-.scarf-results{margin-top:12px;max-height:46vh;overflow:auto;text-align:left}
+.scarf-results{margin-top:12px;max-height:52vh;overflow:auto;text-align:left}
 .scarf-res-total{margin:0 0 8px;font-size:12.5px;font-weight:700;color:var(--sub)}
 .scarf-res-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-top:1px solid var(--line)}
 .scarf-res-gen{flex:0 0 38px;font-size:14px;font-weight:800;color:var(--ink)}
 .scarf-res-bar{flex:1;display:flex;height:16px;border-radius:99px;overflow:hidden;border:1px solid rgba(0,0,0,.12);background:#f4f3f7}
 .scarf-res-bar i{display:block;height:100%}
 .scarf-res-top{flex:0 0 auto;font-size:12.5px;font-weight:800;color:var(--sub);text-align:right;min-width:62px}
+.scarf-sec{margin:14px 0 0}.scarf-sec:first-of-type{margin-top:4px}
+.scarf-sec h3{margin:0 0 4px;font-size:14px;font-weight:800;color:var(--ink)}
+.scarf-sec>p{margin:0 0 8px;font-size:12px;line-height:1.5;color:var(--mute)}
+.scarf-chips{display:flex;flex-wrap:wrap;gap:6px}
+.scarf-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px 4px 6px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;font-weight:700;color:var(--ink)}
+.scarf-dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:0 0 auto}
+.scarf-ask{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 6px;padding:9px 10px;border:1px solid #E3DCF3;border-radius:12px;background:#FAF8FE;font:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+.scarf-ask b{flex:0 0 36px;font-size:14px}
+.scarf-ask .scarf-opts{flex:1;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12.5px;font-weight:700;color:var(--sub)}
+.scarf-ask .scarf-opts span{display:inline-flex;align-items:center;gap:4px}
+.scarf-ask em{flex:0 0 auto;font-style:normal;font-size:12px;font-weight:800;color:var(--purple-dark)}
+.scarf-asof{margin:12px 0 0;font-size:11.5px;color:var(--mute)}
+.scarf-hint{margin:6px 0 0;font-size:12.5px;font-weight:700;line-height:1.5;color:var(--purple-dark)}.scarf-hint:empty{display:none}
 .scarf-res-empty{padding:18px 4px;font-size:13px;line-height:1.6;color:var(--mute);text-align:center}
 .birthday-strip{margin:0 0 14px;padding:13px 15px;border:1px solid #F6D9C9;border-radius:16px;background:linear-gradient(135deg,#FFF6EF,#fff 70%)}.birthday-strip[hidden]{display:none}
 .bday-me{margin:0 0 8px;font-size:var(--fs-sm);font-weight:800;color:#B4532A}
@@ -2077,11 +2090,11 @@ body.photo-open{overflow:hidden}
     <button type="button" class="tour-skip" id="scarfLater">나중에</button>
     <div class="tour-icon" aria-hidden="true">🧣</div>
     <h2 class="tour-title" id="scarfTitle">기수 스카프 색 투표</h2>
-    <p class="tour-body" id="scarfBody">설문으로 대부분 기수의 스카프 색이 정해졌어요. 응답이 적거나 의견이 갈린 기수만 다시 투표해요. 기억나는 기수의 색을 골라주세요.</p>
-    <div class="scarf-tabs" role="tablist"><button type="button" class="scarf-tab" role="tab" id="scarfTabAsk" aria-selected="true">투표하기</button><button type="button" class="scarf-tab" role="tab" id="scarfTabRes" aria-selected="false">지금까지 결과</button></div>
-    <div id="scarfResults" class="scarf-results" hidden></div>
-    <div id="scarfForm">
-    <div class="scarf-row"><label for="scarfGen">기수</label><select id="scarfGen"></select></div>
+    <p class="tour-body" id="scarfBody">지금까지 모인 답으로 정리해 봤어요. 의견이 갈렸거나 답이 적은 기수는 기억나는 색을 알려주세요.</p>
+    <div class="scarf-tabs" role="tablist"><button type="button" class="scarf-tab" role="tab" id="scarfTabRes" aria-selected="true">지금까지 결과</button><button type="button" class="scarf-tab" role="tab" id="scarfTabAsk" aria-selected="false">투표하기</button></div>
+    <div id="scarfResults" class="scarf-results"></div>
+    <div id="scarfForm" hidden>
+    <div class="scarf-row"><label for="scarfGen">기수</label><select id="scarfGen"></select><p class="scarf-hint" id="scarfHint"></p></div>
     <div class="scarf-row"><label>스카프 색</label><div class="scarf-colors" id="scarfColors"></div></div>
     <div class="scarf-row" id="scarfOtherRow" hidden><label for="scarfOther">어떤 색이었나요? (12자 이내)</label><input id="scarfOther" maxlength="12" placeholder="예: 연보라, 청록"></div>
     <p class="scarf-done" id="scarfDone" role="status"></p>
@@ -4204,10 +4217,29 @@ const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,
 var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
 const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,18,23,25];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
-function scarfHex(key){if(key==="burgundy")return "#7B1E3A";const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
+// 11월 9일까지 모인 답 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
+const SCARF_STATUS_ASOF="11월 9일";
+const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],18:[["lime",4],["green",3]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
+const SCARF_FEW={1:[["yellow",1]],4:[["살구색",1]],5:[["lime",1]],6:[["blue",1]],7:[["pink",1]],8:[["purple",1]],11:[["yellow",1]]};
+const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
+function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
 let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null;
 function scarfRenderMine(){
   document.getElementById("scarfMine").textContent=scarfMine.length?"내가 알려준 기수: "+scarfMine.map(v=>v.generation+"기 "+(v.color==="other"?(v.other||"기타"):SCARF_LABEL[v.color])).join(" · "):"";
+}
+function scarfName(key){return key==="burgundy"?"버건디":(SCARF_LABEL[key]||key);}
+function scarfVoteText(votes){return votes.map(v=>'<span><i class="scarf-dot" style="background:'+scarfHex(v[0])+'"></i>'+esc(scarfName(v[0]))+' '+v[1]+'명</span>').join("");}
+function scarfStatusHtml(){
+  const conf=Object.keys(SCARF_CONFIRMED).map(Number).sort((a,b)=>a-b);
+  const ask=(map,label)=>Object.keys(map).map(Number).sort((a,b)=>a-b).map(g=>'<button type="button" class="scarf-ask" data-scarf-go="'+g+'"><b>'+g+'기</b><span class="scarf-opts">'+scarfVoteText(map[g])+'</span><em>'+label+' ›</em></button>').join("");
+  return '<div class="scarf-sec"><h3>✅ 확정된 기수 '+conf.length+'곳</h3><p>답이 충분히 모이고 한 색으로 모인 기수예요. 동문 프로필의 기수 색으로 써요.</p><div class="scarf-chips">'+conf.map(g=>'<span class="scarf-chip"><i class="scarf-dot" style="background:'+scarfHex(SCARF_CONFIRMED[g])+'"></i>'+g+'기 '+esc(scarfName(SCARF_CONFIRMED[g]))+'</span>').join("")+'</div></div>'
+   +'<div class="scarf-sec"><h3>🤔 의견이 갈린 기수 · 뭐가 맞나요?</h3><p>색이 나뉘었어요. 기억나는 색을 골라주세요.</p>'+ask(SCARF_SPLIT,"골라주기")+'</div>'
+   +'<div class="scarf-sec"><h3>🙋 아직 답이 적은 기수</h3><p>한 명만 알려준 기수예요. 맞으면 같은 색, 다르면 기억나는 색을 골라주세요.</p>'+ask(SCARF_FEW,"확인해주기")+'</div>'
+   +'<p class="scarf-asof">'+SCARF_STATUS_ASOF+'까지 모인 답 기준이에요.</p>'
+   +'<div class="tour-actions" style="margin-top:12px"><button type="button" class="tour-btn" data-scarf-close>닫기</button><button type="button" class="tour-btn primary" data-scarf-tovote>투표하러 가기</button></div>';
+}
+function scarfGoVote(gen){
+  scarfTab("ask");const sel=document.getElementById("scarfGen");sel.value=String(gen);scarfPickFor(sel.value);
 }
 function scarfTab(name){
   const res=name==="results";
@@ -4217,14 +4249,7 @@ function scarfTab(name){
   if(res)scarfRenderResults();
 }
 function scarfRenderResults(){
-  const box=document.getElementById("scarfResults"),colorOf=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[2]]));
-  if(!scarfResults){box.innerHTML='<div class="scarf-res-empty">한 기수라도 알려주시면<br>지금까지 모인 결과를 볼 수 있어요.</div>';return;}
-  const gens=scarfResults.generations||[];
-  if(!gens.length){box.innerHTML='<div class="scarf-res-empty">아직 모인 답이 없어요.</div>';return;}
-  box.innerHTML='<p class="scarf-res-total">지금까지 '+Number(scarfResults.total).toLocaleString()+'개의 답이 모였어요</p>'+gens.map(g=>{
-    const sum=g.votes.reduce((n,v)=>n+v.count,0),top=g.votes[0],name=v=>v.color.startsWith("other:")?(v.color.slice(6)||"기타"):(SCARF_LABEL[v.color]||"기타");
-    return '<div class="scarf-res-row"><span class="scarf-res-gen">'+g.generation+'기</span><span class="scarf-res-bar" role="img" aria-label="'+esc(g.votes.map(v=>name(v)+" "+v.count+"명").join(", "))+'">'+g.votes.map(v=>'<i style="width:'+(v.count/sum*100)+'%;background:'+(colorOf[v.color]||colorOf.other)+'"></i>').join("")+'</span><span class="scarf-res-top">'+esc(name(top))+' '+top.count+'/'+sum+'</span></div>';
-  }).join("");
+  document.getElementById("scarfResults").innerHTML=scarfStatusHtml();
 }
 function scarfSyncSave(){
   const other=document.getElementById("scarfOther").value.trim();
@@ -4235,6 +4260,8 @@ function scarfSyncSave(){
 function scarfPickFor(gen){
   const v=scarfMine.find(x=>x.generation===Number(gen));
   scarfPick=v?v.color:"";document.getElementById("scarfOther").value=v&&v.color==="other"?(v.other||""):"";
+  const g=Number(gen),cand=SCARF_SPLIT[g]||SCARF_FEW[g],hint=document.getElementById("scarfHint");
+  if(hint)hint.textContent=cand?"지금까지 "+cand.map(c=>scarfName(c[0])+" "+c[1]+"명").join(" · ")+(SCARF_SPLIT[g]?" — 어느 쪽이 맞나요?":" — 맞나요?"):"";
   scarfSyncSave();
 }
 async function loadScarfState(){
@@ -4254,7 +4281,7 @@ async function scarfOpen(){
   if(!box.children.length)box.innerHTML=SCARF_COLORS.map(c=>'<button type="button" class="scarf-color" data-scarf="'+c[0]+'" aria-pressed="false"><i style="background:'+c[2]+'"></i>'+c[1]+'</button>').join("");
   sel.value=scarfMyGen&&SCARF_VOTE_GENS.includes(scarfMyGen)?String(scarfMyGen):"";
   document.getElementById("scarfDone").textContent="";
-  scarfPickFor(sel.value);scarfRenderMine();scarfTab("ask");
+  scarfPickFor(sel.value);scarfRenderMine();scarfTab("results");
   overlayOpen("scarf",()=>scarfClose());try{d.showModal();}catch(e){d.setAttribute("open","");}
 }
 function scarfClose(){
@@ -4277,6 +4304,7 @@ async function maybeOpenScarf(){
   scarfOpen();
 }
 document.getElementById("scarfGen")?.addEventListener("change",e=>scarfPickFor(e.target.value));
+document.getElementById("scarfResults")?.addEventListener("click",e=>{const b=e.target.closest("[data-scarf-go]");if(b)scarfGoVote(Number(b.dataset.scarfGo));if(e.target.closest("[data-scarf-tovote]"))scarfTab("ask");if(e.target.closest("[data-scarf-close]")){lsSet(SCARF_LATER_KEY,String(Date.now()));scarfClose();}});
 document.getElementById("scarfColors")?.addEventListener("click",e=>{const b=e.target.closest("[data-scarf]");if(!b)return;scarfPick=b.dataset.scarf;document.getElementById("scarfDone").textContent="";scarfSyncSave();if(scarfPick==="other")document.getElementById("scarfOther").focus();});
 document.getElementById("scarfOther")?.addEventListener("input",scarfSyncSave);
 document.getElementById("scarfSave")?.addEventListener("click",async()=>{

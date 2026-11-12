@@ -3825,7 +3825,7 @@ document.getElementById("homeNews")?.addEventListener("click",async e=>{
   const more=e.target.closest("[data-news-more]"),hide=e.target.closest("[data-news-hide]"),add=e.target.closest("[data-news-add]");
   if(more){homeNewsAll=!homeNewsAll;renderHomeNews();}
   if(hide&&confirm("이 소식을 숨길까요?")){
-    const {error}=await sb.from("hanjogo_daily_news").update({hidden:true}).eq("id",Number(hide.dataset.newsHide));
+    const {error}=await sb.rpc("hide_hanjogo_daily_news",{p_id:Number(hide.dataset.newsHide)});
     if(error)alert("숨기지 못했습니다. 관리자 로그인 상태를 확인해주세요.");else loadHomeNews();
   }
   if(add){

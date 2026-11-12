@@ -567,6 +567,11 @@ body.modal-open{overflow:hidden}
 .job-feed-head b{font-size:16px;color:var(--purple-dark);letter-spacing:-.01em}.job-feed-head small{font-size:12px;color:#7b7684;font-weight:600}
 .job-feed-chev{color:var(--purple-dark);font-size:14px;transition:transform .15s}.job-feed-head[aria-expanded="false"] .job-feed-chev{transform:rotate(-90deg)}
 .job-feed-list{display:grid;gap:8px}.job-feed-list[hidden]{display:none}
+.job-filters{display:flex;gap:6px;overflow-x:auto;margin:0 -2px 10px;padding:2px 2px 4px;scrollbar-width:none}.job-filters::-webkit-scrollbar{display:none}.job-filters[hidden]{display:none}
+.job-filter{flex:0 0 auto;min-height:32px;padding:0 12px;border:1px solid #DCD7F5;border-radius:999px;background:#fff;font:inherit;font-size:12.5px;font-weight:800;color:var(--sub);cursor:pointer;white-space:nowrap}
+.job-filter span{margin-left:3px;font-weight:700;color:var(--mute)}
+.job-filter[aria-selected="true"]{background:var(--purple);border-color:var(--purple);color:#fff}.job-filter[aria-selected="true"] span{color:#E8E3FA}
+.job-group-title{margin:6px 2px 0;font-size:13px;font-weight:800;color:var(--purple-dark)}.job-group-title:first-child{margin-top:0}
 .job-item{display:flex;flex-direction:column;gap:6px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:inherit;text-decoration:none}
 .job-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .job-item-title{font-size:14.5px;font-weight:800;line-height:1.4;color:var(--ink);word-break:keep-all}
@@ -1427,6 +1432,7 @@ body.photo-open{overflow:hidden}
     <div class="board-list-empty" id="fnbJobsEmpty" hidden>지금 올라온 채용 공고가 없어요.</div>
     <section class="job-feed" id="jobFeed" hidden aria-labelledby="jobFeedTitle">
       <button type="button" class="job-feed-head" id="jobFeedToggle" aria-expanded="true" aria-controls="jobFeedList"><span class="job-feed-headtext"><b id="jobFeedTitle">오늘의 F&amp;B 채용</b><small id="jobFeedSub"></small></span><span class="job-feed-chev" aria-hidden="true">▾</span></button>
+      <div class="job-filters" id="jobFilters" role="tablist" aria-label="분야"></div>
       <div class="job-feed-list" id="jobFeedList"></div>
       <p class="job-feed-note">공고 원문을 직접 열어 마감일을 확인한 것만 올립니다. 지원 전에 원문에서 한 번 더 확인해주세요.</p>
     </section>
@@ -4217,9 +4223,9 @@ const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,
 var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
 const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,18,23,25];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
-// 11월 9일까지 모인 답 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
-const SCARF_STATUS_ASOF="11월 9일";
-const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],18:[["lime",4],["green",3]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
+// 11월 12일까지 모인 답 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
+const SCARF_STATUS_ASOF="11월 12일";
+const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],18:[["lime",5],["green",3]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
 const SCARF_FEW={1:[["yellow",1]],4:[["살구색",1]],5:[["lime",1]],6:[["blue",1]],7:[["pink",1]],8:[["purple",1]],11:[["yellow",1]]};
 const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
 function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
@@ -4750,7 +4756,10 @@ document.getElementById("boardCategory")?.addEventListener("change",()=>{syncBoa
 document.getElementById("boardTopic")?.addEventListener("change",()=>syncBoardTopicField());
 function renderBoardList(){renderBoardGenCard();renderHomeRecent();const list=document.getElementById("boardList");if(!list)return;const items=boardPosts.filter(boardVisible);document.querySelectorAll("[data-board-filter]").forEach(b=>b.classList.toggle("active",b.dataset.boardFilter===boardFilter));renderResourceSubFilters();const count=document.getElementById("homeBoardCount");if(count)count.textContent=boardPosts.length?boardPosts.length.toLocaleString()+"개 글":"첫 글 쓰기";if(!items.length){list.innerHTML='<div class="board-list-empty">'+(boardFilter==="resource"?(resourceSubFilter==="saved"?"저장한 자료가 없어요.<br>자료를 열고 ☆ 저장을 눌러보세요.":"아직 공유된 자료가 없어요.<br>원가표·발주 양식·체크리스트를 처음으로 나눠주세요."):"아직 등록된 글이 없습니다.<br>첫 소식을 남겨보세요.")+'</div>';return;}list.innerHTML=items.map(p=>{const author=[p.authorGeneration?p.authorGeneration+"기":"",p.authorName].filter(Boolean).join(" · "),reactionTotal=Object.values(p.reactionCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);return `<button class="board-row" type="button" data-board-id="${esc(p.id)}"><span class="board-category ${p.isNotice?"notice":""}">${esc(BOARD_CATEGORY_LABELS[p.category]||"자유")}</span><span class="board-row-main"><span class="board-row-title">${p.isNotice?"[공지] ":""}${esc(p.title)}${isNewPost(p)?'<span class="fresh-tag">NEW</span>':""}${p.category==="question"?(p.isResolved?'<span class="meetup-tag on">해결됨</span>':(p.comments?.length?"":'<span class="meetup-tag">답변 기다림</span>')):(p.category==="jobs"&&p.isResolved?'<span class="meetup-tag on">채용 완료</span>':"")}</span><span class="board-row-meta">${p.category==="generation"&&p.targetGeneration?esc(p.targetGeneration)+"기만 · ":""}${p.category==="question"&&p.topic?esc(p.topic)+" · ":""}${p.category==="resource"?esc(RESOURCE_CATEGORY_LABELS[p.topic]||"기타")+" · ":""}${esc(author)} · ${esc(boardDate(p.createdAt))}${p.category==="resource"?'<span class="board-attach">'+esc(resourceAttachText(p))+'</span>':""}</span></span><span class="board-comment-count">${p.category==="resource"?"받음 "+Number(p.downloadCount||0)+" · ":"반응 "+reactionTotal+" · "}조회 ${Number(p.viewCount||0)} · 댓글 ${Number(p.comments?.length||0)}</span></button>`;}).join("");}
 // 오늘의 F&B 채용: 서버가 마감·미확인 글을 걸러서 내려줍니다. 링크는 https만 엽니다.
-const JOB_ROLE_LABELS={chef:"조리·셰프",rnd:"R&D·메뉴개발",bakery:"제과제빵",cafe:"카페·바리스타",ops:"매장운영",hotel:"호텔·케이터링",md:"MD·기획",marketing:"마케팅",etc:"F&B"};
+const JOB_ROLE_LABELS={hotel:"호텔 조리",chef:"레스토랑 조리",rnd:"R&D·메뉴개발",bakery:"제과제빵",cafe:"카페·바리스타",service:"홀·소믈리에",food:"식품·급식",md:"MD·기획",marketing:"마케팅",ops:"매장운영",etc:"기타"};
+// 분야 버튼과 '전체'에서 묶어 보여줄 순서
+const JOB_ROLE_ORDER=["hotel","chef","rnd","bakery","cafe","service","food","md","marketing","ops","etc"];
+let jobFeedRows=[],jobFilter="all";
 let jobFeedLoadedAt=0,jobFeedLoading=false;
 function jobDaysLeft(closesOn){
   if(!closesOn)return null;
@@ -4767,11 +4776,24 @@ function renderJobFeed(items){
   const box=document.getElementById("jobFeed"),list=document.getElementById("jobFeedList");
   if(!box||!list)return;
   const rows=(Array.isArray(items)?items:[]).filter(j=>/^https:\/\//.test(String(j.url||"")));
-  jobFeedCount=rows.length;syncFnb();
+  jobFeedRows=rows;jobFeedCount=rows.length;syncFnb();
   box.hidden=!rows.length;if(!rows.length)return;
-  const today=raffleEventDate();
   document.getElementById("jobFeedSub").textContent="총 "+rows.length+"건 · 마감일 확인 완료";
-  list.innerHTML=rows.map(j=>{
+  renderJobList();
+}
+function jobGroupOf(j){return JOB_ROLE_ORDER.includes(j.roleGroup)?j.roleGroup:"etc";}
+function renderJobList(){
+  const list=document.getElementById("jobFeedList"),bar=document.getElementById("jobFilters");if(!list)return;
+  const rows=jobFeedRows,count={};rows.forEach(j=>{const g=jobGroupOf(j);count[g]=(count[g]||0)+1;});
+  const groups=JOB_ROLE_ORDER.filter(g=>count[g]);
+  if(jobFilter!=="all"&&!count[jobFilter])jobFilter="all";
+  if(bar){bar.innerHTML='<button type="button" class="job-filter" role="tab" data-job-filter="all" aria-selected="'+(jobFilter==="all")+'">전체<span>'+rows.length+'</span></button>'+groups.map(g=>'<button type="button" class="job-filter" role="tab" data-job-filter="'+g+'" aria-selected="'+(jobFilter===g)+'">'+esc(JOB_ROLE_LABELS[g])+'<span>'+count[g]+'</span></button>').join("");}
+  const byDue=(a,b)=>(a.alwaysOpen?"9999":String(a.closesOn||"9999")).localeCompare(b.alwaysOpen?"9999":String(b.closesOn||"9999"));
+  const show=jobFilter==="all"?groups:[jobFilter];
+  list.innerHTML=show.map(g=>(jobFilter==="all"?'<p class="job-group-title">'+esc(JOB_ROLE_LABELS[g])+' · '+count[g]+'건</p>':"")+rows.filter(j=>jobGroupOf(j)===g).sort(byDue).map(jobItemHtml).join("")).join("");
+}
+function jobItemHtml(j){
+  const today=raffleEventDate();
     const left=jobDaysLeft(j.closesOn);
     const due=j.alwaysOpen?'<span class="job-chip">상시채용</span>':left===null?"":'<span class="job-chip '+(left<=3?"soon":left<=7?"due":"")+'">'+(left===0?"오늘 마감":"마감 D-"+left)+jobDateText(j.closesOn)+'</span>';
     const fresh=String(j.postedOn||"").slice(0,10)===today;
@@ -4782,8 +4804,8 @@ function renderJobFeed(items){
       +(j.summary?'<span class="job-item-sum">'+esc(j.summary)+'</span>':"")
       +'<span class="job-item-chips"><span class="job-chip">'+esc(JOB_ROLE_LABELS[j.roleGroup]||"F&B")+'</span><span class="job-chip">'+esc(j.career)+'</span>'+(j.employment?'<span class="job-chip">'+esc(j.employment)+'</span>':"")+due
       +'<span class="job-item-go">'+esc(j.source||"원문")+' 원문 보기 ↗</span></span></a>';
-  }).join("");
 }
+document.getElementById("jobFilters")?.addEventListener("click",e=>{const b=e.target.closest("[data-job-filter]");if(!b)return;jobFilter=b.dataset.jobFilter;renderJobList();});
 async function loadJobFeed(){
   if(jobFeedLoading||Date.now()-jobFeedLoadedAt<10*60*1000)return;
   jobFeedLoading=true;
@@ -4796,7 +4818,7 @@ async function loadJobFeed(){
 }
 document.getElementById("jobFeedToggle")?.addEventListener("click",e=>{
   const list=document.getElementById("jobFeedList"),open=list.hidden;
-  list.hidden=!open;document.querySelector(".job-feed-note").hidden=!open;e.currentTarget.setAttribute("aria-expanded",String(open));
+  list.hidden=!open;document.querySelector(".job-feed-note").hidden=!open;const fb=document.getElementById("jobFilters");if(fb)fb.hidden=!open;e.currentTarget.setAttribute("aria-expanded",String(open));
 });
 async function loadBoard(force=false){
   if(networkAccessState!=="verified")return;

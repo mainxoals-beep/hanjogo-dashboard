@@ -4258,15 +4258,15 @@ const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["y
 const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
 const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
 // 2026-11 설문 결과로 확정된 기수 색(공개 프로필 기수 표시에 씀)과, 다시 투표하는 기수
-var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
-const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,23,25];
+var SCARF_CONFIRMED={1:"yellow",2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink",25:"khaki"};
+const SCARF_VOTE_GENS=[4,5,6,7,8,11,13,23];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
 // 실시간 집계를 못 불러올 때 쓰는 11월 12일 기준 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
 const SCARF_STATUS_ASOF="11월 12일";
-const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
-const SCARF_FEW={1:[["yellow",1]],4:[["살구색",1]],5:[["lime",1]],6:[["blue",1]],7:[["pink",1]],8:[["purple",1]],11:[["yellow",1]]};
+const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],23:[["gray",1],["sky",1],["blue",1]]};
+const SCARF_FEW={4:[["살구색",1]],5:[["lime",1]],6:[["blue",1]],7:[["pink",1]],8:[["purple",1]],11:[["yellow",1]]};
 const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
-function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
+function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(key==="khaki")return "#7D7A3E";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
 let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null,scarfLive=null;
 // 실시간 집계: 기수·색별 개수만 받아서, 다시 투표하는 기수를 '의견 갈림'(색이 2가지 이상)과 '답 적음'으로 나눕니다.
 const SCARF_SYNONYM={"흰색":"white","하양":"white","화이트":"white","버건디":"burgundy","와인":"burgundy","와인색":"burgundy","자주":"burgundy"};
@@ -4291,7 +4291,7 @@ function scarfFewMap(){return scarfLive?scarfLive.few:SCARF_FEW;}
 function scarfRenderMine(){
   document.getElementById("scarfMine").textContent=scarfMine.length?"내가 알려준 기수: "+scarfMine.map(v=>v.generation+"기 "+(v.color==="other"?(v.other||"기타"):SCARF_LABEL[v.color])).join(" · "):"";
 }
-function scarfName(key){return key==="burgundy"?"버건디":(SCARF_LABEL[key]||key);}
+function scarfName(key){return key==="burgundy"?"버건디":key==="khaki"?"카키":(SCARF_LABEL[key]||key);}
 function scarfVoteText(votes){if(!votes.length)return '<span>아직 답이 없어요</span>';return votes.map(v=>'<span><i class="scarf-dot" style="background:'+(scarfHex(v[0])||"#C9C5D3")+'"></i>'+esc(scarfName(v[0]))+' '+v[1]+'명</span>').join("");}
 function scarfStatusHtml(){
   const conf=Object.keys(SCARF_CONFIRMED).map(Number).sort((a,b)=>a-b);

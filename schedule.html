@@ -5519,8 +5519,8 @@ function renderGenRate(){
   el.innerHTML='<summary>기수별 프로필 공개 현황<span>'+mineLine+'</span></summary><div class="gen-rate-list">'+rows+'</div><p class="np-sub" style="white-space:normal;margin:8px 0 0">공개 프로필 / 졸업생 DB 등록 인원 · 막대 색은 기수 스카프 색이에요.</p>';
   el.open=open;el.hidden=false;
 }
-// 공개 프로필이 없는 인증 동문에게 프로필 만들기를 권하는 팝업. '나중에'를 누르면 7일 뒤, 최대 3번까지 띄웁니다.
-const PI_LATER_KEY="hanjogo-profile-invite-later",PI_COUNT_KEY="hanjogo-profile-invite-count",PI_LATER_MS=7*24*60*60*1000;
+// 공개 프로필이 없는 인증 동문에게 프로필 만들기를 권하는 팝업. '나중에'를 누르면 이틀 뒤, 최대 3번까지 띄웁니다.
+const PI_LATER_KEY="hanjogo-profile-invite-later",PI_COUNT_KEY="hanjogo-profile-invite-count",PI_LATER_MS=2*24*60*60*1000;
 let piTried=false;
 function profileInviteDue(){
   if(piTried||networkAccessState!=="verified"||!networkProfilesLoaded||networkProfiles.some(p=>p.isOwnProfile))return false;

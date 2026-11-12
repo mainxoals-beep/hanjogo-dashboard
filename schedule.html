@@ -5540,7 +5540,10 @@ function maybeOpenProfileInvite(){
     piTried=true;openProfileInvite();
   },3500);
 }
-function openProfileInvite(){
+// 미리보기: 주소 끝에 ?preview=profile-invite 를 붙이면 프로필이 있어도 이 팝업을 띄웁니다(횟수·나중에 기록은 남기지 않음).
+const PI_PREVIEW=new URLSearchParams(location.search).get("preview")==="profile-invite";
+if(PI_PREVIEW){let tries=0;const t=setInterval(()=>{tries++;if((networkProfilesLoaded&&!document.querySelector("dialog[open]"))||tries>=12){clearInterval(t);openProfileInvite(true);}},1000);}
+function openProfileInvite(preview=false){
   const d=document.getElementById("profileInvite");if(!d||d.open)return;
   const g=Number(myGenerationGuess())||0,db=alumniStats?.byGeneration||{};
   const av=document.getElementById("piAvatar"),k=g&&SCARF_CONFIRMED[g];
@@ -5548,11 +5551,11 @@ function openProfileInvite(){
   document.getElementById("piName").textContent=g?"내 이름 · "+g+"기":"내 이름 · 기수";
   const n=g?networkProfiles.filter(p=>Number(p.gen)===g).length:0;
   document.getElementById("piGen").textContent=g&&db[g]?"우리 "+g+"기는 졸업생 DB "+db[g]+"명 중 "+n+"명이 공개했어요"+(k?"\n내 프로필은 "+g+"기 스카프 색("+scarfName(k)+")으로 보여요":""):"";
-  lsSet(PI_COUNT_KEY,String((Number(lsGet(PI_COUNT_KEY))||0)+1));
-  overlayOpen("profileInvite",()=>closeProfileInvite(true));try{d.showModal();}catch(e){d.setAttribute("open","");}
+  if(!preview)lsSet(PI_COUNT_KEY,String((Number(lsGet(PI_COUNT_KEY))||0)+1));
+  overlayOpen("profileInvite",()=>closeProfileInvite(!preview));try{d.showModal();}catch(e){d.setAttribute("open","");}
 }
 function closeProfileInvite(later){
-  if(later)lsSet(PI_LATER_KEY,String(Date.now()));
+  if(later&&!PI_PREVIEW)lsSet(PI_LATER_KEY,String(Date.now()));
   overlayClose("profileInvite");const d=document.getElementById("profileInvite");if(d?.open)d.close();
 }
 document.getElementById("piLater")?.addEventListener("click",()=>closeProfileInvite(true));

@@ -428,6 +428,7 @@ function publicBoardPost(
   viewCount: number,
   userId: string,
   isAdmin: boolean,
+  contactEmail = "",
 ) {
   const reactionCounts = { like: 0, heart: 0, clap: 0, useful: 0 };
   reactions.forEach((item) => {
@@ -444,6 +445,9 @@ function publicBoardPost(
     targetGeneration: row.target_generation ?? null,
     isNotice: Boolean(row.is_notice), createdAt: row.created_at, updatedAt: row.updated_at,
     canEdit: isAdmin || row.author_id === userId,
+    // 글쓴이가 이메일 연락을 허락한 글에만 이메일을 담습니다(인증한 동문에게만 가는 응답입니다).
+    contactEmail: contactEmail || null,
+    allowEmailContact: isAdmin || row.author_id === userId ? (row.allow_email_contact ?? null) : undefined,
     viewCount,
     reactionCounts,
     ownReactions: reactions.filter((item) => item.user_id === userId).map((item) => item.reaction),
@@ -974,6 +978,29 @@ Deno.serve(async (req: Request) => {
     people.sort((a, b) => (a.generation ?? 999) - (b.generation ?? 999) || a.name.localeCompare(b.name, "ko"));
     publicPeopleCache = { expiresAt: Date.now() + 3 * 60 * 1000, people };
     return people;
+  }
+
+  /** Who allowed alumni to email them: site profile first, then the contact-consent table, then the form answer. */
+  async function emailContactConsent(emails: Set<string>) {
+    const consent = new Map<string, boolean>();
+    if (!emails.size) return consent;
+    const [overrideRows, consentRows] = await Promise.all([
+      adminClient.from("hanjogo_profile_overrides").select("email,allow_email_contact"),
+      adminClient.from("hanjogo_email_contact_consent").select("email,allow_email_contact"),
+    ]);
+    (consentRows.data || []).forEach((row) => consent.set(normalizeEmail(row.email), Boolean(row.allow_email_contact)));
+    (overrideRows.data || []).forEach((row) => consent.set(normalizeEmail(row.email), Boolean(row.allow_email_contact)));
+    if ([...emails].some((item) => !consent.has(item))) {
+      try {
+        latestProfileRowsByEmail(rowsAsObjects(await fetchCsv(PROFILE_CSV_URL))).forEach((row) => {
+          const rowEmail = normalizeEmail(getField(row, "Email Address") || getField(row, "이메일"));
+          if (!rowEmail || consent.has(rowEmail) || !emails.has(rowEmail)) return;
+          const answer = getField(row, "동문들이 한조고 네트워크를 통해 이메일로 직접 연락할 수 있도록 허용하시겠습니까?");
+          consent.set(rowEmail, answer.includes("허용합니다"));
+        });
+      } catch { /* 폼을 못 읽으면 사이트·동의 표에 있는 사람만 봅니다. */ }
+    }
+    return consent;
   }
 
   /** Leave an in-site notification (🔔) for each tagged person, never for yourself. */
@@ -1755,7 +1782,7 @@ Deno.serve(async (req: Request) => {
     }
     if (action === "board_list") {
       const { data: rawPosts, error: postsError } = await adminClient.from("hanjogo_board_posts")
-        .select("id,author_id,author_name,author_generation,category,target_generation,title,content,topic,is_resolved,is_notice,file_path,file_name,file_size,link_url,download_count,created_at,updated_at")
+        .select("id,author_id,author_email,allow_email_contact,author_name,author_generation,category,target_generation,title,content,topic,is_resolved,is_notice,file_path,file_name,file_size,link_url,download_count,created_at,updated_at")
         .eq("is_hidden", false).order("is_notice", { ascending: false }).order("created_at", { ascending: false }).limit(150);
       if (postsError) return json({ error: postsError.message }, 500);
       const visible: Record<string, unknown>[] = [];
@@ -1789,6 +1816,17 @@ Deno.serve(async (req: Request) => {
         helpersByTopic[topic].push({ profileId: person.profileId, name: person.name, generation: person.generation });
       }));
       const mentionable = people.map((person) => ({ profileId: person.profileId, name: person.name, generation: person.generation }));
+      // 이메일로 연락하기: 글에서 연락받기를 켠 경우(true) 보여주고, 끈 경우(false)는 숨깁니다.
+      // 예전 글처럼 정하지 않은 경우(null)는 글쓴이가 프로필에서 이메일 연락을 허락했을 때만 보여줍니다.
+      const undecided = new Set((posts || []).filter((post) => post.allow_email_contact == null).map((post) => normalizeEmail(post.author_email)).filter(Boolean));
+      const profileConsent = await emailContactConsent(undecided);
+      const contactFor = (post: Record<string, unknown>) => {
+        const author = normalizeEmail(post.author_email);
+        if (!author || post.author_id === userId) return "";
+        if (post.allow_email_contact === true) return author;
+        if (post.allow_email_contact == null && profileConsent.get(author) === true) return author;
+        return "";
+      };
       return json({ allowed: true, isAdmin, myGeneration: await myGeneration(), helpTopics: HELP_TOPICS, helpersByTopic, people: mentionable, items: (posts || []).map((post) => publicBoardPost(
         post,
         comments.filter((comment) => comment.post_id === post.id),
@@ -1796,6 +1834,7 @@ Deno.serve(async (req: Request) => {
         views.filter((view) => view.post_id === post.id).length,
         userId,
         isAdmin,
+        contactFor(post),
       )) });
     }
     if (action === "board_view") {
@@ -1856,7 +1895,7 @@ Deno.serve(async (req: Request) => {
       const { data, error } = await adminClient.from("hanjogo_board_posts").insert({
         author_id: userId, author_email: email, author_name: identity.name,
         author_generation: identity.generation, category, target_generation: targetGeneration, title, content, topic: picked.topic, is_notice: category === "notice",
-        link_url: attachment.link, ...(file || {}),
+        link_url: attachment.link, ...(file || {}), allow_email_contact: body.allowEmailContact !== false,
       }).select("id").single();
       if (error) return json({ error: error.message }, 500);
       // 다른 기수에게 보이지 않는 글이라 @태그 알림은 보내지 않습니다.
@@ -1898,6 +1937,7 @@ Deno.serve(async (req: Request) => {
       const { error } = await adminClient.from("hanjogo_board_posts").update({
         category, title, content, topic: picked.topic, is_notice: category === "notice",
         link_url: attachment.link, ...fileColumns, updated_at: new Date().toISOString(),
+        ...(typeof body.allowEmailContact === "boolean" ? { allow_email_contact: body.allowEmailContact } : {}),
       }).eq("id", id);
       if (error) return json({ error: error.message }, 500);
       if (oldPath && "file_path" in fileColumns && fileColumns.file_path !== oldPath) await bucket.remove([oldPath]);

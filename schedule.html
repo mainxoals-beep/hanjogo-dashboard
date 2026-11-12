@@ -4240,12 +4240,12 @@ const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["y
 const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
 const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
 // 2026-11 설문 결과로 확정된 기수 색(공개 프로필 기수 표시에 씀)과, 다시 투표하는 기수
-var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
-const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,18,23,25];
+var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
+const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,23,25];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
 // 실시간 집계를 못 불러올 때 쓰는 11월 12일 기준 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
 const SCARF_STATUS_ASOF="11월 12일";
-const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],18:[["lime",5],["green",3]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
+const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
 const SCARF_FEW={1:[["yellow",1]],4:[["살구색",1]],5:[["lime",1]],6:[["blue",1]],7:[["pink",1]],8:[["purple",1]],11:[["yellow",1]]};
 const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
 function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}

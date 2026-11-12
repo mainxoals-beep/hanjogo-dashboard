@@ -1064,6 +1064,22 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .tour-btn{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14px;font-weight:800;color:var(--ink);cursor:pointer}.tour-btn[hidden]{display:none}
 .tour-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
 .tour-btn.ghost{color:var(--purple-dark)}
+#profileInvite{width:min(400px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}
+#profileInvite::backdrop{background:rgba(25,20,35,.5)}
+.pi-card{padding:24px 20px 18px}
+.pi-card h2{margin:0 0 4px;font-size:20px;font-weight:900;letter-spacing:-.02em;color:var(--ink);text-align:center}
+.pi-sub{margin:0 0 14px;font-size:13px;line-height:1.55;color:var(--sub);text-align:center}
+.pi-preview{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #E3DCF3;border-radius:16px;background:linear-gradient(180deg,#FBFAFE,#fff)}
+.pi-preview .np-avatar{width:48px;height:48px;font-size:14px}
+.pi-lines{flex:1;min-width:0}.pi-lines b{display:block;font-size:14.5px;color:var(--ink)}
+.pi-lines i{display:block;height:9px;margin-top:7px;border-radius:99px;background:#ECE9F3}.pi-lines i+i{width:62%}
+.pi-badge{flex:0 0 auto;align-self:flex-start;padding:3px 8px;border-radius:99px;background:#FFF3D6;color:#9A6B00;font-size:11px;font-weight:800}
+.pi-gen{white-space:pre-line;margin:12px 0 0;padding:9px 12px;border-radius:12px;background:#F5F1FC;font-size:13px;font-weight:700;line-height:1.5;color:var(--purple-dark);text-align:center}
+.pi-gen:empty{display:none}
+.pi-perks{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.pi-perks li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--ink)}.pi-perks li span{flex:0 0 22px;text-align:center}
+.pi-note{margin:12px 0 0;font-size:12px;line-height:1.5;color:var(--mute);text-align:center}
+.pi-actions{display:flex;gap:8px;margin-top:16px}.pi-actions .tour-btn{flex:1}.pi-actions .tour-btn.primary{flex:1.6}
 #scarfFinal{width:min(440px,calc(100% - 28px));max-height:calc(100dvh - 40px);padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28);overflow:hidden}
 #scarfFinal::backdrop{background:rgba(25,20,35,.5)}
 #scarfFinal[open]{display:flex;flex-direction:column}
@@ -2120,6 +2136,22 @@ body.photo-open{overflow:hidden}
   </div>
 </dialog>
 
+<dialog id="profileInvite" aria-labelledby="profileInviteTitle">
+  <div class="pi-card">
+    <h2 id="profileInviteTitle">동문들에게 나를 소개해 볼까요?</h2>
+    <p class="pi-sub">공개 프로필을 만들면 동문 찾기에 이렇게 보여요</p>
+    <div class="pi-preview"><span class="np-avatar" id="piAvatar">나</span><div class="pi-lines"><b id="piName">내 이름 · 기수</b><i></i><i></i></div><span class="pi-badge">오늘의 동문</span></div>
+    <p class="pi-gen" id="piGen"></p>
+    <ul class="pi-perks">
+      <li><span>🔎</span>동문 찾기에 내 소속·하는 일이 보여요</li>
+      <li><span>🌟</span>'오늘의 동문'으로 홈에 소개될 수 있어요</li>
+      <li><span>🙋</span>'도와줄 수 있어요'를 고르면 후배 질문이 올 때 알림을 받아요</li>
+      <li><span>📍</span>내 업장을 동문 지도에 올려 연결할 수 있어요</li>
+    </ul>
+    <p class="pi-note">공개 항목은 내가 골라요 · 이름 가운데도 가릴 수 있어요</p>
+    <div class="pi-actions"><button type="button" class="tour-btn" id="piLater">나중에</button><button type="button" class="tour-btn primary" id="piGo">1분 만에 프로필 만들기</button></div>
+  </div>
+</dialog>
 <dialog id="scarfFinal" aria-labelledby="scarfFinalTitle">
   <div class="sf-head">
     <h2 id="scarfFinalTitle">🧣 기수 스카프 색이 정해졌어요</h2>
@@ -5487,6 +5519,45 @@ function renderGenRate(){
   el.innerHTML='<summary>기수별 프로필 공개 현황<span>'+mineLine+'</span></summary><div class="gen-rate-list">'+rows+'</div><p class="np-sub" style="white-space:normal;margin:8px 0 0">공개 프로필 / 졸업생 DB 등록 인원 · 막대 색은 기수 스카프 색이에요.</p>';
   el.open=open;el.hidden=false;
 }
+// 공개 프로필이 없는 인증 동문에게 프로필 만들기를 권하는 팝업. '나중에'를 누르면 7일 뒤, 최대 3번까지 띄웁니다.
+const PI_LATER_KEY="hanjogo-profile-invite-later",PI_COUNT_KEY="hanjogo-profile-invite-count",PI_LATER_MS=7*24*60*60*1000;
+let piTried=false;
+function profileInviteDue(){
+  if(piTried||networkAccessState!=="verified"||!networkProfilesLoaded||networkProfiles.some(p=>p.isOwnProfile))return false;
+  const params=new URLSearchParams(location.search);
+  if(window.top!==window||params.has("raffle")||params.has("rafflePreview")||params.has("embedded")||params.has("post"))return false;
+  if(lsGet(TOUR_KEY)===null||!lsSet("hanjogo-pi-probe","1"))return false;
+  if((Number(lsGet(PI_COUNT_KEY))||0)>=3)return false;
+  const later=Number(lsGet(PI_LATER_KEY))||0;if(later&&Date.now()-later<PI_LATER_MS)return false;
+  // 스카프 결과를 아직 안 본 사람은 그걸 먼저 보여줍니다.
+  if(typeof scarfAllDone==="function"&&scarfAllDone()&&!lsGet(SCARF_FINAL_SEEN_KEY))return false;
+  return true;
+}
+function maybeOpenProfileInvite(){
+  if(!profileInviteDue())return;
+  setTimeout(()=>{
+    if(!profileInviteDue()||document.querySelector("dialog[open]")||document.body.classList.contains("modal-open"))return;
+    piTried=true;openProfileInvite();
+  },3500);
+}
+function openProfileInvite(){
+  const d=document.getElementById("profileInvite");if(!d||d.open)return;
+  const g=Number(myGenerationGuess())||0,db=alumniStats?.byGeneration||{};
+  const av=document.getElementById("piAvatar"),k=g&&SCARF_CONFIRMED[g];
+  av.textContent=g?g+"기":"나";av.style.background=k?scarfHex(k):"";av.classList.toggle("light",Boolean(k&&["white","yellow","lime","sky","pink","pinkcheck","apricot"].includes(k)));
+  document.getElementById("piName").textContent=g?"내 이름 · "+g+"기":"내 이름 · 기수";
+  const n=g?networkProfiles.filter(p=>Number(p.gen)===g).length:0;
+  document.getElementById("piGen").textContent=g&&db[g]?"우리 "+g+"기는 졸업생 DB "+db[g]+"명 중 "+n+"명이 공개했어요"+(k?"\n내 프로필은 "+g+"기 스카프 색("+scarfName(k)+")으로 보여요":""):"";
+  lsSet(PI_COUNT_KEY,String((Number(lsGet(PI_COUNT_KEY))||0)+1));
+  overlayOpen("profileInvite",()=>closeProfileInvite(true));try{d.showModal();}catch(e){d.setAttribute("open","");}
+}
+function closeProfileInvite(later){
+  if(later)lsSet(PI_LATER_KEY,String(Date.now()));
+  overlayClose("profileInvite");const d=document.getElementById("profileInvite");if(d?.open)d.close();
+}
+document.getElementById("piLater")?.addEventListener("click",()=>closeProfileInvite(true));
+document.getElementById("piGo")?.addEventListener("click",()=>{closeProfileInvite(true);myInfoEl("myInfoOpenBtn")?.click();setTimeout(()=>{try{setMyInfoTab("profile");}catch(e){}},150);});
+document.getElementById("profileInvite")?.addEventListener("cancel",e=>{e.preventDefault();closeProfileInvite(true);});
 function syncProfileNudge(){
   const el=document.getElementById("profileNudge");if(!el)return;
   // hidden 은 화면 전환 때 다시 풀리므로 class 로 켜고 끕니다.
@@ -5496,6 +5567,7 @@ function syncProfileNudge(){
   const gl=document.getElementById("profileNudgeGen");
   if(gl){const n=g?networkProfiles.filter(p=>Number(p.gen)===g).length:0;gl.textContent=g&&db[g]?"우리 "+g+"기는 졸업생 DB "+db[g]+"명 중 "+n+"명이 공개했어요.":"";}
   try{renderGenRate();}catch(e){}
+  if(missing)try{maybeOpenProfileInvite();}catch(e){}
   const head=document.getElementById("netHeadAction");
   if(head){head.classList.toggle("primary",missing);const t=head.querySelector("span");if(t)t.textContent=missing?"프로필 만들기":"내 프로필";}
 }

@@ -4258,13 +4258,13 @@ const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["y
 const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
 const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
 // 2026-11 설문 결과로 확정된 기수 색(공개 프로필 기수 표시에 씀)과, 다시 투표하는 기수
-var SCARF_CONFIRMED={1:"yellow",2:"blue",3:"white",4:"apricot",5:"lime",6:"blue",8:"purple",9:"pink",10:"lime",12:"sky",13:"pinkcheck",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",23:"gray",24:"pink",25:"khaki"};
-const SCARF_VOTE_GENS=[7,11];
+var SCARF_CONFIRMED={1:"yellow",2:"blue",3:"white",4:"apricot",5:"lime",6:"blue",8:"purple",9:"pink",10:"lime",11:"yellow",12:"sky",13:"pinkcheck",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",23:"gray",24:"pink",25:"khaki"};
+const SCARF_VOTE_GENS=[7];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
 // 실시간 집계를 못 불러올 때 쓰는 11월 12일 기준 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
 const SCARF_STATUS_ASOF="11월 12일";
 const SCARF_SPLIT={};
-const SCARF_FEW={7:[["pink",1]],11:[["yellow",1]]};
+const SCARF_FEW={7:[["pink",1]]};
 const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
 function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(key==="khaki")return "#7D7A3E";if(key==="apricot")return "#F6B98F";if(key==="pinkcheck")return "repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
 let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null,scarfLive=null;

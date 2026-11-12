@@ -4273,8 +4273,11 @@ const SCARF_SYNONYM={"흰색":"white","하양":"white","화이트":"white","버�
 function scarfKeyOf(color,other){
   if(color!=="other")return color;
   const t=String(other||"").trim();if(!t)return "기타";
-  if(SCARF_SYNONYM[t])return SCARF_SYNONYM[t];
-  const hit=SCARF_COLORS.find(c=>c[0]!=="other"&&c[1]===t);return hit?hit[0]:t;
+  // 띄어쓰기만 다른 답(분홍체크 / 분홍 체크)은 같은 답으로 셉니다.
+  const n=t.replace(/\s+/g,"");
+  const syn=Object.keys(SCARF_SYNONYM).find(k=>k.replace(/\s+/g,"")===n);if(syn)return SCARF_SYNONYM[syn];
+  const hit=SCARF_COLORS.find(c=>c[0]!=="other"&&c[1]===n);if(hit)return hit[0];
+  const known=Object.keys(SCARF_OTHER_HEX).find(k=>k.replace(/\s+/g,"")===n);return known||t;
 }
 async function loadScarfTally(){
   try{

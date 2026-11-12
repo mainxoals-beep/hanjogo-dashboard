@@ -1064,6 +1064,28 @@ a.board-primary-btn,a.board-secondary-btn{display:inline-flex;align-items:center
 .tour-btn{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14px;font-weight:800;color:var(--ink);cursor:pointer}.tour-btn[hidden]{display:none}
 .tour-btn.primary{border-color:var(--purple);background:var(--purple);color:#fff}
 .tour-btn.ghost{color:var(--purple-dark)}
+#scarfFinal{width:min(440px,calc(100% - 28px));max-height:calc(100dvh - 40px);padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28);overflow:hidden}
+#scarfFinal::backdrop{background:rgba(25,20,35,.5)}
+#scarfFinal[open]{display:flex;flex-direction:column}
+.sf-head{position:relative;padding:22px 20px 4px;text-align:center}
+.sf-head h2{margin:14px 0 4px;font-size:20px;font-weight:900;letter-spacing:-.02em;color:var(--ink)}
+.sf-head p{margin:0;font-size:13px;line-height:1.55;color:var(--sub)}
+.sf-ribbon{display:flex;height:10px;margin:12px auto 0;max-width:280px;border-radius:99px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}.sf-ribbon i{flex:1}
+.sf-body{flex:1;overflow:auto;padding:4px 18px 8px}
+.sf-group{display:flex;gap:12px;align-items:center;padding:11px 4px;border-top:1px solid var(--line)}.sf-group:first-child{border-top:0}
+.sf-swatch{flex:0 0 46px;height:46px;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);position:relative;overflow:hidden}
+.sf-swatch::after{content:"";position:absolute;left:-10%;right:-10%;top:58%;height:16%;background:rgba(255,255,255,.28);transform:rotate(-12deg)}
+.sf-gname{font-size:14.5px;font-weight:900;color:var(--ink)}.sf-gname small{margin-left:6px;font-size:12px;font-weight:700;color:var(--mute)}
+.sf-gens{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.sf-gen{padding:2px 8px;border-radius:99px;background:#F4F2F8;font-size:12px;font-weight:800;color:var(--sub)}
+.sf-gen.mine{background:var(--purple);color:#fff}
+.sf-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:6px 2px 4px}
+.sf-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px 7px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.sf-tile.mine{border-color:var(--purple);box-shadow:0 0 0 2px #E4DDF7}
+.sf-tile i{width:100%;max-width:44px;height:26px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.sf-tile b{font-size:13px;font-weight:900;color:var(--ink)}.sf-tile span{font-size:10.5px;font-weight:700;color:var(--mute);white-space:nowrap}
+.sf-foot{padding:10px 18px 18px}.sf-foot .tour-btn{width:100%}
+.sf-thanks{margin:8px 0 10px;font-size:12px;line-height:1.5;color:var(--mute);text-align:center}
 #scarfDialog{width:min(420px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}
 #scarfDialog::backdrop{background:rgba(25,20,35,.5)}
 .scarf-card{position:relative;padding:30px 22px 20px;text-align:center}
@@ -1357,7 +1379,7 @@ body.photo-open{overflow:hidden}
   <!-- 방문 현황: 어느 메뉴에서든 사이트가 살아 있다는 걸 보여줍니다. 기록에 실패하면 숨긴 채로 둡니다. -->
   <div class="visit-pill" id="visitorCounter" hidden aria-label="사이트 방문 현황"><span class="live-dot" aria-hidden="true"></span><span>오늘 <b id="todayVisitorCount">-</b> · 누적 <b id="totalVisitorCount">-</b> 방문</span></div>
   <button class="recap-pill" type="button" id="recapPill" hidden>📋 모임 결산·설문</button>
-  <button class="scarf-pill" type="button" id="scarfPill">🧣 스카프 색 투표 중</button>
+  <button class="scarf-pill" type="button" id="scarfPill">🧣 기수 스카프 색 결과</button>
   <button class="notif-pill" type="button" id="notifPill" data-open-myinfo hidden>🔔 새 알림 <b id="notifPillCount">0</b></button>
 </div>
 
@@ -1819,7 +1841,7 @@ body.photo-open{overflow:hidden}
 </div>
 </div>
 
-<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button><button type="button" class="tour-reopen scarf-reopen" id="scarfReopen">🧣 기수 스카프 색 투표하기</button></div>
+<div class="tour-reopen-wrap site-view" data-site-view="home"><button type="button" class="tour-reopen" id="tourReopen">둘러보기 다시 보기</button><button type="button" class="tour-reopen scarf-reopen" id="scarfReopen">🧣 기수 스카프 색 보기</button></div>
 <p class="home-steward site-view" data-site-view="home">총동문회 임시 총괄 · 2기 김태민 · <a href="https://www.instagram.com/kim.tae.min" target="_blank" rel="noopener noreferrer">@kim.tae.min</a></p>
 
 <div class="public-fold event-not-after site-view" data-site-view="event">
@@ -2098,6 +2120,16 @@ body.photo-open{overflow:hidden}
   </div>
 </dialog>
 
+<dialog id="scarfFinal" aria-labelledby="scarfFinalTitle">
+  <div class="sf-head">
+    <h2 id="scarfFinalTitle">🧣 기수 스카프 색이 정해졌어요</h2>
+    <p>1기~25기 모두 정했어요 · 프로필 기수 색으로 쓰여요</p>
+    <div class="sf-ribbon" id="scarfFinalRibbon" aria-hidden="true"></div>
+    <div class="scarf-tabs" role="tablist" style="margin-top:14px"><button type="button" class="scarf-tab" role="tab" id="sfTabColor" aria-selected="true">색깔별</button><button type="button" class="scarf-tab" role="tab" id="sfTabGen" aria-selected="false">기수 순</button></div>
+  </div>
+  <div class="sf-body" id="scarfFinalBody"></div>
+  <div class="sf-foot"><p class="sf-thanks">투표에 참여해 주신 동문들 고맙습니다 💜</p><button type="button" class="tour-btn primary" id="scarfFinalClose">확인</button></div>
+</dialog>
 <dialog id="scarfDialog" aria-labelledby="scarfTitle">
   <div class="scarf-card">
     <button type="button" class="tour-skip" id="scarfLater">나중에</button>
@@ -4258,13 +4290,13 @@ const SCARF_COLORS=[["red","빨강","#D93A3A"],["orange","주황","#F08A24"],["y
 const SCARF_LABEL=Object.fromEntries(SCARF_COLORS.map(c=>[c[0],c[1]]));
 const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,SCARF_MAX_GEN=45;
 // 2026-11 설문 결과로 확정된 기수 색(공개 프로필 기수 표시에 씀)과, 다시 투표하는 기수
-var SCARF_CONFIRMED={1:"yellow",2:"blue",3:"white",4:"apricot",5:"lime",6:"blue",8:"purple",9:"pink",10:"lime",11:"yellow",12:"sky",13:"pinkcheck",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",23:"gray",24:"pink",25:"khaki"};
-const SCARF_VOTE_GENS=[7];
+var SCARF_CONFIRMED={1:"yellow",2:"blue",3:"white",4:"apricot",5:"lime",6:"blue",7:"pink",8:"purple",9:"pink",10:"lime",11:"yellow",12:"sky",13:"pinkcheck",14:"lime",15:"purple",16:"yellow",17:"sky",18:"lime",19:"orange",20:"navy",21:"burgundy",22:"lime",23:"gray",24:"pink",25:"khaki"};
+const SCARF_VOTE_GENS=[];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
 // 실시간 집계를 못 불러올 때 쓰는 11월 12일 기준 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
 const SCARF_STATUS_ASOF="11월 12일";
 const SCARF_SPLIT={};
-const SCARF_FEW={7:[["pink",1]]};
+const SCARF_FEW={};
 const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
 function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(key==="khaki")return "#7D7A3E";if(key==="apricot")return "#F6B98F";if(key==="pinkcheck")return "repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
 let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null,scarfLive=null;
@@ -4357,6 +4389,36 @@ function scarfClose(){
 }
 function scarfLater(){lsSet(SCARF_LATER_KEY,String(Date.now()));scarfClose();}
 // 처음 들어온 인증 동문에게 한 번 띄웁니다. 답했으면 다시 띄우지 않고, "나중에"를 누르면 3일 뒤에 다시 물어요.
+// 투표가 모두 끝나면 결과 화면(색깔별 / 기수 순)을 보여줍니다.
+const SCARF_FINAL_SEEN_KEY="hanjogo-scarf-final-v1";
+let scarfFinalView="color";
+function scarfAllDone(){return !SCARF_VOTE_GENS.length;}
+function scarfMyGenGuess(){try{return (typeof myGenerationGuess==="function"&&myGenerationGuess())||scarfMyGen||null;}catch(e){return scarfMyGen||null;}}
+function renderScarfFinal(){
+  const body=document.getElementById("scarfFinalBody");if(!body)return;
+  const gens=Object.keys(SCARF_CONFIRMED).map(Number).sort((a,b)=>a-b),mine=Number(scarfMyGenGuess())||0;
+  document.getElementById("scarfFinalRibbon").innerHTML=gens.map(g=>'<i style="background:'+(SCARF_CONFIRMED[g]==="white"?"#EDEBF2":scarfHex(SCARF_CONFIRMED[g]))+'"></i>').join("");
+  document.getElementById("sfTabColor").setAttribute("aria-selected",String(scarfFinalView==="color"));
+  document.getElementById("sfTabGen").setAttribute("aria-selected",String(scarfFinalView==="gen"));
+  if(scarfFinalView==="gen"){
+    body.innerHTML='<div class="sf-grid">'+gens.map(g=>'<div class="sf-tile'+(g===mine?' mine':'')+'"><i style="background:'+scarfHex(SCARF_CONFIRMED[g])+'"></i><b>'+g+'기</b><span>'+esc(scarfName(SCARF_CONFIRMED[g]))+'</span></div>').join("")+'</div>';
+    return;
+  }
+  const by={};gens.forEach(g=>{(by[SCARF_CONFIRMED[g]]=by[SCARF_CONFIRMED[g]]||[]).push(g);});
+  const keys=Object.keys(by).sort((a,b)=>by[b].length-by[a].length||by[a][0]-by[b][0]);
+  body.innerHTML=keys.map(k=>'<div class="sf-group"><span class="sf-swatch" style="background:'+scarfHex(k)+'"></span><div><div class="sf-gname">'+esc(scarfName(k))+'<small>'+by[k].length+'개 기수</small></div><div class="sf-gens">'+by[k].map(g=>'<span class="sf-gen'+(g===mine?' mine':'')+'">'+g+'기</span>').join("")+'</div></div></div>').join("");
+}
+function scarfFinalOpen(){
+  const d=document.getElementById("scarfFinal");if(!d||d.open)return;
+  scarfFinalView="color";renderScarfFinal();lsSet(SCARF_FINAL_SEEN_KEY,"1");
+  overlayOpen("scarfFinal",()=>scarfFinalClose());try{d.showModal();}catch(e){d.setAttribute("open","");}
+  document.getElementById("scarfFinalBody").scrollTop=0;
+}
+function scarfFinalClose(){overlayClose("scarfFinal");const d=document.getElementById("scarfFinal");if(d?.open)d.close();}
+document.getElementById("sfTabColor")?.addEventListener("click",()=>{scarfFinalView="color";renderScarfFinal();document.getElementById("scarfFinalBody").scrollTop=0;});
+document.getElementById("sfTabGen")?.addEventListener("click",()=>{scarfFinalView="gen";renderScarfFinal();document.getElementById("scarfFinalBody").scrollTop=0;});
+document.getElementById("scarfFinalClose")?.addEventListener("click",scarfFinalClose);
+document.getElementById("scarfFinal")?.addEventListener("cancel",e=>{e.preventDefault();scarfFinalClose();});
 async function maybeOpenScarf(){
   if(scarfAutoTried||networkAccessState!=="verified")return;
   const params=new URLSearchParams(location.search);
@@ -4365,6 +4427,7 @@ async function maybeOpenScarf(){
   const later=Number(lsGet(SCARF_LATER_KEY))||0;if(later&&Date.now()-later<SCARF_LATER_MS)return;
   if(document.querySelector("dialog[open]"))return;
   scarfAutoTried=true;
+  if(scarfAllDone()){if(!lsGet(SCARF_FINAL_SEEN_KEY))scarfFinalOpen();return;}
   if(lsGet(SCARF_VOTE_DONE_KEY))return;
   if(!await loadScarfState())return;
   if(document.querySelector("dialog[open]"))return;
@@ -4394,8 +4457,8 @@ document.getElementById("scarfSave")?.addEventListener("click",async()=>{
 document.getElementById("scarfLater")?.addEventListener("click",scarfLater);
 document.getElementById("scarfClose")?.addEventListener("click",()=>{lsSet(SCARF_LATER_KEY,String(Date.now()));scarfClose();});
 document.getElementById("scarfDialog")?.addEventListener("cancel",e=>{e.preventDefault();scarfLater();});
-document.getElementById("scarfReopen")?.addEventListener("click",scarfOpen);
-document.getElementById("scarfPill")?.addEventListener("click",scarfOpen);
+document.getElementById("scarfReopen")?.addEventListener("click",()=>scarfAllDone()?scarfFinalOpen():scarfOpen());
+document.getElementById("scarfPill")?.addEventListener("click",()=>scarfAllDone()?scarfFinalOpen():scarfOpen());
 document.getElementById("scarfTabAsk")?.addEventListener("click",()=>scarfTab("ask"));
 document.getElementById("scarfTabRes")?.addEventListener("click",()=>scarfTab("results"));
 

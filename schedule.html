@@ -4223,25 +4223,45 @@ const SCARF_LATER_KEY="hanjogo-scarf-vote-later",SCARF_LATER_MS=3*24*60*60*1000,
 var SCARF_CONFIRMED={2:"blue",3:"white",9:"pink",10:"lime",12:"sky",14:"lime",15:"purple",16:"yellow",17:"sky",19:"orange",20:"navy",21:"burgundy",22:"lime",24:"pink"};
 const SCARF_VOTE_GENS=[1,4,5,6,7,8,11,13,18,23,25];
 const SCARF_VOTE_DONE_KEY="hanjogo-scarf-vote-v1";
-// 11월 12일까지 모인 답 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
+// 실시간 집계를 못 불러올 때 쓰는 11월 12일 기준 정리(누가 골랐는지는 담지 않고 색별 개수만). 의견이 갈린 기수 / 답이 적은 기수
 const SCARF_STATUS_ASOF="11월 12일";
 const SCARF_SPLIT={13:[["orange",1],["분홍 체크",1]],18:[["lime",5],["green",3]],23:[["gray",1],["sky",1],["blue",1]],25:[["navy",1],["카키",1]]};
 const SCARF_FEW={1:[["yellow",1]],4:[["살구색",1]],5:[["lime",1]],6:[["blue",1]],7:[["pink",1]],8:[["purple",1]],11:[["yellow",1]]};
 const SCARF_OTHER_HEX={"분홍 체크":"repeating-linear-gradient(45deg,#F28BB5 0 4px,#fff 4px 8px)","카키":"#7D7A3E","살구색":"#F6B98F"};
 function scarfHex(key){if(key==="burgundy")return "#7B1E3A";if(SCARF_OTHER_HEX[key])return SCARF_OTHER_HEX[key];const c=SCARF_COLORS.find(x=>x[0]===key);return c?c[2]:"";}
-let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null;
+let scarfMine=[],scarfMyGen=null,scarfPick="",scarfAutoTried=false,scarfResults=null,scarfLive=null;
+// 실시간 집계: 기수·색별 개수만 받아서, 다시 투표하는 기수를 '의견 갈림'(색이 2가지 이상)과 '답 적음'으로 나눕니다.
+const SCARF_SYNONYM={"흰색":"white","하양":"white","화이트":"white","버건디":"burgundy","와인":"burgundy","와인색":"burgundy","자주":"burgundy"};
+function scarfKeyOf(color,other){
+  if(color!=="other")return color;
+  const t=String(other||"").trim();if(!t)return "기타";
+  if(SCARF_SYNONYM[t])return SCARF_SYNONYM[t];
+  const hit=SCARF_COLORS.find(c=>c[0]!=="other"&&c[1]===t);return hit?hit[0]:t;
+}
+async function loadScarfTally(){
+  try{
+    const {data,error}=await sb.rpc("get_hanjogo_scarf_tally");if(error)throw error;
+    const by={};let total=0;
+    (Array.isArray(data)?data:[]).forEach(r=>{const g=Number(r.generation),n=Number(r.count)||0;if(!g||!n)return;total+=n;const k=scarfKeyOf(r.color,r.other);(by[g]=by[g]||{})[k]=(by[g][k]||0)+n;});
+    const split={},few={};
+    SCARF_VOTE_GENS.forEach(g=>{const v=Object.entries(by[g]||{}).sort((a,b)=>b[1]-a[1]);(v.length>=2?split:few)[g]=v;});
+    scarfLive={split,few,total};return true;
+  }catch(e){return false;}
+}
+function scarfSplitMap(){return scarfLive?scarfLive.split:SCARF_SPLIT;}
+function scarfFewMap(){return scarfLive?scarfLive.few:SCARF_FEW;}
 function scarfRenderMine(){
   document.getElementById("scarfMine").textContent=scarfMine.length?"내가 알려준 기수: "+scarfMine.map(v=>v.generation+"기 "+(v.color==="other"?(v.other||"기타"):SCARF_LABEL[v.color])).join(" · "):"";
 }
 function scarfName(key){return key==="burgundy"?"버건디":(SCARF_LABEL[key]||key);}
-function scarfVoteText(votes){return votes.map(v=>'<span><i class="scarf-dot" style="background:'+scarfHex(v[0])+'"></i>'+esc(scarfName(v[0]))+' '+v[1]+'명</span>').join("");}
+function scarfVoteText(votes){if(!votes.length)return '<span>아직 답이 없어요</span>';return votes.map(v=>'<span><i class="scarf-dot" style="background:'+(scarfHex(v[0])||"#C9C5D3")+'"></i>'+esc(scarfName(v[0]))+' '+v[1]+'명</span>').join("");}
 function scarfStatusHtml(){
   const conf=Object.keys(SCARF_CONFIRMED).map(Number).sort((a,b)=>a-b);
   const ask=(map,label)=>Object.keys(map).map(Number).sort((a,b)=>a-b).map(g=>'<button type="button" class="scarf-ask" data-scarf-go="'+g+'"><b>'+g+'기</b><span class="scarf-opts">'+scarfVoteText(map[g])+'</span><em>'+label+' ›</em></button>').join("");
   return '<div class="scarf-sec"><h3>✅ 확정된 기수 '+conf.length+'곳</h3><p>답이 충분히 모이고 한 색으로 모인 기수예요. 동문 프로필의 기수 색으로 써요.</p><div class="scarf-chips">'+conf.map(g=>'<span class="scarf-chip"><i class="scarf-dot" style="background:'+scarfHex(SCARF_CONFIRMED[g])+'"></i>'+g+'기 '+esc(scarfName(SCARF_CONFIRMED[g]))+'</span>').join("")+'</div></div>'
-   +'<div class="scarf-sec"><h3>🤔 의견이 갈린 기수 · 뭐가 맞나요?</h3><p>색이 나뉘었어요. 기억나는 색을 골라주세요.</p>'+ask(SCARF_SPLIT,"골라주기")+'</div>'
-   +'<div class="scarf-sec"><h3>🙋 아직 답이 적은 기수</h3><p>한 명만 알려준 기수예요. 맞으면 같은 색, 다르면 기억나는 색을 골라주세요.</p>'+ask(SCARF_FEW,"확인해주기")+'</div>'
-   +'<p class="scarf-asof">'+SCARF_STATUS_ASOF+'까지 모인 답 기준이에요.</p>'
+   +(Object.keys(scarfSplitMap()).length?'<div class="scarf-sec"><h3>🤔 의견이 갈린 기수 · 뭐가 맞나요?</h3><p>색이 나뉘었어요. 기억나는 색을 골라주세요.</p>'+ask(scarfSplitMap(),"골라주기")+'</div>':"")
+   +(Object.keys(scarfFewMap()).length?'<div class="scarf-sec"><h3>🙋 아직 답이 적은 기수</h3><p>한 가지 색만 모인 기수예요. 맞으면 같은 색, 다르면 기억나는 색을 골라주세요.</p>'+ask(scarfFewMap(),"확인해주기")+'</div>':"")
+   +'<p class="scarf-asof">'+(scarfLive?'투표하면 바로 반영돼요 · 지금까지 모인 답 '+scarfLive.total+'개':SCARF_STATUS_ASOF+'까지 모인 답 기준이에요.')+'</p>'
    +'<div class="tour-actions" style="margin-top:12px"><button type="button" class="tour-btn" data-scarf-close>닫기</button><button type="button" class="tour-btn primary" data-scarf-tovote>투표하러 가기</button></div>';
 }
 function scarfGoVote(gen){
@@ -4266,8 +4286,8 @@ function scarfSyncSave(){
 function scarfPickFor(gen){
   const v=scarfMine.find(x=>x.generation===Number(gen));
   scarfPick=v?v.color:"";document.getElementById("scarfOther").value=v&&v.color==="other"?(v.other||""):"";
-  const g=Number(gen),cand=SCARF_SPLIT[g]||SCARF_FEW[g],hint=document.getElementById("scarfHint");
-  if(hint)hint.textContent=cand?"지금까지 "+cand.map(c=>scarfName(c[0])+" "+c[1]+"명").join(" · ")+(SCARF_SPLIT[g]?" — 어느 쪽이 맞나요?":" — 맞나요?"):"";
+  const g=Number(gen),sp=scarfSplitMap()[g],cand=sp||scarfFewMap()[g],hint=document.getElementById("scarfHint");
+  if(hint)hint.textContent=cand&&cand.length?"지금까지 "+cand.map(c=>scarfName(c[0])+" "+c[1]+"명").join(" · ")+(sp?" — 어느 쪽이 맞나요?":" — 맞나요?"):(g?"아직 답이 없어요. 처음으로 알려주세요!":"");
   scarfSyncSave();
 }
 async function loadScarfState(){
@@ -4280,7 +4300,7 @@ async function loadScarfState(){
 async function scarfOpen(){
   const d=document.getElementById("scarfDialog");if(!d||d.open)return;
   if(networkAccessState!=="verified")return;
-  if(!await loadScarfState())return;
+  const [ok]=await Promise.all([loadScarfState(),loadScarfTally()]);if(!ok)return;
   const sel=document.getElementById("scarfGen");
   if(!sel.options.length)sel.innerHTML='<option value="">투표할 기수 선택</option>'+SCARF_VOTE_GENS.map(g=>'<option value="'+g+'">'+g+'기</option>').join("");
   const box=document.getElementById("scarfColors");
@@ -4324,7 +4344,9 @@ document.getElementById("scarfSave")?.addEventListener("click",async()=>{
     lsSet(SCARF_VOTE_DONE_KEY,"1");
     done.style.color="";done.textContent=gen+"기 스카프 색을 알려주셔서 고마워요! 다른 기수도 기억나면 이어서 알려주세요.";
     scarfRenderMine();
-    await loadScarfState();
+    await Promise.all([loadScarfState(),loadScarfTally()]);
+    const h=document.getElementById("scarfHint"),sp=scarfSplitMap()[gen],cand=sp||scarfFewMap()[gen];
+    if(h&&cand&&cand.length)h.textContent="지금까지 "+cand.map(c=>scarfName(c[0])+" "+c[1]+"명").join(" · ");
   }catch(err){done.style.color="#B4532A";done.textContent="저장하지 못했어요. 잠시 뒤 다시 해주세요.";}
   scarfSyncSave();
 });

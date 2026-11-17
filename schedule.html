@@ -232,6 +232,8 @@ body.modal-open{overflow:hidden}
 .network-access-title{margin-top:7px;font-size:19px;font-weight:900;color:var(--ink)}
 .network-access-desc{margin-top:7px;font-size:14px;line-height:1.65;color:var(--sub);word-break:keep-all}
 .network-access-form{display:grid;gap:9px;margin-top:17px}
+.pw-login{margin-top:12px}.pw-login summary,.pw-set summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--purple-dark)}.pw-login .network-access-form{margin-top:10px}
+.pw-set{margin-top:8px;padding-top:10px;border-top:1px solid var(--line)}.pw-set form{display:grid;gap:8px;margin-top:10px}.pw-set small{font-size:11.5px;line-height:1.5;color:var(--sub)}
 .network-access-input{width:100%;min-height:46px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:16px;outline:none}
 .network-access-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(110,95,203,.1)}
 .network-access-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 13px;border:0;border-radius:10px;background:var(--purple);color:#fff;font:inherit;font-size:14px;font-weight:900;text-decoration:none;cursor:pointer}
@@ -1646,6 +1648,14 @@ body.photo-open{overflow:hidden}
           <button class="network-access-btn" id="networkAccessSubmit" type="submit">인증메일 받기</button>
         </form>
         <div class="network-access-status" id="networkAccessStatus" aria-live="polite"></div>
+        <details class="pw-login" id="pwLoginBox"><summary>비밀번호로 로그인</summary>
+          <form class="network-access-form" id="pwLoginForm" autocomplete="on">
+            <input class="network-access-input" id="pwLoginEmail" name="username" type="email" inputmode="email" autocomplete="username" placeholder="이메일" required>
+            <input class="network-access-input" id="pwLoginPass" name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="8" required>
+            <button class="network-access-btn" id="pwLoginBtn" type="submit">로그인</button>
+          </form>
+          <div class="network-access-status" id="pwLoginStatus" aria-live="polite"></div>
+        </details>
         <div class="network-access-register">
           <div class="join-steps-title">처음이신가요? 3단계면 돼요</div>
           <ol class="join-steps">
@@ -2005,7 +2015,15 @@ body.photo-open{overflow:hidden}
 
 <div class="board-modal" id="myInfoModal" hidden aria-hidden="true"><div class="board-dialog" role="dialog" aria-modal="true" aria-labelledby="myInfoTitle">
   <div class="board-dialog-head"><div class="board-dialog-title" id="myInfoTitle">내 정보</div><button class="board-close" type="button" data-board-close="myInfoModal" aria-label="닫기">×</button></div>
-  <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small><button type="button" class="myinfo-logout" id="myInfoLogoutBtn">로그아웃</button></div>
+  <div class="myinfo-note myinfo-account"><strong>현재 등록 이메일</strong><span id="myInfoCurrentEmail"></span><small>동문 인증과 내 프로필·업장 관리에 사용하는 이메일입니다. 본인에게만 표시됩니다.</small><button type="button" class="myinfo-logout" id="myInfoLogoutBtn">로그아웃</button>
+    <details class="pw-set"><summary>비밀번호 설정 · 메일 없이 바로 로그인</summary>
+      <form id="pwSetForm" autocomplete="on"><input type="email" name="username" autocomplete="username" id="pwSetUser" hidden>
+        <input class="board-input" id="pwSetNew" type="password" autocomplete="new-password" placeholder="새 비밀번호 (8자 이상)" minlength="8" required>
+        <input class="board-input" id="pwSetNew2" type="password" autocomplete="new-password" placeholder="한 번 더 입력" minlength="8" required>
+        <button class="board-primary-btn" id="pwSetBtn" type="submit">비밀번호 저장</button>
+        <small id="pwSetStatus" aria-live="polite">설정하면 쿠키를 지운 뒤에도 로그인 화면의 "비밀번호로 로그인"으로 바로 들어올 수 있어요. 인증메일 로그인도 그대로 쓸 수 있어요.</small>
+      </form>
+    </details></div>
   <div class="myinfo-tabs" role="tablist">
     <button type="button" class="myinfo-tab active" data-myinfo-tab="profile" role="tab" aria-selected="true">내 프로필</button>
     <button type="button" class="myinfo-tab" data-myinfo-tab="place" role="tab" aria-selected="false">내 업장</button>
@@ -3431,6 +3449,30 @@ document.getElementById("networkAccessForm")?.addEventListener("submit",async e=
   startNetworkAccessCooldown(60);
 });
 
+// 비밀번호 로그인: 내 정보에서 비밀번호를 정해 둔 사람은 메일 없이 바로 로그인합니다.
+document.getElementById("pwLoginForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const email=String(document.getElementById("pwLoginEmail").value||"").trim().toLowerCase(),password=document.getElementById("pwLoginPass").value;
+  const st=document.getElementById("pwLoginStatus"),btn=document.getElementById("pwLoginBtn");
+  if(!email||!password)return;
+  btn.disabled=true;st.textContent="로그인 중입니다.";
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false;
+  if(error){st.textContent=/invalid|credentials/i.test(String(error.message||""))?"이메일 또는 비밀번호가 맞지 않아요. 비밀번호를 정하지 않았다면 위의 인증메일로 로그인해 주세요.":"로그인하지 못했어요. 잠시 후 다시 시도해 주세요.";return;}
+  st.textContent="";document.getElementById("pwLoginPass").value="";
+});
+document.getElementById("pwSetForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const a=document.getElementById("pwSetNew").value,b=document.getElementById("pwSetNew2").value,st=document.getElementById("pwSetStatus"),btn=document.getElementById("pwSetBtn");
+  if(a.length<8){st.textContent="8자 이상으로 정해 주세요.";return;}
+  if(a!==b){st.textContent="두 번 입력한 비밀번호가 달라요.";return;}
+  btn.disabled=true;st.textContent="저장 중입니다.";
+  const {error}=await sb.auth.updateUser({password:a});
+  btn.disabled=false;
+  if(error){st.textContent=/reauth|nonce/i.test(String(error.message||""))?"보안 확인이 필요해요. 로그아웃 후 인증메일로 다시 로그인한 뒤 바로 설정해 주세요.":/weak|short|characters/i.test(String(error.message||""))?"더 긴 비밀번호로 정해 주세요.":"저장하지 못했어요. 잠시 후 다시 시도해 주세요.";return;}
+  document.getElementById("pwSetNew").value="";document.getElementById("pwSetNew2").value="";
+  st.textContent="저장했어요. 다음부터 로그인 화면의 '비밀번호로 로그인'을 쓰면 돼요.";
+});
 async function resetNetworkAccess(){
   const cachedBoardKey=boardCacheKey();
   await sb.auth.signOut();
@@ -5286,6 +5328,7 @@ myInfoEl("myInfoOpenBtn")?.addEventListener("click",()=>{
     return;
   }
   myInfoEl("myInfoCurrentEmail").textContent=networkCurrentSession?.user?.email||"";
+  {const u=document.getElementById("pwSetUser");if(u)u.value=networkCurrentSession?.user?.email||"";}
   openBoardModal("myInfoModal");
   setMyInfoTab(notifBadgeCount()?"notif":"profile");
   if(!myInfoLoaded)loadMyInfo();

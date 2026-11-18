@@ -232,7 +232,14 @@ body.modal-open{overflow:hidden}
 .network-access-title{margin-top:7px;font-size:19px;font-weight:900;color:var(--ink)}
 .network-access-desc{margin-top:7px;font-size:14px;line-height:1.65;color:var(--sub);word-break:keep-all}
 .network-access-form{display:grid;gap:9px;margin-top:17px}
-.pw-login{margin-top:12px}.pw-login summary,.pw-set summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--purple-dark)}.pw-login .network-access-form{margin-top:10px}
+.pw-login{margin-top:12px}.pw-set summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--purple-dark)}
+.pw-login summary{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border:1px solid #D9CFF0;border-radius:12px;background:#F7F4FD;cursor:pointer;font-size:14px;font-weight:800;color:var(--purple-dark);list-style:none}.pw-login summary::-webkit-details-marker{display:none}
+.inapp-hint{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:#FFF6E0;font-size:12.5px;line-height:1.55;color:#7A5A00}
+#pwPrompt{width:min(380px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}#pwPrompt::backdrop{background:rgba(25,20,35,.5)}
+.pwp-card{padding:24px 20px 18px}.pwp-card h2{margin:0 0 6px;font-size:19px;font-weight:900;text-align:center;color:var(--ink)}
+.pwp-card p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--sub);text-align:center}
+.pwp-card form{display:grid;gap:8px}.pwp-status{min-height:1.2em;font-size:12.5px;line-height:1.5;color:#B4532A;text-align:center}
+.pwp-actions{display:flex;gap:8px;margin-top:4px}.pwp-actions .tour-btn{flex:1}.pwp-actions .tour-btn.primary{flex:1.5}.pw-login .network-access-form{margin-top:10px}
 .pw-set{margin-top:8px;padding-top:10px;border-top:1px solid var(--line)}.pw-set form{display:grid;gap:8px;margin-top:10px}.pw-set small{font-size:11.5px;line-height:1.5;color:var(--sub)}
 .network-access-input{width:100%;min-height:46px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:16px;outline:none}
 .network-access-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(110,95,203,.1)}
@@ -1648,7 +1655,8 @@ body.photo-open{overflow:hidden}
           <button class="network-access-btn" id="networkAccessSubmit" type="submit">인증메일 받기</button>
         </form>
         <div class="network-access-status" id="networkAccessStatus" aria-live="polite"></div>
-        <details class="pw-login" id="pwLoginBox"><summary>비밀번호로 로그인</summary>
+        <p class="inapp-hint" id="inappHint" hidden>카카오톡·인스타그램 안에서 열면 로그인이 자주 풀려요. 오른쪽 위 메뉴(⋯)에서 <b>Safari로 열기</b>(안드로이드는 다른 브라우저로 열기)를 눌러 주세요.</p>
+        <details class="pw-login" id="pwLoginBox"><summary>🔑 비밀번호로 로그인 (비밀번호를 정해 둔 경우)</summary>
           <form class="network-access-form" id="pwLoginForm" autocomplete="on">
             <input class="network-access-input" id="pwLoginEmail" name="username" type="email" inputmode="email" autocomplete="username" placeholder="이메일" required>
             <input class="network-access-input" id="pwLoginPass" name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="8" required>
@@ -2154,6 +2162,19 @@ body.photo-open{overflow:hidden}
   </div>
 </dialog>
 
+<dialog id="pwPrompt" aria-labelledby="pwPromptTitle">
+  <div class="pwp-card">
+    <h2 id="pwPromptTitle">🔑 다음부터 메일 없이 로그인하세요</h2>
+    <p>비밀번호를 정해 두면 로그인이 풀려도 이메일과 비밀번호로 바로 들어올 수 있어요.<br>휴대폰이 <b>비밀번호 저장</b>을 물으면 "저장"을 눌러 주세요.</p>
+    <form id="pwPromptForm" autocomplete="on">
+      <input type="email" name="username" autocomplete="username" id="pwPromptUser" readonly tabindex="-1" class="board-input" style="background:#F6F5F9;color:var(--sub)">
+      <input class="board-input" id="pwPromptNew" name="password" type="password" autocomplete="new-password" placeholder="새 비밀번호 (8자 이상)" minlength="8" required>
+      <input class="board-input" id="pwPromptNew2" type="password" autocomplete="new-password" placeholder="한 번 더 입력" minlength="8" required>
+      <div class="pwp-status" id="pwPromptStatus" aria-live="polite"></div>
+      <div class="pwp-actions"><button type="button" class="tour-btn" id="pwPromptLater">나중에</button><button type="submit" class="tour-btn primary" id="pwPromptSave">비밀번호 저장</button></div>
+    </form>
+  </div>
+</dialog>
 <dialog id="profileInvite" aria-labelledby="profileInviteTitle">
   <div class="pi-card">
     <h2 id="profileInviteTitle">동문들에게 나를 소개해 볼까요?</h2>
@@ -3322,7 +3343,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
 function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   document.body.classList.toggle("net-verified",state==="verified");
-  if(state==="verified")setTimeout(maybeOpenScarf,2500);
+  if(state==="verified"){setTimeout(maybeOpenScarf,2500);try{maybeOpenPwPrompt();}catch(e){}}
   if(state==="verified"||state==="signed-out"||state==="denied")setTimeout(()=>loadRecap(true),400);
   setTimeout(syncPhotoAccess,0);
   networkAccessEmail=email;
@@ -3467,12 +3488,51 @@ document.getElementById("pwSetForm")?.addEventListener("submit",async e=>{
   if(a.length<8){st.textContent="8자 이상으로 정해 주세요.";return;}
   if(a!==b){st.textContent="두 번 입력한 비밀번호가 달라요.";return;}
   btn.disabled=true;st.textContent="저장 중입니다.";
-  const {error}=await sb.auth.updateUser({password:a});
+  const {error}=await sb.auth.updateUser({password:a,data:{has_password:true}});
   btn.disabled=false;
   if(error){st.textContent=/reauth|nonce/i.test(String(error.message||""))?"보안 확인이 필요해요. 로그아웃 후 인증메일로 다시 로그인한 뒤 바로 설정해 주세요.":/weak|short|characters/i.test(String(error.message||""))?"더 긴 비밀번호로 정해 주세요.":"저장하지 못했어요. 잠시 후 다시 시도해 주세요.";return;}
   document.getElementById("pwSetNew").value="";document.getElementById("pwSetNew2").value="";
-  st.textContent="저장했어요. 다음부터 로그인 화면의 '비밀번호로 로그인'을 쓰면 돼요.";
+  st.textContent="저장했어요. 다음부터 로그인 화면의 '비밀번호로 로그인'을 쓰면 돼요.";lsSet(PWP_DONE_KEY,"1");
 });
+// 비밀번호를 아직 정하지 않은 인증 동문에게 한 번씩 권합니다('나중에'는 이틀 뒤, 최대 3번).
+const PWP_DONE_KEY="hanjogo-pw-prompt-done",PWP_LATER_KEY="hanjogo-pw-prompt-later",PWP_COUNT_KEY="hanjogo-pw-prompt-count";
+let pwpTried=false;
+function pwPromptDue(){
+  const u=networkCurrentSession?.user;if(pwpTried||!u||networkAccessState!=="verified")return false;
+  if(u.user_metadata?.has_password||lsGet(PWP_DONE_KEY))return false;
+  const params=new URLSearchParams(location.search);
+  if(window.top!==window||params.has("raffle")||params.has("rafflePreview")||params.has("embedded")||params.has("preview"))return false;
+  if((Number(lsGet(PWP_COUNT_KEY))||0)>=3)return false;
+  const later=Number(lsGet(PWP_LATER_KEY))||0;return !(later&&Date.now()-later<2*24*60*60*1000);
+}
+function maybeOpenPwPrompt(){
+  if(!pwPromptDue())return;
+  setTimeout(()=>{
+    if(!pwPromptDue()||document.querySelector("dialog[open]")||document.body.classList.contains("modal-open"))return;
+    pwpTried=true;const d=document.getElementById("pwPrompt");if(!d)return;
+    document.getElementById("pwPromptUser").value=networkCurrentSession?.user?.email||"";
+    document.getElementById("pwPromptStatus").textContent="";
+    lsSet(PWP_COUNT_KEY,String((Number(lsGet(PWP_COUNT_KEY))||0)+1));
+    overlayOpen("pwPrompt",()=>closePwPrompt(true));try{d.showModal();}catch(e){d.setAttribute("open","");}
+  },1800);
+}
+function closePwPrompt(later){if(later)lsSet(PWP_LATER_KEY,String(Date.now()));overlayClose("pwPrompt");const d=document.getElementById("pwPrompt");if(d?.open)d.close();}
+document.getElementById("pwPromptLater")?.addEventListener("click",()=>closePwPrompt(true));
+document.getElementById("pwPrompt")?.addEventListener("cancel",e=>{e.preventDefault();closePwPrompt(true);});
+document.getElementById("pwPromptForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const a=document.getElementById("pwPromptNew").value,b=document.getElementById("pwPromptNew2").value,st=document.getElementById("pwPromptStatus"),btn=document.getElementById("pwPromptSave");
+  if(a.length<8){st.textContent="8자 이상으로 정해 주세요.";return;}
+  if(a!==b){st.textContent="두 번 입력한 비밀번호가 달라요.";return;}
+  btn.disabled=true;st.style.color="";st.textContent="저장 중입니다.";
+  const {error}=await sb.auth.updateUser({password:a,data:{has_password:true}});
+  btn.disabled=false;
+  if(error){st.style.color="#B4532A";st.textContent=/weak|short|characters/i.test(String(error.message||""))?"더 긴 비밀번호로 정해 주세요.":"저장하지 못했어요. 잠시 후 내 정보에서 다시 해 주세요.";return;}
+  lsSet(PWP_DONE_KEY,"1");st.style.color="#1F7A4D";st.textContent="저장했어요! 다음부터 '비밀번호로 로그인'을 쓰면 돼요.";
+  setTimeout(()=>closePwPrompt(false),1400);
+});
+// 카카오톡·인스타그램 등 앱 안 브라우저에서는 로그인이 자주 풀려서 바깥 브라우저로 열도록 안내합니다.
+(function(){const ua=navigator.userAgent||"";if(/KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps|everytimeApp/i.test(ua)){const h=document.getElementById("inappHint");if(h)h.hidden=false;}})();
 async function resetNetworkAccess(){
   const cachedBoardKey=boardCacheKey();
   await sb.auth.signOut();

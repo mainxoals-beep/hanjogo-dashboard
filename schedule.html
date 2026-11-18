@@ -3344,6 +3344,7 @@ function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   document.body.classList.toggle("net-verified",state==="verified");
   if(state==="verified"){setTimeout(maybeOpenScarf,2500);try{maybeOpenPwPrompt();}catch(e){}}
+  if(state==="signed-out")try{void maybeSilentSignIn();}catch(e){}
   if(state==="verified"||state==="signed-out"||state==="denied")setTimeout(()=>loadRecap(true),400);
   setTimeout(syncPhotoAccess,0);
   networkAccessEmail=email;
@@ -3470,6 +3471,23 @@ document.getElementById("networkAccessForm")?.addEventListener("submit",async e=
   startNetworkAccessCooldown(60);
 });
 
+// 크롬(안드로이드·PC): 로그인 정보를 브라우저에 저장하고, 다음 방문 때 자동으로 로그인합니다.
+// 아이폰 사파리는 이 기능이 없어 '암호 저장/자동 채우기'로 대신합니다.
+function chromeStoreCredential(email,password){
+  try{if(window.PasswordCredential&&navigator.credentials&&email&&password)navigator.credentials.store(new PasswordCredential({id:email,password,name:email})).catch(()=>{});}catch(e){}
+}
+let silentTried=false;
+async function maybeSilentSignIn(){
+  if(silentTried||!window.PasswordCredential||!navigator.credentials)return;
+  silentTried=true;
+  try{
+    const cred=await navigator.credentials.get({password:true,mediation:"silent"});
+    if(!cred||!cred.password)return;
+    const st=document.getElementById("networkAccessStatus");if(st)st.textContent="저장된 로그인 정보로 들어가는 중입니다.";
+    const {error}=await sb.auth.signInWithPassword({email:String(cred.id||"").toLowerCase(),password:cred.password});
+    if(st&&error)st.textContent="";
+  }catch(e){}
+}
 // 비밀번호 로그인: 내 정보에서 비밀번호를 정해 둔 사람은 메일 없이 바로 로그인합니다.
 document.getElementById("pwLoginForm")?.addEventListener("submit",async e=>{
   e.preventDefault();
@@ -3480,7 +3498,7 @@ document.getElementById("pwLoginForm")?.addEventListener("submit",async e=>{
   const {error}=await sb.auth.signInWithPassword({email,password});
   btn.disabled=false;
   if(error){st.textContent=/invalid|credentials/i.test(String(error.message||""))?"이메일 또는 비밀번호가 맞지 않아요. 비밀번호를 정하지 않았다면 위의 인증메일로 로그인해 주세요.":"로그인하지 못했어요. 잠시 후 다시 시도해 주세요.";return;}
-  st.textContent="";document.getElementById("pwLoginPass").value="";
+  st.textContent="";document.getElementById("pwLoginPass").value="";chromeStoreCredential(email,password);
 });
 document.getElementById("pwSetForm")?.addEventListener("submit",async e=>{
   e.preventDefault();
@@ -3491,6 +3509,7 @@ document.getElementById("pwSetForm")?.addEventListener("submit",async e=>{
   const {error}=await sb.auth.updateUser({password:a,data:{has_password:true}});
   btn.disabled=false;
   if(error){st.textContent=/reauth|nonce/i.test(String(error.message||""))?"보안 확인이 필요해요. 로그아웃 후 인증메일로 다시 로그인한 뒤 바로 설정해 주세요.":/weak|short|characters/i.test(String(error.message||""))?"더 긴 비밀번호로 정해 주세요.":"저장하지 못했어요. 잠시 후 다시 시도해 주세요.";return;}
+  chromeStoreCredential(networkCurrentSession?.user?.email||"",a);
   document.getElementById("pwSetNew").value="";document.getElementById("pwSetNew2").value="";
   st.textContent="저장했어요. 다음부터 로그인 화면의 '비밀번호로 로그인'을 쓰면 돼요.";lsSet(PWP_DONE_KEY,"1");
 });
@@ -3528,12 +3547,14 @@ document.getElementById("pwPromptForm")?.addEventListener("submit",async e=>{
   const {error}=await sb.auth.updateUser({password:a,data:{has_password:true}});
   btn.disabled=false;
   if(error){st.style.color="#B4532A";st.textContent=/weak|short|characters/i.test(String(error.message||""))?"더 긴 비밀번호로 정해 주세요.":"저장하지 못했어요. 잠시 후 내 정보에서 다시 해 주세요.";return;}
+  chromeStoreCredential(networkCurrentSession?.user?.email||"",a);
   lsSet(PWP_DONE_KEY,"1");st.style.color="#1F7A4D";st.textContent="저장했어요! 다음부터 '비밀번호로 로그인'을 쓰면 돼요.";
   setTimeout(()=>closePwPrompt(false),1400);
 });
 // 카카오톡·인스타그램 등 앱 안 브라우저에서는 로그인이 자주 풀려서 바깥 브라우저로 열도록 안내합니다.
 (function(){const ua=navigator.userAgent||"";if(/KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps|everytimeApp/i.test(ua)){const h=document.getElementById("inappHint");if(h)h.hidden=false;}})();
 async function resetNetworkAccess(){
+  try{navigator.credentials?.preventSilentAccess?.();}catch(e){}
   const cachedBoardKey=boardCacheKey();
   await sb.auth.signOut();
   try{localStorage.removeItem(cachedBoardKey);}catch{}

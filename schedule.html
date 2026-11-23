@@ -1418,6 +1418,19 @@ body.photo-open{overflow:hidden}
  .np-summary{padding:12px 4px 12px 12px}
  .np-detail{padding:0 12px 14px 64px}
 }
+
+/* Home intro only: quote and compact existing introduction. No other sections changed. */
+.home-intro .home-quote{text-align:center;padding:26px 8px 22px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.home-intro .home-quote-text{margin:0;font-size:clamp(22px,3.8vw,36px);line-height:1.5;font-weight:650;letter-spacing:-.035em;color:var(--ink);word-break:keep-all}
+.home-intro .home-quote-source{margin-top:60px;font-size:10px;line-height:1.7;font-weight:400;color:var(--mute)}
+.home-intro .home-quote-source span{display:block}
+.home-intro .home-intro-kicker{font-size:11px;font-weight:700}
+.home-intro .home-intro-title{font-size:14px;margin:3px 0 5px}
+.home-intro .home-intro-desc{font-size:11px;line-height:1.5;margin:0 0 8px}
+.home-intro .home-stats{gap:4px 12px}
+.home-intro .home-stat{font-size:10px;font-weight:500}
+.home-intro .home-stat b{font-size:12px;font-weight:700}
+@media(max-width:600px){.home-intro .home-quote{padding:22px 0 18px}.home-intro .home-quote-text{font-size:clamp(21px,6vw,28px)}.home-intro .home-quote-source{margin-top:54px}}
 </style>
 <script src="assets/raffle-batch.js?v=20261018-fx7"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261018-fx7">
@@ -1467,6 +1480,10 @@ body.photo-open{overflow:hidden}
 <section class="site-home site-view" id="siteHome" data-site-view="home">
   <div class="home-update" id="homeUpdate" hidden></div>
   <div class="home-intro">
+    <div class="home-quote" aria-label="광화문글판 문구">
+      <p class="home-quote-text">가지 않은 곳은 모두 미래다</p>
+      <div class="home-quote-source">이문재 · 「샹그리라」<span>교보생명 광화문글판 · 2026년 가을</span></div>
+    </div>
     <div class="home-intro-kicker">한국조리과학고등학교 총동문회</div>
     <h2 class="home-intro-title">졸업생들이 서로 찾고 돕는 곳</h2>
     <p class="home-intro-desc">조리·제과·외식·호텔조리 분야에서 일하는 한국조리과학고등학교(한조고) 졸업생들이 서로 찾고, 외식업 채용·구인구직 정보와 업계 소식을 나누는 총동문회 사이트예요.</p>

@@ -1431,6 +1431,11 @@ body.photo-open{overflow:hidden}
 .home-intro .home-stat{font-size:10px;font-weight:500}
 .home-intro .home-stat b{font-size:12px;font-weight:700}
 @media(max-width:600px){.home-intro .home-quote{padding:22px 0 18px}.home-intro .home-quote-text{font-size:clamp(19px,5vw,24px)}.home-intro .home-quote-source{margin-top:54px}}
+
+/* Only the homepage quote: show the original photographed billboard, without changing the rest of the site. */
+.home-intro .home-quote-image{display:block;width:100%;max-width:680px;height:auto;max-height:310px;object-fit:contain;margin:0 auto;border-radius:8px}
+.home-intro .home-quote-image[hidden]{display:none!important}
+.home-intro .home-quote-text[hidden]{display:none!important}
 </style>
 <script src="assets/raffle-batch.js?v=20261018-fx7"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261018-fx7">
@@ -1481,7 +1486,7 @@ body.photo-open{overflow:hidden}
   <div class="home-update" id="homeUpdate" hidden></div>
   <div class="home-intro">
     <div class="home-quote" aria-label="광화문글판 문구">
-      <p class="home-quote-text">가지 않은 곳은 모두 미래다</p>
+      <img class="home-quote-image" src="https://t1.daumcdn.net/news/202608/31/chosun/20260831171555898glsx.jpg" alt="2026년 가을 광화문글판. 가지 않은 곳은 모두 미래다, 그날 만나지 못했던 그 사람도, 읽지 않은 그 책의 몇 페이지도" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><p class="home-quote-text" hidden>가지 않은 곳은 모두 미래다</p>
       <div class="home-quote-source">이문재 · 「샹그리라」<span>교보생명 광화문글판 · 2026년 가을</span></div>
     </div>
     <div class="home-intro-kicker">한국조리과학고등학교 총동문회</div>

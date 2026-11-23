@@ -1386,6 +1386,38 @@ body.photo-open{overflow:hidden}
 .event-guide-hl small{display:block;margin-top:2px;font-size:12px;line-height:1.55;color:#736b7c;word-break:keep-all}
 .event-guide-details{margin:20px 0 16px;padding-top:16px;border-top:1px solid #eeeaf3}
 .event-guide-mail{margin-bottom:16px}
+
+/* Layout rhythm refinement 2026-11-23: spacing only, original colors preserved */
+:root{--layout-gap-xs:6px;--layout-gap-sm:10px;--layout-gap-md:16px;--layout-gap-lg:24px}
+.wrap{padding-top:24px;padding-bottom:64px}
+.page-head{margin:0 0 16px}
+.page-head-row{gap:12px}
+.page-head-desc{margin-top:6px}
+.top-actions{gap:10px;margin-top:14px}
+.top-action{padding:11px 14px}
+.hero{margin-bottom:16px}
+.status-card,.brand-card,.photo-card,.event-materials{padding:18px}
+.brand-card,.photo-card,.event-materials{margin-bottom:16px}
+.brand-grid{gap:10px}
+.board-shell,.board-filters{margin-bottom:14px}
+#boardList .board-row{padding:14px 16px}
+.np-summary{padding-top:13px;padding-bottom:13px}
+.np-detail{padding-bottom:16px}
+.photo-gate{margin-top:12px}
+@media(max-width:720px){
+ .wrap{padding:18px 14px calc(88px + env(safe-area-inset-bottom))}
+ .page-head{margin-bottom:14px}
+ .page-head-row{gap:8px}
+ .page-head-action{padding-inline:12px}
+ .hero{margin-bottom:14px}
+ .status-card,.brand-card,.photo-card,.event-materials{padding:15px}
+ .brand-card,.photo-card,.event-materials{margin-bottom:14px}
+ .brand-grid{gap:7px}
+ .top-actions{gap:8px}
+ #boardList .board-row{padding:13px 14px}
+ .np-summary{padding:12px 4px 12px 12px}
+ .np-detail{padding:0 12px 14px 64px}
+}
 </style>
 <script src="assets/raffle-batch.js?v=20261018-fx7"></script>
 <link rel="stylesheet" href="assets/raffle-presentation.css?v=20261018-fx7">

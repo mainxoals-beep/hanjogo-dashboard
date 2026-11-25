@@ -1433,9 +1433,10 @@ body.photo-open{overflow:hidden}
 @media(max-width:600px){.home-intro .home-quote{padding:22px 0 18px}.home-intro .home-quote-text{font-size:clamp(19px,5vw,24px)}.home-intro .home-quote-source{margin-top:54px}}
 
 /* Only the homepage quote: show the original photographed billboard, without changing the rest of the site. */
-.home-intro .home-quote-image{display:block;width:100%;max-width:500px;height:auto;max-height:230px;object-fit:contain;margin:0 auto;border-radius:8px}
-@media(max-width:600px){.home-intro .home-quote-image{width:90%;max-width:380px;max-height:none}.home-intro .home-quote{padding-top:16px;padding-bottom:16px}.home-intro .home-quote-source{margin-top:36px}}
-.home-intro .home-quote-image[hidden]{display:none!important}
+.home-intro .home-quote-crop{position:relative;overflow:hidden;width:100%;max-width:500px;aspect-ratio:2.45;margin:0 auto;border-radius:8px}
+.home-intro .home-quote-image{display:block;position:absolute;width:114%;max-width:none;height:auto;left:50%;top:50%;transform:translate(-50%,-50%)}
+@media(max-width:600px){.home-intro .home-quote-crop{width:90%;max-width:380px}.home-intro .home-quote{padding-top:16px;padding-bottom:16px}.home-intro .home-quote-source{margin-top:36px}}
+.home-intro .home-quote-image[hidden],.home-intro .home-quote-crop[hidden]{display:none!important}
 .home-intro .home-quote-text[hidden]{display:none!important}
 </style>
 <script src="assets/raffle-batch.js?v=20261018-fx7"></script>
@@ -1487,7 +1488,7 @@ body.photo-open{overflow:hidden}
   <div class="home-update" id="homeUpdate" hidden></div>
   <div class="home-intro">
     <div class="home-quote" aria-label="광화문글판 문구">
-      <img class="home-quote-image" src="https://contents.kyobobook.co.kr/pmtn/2025/book/251030_gwanghwa/bnD7_slide4.jpg" alt="2009년 가을 광화문글판. 대추가 저절로 붉어질 리는 없다, 저 안에 태풍 몇 개, 천둥 몇 개 벼락 몇 개" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><p class="home-quote-text" hidden>대추가 저절로 붉어질 리는 없다</p>
+      <div class="home-quote-crop"><img class="home-quote-image" src="https://contents.kyobobook.co.kr/pmtn/2025/book/251030_gwanghwa/bnD7_slide4.jpg" alt="2009년 가을 광화문글판. 대추가 저절로 붉어질 리는 없다, 저 안에 태풍 몇 개, 천둥 몇 개 벼락 몇 개" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.hidden=true;this.parentElement.nextElementSibling.hidden=false"></div><p class="home-quote-text" hidden>대추가 저절로 붉어질 리는 없다</p>
       <div class="home-quote-source">장석주 · 「대추 한 알」<span>교보생명 광화문글판 · 2009년 가을</span></div>
     </div>
     <div class="home-intro-kicker">한국조리과학고등학교 총동문회</div>

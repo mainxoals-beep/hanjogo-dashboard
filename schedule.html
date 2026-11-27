@@ -237,13 +237,14 @@ body.modal-open{overflow:hidden}
 .inapp-hint{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:#FFF6E0;font-size:12.5px;line-height:1.55;color:#7A5A00}
 .idea-btn{display:none;flex-basis:100%;background:#F7F4FD;border-color:#D9CFF0}body.net-verified .idea-btn{display:block}
 #ideaPrompt{width:min(400px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}#ideaPrompt::backdrop{background:rgba(25,20,35,.5)}
-.idea-card{padding:24px 20px 18px}.idea-card h2{margin:0 0 6px;font-size:19px;font-weight:900;text-align:center;color:var(--ink)}
-.idea-card>p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--sub);text-align:center}
-.idea-card textarea{width:100%;min-height:130px;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:15px;line-height:1.5;resize:vertical;box-sizing:border-box}
+.idea-card{padding:24px 20px 18px}.idea-card h2{margin:0 0 8px;font-size:19px;font-weight:900;text-align:center;color:var(--ink)}
+.idea-card>p{margin:0 0 14px;font-size:13.5px;line-height:1.6;color:var(--sub);text-align:center;word-break:keep-all}
+.idea-card textarea{display:block;width:100%;min-height:120px;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:15px;line-height:1.5;resize:vertical;box-sizing:border-box}
+.idea-card textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px #ECE6FA}
 .idea-ex{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--mute)}
-.idea-status{min-height:1.2em;margin:8px 0 0;font-size:13px;font-weight:700;text-align:center;color:#1F7A4D}
-.idea-actions{display:flex;gap:8px;margin-top:8px}.idea-actions .tour-btn{flex:1}.idea-actions .tour-btn.primary{flex:1.5}
-.idea-admin{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.idea-admin summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--purple-dark)}
+.idea-status:empty{display:none}.idea-status{margin:10px 0 0;font-size:13px;font-weight:700;text-align:center;color:#1F7A4D}
+.idea-actions{display:flex;gap:8px;margin-top:14px}.idea-actions .tour-btn{flex:1}.idea-actions .tour-btn.primary{flex:1.5}
+.idea-admin{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}.idea-admin summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--purple-dark)}
 .idea-list{display:grid;gap:8px;max-height:40vh;overflow:auto;margin-top:8px}.idea-list div{padding:10px 12px;border-radius:10px;background:#F7F5FB;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:keep-all}.idea-list small{display:block;margin-top:4px;color:var(--mute);font-size:11px}
 #pwPrompt{width:min(380px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}#pwPrompt::backdrop{background:rgba(25,20,35,.5)}
 .pwp-card{padding:24px 20px 18px}.pwp-card h2{margin:0 0 6px;font-size:19px;font-weight:900;text-align:center;color:var(--ink)}
@@ -2176,7 +2177,7 @@ body.photo-open{overflow:hidden}
 <dialog id="ideaPrompt" aria-labelledby="ideaPromptTitle">
   <div class="idea-card">
     <h2 id="ideaPromptTitle">💡 이런 기능 있으면 좋겠다!</h2>
-    <p>한조고 사이트에 바라는 기능이나 불편한 점을 자유롭게 적어 주세요.<br>운영진만 읽고, 이름은 보이지 않아요.</p>
+    <p>한조고 사이트에 바라는 기능을<br>자유롭게 적어 주세요.<br>운영진만 읽고, 이름은 보이지 않아요.</p>
     <textarea id="ideaText" maxlength="1000" placeholder="예: 동문 업장 할인 모아보기, 분야별 채용 알림, 선후배 멘토링 연결…"></textarea>
     <div class="idea-status" id="ideaStatus" aria-live="polite"></div>
     <div class="idea-actions"><button type="button" class="tour-btn" id="ideaLater">나중에</button><button type="button" class="tour-btn primary" id="ideaSend">보내기</button></div>

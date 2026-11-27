@@ -235,6 +235,16 @@ body.modal-open{overflow:hidden}
 .pw-login{margin-top:12px}.pw-set summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--purple-dark)}
 .pw-login summary{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border:1px solid #D9CFF0;border-radius:12px;background:#F7F4FD;cursor:pointer;font-size:14px;font-weight:800;color:var(--purple-dark);list-style:none}.pw-login summary::-webkit-details-marker{display:none}
 .inapp-hint{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:#FFF6E0;font-size:12.5px;line-height:1.55;color:#7A5A00}
+.idea-btn{display:none;flex-basis:100%;background:#F7F4FD;border-color:#D9CFF0}body.net-verified .idea-btn{display:block}
+#ideaPrompt{width:min(400px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}#ideaPrompt::backdrop{background:rgba(25,20,35,.5)}
+.idea-card{padding:24px 20px 18px}.idea-card h2{margin:0 0 6px;font-size:19px;font-weight:900;text-align:center;color:var(--ink)}
+.idea-card>p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--sub);text-align:center}
+.idea-card textarea{width:100%;min-height:130px;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:15px;line-height:1.5;resize:vertical;box-sizing:border-box}
+.idea-ex{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--mute)}
+.idea-status{min-height:1.2em;margin:8px 0 0;font-size:13px;font-weight:700;text-align:center;color:#1F7A4D}
+.idea-actions{display:flex;gap:8px;margin-top:8px}.idea-actions .tour-btn{flex:1}.idea-actions .tour-btn.primary{flex:1.5}
+.idea-admin{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.idea-admin summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--purple-dark)}
+.idea-list{display:grid;gap:8px;max-height:40vh;overflow:auto;margin-top:8px}.idea-list div{padding:10px 12px;border-radius:10px;background:#F7F5FB;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:keep-all}.idea-list small{display:block;margin-top:4px;color:var(--mute);font-size:11px}
 #pwPrompt{width:min(380px,calc(100% - 28px));padding:0;border:1px solid #e8e3ef;border-radius:22px;background:#fff;color:#292532;box-shadow:0 24px 60px rgba(25,20,35,.28)}#pwPrompt::backdrop{background:rgba(25,20,35,.5)}
 .pwp-card{padding:24px 20px 18px}.pwp-card h2{margin:0 0 6px;font-size:19px;font-weight:900;text-align:center;color:var(--ink)}
 .pwp-card p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--sub);text-align:center}
@@ -1636,6 +1646,7 @@ body.photo-open{overflow:hidden}
 <button class="event-guide-reopen" type="button" id="eventGuideOpen" hidden>행사 안내</button>
 <button class="top-action primary" id="shareBtn">공유하기</button>
 <a class="top-action contact-mail" href="mailto:mainxoals@gmail.com" data-contact-mail>문의하기</a>
+<button class="top-action idea-btn" type="button" id="ideaOpenBtn">💡 사이트에 바라는 기능 남기기</button>
 </div>
 
 
@@ -2162,6 +2173,16 @@ body.photo-open{overflow:hidden}
   </div>
 </dialog>
 
+<dialog id="ideaPrompt" aria-labelledby="ideaPromptTitle">
+  <div class="idea-card">
+    <h2 id="ideaPromptTitle">💡 이런 기능 있으면 좋겠다!</h2>
+    <p>한조고 사이트에 바라는 기능이나 불편한 점을 자유롭게 적어 주세요.<br>운영진만 읽고, 이름은 보이지 않아요.</p>
+    <textarea id="ideaText" maxlength="1000" placeholder="예: 동문 업장 할인 모아보기, 분야별 채용 알림, 선후배 멘토링 연결…"></textarea>
+    <div class="idea-status" id="ideaStatus" aria-live="polite"></div>
+    <div class="idea-actions"><button type="button" class="tour-btn" id="ideaLater">나중에</button><button type="button" class="tour-btn primary" id="ideaSend">보내기</button></div>
+    <details class="idea-admin" id="ideaAdmin" hidden><summary>지금까지 모인 의견 보기 (관리자)</summary><div class="idea-list" id="ideaList"></div></details>
+  </div>
+</dialog>
 <dialog id="pwPrompt" aria-labelledby="pwPromptTitle">
   <div class="pwp-card">
     <h2 id="pwPromptTitle">🔑 다음부터 메일 없이 로그인하세요</h2>
@@ -3343,7 +3364,7 @@ async function loadNetworkProfiles(session,{refresh=false}={}){
 function setNetworkAccessView(state,{email="",message=""}={}){
   networkAccessState=state;
   document.body.classList.toggle("net-verified",state==="verified");
-  if(state==="verified"){setTimeout(maybeOpenScarf,2500);try{maybeOpenPwPrompt();}catch(e){}}
+  if(state==="verified"){setTimeout(maybeOpenScarf,2500);try{maybeOpenPwPrompt();}catch(e){}try{maybeOpenIdea();}catch(e){}}
   if(state==="signed-out")try{void maybeSilentSignIn();}catch(e){}
   if(state==="verified"||state==="signed-out"||state==="denied")setTimeout(()=>loadRecap(true),400);
   setTimeout(syncPhotoAccess,0);
@@ -3513,6 +3534,49 @@ document.getElementById("pwSetForm")?.addEventListener("submit",async e=>{
   document.getElementById("pwSetNew").value="";document.getElementById("pwSetNew2").value="";
   st.textContent="저장했어요. 다음부터 로그인 화면의 '비밀번호로 로그인'을 쓰면 돼요.";lsSet(PWP_DONE_KEY,"1");
 });
+// 사이트에 바라는 기능 받기: 인증 동문에게 한 번 띄우고('나중에'는 이틀 뒤, 최대 2번), 홈 버튼으로 언제든 열 수 있어요.
+const IDEA_SENT_KEY="hanjogo-idea-sent",IDEA_LATER_KEY="hanjogo-idea-later",IDEA_COUNT_KEY="hanjogo-idea-count";
+let ideaTried=false;
+function ideaDue(){
+  if(ideaTried||networkAccessState!=="verified"||!networkCurrentSession)return false;
+  const params=new URLSearchParams(location.search);
+  if(window.top!==window||params.has("raffle")||params.has("rafflePreview")||params.has("embedded")||params.has("preview")||params.has("post"))return false;
+  if(lsGet(TOUR_KEY)===null||lsGet(IDEA_SENT_KEY)||(Number(lsGet(IDEA_COUNT_KEY))||0)>=2)return false;
+  const later=Number(lsGet(IDEA_LATER_KEY))||0;return !(later&&Date.now()-later<2*24*60*60*1000);
+}
+function maybeOpenIdea(){
+  setTimeout(()=>{
+    if(!ideaDue()||document.querySelector("dialog[open]")||document.body.classList.contains("modal-open"))return;
+    ideaTried=true;lsSet(IDEA_COUNT_KEY,String((Number(lsGet(IDEA_COUNT_KEY))||0)+1));openIdea();
+  },6000);
+}
+function openIdea(){
+  const d=document.getElementById("ideaPrompt");if(!d||d.open)return;
+  document.getElementById("ideaStatus").textContent="";
+  const adm=document.getElementById("ideaAdmin");if(adm){adm.hidden=!networkIsAdmin;adm.open=false;}
+  overlayOpen("ideaPrompt",()=>closeIdea(true));try{d.showModal();}catch(e){d.setAttribute("open","");}
+}
+function closeIdea(later){if(later&&!lsGet(IDEA_SENT_KEY))lsSet(IDEA_LATER_KEY,String(Date.now()));overlayClose("ideaPrompt");const d=document.getElementById("ideaPrompt");if(d?.open)d.close();}
+document.getElementById("ideaOpenBtn")?.addEventListener("click",()=>{if(networkAccessState!=="verified"){setSiteView("network");return;}openIdea();});
+document.getElementById("ideaLater")?.addEventListener("click",()=>closeIdea(true));
+document.getElementById("ideaPrompt")?.addEventListener("cancel",e=>{e.preventDefault();closeIdea(true);});
+document.getElementById("ideaSend")?.addEventListener("click",async()=>{
+  const ta=document.getElementById("ideaText"),st=document.getElementById("ideaStatus"),btn=document.getElementById("ideaSend"),text=ta.value.trim();
+  if(!text){st.style.color="#B4532A";st.textContent="바라는 기능을 한 줄이라도 적어 주세요.";return;}
+  btn.disabled=true;st.style.color="";st.textContent="보내는 중입니다.";
+  const {error}=await sb.rpc("submit_hanjogo_site_feedback",{p_content:text});
+  btn.disabled=false;
+  if(error){st.style.color="#B4532A";st.textContent=/too_many/.test(String(error.message||""))?"오늘은 충분히 남겨 주셨어요. 내일 또 남겨 주세요!":"보내지 못했어요. 잠시 후 다시 해 주세요.";return;}
+  lsSet(IDEA_SENT_KEY,"1");ta.value="";st.style.color="#1F7A4D";st.textContent="고마워요! 잘 받았어요. 더 생각나면 또 적어 주세요.";
+});
+document.getElementById("ideaAdmin")?.addEventListener("toggle",async e=>{
+  if(!e.currentTarget.open)return;const box=document.getElementById("ideaList");box.textContent="불러오는 중입니다.";
+  const {data,error}=await sb.rpc("get_hanjogo_site_feedback");
+  if(error){box.textContent="불러오지 못했어요. (관리자 계정으로 로그인해야 볼 수 있어요)";return;}
+  const rows=Array.isArray(data)?data:[];
+  box.innerHTML=rows.length?rows.map(r=>'<div>'+esc(r.content)+'<small>'+esc(boardDate(r.createdAt))+'</small></div>').join(""):'<div>아직 모인 의견이 없어요.</div>';
+});
+if(new URLSearchParams(location.search).get("preview")==="idea")setTimeout(()=>openIdea(),2500);
 // 비밀번호를 아직 정하지 않은 인증 동문에게 한 번씩 권합니다('나중에'는 이틀 뒤, 최대 3번).
 const PWP_DONE_KEY="hanjogo-pw-prompt-done",PWP_LATER_KEY="hanjogo-pw-prompt-later",PWP_COUNT_KEY="hanjogo-pw-prompt-count";
 let pwpTried=false;
